@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sooraj Sudhakaran | Robotics & Automation Engineer</title>
+  <meta name="description" content="Portfolio website for Sooraj Sudhakaran, Robotics and Automation Engineer specializing in ROS, autonomous systems, industrial robotics, and simulation-driven design." />
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #121a30;
+      --soft: #1a2440;
+      --soft-2: #1d2948;
+      --text: #eaf0ff;
+      --muted: #b7c2e0;
+      --accent: #79a8ff;
+      --accent-2: #8ef0d0;
+      --success: #25ff4a;
+      --line: rgba(255,255,255,0.08);
+      --line-strong: rgba(255,255,255,0.14);
+      --shadow: 0 18px 45px rgba(0,0,0,0.28);
+      --shadow-soft: 0 12px 28px rgba(0,0,0,0.18);
+      --max: 1160px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(121,168,255,0.14), transparent 28%),
+        radial-gradient(circle at right center, rgba(142,240,208,0.08), transparent 24%),
+        linear-gradient(180deg, #08101f 0%, #0c1327 42%, #101936 100%);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; display: block; }
+
+    .container {
+      width: min(calc(100% - 2rem), var(--max));
+      margin: 0 auto;
+    }
+
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(14px);
+      background: rgba(11, 16, 32, 0.78);
+      border-bottom: 1px solid var(--line);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.18);
+    }
+
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 0;
+      gap: 1rem;
+    }
+
+    .brand {
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      font-size: 1rem;
+    }
+
+    .nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .nav-links a {
+      position: relative;
+      transition: color 0.25s ease, transform 0.25s ease;
+    }
+
+    .nav-links a::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: -0.22rem;
+      width: 0;
+      height: 2px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      transition: width 0.25s ease;
+    }
+
+    .nav-links a:hover,
+    .nav-links a.active-link {
+      color: var(--text);
+      transform: translateY(-1px);
+    }
+
+    .nav-links a:hover::after,
+    .nav-links a.active-link::after {
+      width: 100%;
+    }
+
+    .hero {
+      padding: 5.4rem 0 3.2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      left: 3%;
+      bottom: 8%;
+      width: 420px;
+      height: 420px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(142,240,208,0.08), transparent 68%);
+      filter: blur(18px);
+      pointer-events: none;
+      animation: slowDrift 8s ease-in-out infinite;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: 5%;
+      top: 10%;
+      width: 360px;
+      height: 360px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(121,168,255,0.14) 0%, rgba(121,168,255,0.04) 36%, transparent 72%);
+      filter: blur(10px);
+      pointer-events: none;
+      animation: floatGlow 6s ease-in-out infinite;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 2rem;
+      align-items: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.48rem 0.85rem;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255,255,255,0.03);
+      color: var(--accent-2);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow-soft);
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    h1 {
+      font-size: clamp(2.5rem, 5vw, 4.9rem);
+      line-height: 1.02;
+      letter-spacing: -0.03em;
+      margin-bottom: 1rem;
+      max-width: 12ch;
+    }
+
+    h2 {
+      font-size: clamp(1.8rem, 2vw, 2.35rem);
+      letter-spacing: -0.02em;
+    }
+
+    .lead {
+      font-size: 1.08rem;
+      color: var(--muted);
+      max-width: 64ch;
+      margin-bottom: 1.6rem;
+    }
+
+    .hero-actions,
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.9rem;
+      margin-bottom: 1.35rem;
+    }
+
+    .btn {
+      position: relative;
+      overflow: hidden;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.9rem 1.2rem;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.03);
+      color: var(--text);
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.15);
+      transition: transform 0.28s ease, border-color 0.28s ease, box-shadow 0.28s ease, background 0.28s ease;
+    }
+
+    .btn::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(120deg, transparent 20%, rgba(255,255,255,0.10) 50%, transparent 80%);
+      transform: translateX(-130%);
+      transition: transform 0.7s ease;
+      pointer-events: none;
+    }
+
+    .btn:hover {
+      transform: translateY(-3px);
+      border-color: rgba(121,168,255,0.32);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.24);
+    }
+
+    .btn:hover::after {
+      transform: translateX(130%);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #5b7cff);
+      color: #08101f;
+      border: none;
+    }
+
+    .btn-small {
+      padding: 0.72rem 1rem;
+      border-radius: 12px;
+      font-size: 0.92rem;
+    }
+
+    .hero-card,
+    .card {
+      position: relative;
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.03));
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      transition: transform 0.32s ease, border-color 0.32s ease, box-shadow 0.32s ease, background 0.32s ease;
+    }
+
+    .hero-card:hover,
+    .card:hover,
+    .timeline-item:hover {
+      transform: translateY(-5px);
+      border-color: rgba(121,168,255,0.24);
+      box-shadow: 0 24px 50px rgba(0,0,0,0.28);
+    }
+
+    .hero-card {
+      padding: 1.4rem;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 15% 20%, rgba(121,168,255,0.10), transparent 24%),
+        linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.03));
+    }
+
+    .hero-card::after,
+    .shine-card::after {
+      content: "";
+      position: absolute;
+      top: -120%;
+      left: -120%;
+      width: 80%;
+      height: 260%;
+      background: linear-gradient(115deg, transparent 20%, rgba(255,255,255,0.06) 50%, transparent 80%);
+      transform: rotate(18deg);
+      transition: transform 0.8s ease;
+      pointer-events: none;
+    }
+
+    .hero-card:hover::after,
+    .shine-card:hover::after {
+      transform: translateX(240%) rotate(18deg);
+    }
+
+    .hero-top-panel {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 1rem;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .hero-photo {
+      width: 132px;
+      height: 132px;
+      border-radius: 24px;
+      object-fit: cover;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.04);
+      box-shadow: 0 12px 26px rgba(0,0,0,0.22);
+    }
+
+    .hero-panel-kicker {
+      color: var(--accent-2);
+      font-size: 0.88rem;
+      font-weight: 700;
+      margin-bottom: 0.3rem;
+    }
+
+    .hero-panel-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      line-height: 1.35;
+      margin: 0 0 0.3rem;
+    }
+
+    .hero-panel-subtitle {
+      color: var(--muted);
+      font-size: 0.94rem;
+      margin: 0;
+    }
+
+    .hero-meta,
+    .timeline {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .meta-item {
+      padding: 1rem;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+    }
+
+    .meta-item:hover {
+      transform: translateY(-2px);
+      border-color: rgba(142,240,208,0.18);
+      background: rgba(255,255,255,0.045);
+    }
+
+    .meta-item-link {
+      display: block;
+    }
+
+    .meta-label {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .live-inline,
+    .title-live {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      vertical-align: middle;
+      flex-wrap: wrap;
+    }
+
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      vertical-align: middle;
+      flex: 0 0 auto;
+    }
+
+    .live-dot-wrap {
+      position: relative;
+      width: 16px;
+      height: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .live-dot-wrap::before,
+    .live-dot-wrap::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      background: rgba(37,255,74,0.16);
+      animation: pulseRing 2.2s ease-out infinite;
+    }
+
+    .live-dot-wrap::before {
+      inset: -6px;
+    }
+
+    .live-dot-wrap::after {
+      inset: -12px;
+      background: rgba(37,255,74,0.10);
+      animation-delay: 0.55s;
+    }
+
+    .live-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      background: var(--success);
+      box-shadow: 0 0 0 4px rgba(37,255,74,0.18), 0 0 24px rgba(37,255,74,0.45);
+      position: relative;
+      z-index: 2;
+      animation: pulseCore 1.8s ease-in-out infinite;
+    }
+
+    section {
+      padding: 2.8rem 0;
+    }
+
+    .reveal-on-scroll {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.75s ease, transform 0.75s ease;
+    }
+
+    .reveal-on-scroll.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .section-heading {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.45rem;
+    }
+
+    .section-heading p {
+      color: var(--muted);
+      max-width: 60ch;
+      margin-bottom: 0;
+    }
+
+    .grid {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .grid-3 { grid-template-columns: repeat(3, 1fr); }
+    .grid-2 { grid-template-columns: repeat(2, 1fr); }
+
+    .card { padding: 1.25rem; }
+    .card h3 { margin-bottom: 0.55rem; }
+    .muted { color: var(--muted); }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      margin-top: 1rem;
+    }
+
+    .chip {
+      padding: 0.48rem 0.85rem;
+      border-radius: 999px;
+      background: rgba(121,168,255,0.12);
+      border: 1px solid rgba(121,168,255,0.2);
+      color: #d8e5ff;
+      font-size: 0.9rem;
+      transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+    }
+
+    .chip:hover {
+      transform: translateY(-2px);
+      border-color: rgba(142,240,208,0.22);
+      background: rgba(121,168,255,0.16);
+    }
+
+    .timeline-item {
+      position: relative;
+      padding: 1.35rem;
+      border-left: 3px solid var(--accent);
+      background: rgba(255,255,255,0.03);
+      border-radius: 0 22px 22px 0;
+      border-top: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      transition: transform 0.32s ease, border-color 0.32s ease, box-shadow 0.32s ease;
+      overflow: hidden;
+    }
+
+    .timeline-item.primary-experience {
+      background:
+        radial-gradient(circle at 90% 20%, rgba(255,255,255,0.05), transparent 26%),
+        linear-gradient(90deg, rgba(121,168,255,0.06), rgba(255,255,255,0.02));
+    }
+
+    .timeline-item .date,
+    .card .date {
+      color: var(--accent-2);
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 0.45rem;
+    }
+
+    .timeline-item h3 {
+      font-size: clamp(1.2rem, 2vw, 1.35rem);
+      line-height: 1.35;
+      margin-bottom: 0.7rem;
+    }
+
+    ul.clean {
+      margin: 0.8rem 0 0;
+      padding-left: 1.1rem;
+      color: var(--muted);
+    }
+
+    .project-card {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+
+    .project-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.85rem;
+    }
+
+    .project-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, rgba(121,168,255,0.18), rgba(142,240,208,0.12));
+      border: 1px solid rgba(121,168,255,0.18);
+      font-size: 1.25rem;
+      flex: 0 0 auto;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .project-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .project-tag {
+      font-size: 0.8rem;
+      color: var(--muted);
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.03);
+      padding: 0.28rem 0.55rem;
+      border-radius: 999px;
+    }
+
+    .contact-box {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 1rem;
+      align-items: stretch;
+    }
+
+    .footer {
+      padding: 2rem 0 3rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .small {
+      font-size: 0.95rem;
+      color: var(--muted);
+    }
+
+    .floating-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      margin-top: 1rem;
+      padding: 0.58rem 0.9rem;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.03);
+      color: var(--muted);
+      animation: softFloat 3.8s ease-in-out infinite;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .spark {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--accent-2);
+      box-shadow: 0 0 14px rgba(142,240,208,0.6);
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-top: 1.2rem;
+    }
+
+    .stat-box {
+      padding: 1rem;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.03);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .stat-box strong {
+      display: block;
+      font-size: 1.35rem;
+      margin-bottom: 0.25rem;
+      color: var(--text);
+    }
+
+    @keyframes pulseRing {
+      0% { transform: scale(0.72); opacity: 0.7; }
+      70% { transform: scale(1.1); opacity: 0; }
+      100% { transform: scale(1.1); opacity: 0; }
+    }
+
+    @keyframes pulseCore {
+      0%, 100% { transform: scale(0.94); }
+      50% { transform: scale(1.08); }
+    }
+
+    @keyframes softFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+
+    @keyframes floatGlow {
+      0%, 100% { transform: translateY(0) translateX(0); }
+      50% { transform: translateY(-10px) translateX(8px); }
+    }
+
+    @keyframes slowDrift {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(18px, -12px); }
+    }
+
+    @media (max-width: 900px) {
+      .hero-grid,
+      .grid-3,
+      .grid-2,
+      .contact-box,
+      .stats-row,
+      .hero-top-panel {
+        grid-template-columns: 1fr;
+      }
+
+      .nav-inner,
+      .section-heading {
+        align-items: start;
+        flex-direction: column;
+      }
+
+      .hero-photo {
+        width: 140px;
+        height: 140px;
+      }
+
+      .hero::after {
+        width: 220px;
+        height: 220px;
+      }
+
+      h1 {
+        max-width: none;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="container nav-inner">
+      <a href="#top" class="brand">SOORAJ SUDHAKARAN</a>
+      <nav class="nav-links">
+        <a href="#about">About</a>
+        <a href="#skills">Skills</a>
+        <a href="#experience">Experience</a>
+        <a href="#projects">Projects</a>
+        <a href="#education">Education</a>
+        <a href="#certificates">Certificates</a>
+        <a href="#accomplishments">Accomplishments</a>
+        <a href="#contact">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero reveal-on-scroll">
+      <div class="container hero-grid">
+        <div>
+          <div class="eyebrow">Robotics & Automation Engineer · M.Eng Mechatronics</div>
+          <h1>Building reliable robotic systems from simulation to real-world deployment.</h1>
+          <p class="lead">
+            I am Sooraj Sudhakaran, a mechatronics engineer focused on robotics, industrial automation, sensor integration, ROS-based autonomy, and practical engineering implementation. I work across simulation, control logic, and deployment-ready robotic workflows.
+          </p>
+
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="CV/Sooraj_Sudhakaran_CV.pdf" target="_blank" rel="noreferrer">View CV</a>
+            <a class="btn" href="journey.html">My Journey</a>
+            <a class="btn" href="https://github.com/SoorajSudhakaran1199" target="_blank" rel="noreferrer">View GitHub</a>
+            <a class="btn" href="https://www.linkedin.com/in/sooraj-sudhakaran1999" target="_blank" rel="noreferrer">LinkedIn</a>
+            <a class="btn" href="mailto:soorajsudhakaran1199@gmail.com">Email Me</a>
+          </div>
+
+          <div class="floating-badge">
+            <span class="spark"></span>
+            Open to work on robotics, automation, and autonomous systems roles
+          </div>
+
+          <p class="small" style="margin-top:1rem;">
+            Based in Stuttgart, Germany · Open to full-time engineering roles in robotics, control systems, and industrial automation.
+          </p>
+
+          <div class="stats-row">
+            <div class="stat-box">
+              <strong>ROS / ROS2</strong>
+              <span class="muted">Autonomy, navigation, robotics workflows</span>
+            </div>
+            <div class="stat-box">
+              <strong>Python · C++</strong>
+              <span class="muted">Engineering implementation and logic</span>
+            </div>
+            <div class="stat-box">
+              <strong>Germany Based</strong>
+              <span class="muted">Ready for international engineering roles</span>
+            </div>
+          </div>
+        </div>
+
+        <a href="#experience" class="meta-item-link" aria-label="Go to experience details">
+          <aside class="hero-card">
+            <div class="hero-top-panel">
+              <img class="hero-photo" src="Images/My_photo.jpg" alt="Sooraj Sudhakaran profile photo" />
+              <div>
+                <div class="hero-panel-kicker">Professional Snapshot</div>
+                <p class="hero-panel-title">Robotics, automation, motion planning, and deployment-ready engineering.</p>
+                <p class="hero-panel-subtitle">Focused on turning simulation and control logic into practical industrial solutions.</p>
+              </div>
+            </div>
+
+            <div class="hero-meta">
+              <div class="meta-item shine-card">
+                <div class="meta-label">Current Role</div>
+                <strong>
+                  <span class="live-inline">
+                    <span class="live-badge" aria-label="Currently active">
+                      <span class="live-dot-wrap"><span class="live-dot"></span></span>
+                    </span>
+                    <span>Master’s Thesis · KEBA Group</span>
+                  </span>
+                </strong>
+                <div style="margin-top: 0.9rem;">
+                  <span class="btn btn-small">View Experience</span>
+                </div>
+              </div>
+
+              <div class="meta-item shine-card">
+                <div class="meta-label">Focus Areas</div>
+                <strong>ROS, Industrial Robotics, Motion Planning, Sensor Integration</strong>
+              </div>
+
+              <div class="meta-item shine-card">
+                <div class="meta-label">Core Stack</div>
+                <strong>Python, C++, ROS/ROS2, MATLAB, Simulink, Unity</strong>
+              </div>
+            </div>
+          </aside>
+        </a>
+      </div>
+    </section>
+
+    <section id="about" class="reveal-on-scroll">
+      <div class="container">
+        <div class="section-heading">
+          <div>
+            <h2>About</h2>
+            <p>Professional summary tailored for recruiters, hiring managers, and technical collaborators.</p>
+          </div>
+        </div>
+        <div class="card shine-card">
+          <p class="muted">
+            Master’s student in Mechatronics and Cyber-Physical Systems with hands-on experience in autonomous robotics, safe motion planning, simulation-driven design, embedded control concepts, XR-based training environments, and engineering optimization workflows. My work emphasizes robust robotic behavior, efficient automation workflows, and the transition from simulation environments to practical deployment in real systems.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="skills" class="reveal-on-scroll">
+      <div class="container">
+        <div class="section-heading">
+          <div>
+            <h2>Core Skills</h2>
+            <p>A focused overview of the technologies and engineering domains I work with most.</p>
+          </div>
+        </div>
+        <div class="grid grid-3">
+          <article class="card shine-card">
+            <h3>Robotics & Control</h3>
+            <p class="muted">ROS/ROS2, navigation, SLAM, motion control, trajectory planning, robot programming, sensor integration, and safety-aware motion planning.</p>
+          </article>
+          <article class="card shine-card">
+            <h3>Programming & Simulation</h3>
+            <p class="muted">Python, C++, C#, MATLAB, Simulink, Unity, VR, AR, XR, and simulation workflows.</p>
+          </article>
+          <article class="card shine-card">
+            <h3>Sensing & Engineering Tools</h3>
+            <p class="muted">LiDAR, radar, sensor fusion, OpenCV, SOLIDWORKS, AutoCAD, ANSYS Workbench, Blender, GitHub, Ubuntu.</p>
+          </article>
+        </div>
+        <div class="chips">
+          <span class="chip">Industrial Robotics</span>
+          <span class="chip">Autonomous Systems</span>
+          <span class="chip">Sensor Integration</span>
+          <span class="chip">Computer Vision</span>
+          <span class="chip">Functional Safety</span>
+          <span class="chip">Additive Manufacturing</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="experience" class="reveal-on-scroll">
+      <div class="container">
+        <div class="section-heading">
+          <div>
+            <h2>Experience</h2>
+            <p>Engineering work that reflects hands-on implementation and practical problem-solving in industrial contexts.</p>
+          </div>
+        </div>
+
+        <div class="timeline">
+          <article class="timeline-item primary-experience shine-card">
+            <div class="date">09/2025 – Present</div>
+
+            <h3>
+              <span class="title-live">
+                <span class="live-badge" aria-label="Currently active">
+                  <span class="live-dot-wrap"><span class="live-dot"></span></span>
+                </span>
+                <span>Master’s Thesis · Industrial Automation and Robotics · KEBA Group, Germany</span>
+              </span>
+            </h3>
+
+            <ul class="clean">
+              <li>Developed an automated robot-programming framework for sheet-metal bending operations for the KEBA robotic controller.</li>
+              <li>Implemented Python-based sequencing, re-grip strategies, and collision-avoidance logic for safe robotic manipulation.</li>
+              <li>Integrated simulation and real-cell constraints through ROS WebSocket connectivity for reliable deployment.</li>
+            </ul>
+
+            <a class="btn btn-small" href="https://www.keba.com" target="_blank" rel="noreferrer">View KEBA Group</a>
+          </article>
+
+          <article class="timeline-item shine-card">
+            <div class="date">02/2022 – 09/2022</div>
+            <h3>Non-Destructive Testing Technician · United Engineering and Construction Co., India</h3>
+            <ul class="clean">
+              <li>Performed NDT-based quality assessments to support structural integrity and engineering compliance.</li>
+              <li>Documented inspection outcomes in line with engineering and site standards.</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="projects" class="reveal-on-scroll">
+      <div class="container">
+        <div class="section-heading">
+          <div>
+            <h2>Selected Projects</h2>
+            <p>Academic and hands-on projects that demonstrate robotics, simulation, optimization, and embedded systems work.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-2">
+          <article class="card shine-card project-card">
+            <div class="project-header">
+              <div class="project-icon">🤖</div>
+              <div>
+                <div class="date">03/2024 – 06/2024</div>
+                <h3>Autonomous Vacuum Robot in ROS</h3>
+              </div>
+            </div>
+            <p class="muted">Designed and implemented an autonomous vacuum robot with real-time localization using SLAM, sensor fusion, obstacle detection, and optimized path planning.</p>
+            <div class="project-meta">
+              <span class="project-tag">ROS</span>
+              <span class="project-tag">SLAM</span>
+              <span class="project-tag">Autonomy</span>
+            </div>
+            <div class="button-row">
+              <a class="btn btn-small" href="https://github.com/SoorajSudhakaran1199/vaccumbot" target="_blank" rel="noreferrer">GitHub Repository</a>
+            </div>
+          </article>
+
+          <article class="card shine-card project-card">
+            <div class="project-header">
+              <div class="project-icon">🥽</div>
+              <div>
+                <div class="date">03/2024 – 06/2024</div>
+                <h3>VR Workshop to Operate a Machine Using Unity</h3>
+              </div>
+            </div>
+            <p class="muted">Developed an interactive VR-based machine operation workshop with real-time simulation, motion tracking, and authentic user interaction.</p>
+            <div class="project-meta">
+              <span class="project-tag">Unity</span>
+              <span class="project-tag">VR</span>
+              <span class="project-tag">Training</span>
+            </div>
+            <div class="button-row">
+              <span class="btn btn-small" style="cursor:default;">Academic Project</span>
+            </div>
+          </article>
+
+          <article class="card shine-card project-card">
+            <div class="project-header">
+              <div class="project-icon">📐</div>
+              <div>
+                <div class="date">10/2023 – 01/2024</div>
+                <h3>Topology Optimised Temporary Bag Sealer</h3>
+              </div>
+            </div>
+            <p class="muted">Applied FEA-driven topology optimization in SOLIDWORKS, achieving weight reduction and material cost savings while preparing the design for additive manufacturing.</p>
+            <div class="project-meta">
+              <span class="project-tag">SOLIDWORKS</span>
+              <span class="project-tag">FEA</span>
+              <span class="project-tag">Optimization</span>
+            </div>
+            <div class="button-row">
+              <span class="btn btn-small" style="cursor:default;">Design Optimization Project</span>
+            </div>
+          </article>
+
+          <article class="card shine-card project-card">
+            <div class="project-header">
+              <div class="project-icon">📊</div>
+              <div>
+                <div class="date">10/2023 – 01/2024</div>
+                <h3>Active Suspension System Modeling Using MATLAB Simulink</h3>
+              </div>
+            </div>
+            <p class="muted">Modeled an active suspension system with hydraulic actuators for real-time suspension control, simulation, and performance analysis.</p>
+            <div class="project-meta">
+              <span class="project-tag">MATLAB</span>
+              <span class="project-tag">Simulink</span>
+              <span class="project-tag">Modeling</span>
+            </div>
+            <div class="button-row">
+              <span class="btn btn-small" style="cursor:default;">Simulation Project</span>
+            </div>
+          </article>
+
+          <article class="card shine-card project-card">
+            <div class="project-header">
+              <div class="project-icon">🏥</div>
+              <div>
+                <div class="date">07/2021</div>
+                <h3>Bachelor Project · Automated Mechatronic Robot for Enhancing Hospitality Services</h3>
+              </div>
+            </div>
+            <p class="muted">Built an Arduino-based service robot with line-tracking navigation and sensor integration to improve path accuracy and smooth operation in dynamic environments.</p>
+            <div class="project-meta">
+              <span class="project-tag">Arduino</span>
+              <span class="project-tag">Robot Design</span>
+              <span class="project-tag">Award-Winning</span>
+            </div>
+            <div class="button-row">
+              <span class="btn btn-small" style="cursor:default;">Award-Winning Bachelor Project</span>
+            </div>
+          </article>
+        </div>
+
+        <!-- Hidden note kept in code only:
+        The Autonomous Vacuum Robot project is linked to GitHub.
+        The remaining projects are presented professionally as portfolio work and can be linked later if repositories are added.
+        -->
+      </div>
+    </section>
+
+    <section id="education" class="reveal-on-scroll">
+      <div class="container">
+        <div class="section-heading">
+          <div>
+            <h2>Education</h2>
+            <p>Academic foundation in mechatronics, cyber-physical systems, and mechanical engineering.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-2">
+          <article class="card shine-card">
+            <h3>
+              <span class="title-live">
+                <span class="live-badge" aria-label="Currently active">
+                  <span class="live-dot-wrap"><span class="live-dot"></span></span>
+                </span>
+                <span>M.Eng. Mechatronic and Cyber-Physical Systems</span>
+              </span>
+            </h3>
+            <p class="muted">Technische Hochschule Deggendorf · 03/2023 – Present</p>
+            <p class="muted">Relevant coursework: Advanced Robotics, Autonomous Systems, Cyber-Physical Systems, Additive Manufacturing, Human-Machine Interaction.</p>
+          </article>
+
+          <article class="card shine-card">
+            <h3>B.Tech. Mechanical Engineering</h3>
+            <p class="muted">APJ Abdul Kalam Technological University · 08/2017 – 07/2021</p>
+            <p class="muted">Relevant coursework: CAD and CAE, Material Science, Programming in C, Fluid and Thermal Engineering.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="certificates" class="reveal-on-scroll">
+      <div class="container">
+        <div class="section-heading">
+          <div>
+            <h2>Certificates</h2>
+            <p>Professional certifications and training.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-2">
+          <article class="card shine-card">
+            <h3>Robot Operating System · edX</h3>
+            <a class="btn btn-small" href="Certificates/ros_robot_operating_system_edx.pdf" target="_blank" rel="noreferrer">View Certificate</a>
+          </article>
+
+          <article class="card shine-card">
+            <h3>Non-Destructive Testing Level 2</h3>
+            <a class="btn btn-small" href="Certificates/non_destructive_testing_level_2.pdf" target="_blank" rel="noreferrer">View Certificate</a>
+          </article>
+
+          <article class="card shine-card">
+            <h3>Process Piping and Quality Control</h3>
+            <a class="btn btn-small" href="Certificates/process_piping_and_quality_control.pdf" target="_blank" rel="noreferrer">View Certificate</a>
+          </article>
+
+          <article class="card shine-card">
+            <h3>Internship in Mechatronics</h3>
+            <a class="btn btn-small" href="Certificates/internship_in_mechatronics.pdf" target="_blank" rel="noreferrer">View Certificate</a>
+          </article>
+
+          <article class="card shine-card">
+            <h3>Telerobotics</h3>
+            <a class="btn btn-small" href="Certificates/telerobotics.pdf" target="_blank" rel="noreferrer">View Certificate</a>
+          </article>
+
+          <article class="card shine-card">
+            <h3>Industrial Thesis / Internship Certificate · KEBA Group</h3>
+            <a class="btn btn-small" href="Certificates/keba_industrial_thesis_internship_certificate.pdf" target="_blank" rel="noreferrer">View Certificate</a>
+          </article>
+
+          <article class="card shine-card">
+            <h3>AutoCAD Workshop</h3>
+            <a class="btn btn-small" href="Certificates/autocad_workshop.pdf" target="_blank" rel="noreferrer">View Certificate</a>
+          </article>
+        </div>
+
+        <!-- Hidden file mapping for your folder:
+        ros_robot_operating_system_edx.pdf
+        non_destructive_testing_level_2.pdf
+        process_piping_and_quality_control.pdf
+        internship_in_mechatronics.pdf
+        telerobotics.pdf
+        keba_industrial_thesis_internship_certificate.pdf
+        autocad_workshop.pdf
+        -->
+      </div>
+    </section>
+
+    <section id="accomplishments" class="reveal-on-scroll">
+      <div class="container">
+        <div class="section-heading">
+          <div>
+            <h2>Accomplishments</h2>
+            <p>Highlights that demonstrate leadership, recognition, and project impact.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-2">
+          <article class="card shine-card">
+            <h3>Best Bachelor Project Award</h3>
+            <p class="muted">Recognized with the Best Bachelor Project award in 2021 for the automated mechatronic robot developed for hospitality service enhancement.</p>
+          </article>
+
+          <article class="card shine-card">
+            <h3>Department Association Secretary</h3>
+            <p class="muted">Served as Secretary of the Mechanical Engineering Department Association from 2018 to 2021, contributing to student coordination and department-level initiatives.</p>
+          </article>
+
+          <article class="card shine-card">
+            <h3>Industrial Robotics Thesis Experience</h3>
+            <p class="muted">Contributed to an industrial automation workflow focused on robot programming, collision avoidance, and deployment-ready robotic behavior at KEBA Group.</p>
+          </article>
+
+          <article class="card shine-card">
+            <h3>Cross-Domain Engineering Portfolio</h3>
+            <p class="muted">Built projects spanning robotics, VR/XR training systems, CAD optimization, simulation, and embedded mechatronic design.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" class="reveal-on-scroll">
+      <div class="container">
+        <div class="section-heading">
+          <div>
+            <h2>Contact</h2>
+            <p>Designed for direct recruiter contact and professional networking.</p>
+          </div>
+        </div>
+
+        <div class="contact-box">
+          <div class="card shine-card">
+            <h3>Let’s connect</h3>
+            <p class="muted">For professional inquiries, please contact me by email.</p>
+            <div class="hero-actions">
+              <a class="btn btn-primary" href="mailto:soorajsudhakaran1199@gmail.com">soorajsudhakaran1199@gmail.com</a>
+            </div>
+          </div>
+
+          <div class="card shine-card">
+            <h3>Professional Profiles</h3>
+            <ul class="clean">
+              <li><a href="https://github.com/SoorajSudhakaran1199" target="_blank" rel="noreferrer">GitHub</a></li>
+              <li><a href="https://www.linkedin.com/in/sooraj-sudhakaran1999" target="_blank" rel="noreferrer">LinkedIn</a></li>
+              <li>Stuttgart, Germany</li>
+              <li>Languages: English (C1), German (A2), Malayalam (Native)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>© 2026 Sooraj Sudhakaran · Portfolio Website</p>
+    </div>
+  </footer>
+
+  <script>
+    const revealItems = document.querySelectorAll(".reveal-on-scroll");
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("visible");
+        }
+      });
+    }, {
+      threshold: 0.12,
+      rootMargin: "0px 0px -40px 0px"
+    });
+    revealItems.forEach((el) => revealObserver.observe(el));
+
+    const sections = document.querySelectorAll("main section[id]");
+    const navLinks = document.querySelectorAll(".nav-links a[href^='#']");
+
+    const navObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          navLinks.forEach((link) => link.classList.remove("active-link"));
+          const activeLink = document.querySelector(`.nav-links a[href="#${entry.target.id}"]`);
+          if (activeLink) activeLink.classList.add("active-link");
+        }
+      });
+    }, {
+      threshold: 0.35,
+      rootMargin: "-20% 0px -55% 0px"
+    });
+
+    sections.forEach((section) => navObserver.observe(section));
+  </script>
+
+  <!-- Private analytics can be added here later using Cloudflare Web Analytics or Google Analytics.
+  This will be visible only in your analytics dashboard, not on the public website. -->
+</body>
+</html>
