@@ -1,10 +1,5 @@
-# 🚀 Sooraj Sudhakaran – Robotics & Automation Engineering Portfolio
+# 🚀 Sooraj Sudhakaran –  Portfolio
 
-![Portfolio](https://img.shields.io/badge/Portfolio-Live-blue)
-![Robotics](https://img.shields.io/badge/Field-Robotics%20%26%20Automation-green)
-![Mechatronics](https://img.shields.io/badge/Degree-M.Eng%20Mechatronics-orange)
-![Status](https://img.shields.io/badge/Website-Active-brightgreen)
-![License](https://img.shields.io/badge/License-Personal-lightgrey)
 
 ---
 
@@ -73,11 +68,8 @@ sooraj-portfolio
 │   └── Sooraj_Sudhakaran_CV.pdf
 │
 ├── Certificates
-│   ├── ros_robot_operating_system_edx.pdf
-│   ├── non_destructive_testing_level_2.pdf
-│   ├── process_piping_and_quality_control.pdf
-│   ├── internship_in_mechatronics.pdf
-│   ├── telerobotics.pdf
+│   ├── xxx.pdf
+│   ├── yyy.pdf
 │   ├── keba_industrial_thesis_internship_certificate.pdf
 │   └── autocad_workshop.pdf
 │
@@ -494,3 +486,4 @@ If you use it as inspiration:
 • do not copy identity-specific information directly
 
 ---
+
