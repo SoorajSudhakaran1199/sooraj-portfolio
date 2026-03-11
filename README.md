@@ -70,8 +70,6 @@ sooraj-portfolio
 ├── Certificates
 │   ├── xxx.pdf
 │   ├── yyy.pdf
-│   ├── keba_industrial_thesis_internship_certificate.pdf
-│   └── autocad_workshop.pdf
 │
 └── README.md
 ```
