@@ -4276,6 +4276,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   applyTheme(resolveInitialTheme());
   setupLanguageSwitcher();
   setupThemeToggle();
+
+  // Start the shared visual systems first so public visitors still get
+  // the animated background even if auth or admin-only UI loads slowly.
+  setupParticles();
+  setupRouteGlobe();
+
   await initializeAdminAuth();
   setupAdminModeControl();
   setupHomepageSectionFilter();
@@ -4284,8 +4290,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupSectionTargetHighlight();
   setupDetailOriginTracking();
   setupSmartDetailBack();
-  setupParticles();
-  setupRouteGlobe();
   setupFeedbackForm();
   setupRequestCvForm();
   setupFeedbackThankYouPage();
