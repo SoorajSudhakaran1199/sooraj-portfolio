@@ -5,6 +5,7 @@ const STORAGE_RETURN_TARGET_KEY = "detail-return-target";
 const STORAGE_FEEDBACK_STATS_KEY = "feedback-form-stats";
 const STORAGE_FEEDBACK_LAST_SUBMISSION_KEY = "feedback-last-submission";
 const STORAGE_SITE_UPDATE_OVERRIDE_KEY = "portfolio-site-update-override";
+const SUPABASE_SUBMISSION_EVENTS_TABLE = "portfolio_submission_events";
 const WEB3FORMS_ENDPOINT = "https://api.web3forms.com/submit";
 const GOOGLE_ANALYTICS_ID = "G-00H12CYMW0";
 const CLARITY_PROJECT_ID = "vz7zebyj7z";
@@ -16,6 +17,8 @@ const SUPABASE_SCRIPT_URL = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@
 let supabaseClientPromise = null;
 let supabaseClient = null;
 let adminSessionActive = false;
+let sharedSubmissionStatsCache = null;
+let sharedSubmissionStatsPromise = null;
 const REQUEST_CV_LINKS = {
   en: REQUEST_CV_PAGE,
   de: REQUEST_CV_PAGE
@@ -91,6 +94,43 @@ function getEmptySubmissionStats() {
   return { total: 0, countries: {}, submissions: [] };
 }
 
+function normalizeSubmissionEntry(entry) {
+  if (!entry || typeof entry !== "object") return null;
+
+  const ratingValue = Number(entry.rating_value);
+  const ratingLabel = Number.isFinite(ratingValue) && ratingValue > 0
+    ? `${ratingValue}/5`
+    : String(entry.rating || "").trim();
+
+  return {
+    id: String(entry.id || `${Date.now()}`),
+    type: entry.type || "feedback",
+    country: String(entry.country || "").trim(),
+    submittedAt: entry.created_at || entry.submittedAt || new Date().toISOString(),
+    subject: String(entry.subject || "").trim(),
+    rating: ratingLabel
+  };
+}
+
+function buildSubmissionStats(submissions = []) {
+  const normalizedSubmissions = submissions
+    .map(normalizeSubmissionEntry)
+    .filter(Boolean)
+    .sort((a, b) => new Date(b.submittedAt || 0).getTime() - new Date(a.submittedAt || 0).getTime());
+
+  const countries = {};
+  normalizedSubmissions.forEach((entry) => {
+    if (!entry.country) return;
+    countries[entry.country] = (Number(countries[entry.country]) || 0) + 1;
+  });
+
+  return {
+    total: normalizedSubmissions.length,
+    countries,
+    submissions: normalizedSubmissions
+  };
+}
+
 function loadStoredSubmissionStats() {
   try {
     const raw = localStorage.getItem(STORAGE_FEEDBACK_STATS_KEY);
@@ -99,11 +139,7 @@ function loadStoredSubmissionStats() {
       return getEmptySubmissionStats();
     }
 
-    return {
-      total: Number(parsed.total) || 0,
-      countries: parsed.countries && typeof parsed.countries === "object" ? parsed.countries : {},
-      submissions: Array.isArray(parsed.submissions) ? parsed.submissions : []
-    };
+    return buildSubmissionStats(Array.isArray(parsed.submissions) ? parsed.submissions : []);
   } catch {
     return getEmptySubmissionStats();
   }
@@ -131,25 +167,10 @@ function getSubmissionTypeLabel(type, lang) {
 
 function recordStoredSubmissionStat(submission) {
   const stats = loadStoredSubmissionStats();
-  const normalizedCountry = String(submission?.country || "").trim();
-
-  stats.total = (Number(stats.total) || 0) + 1;
-  if (normalizedCountry) {
-    stats.countries[normalizedCountry] = (Number(stats.countries[normalizedCountry]) || 0) + 1;
-  }
-
-  stats.submissions = Array.isArray(stats.submissions) ? stats.submissions : [];
-  stats.submissions.push({
-    id: submission?.id || `${Date.now()}`,
-    type: submission?.type || "feedback",
-    country: normalizedCountry,
-    submittedAt: submission?.submittedAt || new Date().toISOString(),
-    subject: String(submission?.subject || "").trim(),
-    rating: String(submission?.rating || "").trim()
-  });
-
-  saveStoredSubmissionStats(stats);
-  return stats;
+  stats.submissions.push(normalizeSubmissionEntry(submission));
+  const nextStats = buildSubmissionStats(stats.submissions);
+  saveStoredSubmissionStats(nextStats);
+  return nextStats;
 }
 
 function clearStoredSubmissionStats() {
@@ -164,23 +185,96 @@ function deleteStoredSubmissionStat(id) {
     return false;
   }
 
-  const nextCountries = {};
-  nextSubmissions.forEach((entry) => {
-    const country = String(entry.country || "").trim();
-    if (!country) return;
-    nextCountries[country] = (Number(nextCountries[country]) || 0) + 1;
-  });
-
-  saveStoredSubmissionStats({
-    total: nextSubmissions.length,
-    countries: nextCountries,
-    submissions: nextSubmissions
-  });
-
+  saveStoredSubmissionStats(buildSubmissionStats(nextSubmissions));
   return true;
 }
 
-function renderSubmissionSummary({ scope = document, lang = resolveInitialLanguage(), isAdminMode = getAdminModeState() } = {}) {
+function setSharedSubmissionStatsCache(stats) {
+  sharedSubmissionStatsCache = buildSubmissionStats(stats?.submissions || stats || []);
+  return sharedSubmissionStatsCache;
+}
+
+async function loadSharedSubmissionStats({ forceRefresh = false } = {}) {
+  if (!forceRefresh && sharedSubmissionStatsCache) {
+    return sharedSubmissionStatsCache;
+  }
+
+  if (!forceRefresh && sharedSubmissionStatsPromise) {
+    return sharedSubmissionStatsPromise;
+  }
+
+  sharedSubmissionStatsPromise = (async () => {
+    try {
+      const supabase = await getSupabaseClient();
+      const { data, error } = await supabase
+        .from(SUPABASE_SUBMISSION_EVENTS_TABLE)
+        .select("id, type, country, rating_value, created_at")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return setSharedSubmissionStatsCache(buildSubmissionStats(data || []));
+    } catch {
+      return loadStoredSubmissionStats();
+    } finally {
+      sharedSubmissionStatsPromise = null;
+    }
+  })();
+
+  return sharedSubmissionStatsPromise;
+}
+
+async function recordSharedSubmissionEvent(submission) {
+  const localStats = recordStoredSubmissionStat(submission);
+
+  try {
+    const supabase = await getSupabaseClient();
+    const ratingValue = parseSubmissionRatingValue(submission);
+    const payload = {
+      type: submission?.type || "feedback",
+      country: String(submission?.country || "").trim() || null,
+      rating_value: Number.isFinite(ratingValue) && ratingValue > 0 ? ratingValue : null
+    };
+    const { error } = await supabase.from(SUPABASE_SUBMISSION_EVENTS_TABLE).insert(payload);
+    if (error) throw error;
+    return await loadSharedSubmissionStats({ forceRefresh: true });
+  } catch {
+    return localStats;
+  }
+}
+
+async function clearSharedSubmissionEvents() {
+  clearStoredSubmissionStats();
+
+  try {
+    const supabase = await getSupabaseClient();
+    const { error } = await supabase
+      .from(SUPABASE_SUBMISSION_EVENTS_TABLE)
+      .delete()
+      .not("id", "is", null);
+    if (error) throw error;
+    return setSharedSubmissionStatsCache(getEmptySubmissionStats());
+  } catch {
+    return getEmptySubmissionStats();
+  }
+}
+
+async function deleteSharedSubmissionEvent(id) {
+  const localDeleted = deleteStoredSubmissionStat(id);
+
+  try {
+    const supabase = await getSupabaseClient();
+    const { error } = await supabase
+      .from(SUPABASE_SUBMISSION_EVENTS_TABLE)
+      .delete()
+      .eq("id", id);
+    if (error) throw error;
+    return await loadSharedSubmissionStats({ forceRefresh: true });
+  } catch {
+    return localDeleted ? loadStoredSubmissionStats() : null;
+  }
+}
+
+async function renderSubmissionSummary({ scope = document, lang = resolveInitialLanguage(), isAdminMode = getAdminModeState(), forceRefresh = false } = {}) {
   const statsTotal = scope.querySelector("[data-feedback-stats-total]");
   const statsCvTotal = scope.querySelector("[data-feedback-stats-cv-total]");
   const statsCountries = scope.querySelector("[data-feedback-stats-countries]");
@@ -190,12 +284,12 @@ function renderSubmissionSummary({ scope = document, lang = resolveInitialLangua
   const statsLogList = scope.querySelector("[data-feedback-stats-log-list]");
 
   if (!statsTotal && !statsCvTotal && !statsCountries && !statsLogList) {
-    return;
+    return null;
   }
 
-  const stats = loadStoredSubmissionStats();
+  const stats = await loadSharedSubmissionStats({ forceRefresh });
   const emptyText = lang === "de" ? "Noch keine Eintraege gespeichert." : "No submissions recorded yet.";
-  const emptyLogText = lang === "de" ? "Keine lokalen Uebermittlungen verfuegbar." : "No local submissions available.";
+  const emptyLogText = lang === "de" ? "Keine Uebermittlungen verfuegbar." : "No submissions available.";
   const feedbackEntries = Array.isArray(stats.submissions)
     ? stats.submissions.filter((entry) => entry?.type === "feedback")
     : [];
@@ -256,13 +350,11 @@ function renderSubmissionSummary({ scope = document, lang = resolveInitialLangua
           const timeLabel = entry.submittedAt
             ? formatUpdatedTimestamp(new Date(entry.submittedAt), lang)
             : "";
-          const subjectLabel = entry.subject ? `<span>${entry.subject}</span>` : "";
 
           item.innerHTML = `
             <div class="feedback-stats-log-copy">
               <strong>${typeLabel}</strong>
               <small>${entry.country || "-"}${timeLabel ? ` • ${timeLabel}` : ""}</small>
-              ${subjectLabel}
             </div>
             <button class="btn btn-secondary btn-small" type="button" data-feedback-stats-delete="${entry.id}">${lang === "de" ? "Loeschen" : "Delete"}</button>
           `;
@@ -1208,12 +1300,12 @@ Object.assign(LANGUAGE_TEXT.de, {
   "Response note": "Hinweis zur Rueckmeldung",
   "Sending a message does not guarantee an immediate response, but professional enquiries are reviewed carefully.": "Das Senden einer Nachricht garantiert keine sofortige Rueckmeldung, aber professionelle Anfragen werden sorgfaeltig geprueft.",
   "Submission summary": "Uebermittlungsuebersicht",
-  "Local overview of successful form submissions recorded in this browser.": "Lokale Uebersicht erfolgreicher Formularuebermittlungen, die in diesem Browser aufgezeichnet wurden.",
+  "Shared overview of successful form submissions and CV requests.": "Gemeinsame Uebersicht erfolgreicher Formularuebermittlungen und CV-Anfragen.",
   "View submission summary": "Uebermittlungsuebersicht anzeigen",
   "Recorded submissions": "Erfasste Uebermittlungen",
   "Total successful submissions": "Erfolgreiche Uebermittlungen gesamt",
   "Country distribution": "Laenderverteilung",
-  "Recorded on this browser only": "Nur in diesem Browser erfasst",
+  "Shared website reach": "Gemeinsame Website-Reichweite",
   "No submissions recorded yet.": "Noch keine Eintraege gespeichert.",
   "Refresh status": "Status aktualisieren",
   "Clear status": "Status leeren",
@@ -1222,7 +1314,7 @@ Object.assign(LANGUAGE_TEXT.de, {
   "Status cleared. Submission summary reset to zero.": "Status geloescht. Die Uebersicht wurde auf null zurueckgesetzt.",
   "Submission log": "Uebermittlungsprotokoll",
   "Private admin view": "Private Admin-Ansicht",
-  "No local submissions available.": "Keine lokalen Uebermittlungen verfuegbar.",
+  "No submissions available.": "Keine Uebermittlungen verfuegbar.",
   "Delete": "Loeschen",
   "Entry deleted.": "Eintrag geloescht.",
   "Feedback": "Feedback",
@@ -1277,7 +1369,7 @@ Object.assign(LANGUAGE_TEXT.de, {
   "Delivery": "Zustellung",
   "The requested CV is sent by email to the address provided in the form.": "Der angeforderte CV wird per E-Mail an die im Formular angegebene Adresse gesendet.",
   "Requests are reviewed privately and handled for relevant professional follow-up.": "Anfragen werden privat geprueft und fuer relevantes professionelles Follow-up bearbeitet.",
-  "Local overview of successful website form submissions recorded in this browser.": "Lokale Uebersicht erfolgreicher Website-Formularuebermittlungen, die in diesem Browser aufgezeichnet wurden.",
+  "Shared overview of successful website form submissions and CV requests.": "Gemeinsame Uebersicht erfolgreicher Website-Formularuebermittlungen und CV-Anfragen.",
   "CV requests": "CV-Anfragen",
   "Total CV requests": "Gesamte CV-Anfragen"
 });
@@ -2726,21 +2818,22 @@ function setupFeedbackForm() {
   const getSelectedMessageType = () =>
     messageTypeFields.find((field) => field.checked)?.value || "";
 
-  const renderFeedbackStats = () => {
-    renderSubmissionSummary({
+  const renderFeedbackStats = (forceRefresh = false) => {
+    return renderSubmissionSummary({
       scope: document,
       lang: resolveInitialLanguage(),
-      isAdminMode: getAdminModeState()
+      isAdminMode: getAdminModeState(),
+      forceRefresh
     });
   };
 
-  const recordFeedbackStat = (submission) => {
-    recordStoredSubmissionStat(submission);
-    renderFeedbackStats();
+  const recordFeedbackStat = async (submission) => {
+    await recordSharedSubmissionEvent(submission);
+    await renderFeedbackStats(true);
   };
 
-  const refreshStatsStatus = () => {
-    renderFeedbackStats();
+  const refreshStatsStatus = async () => {
+    await renderFeedbackStats(true);
     if (statsAdminNote) {
       statsAdminNote.textContent = resolveInitialLanguage() === "de"
         ? "Status wurde gerade aktualisiert."
@@ -2748,9 +2841,9 @@ function setupFeedbackForm() {
     }
   };
 
-  const clearStatsStatus = () => {
-    clearStoredSubmissionStats();
-    renderFeedbackStats();
+  const clearStatsStatus = async () => {
+    await clearSharedSubmissionEvents();
+    await renderFeedbackStats(true);
     if (statsAdminNote) {
       statsAdminNote.textContent = resolveInitialLanguage() === "de"
         ? "Status geloescht. Die Uebersicht wurde auf null zurueckgesetzt."
@@ -2758,9 +2851,10 @@ function setupFeedbackForm() {
     }
   };
 
-  const deleteFeedbackStat = (id) => {
-    if (!deleteStoredSubmissionStat(id)) return;
-    renderFeedbackStats();
+  const deleteFeedbackStat = async (id) => {
+    const deletedStats = await deleteSharedSubmissionEvent(id);
+    if (!deletedStats) return;
+    await renderFeedbackStats(true);
 
     if (statsAdminNote) {
       statsAdminNote.textContent = resolveInitialLanguage() === "de"
@@ -3186,23 +3280,23 @@ function setupFeedbackForm() {
   }
   if (statsRefreshButton) {
     statsRefreshButton.hidden = !isAdminMode;
-    statsRefreshButton.addEventListener("click", () => {
-      refreshStatsStatus();
+    statsRefreshButton.addEventListener("click", async () => {
+      await refreshStatsStatus();
     });
   }
   if (statsClearButton) {
     statsClearButton.hidden = !isAdminMode;
-    statsClearButton.addEventListener("click", () => {
-      clearStatsStatus();
+    statsClearButton.addEventListener("click", async () => {
+      await clearStatsStatus();
     });
   }
   if (statsLogList) {
-    statsLogList.addEventListener("click", (event) => {
+    statsLogList.addEventListener("click", async (event) => {
       const target = event.target;
       if (!(target instanceof HTMLElement)) return;
       const id = target.getAttribute("data-feedback-stats-delete");
       if (!id || !isAdminMode) return;
-      deleteFeedbackStat(id);
+      await deleteFeedbackStat(id);
     });
   }
   applyModeState();
@@ -3346,7 +3440,7 @@ function setupFeedbackForm() {
         throw new Error(result?.message || "Submission failed");
       }
 
-      recordFeedbackStat({
+      await recordFeedbackStat({
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         type: messageType,
         country,
@@ -3569,11 +3663,12 @@ function setupRequestCvForm() {
     submitButton.disabled = !isFormReady();
   };
 
-  const renderRequestCvStats = () => {
-    renderSubmissionSummary({
+  const renderRequestCvStats = (forceRefresh = false) => {
+    return renderSubmissionSummary({
       scope: document,
       lang: resolveInitialLanguage(),
-      isAdminMode: getAdminModeState()
+      isAdminMode: getAdminModeState(),
+      forceRefresh
     });
   };
 
@@ -3594,8 +3689,8 @@ function setupRequestCvForm() {
 
   renderRequestCvStats();
   if (statsRefreshButton) {
-    statsRefreshButton.addEventListener("click", () => {
-      renderRequestCvStats();
+    statsRefreshButton.addEventListener("click", async () => {
+      await renderRequestCvStats(true);
       if (statsAdminNote) {
         statsAdminNote.textContent = resolveInitialLanguage() === "de"
           ? "Status wurde gerade aktualisiert."
@@ -3604,9 +3699,9 @@ function setupRequestCvForm() {
     });
   }
   if (statsClearButton) {
-    statsClearButton.addEventListener("click", () => {
-      clearStoredSubmissionStats();
-      renderRequestCvStats();
+    statsClearButton.addEventListener("click", async () => {
+      await clearSharedSubmissionEvents();
+      await renderRequestCvStats(true);
       if (statsAdminNote) {
         statsAdminNote.textContent = resolveInitialLanguage() === "de"
           ? "Status geloescht. Die Uebersicht wurde auf null zurueckgesetzt."
@@ -3615,13 +3710,13 @@ function setupRequestCvForm() {
     });
   }
   if (statsLogList) {
-    statsLogList.addEventListener("click", (event) => {
+    statsLogList.addEventListener("click", async (event) => {
       const target = event.target;
       if (!(target instanceof HTMLElement)) return;
       const id = target.getAttribute("data-feedback-stats-delete");
       if (!id || !getAdminModeState()) return;
-      if (!deleteStoredSubmissionStat(id)) return;
-      renderRequestCvStats();
+      if (!await deleteSharedSubmissionEvent(id)) return;
+      await renderRequestCvStats(true);
       if (statsAdminNote) {
         statsAdminNote.textContent = resolveInitialLanguage() === "de"
           ? "Eintrag geloescht."
@@ -3725,14 +3820,14 @@ function setupRequestCvForm() {
         throw new Error(result?.message || "Submission failed");
       }
 
-      recordStoredSubmissionStat({
+      await recordSharedSubmissionEvent({
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         type: "cv",
         country,
         submittedAt: new Date().toISOString(),
         subject: lang === "de" ? "CV-Anfrage" : "CV request"
       });
-      renderRequestCvStats();
+      await renderRequestCvStats(true);
       trackAnalyticsEvent("cv_request_submit_success", {
         page_path: window.location.pathname,
         has_company: company ? "yes" : "no",
@@ -3770,7 +3865,7 @@ function setupRequestCvForm() {
   });
 }
 
-function setupFeedbackThankYouPage() {
+async function setupFeedbackThankYouPage() {
   const title = document.querySelector("[data-feedback-thankyou-title]");
   if (!title) return;
 
@@ -3802,7 +3897,7 @@ function setupFeedbackThankYouPage() {
   const submittedAtLabel = Number.isNaN(submittedAt.getTime())
     ? ""
     : formatUpdatedTimestamp(submittedAt, lang);
-  const storedStats = loadStoredSubmissionStats();
+  const storedStats = await loadSharedSubmissionStats();
 
   const feedbackReviews = Array.isArray(storedStats.submissions)
     ? storedStats.submissions.filter((entry) => entry?.type === "feedback")
@@ -3891,7 +3986,7 @@ function setupFeedbackThankYouPage() {
   });
 }
 
-function setupPublicReviewSummary() {
+async function setupPublicReviewSummary() {
   const section = document.querySelector("[data-public-review-section]");
   if (!section) return;
 
@@ -3926,7 +4021,7 @@ function setupPublicReviewSummary() {
         reviews: "reviews"
       };
 
-  const stats = loadStoredSubmissionStats();
+  const stats = await loadSharedSubmissionStats();
   const feedbackEntries = Array.isArray(stats.submissions)
     ? stats.submissions.filter((entry) => entry?.type === "feedback")
     : [];
