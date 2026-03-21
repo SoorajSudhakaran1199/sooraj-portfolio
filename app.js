@@ -1591,6 +1591,39 @@ function setupActiveNav() {
   sections.forEach((section) => observer.observe(section));
 }
 
+function getScrollOffset() {
+  const nav = document.querySelector(".nav");
+  const updateBar = document.querySelector(".top-update-bar");
+  const navHeight = nav ? nav.getBoundingClientRect().height : 0;
+  const updateBarHeight = updateBar && !updateBar.hidden ? updateBar.getBoundingClientRect().height : 0;
+  const extraGap = window.innerWidth < 780 ? 18 : 12;
+  return navHeight + updateBarHeight + extraGap;
+}
+
+function setupSmoothAnchorScroll() {
+  const samePageAnchors = document.querySelectorAll('a[href^="#"]');
+  if (!samePageAnchors.length) return;
+
+  samePageAnchors.forEach((link) => {
+    link.addEventListener("click", (event) => {
+      const href = link.getAttribute("href");
+      const id = href?.slice(1);
+      if (!id) return;
+
+      const target = document.getElementById(id);
+      if (!target) return;
+
+      event.preventDefault();
+      const targetTop = target.getBoundingClientRect().top + window.scrollY - getScrollOffset();
+      window.history.replaceState(null, "", `#${id}`);
+      window.scrollTo({
+        top: Math.max(targetTop, 0),
+        behavior: "smooth"
+      });
+    });
+  });
+}
+
 function setupSectionTargetHighlight() {
   const targetMap = new Map(
     Array.from(document.querySelectorAll("main [id]")).map((element) => [element.id, element])
@@ -1815,22 +1848,6 @@ function setupStoredReturnPosition() {
 }
 
 function resolveMotionProfile() {
-  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const saveData = navigator.connection?.saveData === true;
-  const deviceMemory = Number(navigator.deviceMemory || 0);
-  const hardwareConcurrency = Number(navigator.hardwareConcurrency || 0);
-  const smallTouchDevice = window.innerWidth < 520 && navigator.maxTouchPoints > 0;
-  const veryWeakDevice = saveData || (deviceMemory > 0 && deviceMemory <= 2) || (hardwareConcurrency > 0 && hardwareConcurrency <= 2);
-  const weakDevice = veryWeakDevice || smallTouchDevice || (deviceMemory > 0 && deviceMemory <= 4) || (hardwareConcurrency > 0 && hardwareConcurrency <= 4);
-
-  if (veryWeakDevice) {
-    return "static";
-  }
-
-  if (reducedMotion || weakDevice) {
-    return "reduced";
-  }
-
   return "full";
 }
 
@@ -1842,24 +1859,22 @@ class ParticleSystem {
     this.particles = [];
     this.pointer = { x: null, y: null, radius: 240 };
     this.motionProfile = resolveMotionProfile();
-    this.isStatic = this.motionProfile === "static";
-    this.isReduced = this.motionProfile === "reduced";
+    this.isStatic = false;
+    this.isReduced = false;
     this.particleCount = this.getParticleCount();
     this.connectionDistance = this.getConnectionDistance();
     this.animationFrame = null;
     this.orbs = [];
     this.resizeTimer = null;
     this.resizeUiTimer = null;
+    this.targetFrameMs = 1000 / 36;
+    this.lastFrameTime = 0;
 
     if (!this.ctx) return;
 
     this.resize();
     this.seed();
     this.attachEvents();
-    if (this.isStatic) {
-      this.drawFrame();
-      return;
-    }
     this.animate();
   }
 
@@ -1873,26 +1888,19 @@ class ParticleSystem {
       }, 260);
       this.resizeTimer = window.setTimeout(() => {
         this.motionProfile = resolveMotionProfile();
-        this.isStatic = this.motionProfile === "static";
-        this.isReduced = this.motionProfile === "reduced";
+        this.isStatic = false;
+        this.isReduced = false;
         this.particleCount = this.getParticleCount();
         this.connectionDistance = this.getConnectionDistance();
         this.resize();
         this.seed();
-        if (this.isStatic) {
-          if (this.animationFrame) {
-            window.cancelAnimationFrame(this.animationFrame);
-            this.animationFrame = null;
-          }
-          this.drawFrame();
-        } else if (!this.animationFrame) {
+        if (!this.animationFrame) {
           this.animate();
         }
       }, 160);
     });
 
     window.addEventListener("mousemove", (event) => {
-      if (this.isStatic) return;
       this.pointer.x = event.clientX;
       this.pointer.y = event.clientY;
     });
@@ -1909,39 +1917,17 @@ class ParticleSystem {
   }
 
   getParticleCount() {
-    if (this.isStatic) {
-      return 0;
-    }
-
-    if (this.isReduced) {
-      if (this.pageMode === "journey") {
-        return window.innerWidth < 768 ? 12 : 24;
-      }
-      return window.innerWidth < 768 ? 16 : 30;
-    }
-
     if (this.pageMode === "journey") {
-      return window.innerWidth < 768 ? 40 : 90;
+      return window.innerWidth < 768 ? 28 : 72;
     }
-    return window.innerWidth < 768 ? 55 : 130;
+    return window.innerWidth < 768 ? 36 : 96;
   }
 
   getConnectionDistance() {
-    if (this.isStatic) {
-      return 0;
-    }
-
-    if (this.isReduced) {
-      if (this.pageMode === "journey") {
-        return window.innerWidth < 768 ? 70 : 100;
-      }
-      return window.innerWidth < 768 ? 85 : 118;
-    }
-
     if (this.pageMode === "journey") {
-      return window.innerWidth < 768 ? 105 : 150;
+      return window.innerWidth < 768 ? 98 : 142;
     }
-    return window.innerWidth < 768 ? 135 : 185;
+    return window.innerWidth < 768 ? 122 : 170;
   }
 
   seed() {
@@ -1949,8 +1935,8 @@ class ParticleSystem {
       x: Math.random() * this.canvas.width,
       y: Math.random() * this.canvas.height,
       r: this.pageMode === "journey" ? (Math.random() > 0.82 ? 2.4 : 1.25) : (Math.random() > 0.8 ? 2.9 : 1.6),
-      vx: (Math.random() - 0.5) * (this.pageMode === "journey" ? (this.isReduced ? 0.08 : 0.26) : (this.isReduced ? 0.16 : 0.52)),
-      vy: (Math.random() - 0.5) * (this.pageMode === "journey" ? (this.isReduced ? 0.08 : 0.26) : (this.isReduced ? 0.16 : 0.52)),
+      vx: (Math.random() - 0.5) * (this.pageMode === "journey" ? 0.22 : 0.42),
+      vy: (Math.random() - 0.5) * (this.pageMode === "journey" ? 0.22 : 0.42),
       pulse: Math.random() * Math.PI * 2,
     }));
     this.orbs = Array.from({ length: 4 }, (_, index) => ({
@@ -1960,8 +1946,8 @@ class ParticleSystem {
         ? (window.innerWidth < 768 ? 95 + index * 8 : 135 + index * 14)
         : (window.innerWidth < 768 ? 120 + index * 10 : 180 + index * 20),
       drift: this.pageMode === "journey"
-        ? (this.isReduced ? 0.025 + index * 0.012 : 0.08 + index * 0.03)
-        : (this.isReduced ? 0.04 + index * 0.016 : 0.15 + index * 0.04),
+        ? (0.06 + index * 0.022)
+        : (0.11 + index * 0.032),
       phase: Math.random() * Math.PI * 2,
     }));
   }
@@ -1972,31 +1958,31 @@ class ParticleSystem {
       return {
         base: light ? "rgba(55,117,148," : "rgba(112,176,196,",
         accent: light ? "rgba(164,117,61," : "rgba(208,164,108,",
-        glow: light ? (this.isReduced ? 0.13 : 0.1) : (this.isReduced ? 0.08 : 0.05),
-        accentGlow: light ? (this.isReduced ? 0.16 : 0.14) : (this.isReduced ? 0.11 : 0.09),
+        glow: light ? 0.1 : 0.05,
+        accentGlow: light ? 0.14 : 0.09,
         point: light ? 0.96 : 0.85,
-        trail: light ? (this.isReduced ? 0.18 : 0.3) : (this.isReduced ? 0.1 : 0.16),
-        connection: light ? (this.isReduced ? 0.22 : 0.36) : (this.isReduced ? 0.12 : 0.22),
-        pointer: light ? (this.isReduced ? 0.24 : 0.5) : (this.isReduced ? 0.16 : 0.34),
-        orbCore: light ? (this.isStatic ? 0.18 : 0.14) : (this.isStatic ? 0.12 : 0.08),
-        orbOuter: light ? (this.isStatic ? 0.09 : 0.065) : (this.isStatic ? 0.05 : 0.035),
-        bandBase: light ? (this.isStatic ? 0.22 : 0.18) : (this.isStatic ? 0.13 : 0.1),
-        bandAccent: light ? (this.isStatic ? 0.19 : 0.16) : (this.isStatic ? 0.11 : 0.09),
+        trail: light ? 0.3 : 0.16,
+        connection: light ? 0.36 : 0.22,
+        pointer: light ? 0.5 : 0.34,
+        orbCore: light ? 0.14 : 0.08,
+        orbOuter: light ? 0.065 : 0.035,
+        bandBase: light ? 0.18 : 0.1,
+        bandAccent: light ? 0.16 : 0.09,
       };
     }
     return {
       base: light ? "rgba(18,86,198," : "rgba(128,184,255,",
       accent: light ? "rgba(6,124,101," : "rgba(89,226,188,",
-      glow: light ? (this.isReduced ? 0.14 : 0.11) : (this.isReduced ? 0.08 : 0.05),
-      accentGlow: light ? (this.isReduced ? 0.18 : 0.15) : (this.isReduced ? 0.11 : 0.09),
+      glow: light ? 0.11 : 0.05,
+      accentGlow: light ? 0.15 : 0.09,
       point: light ? 0.98 : 0.85,
-      trail: light ? (this.isReduced ? 0.16 : 0.28) : (this.isReduced ? 0.1 : 0.16),
-      connection: light ? (this.isReduced ? 0.28 : 0.52) : (this.isReduced ? 0.18 : 0.34),
-      pointer: light ? (this.isReduced ? 0.26 : 0.66) : (this.isReduced ? 0.22 : 0.5),
-      orbCore: light ? (this.isStatic ? 0.18 : 0.15) : (this.isStatic ? 0.14 : 0.12),
-      orbOuter: light ? (this.isStatic ? 0.09 : 0.075) : (this.isStatic ? 0.06 : 0.05),
-      bandBase: light ? (this.isStatic ? 0.21 : 0.18) : (this.isStatic ? 0.12 : 0.1),
-      bandAccent: light ? (this.isStatic ? 0.16 : 0.14) : (this.isStatic ? 0.09 : 0.08),
+      trail: light ? 0.28 : 0.16,
+      connection: light ? 0.52 : 0.34,
+      pointer: light ? 0.66 : 0.5,
+      orbCore: light ? 0.15 : 0.12,
+      orbOuter: light ? 0.075 : 0.05,
+      bandBase: light ? 0.18 : 0.1,
+      bandAccent: light ? 0.14 : 0.08,
     };
   }
 
@@ -2006,14 +1992,12 @@ class ParticleSystem {
     this.drawAtmosphere();
 
     this.particles.forEach((particle, index) => {
-      if (!this.isStatic) {
-        particle.x += particle.vx;
-        particle.y += particle.vy;
-        particle.pulse += this.isReduced ? 0.014 : 0.04;
+      particle.x += particle.vx;
+      particle.y += particle.vy;
+      particle.pulse += 0.032;
 
-        if (particle.x < 0 || particle.x > this.canvas.width) particle.vx *= -1;
-        if (particle.y < 0 || particle.y > this.canvas.height) particle.vy *= -1;
-      }
+      if (particle.x < 0 || particle.x > this.canvas.width) particle.vx *= -1;
+      if (particle.y < 0 || particle.y > this.canvas.height) particle.vy *= -1;
 
       const glowRadius = particle.r * (index % 6 === 0 ? (this.pageMode === "journey" ? 4.2 : 5.8) : 2.6 + Math.sin(particle.pulse) * 0.8);
       this.ctx.beginPath();
@@ -2053,7 +2037,7 @@ class ParticleSystem {
       }
       }
 
-      if (this.isReduced || this.pointer.x === null || this.pointer.y === null) return;
+      if (this.pointer.x === null || this.pointer.y === null) return;
       const pdx = particle.x - this.pointer.x;
       const pdy = particle.y - this.pointer.y;
       const pointerDistance = Math.hypot(pdx, pdy);
@@ -2070,16 +2054,18 @@ class ParticleSystem {
   }
 
   animate() {
-    this.drawFrame();
+    const now = performance.now();
+    if (!this.lastFrameTime || now - this.lastFrameTime >= this.targetFrameMs) {
+      this.drawFrame();
+      this.lastFrameTime = now;
+    }
     this.animationFrame = window.requestAnimationFrame(() => this.animate());
   }
 
   drawAtmosphere() {
     const { base, accent, orbCore, orbOuter, bandBase, bandAccent } = this.colors();
     this.orbs.forEach((orb, index) => {
-      if (!this.isStatic) {
-        orb.phase += orb.drift * 0.01;
-      }
+      orb.phase += orb.drift * 0.01;
       const x = orb.x + Math.sin(orb.phase) * (this.pageMode === "journey" ? 90 : 60);
       const y = orb.y + Math.cos(orb.phase * 0.8) * (this.pageMode === "journey" ? 18 : 40);
       const gradient = this.ctx.createRadialGradient(x, y, 0, x, y, orb.r);
@@ -2140,8 +2126,8 @@ class RouteGlobe {
     this.ctx = canvas.getContext("2d");
     if (!this.ctx) return;
     this.motionProfile = resolveMotionProfile();
-    this.isStatic = this.motionProfile === "static";
-    this.isReduced = this.motionProfile === "reduced";
+    this.isStatic = false;
+    this.isReduced = false;
     this.rotation = -35;
     this.routePhase = 0;
     this.india = { lat: 20.5937, lon: 78.9629 };
@@ -2180,10 +2166,8 @@ class RouteGlobe {
     ];
     this.resize();
     window.addEventListener("resize", () => this.resize());
-    if (this.isStatic) {
-      this.drawFrame();
-      return;
-    }
+    this.targetFrameMs = 1000 / 36;
+    this.lastFrameTime = 0;
     this.animate();
   }
 
@@ -2376,14 +2360,16 @@ class RouteGlobe {
     this.drawRoute();
     this.drawMarker(this.india, "rgba(128, 184, 255, 0.98)");
     this.drawMarker(this.germany, "rgba(89, 226, 188, 0.98)");
-    if (!this.isStatic) {
-      this.rotation += this.isReduced ? 0.04 : 0.18;
-      this.routePhase += this.isReduced ? 0.008 : 0.035;
-    }
+    this.rotation += 0.14;
+    this.routePhase += 0.028;
   }
 
   animate() {
-    this.drawFrame();
+    const now = performance.now();
+    if (!this.lastFrameTime || now - this.lastFrameTime >= this.targetFrameMs) {
+      this.drawFrame();
+      this.lastFrameTime = now;
+    }
     window.requestAnimationFrame(() => this.animate());
   }
 }
@@ -2808,6 +2794,7 @@ function setupHomepageSectionFilter() {
     syncInputs();
     modal.hidden = false;
     document.body.classList.add("section-filter-open");
+    modal.querySelector('input[name="section_filter"]')?.focus();
   };
 
   const closeModal = () => {
@@ -2819,6 +2806,10 @@ function setupHomepageSectionFilter() {
 
   modal.querySelectorAll("[data-section-filter-close]").forEach((element) => {
     element.addEventListener("click", closeModal);
+  });
+
+  modal.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeModal();
   });
 
   modal.querySelector("[data-section-filter-clear]")?.addEventListener("click", () => {
@@ -4501,6 +4492,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupAdminModeControl();
   setupHomepageSectionFilter();
   setupReveal();
+  setupSmoothAnchorScroll();
   setupActiveNav();
   setupSectionTargetHighlight();
   setupDetailOriginTracking();
