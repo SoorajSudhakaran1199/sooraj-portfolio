@@ -176,6 +176,36 @@ For professional contact, portfolio review, or collaboration:
 - GitHub: `https://github.com/SoorajSudhakaran1199`
 - Feedback and contact form: `https://soorajsudhakaran1199.github.io/sooraj-portfolio/feedback.html`
 
+## Languages Included
+
+This website includes content in:
+
+- English
+- German
+
+The site interface, section labels, navigation items, and form content support both languages.
+
+## How The Website Was Built
+
+This website was built as a static portfolio website so it can load quickly, stay easy to maintain, and work well on GitHub Pages.
+
+In simple terms:
+
+- `HTML` is used to build the page structure
+- `CSS` is used to design the layout, colors, spacing, and responsive styling
+- `JavaScript` is used to handle interactions, translations, animations, analytics, and form behavior
+
+The website was developed by:
+
+- planning the main portfolio sections such as About, Skills, Experience, Projects, Journey, Reviews, and Contact
+- creating dedicated pages for important projects and experience items
+- organizing shared images and documents into a clean asset structure
+- adding bilingual support for English and German
+- improving search visibility with sitemap, robots rules, metadata, and structured page content
+- connecting analytics tools to understand visitor traffic and website interaction
+
+Overall, the site was built to be understandable for recruiters, engineering teams, and general visitors, while still presenting technical work in a professional way.
+
 ## Maintenance Notes
 
 - Keep public page URLs stable to preserve indexing value.
