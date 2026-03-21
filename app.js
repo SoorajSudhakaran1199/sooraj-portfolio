@@ -4,8 +4,9 @@ const STORAGE_DETAIL_ORIGIN_PREFIX = "detail-origin:";
 const STORAGE_RETURN_TARGET_KEY = "detail-return-target";
 const STORAGE_FEEDBACK_STATS_KEY = "feedback-form-stats";
 const STORAGE_FEEDBACK_LAST_SUBMISSION_KEY = "feedback-last-submission";
-const STORAGE_ADMIN_MODE_KEY = "portfolio-admin-mode";
 const STORAGE_SITE_UPDATE_OVERRIDE_KEY = "portfolio-site-update-override";
+const ADMIN_ACCESS_PARAM = "admin_key";
+const ADMIN_ACCESS_SECRET = "SoorajSahil@1449";
 const WEB3FORMS_ENDPOINT = "https://api.web3forms.com/submit";
 const GOOGLE_ANALYTICS_ID = "G-00H12CYMW0";
 const CLARITY_PROJECT_ID = "vz7zebyj7z";
@@ -1974,14 +1975,13 @@ function setupRouteGlobe() {
   new RouteGlobe(canvas);
 }
 
-function syncAdminModeFromUrl() {
+function getAdminModeState() {
   const params = new URLSearchParams(window.location.search);
-  if (params.get("admin") === "1") {
-    localStorage.setItem(STORAGE_ADMIN_MODE_KEY, "1");
-  } else if (params.get("admin") === "0") {
-    localStorage.removeItem(STORAGE_ADMIN_MODE_KEY);
+  const isAdminMode = params.get(ADMIN_ACCESS_PARAM) === ADMIN_ACCESS_SECRET;
+  if (params.get("admin") === "0") {
     localStorage.removeItem(STORAGE_SITE_UPDATE_OVERRIDE_KEY);
   }
+  return isAdminMode;
 }
 
 function setupFeedbackForm() {
@@ -1989,9 +1989,7 @@ function setupFeedbackForm() {
   if (!form) return;
   form.noValidate = true;
 
-  syncAdminModeFromUrl();
-
-  const isAdminMode = localStorage.getItem(STORAGE_ADMIN_MODE_KEY) === "1";
+  const isAdminMode = getAdminModeState();
   const formCard = document.querySelector("[data-feedback-form-card]");
   const formTitle = document.querySelector("[data-feedback-form-title]");
   const formContent = document.querySelector("[data-feedback-form-content]");
@@ -3141,7 +3139,7 @@ async function resolveLatestSiteUpdate() {
 }
 
 async function setupLastUpdated() {
-  syncAdminModeFromUrl();
+  const isAdminMode = getAdminModeState();
   const fallbackModifiedAt = new Date(document.lastModified);
   if (Number.isNaN(fallbackModifiedAt.getTime())) return;
 
@@ -3150,7 +3148,6 @@ async function setupLastUpdated() {
   const adminButtonLabel = lang === "de" ? "Update-Zeit aktualisieren" : "Refresh update time";
   const nav = document.querySelector(".nav");
   if (!nav) return;
-  const isAdminMode = localStorage.getItem(STORAGE_ADMIN_MODE_KEY) === "1";
 
   let bar = nav.nextElementSibling;
   if (!bar || !bar.classList.contains("top-update-bar")) {
@@ -3204,7 +3201,7 @@ async function setupLastUpdated() {
     }
   };
 
-  const storedOverride = localStorage.getItem(STORAGE_SITE_UPDATE_OVERRIDE_KEY);
+  const storedOverride = isAdminMode ? localStorage.getItem(STORAGE_SITE_UPDATE_OVERRIDE_KEY) : null;
   const overrideDate = storedOverride ? new Date(storedOverride) : null;
   const hasValidOverride = overrideDate && !Number.isNaN(overrideDate.getTime());
 
