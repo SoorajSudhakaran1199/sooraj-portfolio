@@ -20,6 +20,7 @@
   --radius-sm: 14px;
   --container: 1180px;
   --scroll-offset: 138px;
+  --page-pad-x: 1rem;
 }
 
 [data-theme="light"] {
@@ -109,6 +110,12 @@ body.journey-page {
 main section[id],
 main [id] {
   scroll-margin-top: var(--scroll-offset);
+}
+
+main,
+section,
+.page-shell {
+  overflow-x: clip;
 }
 
 [data-theme="light"] #bg-canvas {
@@ -244,8 +251,10 @@ body.journey-page .page-shell > main::before {
 }
 
 .container {
-  width: min(calc(100% - 2rem), var(--container));
+  width: min(100%, var(--container));
   margin: 0 auto;
+  padding-left: max(var(--page-pad-x), env(safe-area-inset-left));
+  padding-right: max(var(--page-pad-x), env(safe-area-inset-right));
 }
 
 .nav {
@@ -507,8 +516,76 @@ body.journey-page .page-shell > main::before {
 .detail-tools-grid > *,
 .fit-list > *,
 .fit-evidence-grid > *,
+.journey-preview-grid > *,
+.topic-explore-grid > *,
+.portfolio-map-grid > *,
+.faq-grid > *,
+.review-layout > *,
+.contact-layout > *,
+.contact-intake-grid > *,
+.contact-primary-actions > *,
+.feedback-side-stack > *,
+.feedback-form-flow > *,
+.feedback-form-section > *,
 .contact-detail-grid > *,
 .feedback-layout > * {
+  min-width: 0;
+}
+
+.detail-block,
+.detail-tool-card,
+.fit-item,
+.fit-summary,
+.fit-detail,
+.fit-evidence-card,
+.contact-card,
+.contact-intake-item,
+.contact-detail-item,
+.review-card,
+.feedback-form-card,
+.feedback-side-card,
+.feedback-form-section,
+.project-card,
+.education-card,
+.certificate-card,
+.event-card,
+.travel-card,
+.feature-card,
+.project-card-cta,
+.availability-banner,
+.contact-feedback-box,
+.request-cv-preview,
+.feedback-stats-card,
+.feedback-stats-log {
+  min-width: 0;
+}
+
+.detail-block,
+.fit-summary,
+.fit-evidence-card,
+.contact-intake-item,
+.contact-detail-item,
+.review-card,
+.feedback-form-section,
+.project-card,
+.education-card,
+.certificate-card,
+.event-card,
+.travel-card,
+.feature-card,
+.feedback-note,
+.feedback-card-head,
+.detail-tool-copy,
+.detail-repo-text {
+  overflow-wrap: anywhere;
+}
+
+.availability-banner > *,
+.contact-feedback-box > *,
+.fit-summary-main > *,
+.fit-evidence-head > *,
+.detail-tool-card > *,
+.detail-hero-content > * {
   min-width: 0;
 }
 
@@ -2611,6 +2688,7 @@ h3 {
 .availability-banner span:last-child {
   color: var(--text-soft);
   font-size: 0.92rem;
+  overflow-wrap: anywhere;
 }
 
 .btn-cv-top {
@@ -3695,7 +3773,7 @@ h3 {
 
 .fit-evidence-head {
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto minmax(0, 1fr);
   gap: 0.8rem;
   align-items: start;
 }
@@ -7609,6 +7687,7 @@ body.detail-page.keba-detail-page .detail-hero-media {
 
 .detail-tool-copy .small {
   color: var(--text-soft);
+  overflow-wrap: anywhere;
 }
 
 .detail-tool-matlab {
@@ -8323,6 +8402,11 @@ body.detail-page.keba-detail-page .detail-hero-media {
 }
 
 @media (max-width: 780px) {
+  :root {
+    --page-pad-x: 0.95rem;
+    --scroll-offset: 152px;
+  }
+
   .nav-inner,
   .section-heading,
   .footer-inner {
@@ -8330,40 +8414,62 @@ body.detail-page.keba-detail-page .detail-hero-media {
     flex-direction: column;
   }
 
+  .brand {
+    width: 100%;
+  }
+
   .nav-links {
     width: 100%;
-    overflow-x: auto;
-    flex-wrap: nowrap;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    overflow: visible;
+    flex-wrap: wrap;
+    gap: 0.45rem;
     padding-bottom: 0.15rem;
+  }
+
+  .nav-links a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0.72rem 0.65rem;
+    text-align: center;
+    white-space: normal;
+    line-height: 1.25;
   }
 
   .nav-actions {
     width: 100%;
-    justify-content: flex-start;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    justify-content: stretch;
     gap: 0.7rem;
   }
 
   .nav-actions .btn-small {
-    flex: 1 1 calc(50% - 0.35rem);
     min-width: 0;
+    width: 100%;
     justify-content: center;
   }
 
   .btn-cv-top {
-    flex-basis: 100%;
+    grid-column: 1 / -1;
   }
 
   .lang-switcher {
+    grid-column: 1 / -1;
     order: 4;
-    flex: 1 1 220px;
-    max-width: 100%;
+    width: 100%;
     justify-content: center;
   }
 
   .theme-toggle,
   .section-filter-toggle {
-    flex: 0 0 46px;
+    width: 100%;
+    min-width: 0;
+    min-height: 46px;
+    border-radius: 18px;
   }
 
   .availability-banner {
@@ -8376,6 +8482,7 @@ body.detail-page.keba-detail-page .detail-hero-media {
   }
 
   .admin-mode-switch {
+    grid-column: 1 / -1;
     order: 6;
     width: 100%;
     justify-content: space-between;
@@ -8559,6 +8666,25 @@ body.detail-page.keba-detail-page .detail-hero-media {
 
   .hero-card-title {
     max-width: none;
+  }
+}
+
+@media (max-width: 620px) {
+  :root {
+    --page-pad-x: 0.88rem;
+    --scroll-offset: 164px;
+  }
+
+  .nav-links {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .availability-banner {
+    grid-template-columns: 1fr;
+  }
+
+  .btn-availability-cv {
+    justify-self: stretch;
   }
 }
 
