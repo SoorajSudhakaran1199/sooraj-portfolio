@@ -4,8 +4,9 @@ const STORAGE_DETAIL_ORIGIN_PREFIX = "detail-origin:";
 const STORAGE_RETURN_TARGET_KEY = "detail-return-target";
 const STORAGE_FEEDBACK_STATS_KEY = "feedback-form-stats";
 const STORAGE_FEEDBACK_LAST_SUBMISSION_KEY = "feedback-last-submission";
-const STORAGE_SITE_UPDATE_OVERRIDE_KEY = "portfolio-site-update-override";
 const SUPABASE_SUBMISSION_EVENTS_TABLE = "portfolio_submission_events";
+const SUPABASE_SITE_STATE_TABLE = "portfolio_site_state";
+const SUPABASE_SITE_UPDATE_STATE_ID = "public_site_update";
 const WEB3FORMS_ENDPOINT = "https://api.web3forms.com/submit";
 const GOOGLE_ANALYTICS_ID = "G-00H12CYMW0";
 const CLARITY_PROJECT_ID = "vz7zebyj7z";
@@ -2488,7 +2489,6 @@ function setupAdminModeControl() {
 
   userButton.addEventListener("click", async () => {
     if (!getAdminModeState()) return;
-    localStorage.removeItem(STORAGE_SITE_UPDATE_OVERRIDE_KEY);
 
     try {
       const supabase = await getSupabaseClient();
@@ -4201,6 +4201,43 @@ async function resolveLatestSiteUpdate() {
   ));
 }
 
+async function fetchSharedSiteUpdateOverride() {
+  try {
+    const supabase = await getSupabaseClient();
+    const { data, error } = await supabase
+      .from(SUPABASE_SITE_STATE_TABLE)
+      .select("updated_at")
+      .eq("id", SUPABASE_SITE_UPDATE_STATE_ID)
+      .maybeSingle();
+
+    if (error || !data?.updated_at) {
+      return null;
+    }
+
+    const overrideDate = new Date(data.updated_at);
+    return Number.isNaN(overrideDate.getTime()) ? null : overrideDate;
+  } catch {
+    return null;
+  }
+}
+
+async function saveSharedSiteUpdateOverride(date) {
+  const supabase = await getSupabaseClient();
+  const { error } = await supabase
+    .from(SUPABASE_SITE_STATE_TABLE)
+    .upsert(
+      {
+        id: SUPABASE_SITE_UPDATE_STATE_ID,
+        updated_at: date.toISOString()
+      },
+      { onConflict: "id" }
+    );
+
+  if (error) {
+    throw error;
+  }
+}
+
 async function setupLastUpdated() {
   const isAdminMode = getAdminModeState();
   const fallbackModifiedAt = new Date(document.lastModified);
@@ -4264,15 +4301,14 @@ async function setupLastUpdated() {
     }
   };
 
-  const storedOverride = isAdminMode ? localStorage.getItem(STORAGE_SITE_UPDATE_OVERRIDE_KEY) : null;
-  const overrideDate = storedOverride ? new Date(storedOverride) : null;
-  const hasValidOverride = overrideDate && !Number.isNaN(overrideDate.getTime());
+  applyUpdateState(fallbackModifiedAt);
 
-  applyUpdateState(hasValidOverride ? overrideDate : fallbackModifiedAt);
-
-  const latestModifiedAt = await resolveLatestSiteUpdate();
-  const effectiveDate = hasValidOverride && (!latestModifiedAt || overrideDate > latestModifiedAt)
-    ? overrideDate
+  const [latestModifiedAt, sharedOverrideDate] = await Promise.all([
+    resolveLatestSiteUpdate(),
+    fetchSharedSiteUpdateOverride()
+  ]);
+  const effectiveDate = sharedOverrideDate && (!latestModifiedAt || sharedOverrideDate > latestModifiedAt)
+    ? sharedOverrideDate
     : latestModifiedAt;
 
   if (effectiveDate) {
@@ -4282,10 +4318,14 @@ async function setupLastUpdated() {
   if (!adminButton) return;
   adminButton.textContent = adminButtonLabel;
   adminButton.hidden = !isAdminMode;
-  adminButton.addEventListener("click", () => {
+  adminButton.addEventListener("click", async () => {
     const now = new Date();
-    localStorage.setItem(STORAGE_SITE_UPDATE_OVERRIDE_KEY, now.toISOString());
-    applyUpdateState(now);
+    try {
+      await saveSharedSiteUpdateOverride(now);
+      applyUpdateState(now);
+    } catch (error) {
+      // Keep the current visible state if the shared update write fails.
+    }
   });
 }
 

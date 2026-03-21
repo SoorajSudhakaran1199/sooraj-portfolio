@@ -37,3 +37,35 @@ on public.portfolio_submission_events
 for delete
 to authenticated
 using (lower(coalesce(auth.jwt() ->> 'email', '')) = 'soorajsudhakaran4@gmail.com');
+
+create table if not exists public.portfolio_site_state (
+  id text primary key,
+  updated_at timestamptz not null default timezone('utc', now())
+);
+
+insert into public.portfolio_site_state (id, updated_at)
+values ('public_site_update', timezone('utc', now()))
+on conflict (id) do nothing;
+
+alter table public.portfolio_site_state enable row level security;
+
+drop policy if exists "Public can read portfolio site state" on public.portfolio_site_state;
+create policy "Public can read portfolio site state"
+on public.portfolio_site_state
+for select
+using (true);
+
+drop policy if exists "Admin can insert portfolio site state" on public.portfolio_site_state;
+create policy "Admin can insert portfolio site state"
+on public.portfolio_site_state
+for insert
+to authenticated
+with check (lower(coalesce(auth.jwt() ->> 'email', '')) = 'soorajsudhakaran4@gmail.com');
+
+drop policy if exists "Admin can update portfolio site state" on public.portfolio_site_state;
+create policy "Admin can update portfolio site state"
+on public.portfolio_site_state
+for update
+to authenticated
+using (lower(coalesce(auth.jwt() ->> 'email', '')) = 'soorajsudhakaran4@gmail.com')
+with check (lower(coalesce(auth.jwt() ->> 'email', '')) = 'soorajsudhakaran4@gmail.com');
