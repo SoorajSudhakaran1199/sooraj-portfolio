@@ -5580,6 +5580,11 @@ body.detail-page.feedback-page .shine-card::after {
   background: rgba(255, 255, 255, 0.03);
 }
 
+.feedback-stats-admin[hidden],
+.feedback-stats-admin [hidden] {
+  display: none !important;
+}
+
 .feedback-stats-admin-actions {
   display: flex;
   flex-wrap: wrap;
