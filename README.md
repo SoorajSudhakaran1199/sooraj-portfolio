@@ -1,487 +1,189 @@
-# 🚀 Sooraj Sudhakaran –  Portfolio
+# Sooraj Sudhakaran Portfolio
 
+<p align="center">
+  Personal portfolio website focused on robotics, automation, industrial engineering, ROS workflows, simulation, and deployment-oriented engineering work.
+</p>
 
----
+<p align="center">
+  <a href="https://soorajsudhakaran1199.github.io/sooraj-portfolio/"><strong>Live Website</strong></a> ·
+  <a href="https://soorajsudhakaran1199.github.io/sooraj-portfolio/journey.html"><strong>Journey</strong></a> ·
+  <a href="https://soorajsudhakaran1199.github.io/sooraj-portfolio/experience-masters-thesis-keba.html"><strong>Industrial Robotics Thesis</strong></a> ·
+  <a href="https://soorajsudhakaran1199.github.io/sooraj-portfolio/feedback.html"><strong>Feedback and Contact</strong></a>
+</p>
 
-# 🌐 Live Portfolio
+<p align="center">
+  <a href="https://soorajsudhakaran1199.github.io/sooraj-portfolio/">
+    <img src="site/assets/images/readme-preview.png" alt="Preview of the Sooraj Sudhakaran portfolio website" width="100%" />
+  </a>
+</p>
 
-🔗 **Website**
+<p align="center">
+  <a href="https://soorajsudhakaran1199.github.io/sooraj-portfolio/">
+    <img src="https://img.shields.io/badge/Website-Live-0f172a?style=for-the-badge" alt="Website live" />
+  </a>
+  <a href="https://github.com/SoorajSudhakaran1199/sooraj-portfolio">
+    <img src="https://img.shields.io/badge/Static%20Site-GitHub%20Pages-1f2937?style=for-the-badge" alt="Static site on GitHub Pages" />
+  </a>
+  <a href="https://soorajsudhakaran1199.github.io/sooraj-portfolio/feedback.html">
+    <img src="https://img.shields.io/badge/Contact-Feedback%20Form-0b3d2e?style=for-the-badge" alt="Feedback form" />
+  </a>
+</p>
 
-```
-https://soorajsudhakaran1199.github.io/sooraj-portfolio
-```
+## Overview
 
-This website presents my **engineering profile, robotics projects, research interests, and professional journey** in a clean and professional portfolio format.
+This repository contains the cleaned source structure for the portfolio website of Sooraj Sudhakaran. The site is built as a static multi-page portfolio with recruiter-facing positioning, structured project detail pages, experience pages, analytics, SEO setup, and a direct feedback and contact workflow.
 
-The site is designed to help **recruiters, researchers, and engineering teams quickly understand my experience and technical focus.**
+The portfolio is designed to present:
 
----
+- robotics and automation profile positioning
+- industrial robotics experience and thesis work
+- ROS, simulation, controls, and mechatronics projects
+- journey and background context
+- direct recruiter and collaboration contact paths
 
-# 👨‍💻 About This Portfolio
+## Best Fit
 
-This portfolio website was built to showcase:
+This portfolio is most relevant for:
 
-• Robotics & automation engineering work  
-• Industrial robotics experience  
-• Academic research projects  
-• Engineering design and simulation work  
-• Certifications and technical training  
-• Professional journey from India to Germany  
+- robotics engineer roles
+- automation engineer roles
+- ROS or robotics software engineer roles
+- simulation and digital-twin related work
+- controls and mechatronics engineering roles
+- industrial robotics thesis, internship, and early-career engineering opportunities
 
-The design focuses on:
+Strongest profile signals:
 
-✔ clean layout  
-✔ recruiter-friendly structure  
-✔ fast loading  
-✔ modern UI  
-✔ minimal dependencies  
-✔ easy maintenance  
+- industrial robotics exposure through KEBA Group
+- master's thesis work connected to planning-to-deployment robotics workflows
+- ROS and autonomous robotics projects
+- simulation, VR, optimization, and systems-oriented engineering work
 
----
+## Featured Pages
 
-# 🧠 Engineering Focus Areas
+- `Homepage`: recruiter-facing profile, fit summary, projects, reviews, and contact
+- `Journey`: academic and professional transition from India to Germany
+- `Industrial robotics thesis`: strongest planning-to-deployment thesis page
+- `ROS project`: autonomous vacuum robot in ROS
+- `Portfolio map`: crawlable overview of the full portfolio structure
+- `Feedback and contact`: structured form for outreach and website feedback
 
-• Robotics  
-• Industrial Automation  
-• Autonomous Systems  
-• Motion Planning  
-• Sensor Integration  
-• ROS / ROS2  
-• Simulation-driven design  
-• Cyber-Physical Systems  
+## Key Features
 
----
+- multi-page static portfolio architecture
+- recruiter-focused homepage sections and experience mapping
+- dedicated experience and project detail pages
+- bilingual support for English and German
+- feedback and contact form flow
+- reviews and rating section
+- SEO setup with:
+  - `robots.txt`
+  - `sitemap.xml`
+  - canonical URLs
+  - Open Graph and Twitter meta tags
+  - JSON-LD structured data
+- Google Analytics 4 and Microsoft Clarity integration
+- organized asset and document structure under `site/assets/`
 
-# 📂 Repository Structure
+## Tech Stack
 
-```
-sooraj-portfolio
-│
-├── index.html
-├── journey.html
-├── sitemap.xml
-│
-├── Images
-│   └── My_photo.jpg
-│
-├── CV
-│   └── Sooraj_Sudhakaran_CV.pdf
-│
-├── Certificates
-│   ├── xxx.pdf
-│   ├── yyy.pdf
-│
-└── README.md
-```
+- HTML
+- CSS
+- JavaScript
+- GitHub Pages
+- Google Analytics 4
+- Microsoft Clarity
+- Google Search Console support
 
----
+## Repository Structure
 
-# ⚙️ Technologies Used
-
-This portfolio intentionally uses **lightweight technologies** to keep performance high and deployment simple.
-
-### Frontend
-
-• HTML5  
-• CSS3  
-• Vanilla JavaScript  
-
-### Hosting
-
-• GitHub Pages
-
-### Version Control
-
-• Git  
-• GitHub
-
-### Analytics
-
-• Cloudflare Web Analytics
-
-### Search Engine Indexing
-
-• Google Search Console  
-• XML Sitemap
-
----
-
-# 🎨 UI Design Philosophy
-
-The UI is designed to look like a **modern engineering portfolio dashboard**.
-
-Design goals:
-
-• minimalistic  
-• high contrast readability  
-• strong visual hierarchy  
-• professional recruiter presentation  
-
-Key UI features:
-
-• dark professional theme  
-• card-based content layout  
-• responsive grid system  
-• animated interaction feedback  
-
----
-
-# 🧩 Layout Architecture
-
-The site uses modern CSS layout techniques.
-
-### CSS Grid
-
-Used for:
-
-• skills section  
-• projects grid  
-• certificates  
-• accomplishments  
-
-Example concept:
-
-```
-display: grid;
-grid-template-columns: repeat(3, 1fr);
-gap: 1rem;
+```text
+.
+├── README.md
+├── scripts/
+└── site/
+    ├── index.html
+    ├── journey.html
+    ├── feedback.html
+    ├── feedback-thank-you.html
+    ├── portfolio-map.html
+    ├── experience-*.html
+    ├── project-*.html
+    ├── app.js
+    ├── style.css
+    ├── sitemap.xml
+    ├── robots.txt
+    ├── assets/
+    │   ├── images/
+    │   └── documents/
+    └── README.md
 ```
 
----
+## Deployment
 
-### Flexbox
+The deployable website lives inside `site/`.
 
-Used for:
+Typical deployment flow:
 
-• navigation alignment  
-• hero content layout  
-• button groups  
-• metadata blocks  
-
-Example concept:
-
-```
-display: flex;
-align-items: center;
-justify-content: space-between;
-```
-
----
-
-# ✨ Animation System
-
-Animations are implemented using **pure CSS animations**.
-
-This avoids heavy JavaScript animation libraries and keeps performance high.
-
----
-
-## Hover Effects
-
-Cards and buttons include lift animations.
-
-```
-transform: translateY(-3px)
-transition: transform 0.25s ease
-```
-
-This gives depth and interactivity.
-
----
-
-## Reveal Animations
-
-Sections fade in during page load.
-
-```
-opacity: 0
-transform: translateY(24px)
-animation: revealUp 0.8s ease forwards
-```
-
----
-
-## Glow Background
-
-Hero background uses a floating glow animation.
-
-```
-@keyframes floatGlow
-```
-
-This creates subtle motion.
-
----
-
-## Live Status Indicators
-
-Green animated indicators show **currently active work**.
-
-Used for:
-
-• master's thesis  
-• current engineering role  
-
-Concept:
-
-```
-pulse animation
-scale transform
-glow shadow
-```
-
----
-
-## Shine Animation
-
-Cards include a subtle shine sweep animation.
-
-Concept:
-
-```
-linear-gradient highlight
-transform animation
-```
-
-This improves perceived UI quality.
-
----
-
-# 🎨 Styling System
-
-The site uses CSS variables for consistent styling.
+1. Sync the contents of `site/` into the GitHub Pages repository root.
+2. Commit and push to `main`.
+3. Let GitHub Pages redeploy the site.
 
 Example:
 
-```
-:root {
---bg
---panel
---text
---accent
---accent-2
-}
+```bash
+rsync -av --exclude='.DS_Store' "/path/to/sooraj-portfolio-cleaned/site/" /path/to/deployment-repo/
 ```
 
-Benefits:
+## SEO and Discovery
 
-• easier theme changes  
-• consistent colors  
-• simpler maintenance  
+The site already includes:
 
----
+- sitemap and crawler directives
+- structured metadata and canonical URLs
+- internal linking for thesis, projects, journey, reviews, contact, and portfolio map
+- search-oriented homepage sections such as topic links and common portfolio questions
 
-# 📱 Responsive Design
+For Google discovery and indexing:
 
-The website adapts to different screen sizes.
+1. keep the site deployed on the public GitHub Pages URL
+2. use Google Search Console
+3. submit `sitemap.xml`
+4. request indexing for the most important pages after major updates
 
-```
-@media (max-width: 900px)
-```
+## Analytics
 
-On mobile devices:
+Site-wide analytics and behavior tracking are configured through `site/app.js`.
 
-• grid layouts collapse to one column  
-• hero sections stack vertically  
-• spacing adjusts automatically  
+Integrated services:
 
-Supported devices:
+- Google Analytics 4
+- Microsoft Clarity
 
-✔ desktop  
-✔ laptop  
-✔ tablet  
-✔ mobile  
+These support:
 
----
+- traffic measurement
+- page-level engagement
+- click and interaction tracking
+- session recordings and heatmaps
 
-# 🚀 Deployment
+## Contact
 
-The site is deployed using **GitHub Pages**.
+For professional contact, portfolio review, or collaboration:
 
-Deployment workflow:
+- Email: `soorajsudhakaran1199@gmail.com`
+- LinkedIn: `https://www.linkedin.com/in/sooraj-sudhakaran1999`
+- GitHub: `https://github.com/SoorajSudhakaran1199`
+- Feedback and contact form: `https://soorajsudhakaran1199.github.io/sooraj-portfolio/feedback.html`
 
-```
-git add .
-git commit -m "update website"
-git push
-```
+## Maintenance Notes
 
-GitHub automatically rebuilds and deploys the website.
+- Keep public page URLs stable to preserve indexing value.
+- Prefer adding new images under `site/assets/images/`.
+- Prefer adding certificates and documents under `site/assets/documents/`.
+- Keep English and German copy aligned when editing user-facing text.
+- Treat `site/` as the deployable web layer and this repository as the cleaned working source.
 
-Public URL:
+## Site Folder Reference
 
-```
-https://soorajsudhakaran1199.github.io/sooraj-portfolio
-```
-
----
-
-# 🔍 SEO Configuration
-
-Search engine visibility is improved with:
-
-• meta description  
-• keywords  
-• Open Graph metadata  
-• XML sitemap  
-• Google Search Console verification  
-• schema.org structured data  
-
-This helps search engines understand:
-
-• who the site belongs to  
-• professional domain  
-• available pages  
-
----
-
-# 📊 Website Analytics
-
-Visitor analytics is integrated using:
-
-### Cloudflare Web Analytics
-
-Tracks:
-
-• visitor count  
-• page views  
-• visitor countries  
-• referral sources  
-• device types  
-
-Analytics script is embedded in the HTML.
-
----
-
-# 🧑‍💻 Developer Guide — Build Your Own Portfolio
-
-This repository can be used as a **template for your own portfolio**.
-
----
-
-### Step 1 – Clone Repository
-
-```
-git clone https://github.com/yourusername/portfolio.git
-```
-
----
-
-### Step 2 – Edit Content
-
-Update:
-
-• name  
-• professional summary  
-• skills  
-• projects  
-• education  
-• experience  
-• certificates  
-
----
-
-### Step 3 – Replace Assets
-
-Replace files inside:
-
-```
-Images/
-Certificates/
-CV/
-```
-
----
-
-### Step 4 – Update Links
-
-Update:
-
-• GitHub profile  
-• LinkedIn profile  
-• project repositories  
-• company links  
-
----
-
-### Step 5 – Deploy
-
-Push the repository to GitHub and enable GitHub Pages.
-
-Your portfolio becomes publicly available.
-
----
-
-# 📈 Why This Portfolio Uses Static HTML
-
-This site intentionally avoids frameworks like React.
-
-Reasons:
-
-✔ faster loading  
-✔ simpler code  
-✔ easier maintenance  
-✔ GitHub Pages compatibility  
-✔ beginner friendly  
-
-For portfolios, **simple static architecture is usually the best approach.**
-
----
-
-# 👥 Who Can Use This Repository
-
-This repository can help:
-
-• engineering students  
-• robotics researchers  
-• developers building their first portfolio  
-• professionals creating personal websites  
-
-You are welcome to use it as inspiration for your own portfolio.
-
----
-
-# 🔮 Future Improvements
-
-Possible upgrades:
-
-• custom domain  
-• project filtering  
-• blog section  
-• embedded demos  
-• GitHub project integration  
-• advanced analytics  
-• multilingual support  
-
----
-
-# 📬 Contact
-
-**Sooraj Sudhakaran**
-
-Robotics & Automation Engineer  
-Stuttgart, Germany
-
-LinkedIn  
-https://www.linkedin.com/in/sooraj-sudhakaran1999
-
-GitHub  
-https://github.com/SoorajSudhakaran1199
-
-Portfolio  
-https://soorajsudhakaran1199.github.io/sooraj-portfolio
-
----
-
-# 📄 License
-
-This repository is shared as a **personal portfolio reference project**.
-
-If you use it as inspiration:
-
-• customize it for your own profile  
-• replace personal details  
-• do not copy identity-specific information directly
-
----
-
+For the site-level structure and asset notes, see [site/README.md](site/README.md).

@@ -7292,6 +7292,9 @@ body.detail-page.keba-detail-page .detail-hero-media {
   .journey-summary,
   .certificate-links,
   .journey-preview-grid,
+  .topic-explore-grid,
+  .faq-grid,
+  .portfolio-map-grid,
   .project-grid,
   .detail-grid,
   .detail-meta-row,
@@ -7435,6 +7438,9 @@ body.detail-page.keba-detail-page .detail-hero-media {
   .journey-summary,
   .certificate-links,
   .journey-preview-grid,
+  .topic-explore-grid,
+  .faq-grid,
+  .portfolio-map-grid,
   .project-grid,
   .detail-grid,
   .detail-meta-row,
@@ -7504,6 +7510,66 @@ body.detail-page.keba-detail-page .detail-hero-media {
   100% {
     stroke-dashoffset: -180;
   }
+}
+
+.topic-explore-grid,
+.portfolio-map-grid,
+.faq-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.4rem;
+}
+
+.topic-card,
+.portfolio-map-card,
+.portfolio-map-hero,
+.related-links-block,
+.faq-card {
+  display: grid;
+  gap: 0.95rem;
+}
+
+.faq-card {
+  align-content: start;
+  min-height: 100%;
+}
+
+.faq-card .btn {
+  justify-self: start;
+}
+
+.homepage-disclosure-panel {
+  display: grid;
+  gap: 1rem;
+  padding-top: 0.9rem;
+}
+
+.topic-link-list {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.topic-link-list a {
+  color: var(--text-strong);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.topic-link-list a:hover {
+  color: var(--accent);
+}
+
+.portfolio-map-hero {
+  padding: 1.8rem;
+}
+
+.portfolio-map-card .btn {
+  justify-self: start;
+}
+
+.related-links-block {
+  margin-top: 1.2rem;
+  padding: 1.4rem;
 }
 
 @media (prefers-reduced-motion: reduce) {
