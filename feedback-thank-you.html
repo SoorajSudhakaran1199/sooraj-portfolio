@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Submission received | Sooraj Sudhakaran</title>
+  <meta name="description" content="Confirmation page for successful feedback or contact form submissions on Sooraj Sudhakaran's portfolio website." />
+  <meta name="author" content="Sooraj Sudhakaran" />
+  <meta name="robots" content="noindex, follow, noarchive" />
+  <link rel="canonical" href="https://soorajsudhakaran1199.github.io/sooraj-portfolio/feedback-thank-you.html" />
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon-srj.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <script>
+    (() => {
+      const lang = localStorage.getItem("site-language") === "de" ? "de" : "en";
+      const saved = localStorage.getItem("theme");
+      const theme = saved || (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+      document.documentElement.setAttribute("lang", lang);
+      document.documentElement.setAttribute("data-lang-ready", "false");
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+</head>
+<body class="portfolio-page detail-page feedback-page feedback-thank-you-page">
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
+  <div class="page-shell">
+    <header class="nav">
+      <div class="container nav-inner">
+        <a href="index.html" class="brand">
+          <span class="brand-avatar" aria-hidden="true">
+            <img src="Images/MY_PHOTO.jpeg" alt="" />
+          </span>
+          <span class="brand-copy">
+            <span class="brand-title">SOORAJ SUDHAKARAN</span>
+            <small>Submission received</small>
+          </span>
+        </a>
+        <nav class="nav-links" aria-label="Confirmation navigation">
+          <a href="index.html">Portfolio</a>
+          <a href="feedback.html">Feedback form</a>
+          <a href="journey.html">Journey</a>
+        </nav>
+        <div class="nav-actions">
+          <a class="btn btn-small btn-ghost" href="feedback.html">Submit new form</a>
+          <a class="btn btn-small btn-ghost" href="index.html">Back to Portfolio</a>
+          <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle theme">
+            <span data-theme-icon="moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3A7 7 0 0 0 21 12.79z"/></svg>
+            </span>
+            <span data-theme-icon="sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+            </span>
+            <span class="sr-only">Toggle theme</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero feedback-hero">
+        <div class="container detail-shell">
+          <article class="card shine-card feedback-thank-you-card reveal-on-scroll">
+            <div class="feedback-hero-copy">
+              <div class="eyebrow">
+                <span class="spark"></span>
+                Thank you
+              </div>
+              <h1 data-feedback-thankyou-title>Thank you for your message.</h1>
+              <p class="lead" data-feedback-thankyou-lead>Your form was submitted successfully.</p>
+            </div>
+
+            <div class="feedback-thank-you-status-pill">
+              <span class="contact-label">Status</span>
+              <strong class="contact-value" data-feedback-thankyou-status>Submitted successfully</strong>
+            </div>
+
+            <div class="feedback-thank-you-actions">
+              <a class="btn btn-primary" href="feedback.html">Submit new form</a>
+              <a class="btn btn-secondary" href="index.html">Back to Portfolio</a>
+              <button class="btn btn-secondary" type="button" data-feedback-panel-trigger="review-summary" aria-controls="review-summary">View reviews and rating</button>
+            </div>
+
+            <div class="feedback-thank-you-panels">
+              <details class="feedback-conditions feedback-thank-you-status" id="review-summary">
+                <summary>
+                  <span class="feedback-disclosure-copy">
+                    <strong>View reviews and rating</strong>
+                    <small>Click to expand</small>
+                  </span>
+                </summary>
+                <div class="feedback-thank-you-review-grid">
+                  <div class="feedback-thank-you-metric">
+                    <span class="feedback-stats-kicker">Reviews</span>
+                    <strong data-feedback-thankyou-review-count>0</strong>
+                  </div>
+                  <div class="feedback-thank-you-metric">
+                    <span class="feedback-stats-kicker">Average rating</span>
+                    <strong data-feedback-thankyou-average-rating>No ratings yet</strong>
+                  </div>
+                </div>
+              </details>
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

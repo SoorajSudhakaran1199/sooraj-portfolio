@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="srjBg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#0f2130"/>
+      <stop offset="100%" stop-color="#193549"/>
+    </linearGradient>
+    <linearGradient id="srjAccent" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0%" stop-color="#59e2bc"/>
+      <stop offset="100%" stop-color="#80b8ff"/>
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="56" height="56" rx="16" fill="url(#srjBg)"/>
+  <rect x="12" y="12" width="40" height="5" rx="2.5" fill="url(#srjAccent)"/>
+  <text x="32" y="42" text-anchor="middle" fill="#f4f8ff" font-family="Arial, sans-serif" font-size="22" font-weight="700" letter-spacing="1.2">SRJ</text>
+</svg>
