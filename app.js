@@ -1493,9 +1493,11 @@ function setupLanguageSwitcher() {
   switcher.setAttribute("aria-label", "Language switcher");
   switcher.innerHTML = `
     <button class="lang-option" type="button" data-lang="en" aria-pressed="true">
+      <span class="lang-flags lang-flag-en" aria-hidden="true"></span>
       <span class="lang-code">EN</span>
     </button>
     <button class="lang-option" type="button" data-lang="de" aria-pressed="false">
+      <span class="lang-flags lang-flag-de" aria-hidden="true"></span>
       <span class="lang-code">DE</span>
     </button>
   `;
