@@ -534,9 +534,12 @@ html[lang="de"] .btn-fit-highlight::after {
 .lang-flags {
   display: inline-flex;
   align-items: center;
-  gap: 0.16rem;
-  font-size: 0.9rem;
-  line-height: 1;
+  justify-content: center;
+  width: 1.02rem;
+  height: 0.74rem;
+  border-radius: 0.16rem;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
 .lang-code {
@@ -2973,9 +2976,14 @@ h3 {
 
 .chip-flag {
   display: inline-flex;
-  margin-right: 0.3rem;
-  font-size: 0.95rem;
-  line-height: 1;
+  width: 1rem;
+  height: 0.72rem;
+  margin-right: 0.38rem;
+  border-radius: 0.16rem;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+  flex: 0 0 auto;
 }
 
 .chip-state-flag {
@@ -3187,6 +3195,156 @@ h3 {
 .travel-flag,
 .journey-card-icon {
   transition: transform 0.28s ease, box-shadow 0.28s ease;
+}
+
+.flag-badge {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  overflow: hidden;
+}
+
+.flag-badge::before,
+.flag-badge::after {
+  content: "";
+  position: absolute;
+}
+
+.flag-india {
+  background: linear-gradient(180deg, #f08a28 0 33.33%, #ffffff 33.33% 66.66%, #15803d 66.66% 100%);
+}
+
+.flag-india::after {
+  left: 50%;
+  top: 50%;
+  width: 0.19rem;
+  height: 0.19rem;
+  border: 1px solid #1d4ed8;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.flag-germany {
+  background: linear-gradient(180deg, #111827 0 33.33%, #c53f57 33.33% 66.66%, #f3c74b 66.66% 100%);
+}
+
+.flag-uk {
+  background:
+    linear-gradient(90deg, transparent 42%, #ffffff 42% 58%, transparent 58%),
+    linear-gradient(180deg, transparent 42%, #ffffff 42% 58%, transparent 58%),
+    linear-gradient(90deg, transparent 46%, #d32f2f 46% 54%, transparent 54%),
+    linear-gradient(180deg, transparent 46%, #d32f2f 46% 54%, transparent 54%),
+    #123c8f;
+}
+
+.flag-bahrain {
+  background: linear-gradient(90deg, #ffffff 0 28%, #b21f3a 28% 100%);
+}
+
+.flag-bahrain::after {
+  inset: 0 auto 0 23%;
+  width: 0.28rem;
+  background:
+    linear-gradient(180deg,
+      transparent 0 10%,
+      #ffffff 10% 18%,
+      transparent 18% 28%,
+      #ffffff 28% 36%,
+      transparent 36% 46%,
+      #ffffff 46% 54%,
+      transparent 54% 64%,
+      #ffffff 64% 72%,
+      transparent 72% 82%,
+      #ffffff 82% 90%,
+      transparent 90% 100%);
+}
+
+.flag-qatar {
+  background: linear-gradient(90deg, #ffffff 0 30%, #6f1639 30% 100%);
+}
+
+.flag-qatar::after {
+  inset: 0 auto 0 24%;
+  width: 0.28rem;
+  background:
+    linear-gradient(180deg,
+      transparent 0 9%,
+      #ffffff 9% 17%,
+      transparent 17% 26%,
+      #ffffff 26% 34%,
+      transparent 34% 43%,
+      #ffffff 43% 51%,
+      transparent 51% 60%,
+      #ffffff 60% 68%,
+      transparent 68% 77%,
+      #ffffff 77% 85%,
+      transparent 85% 100%);
+}
+
+.flag-austria {
+  background: linear-gradient(180deg, #c53f57 0 33.33%, #ffffff 33.33% 66.66%, #c53f57 66.66% 100%);
+}
+
+.flag-switzerland {
+  background: #d32f2f;
+}
+
+.flag-switzerland::before,
+.flag-switzerland::after {
+  left: 50%;
+  top: 50%;
+  background: #ffffff;
+  transform: translate(-50%, -50%);
+}
+
+.flag-switzerland::before {
+  width: 0.46rem;
+  height: 0.14rem;
+}
+
+.flag-switzerland::after {
+  width: 0.14rem;
+  height: 0.46rem;
+}
+
+.flag-czech {
+  background: linear-gradient(180deg, #ffffff 0 50%, #c53f57 50% 100%);
+}
+
+.flag-czech::before {
+  left: 0;
+  top: 0;
+  width: 52%;
+  height: 100%;
+  background: #1d4ed8;
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+}
+
+.flag-luxembourg {
+  background: linear-gradient(180deg, #d55656 0 33.33%, #ffffff 33.33% 66.66%, #7bb6ff 66.66% 100%);
+}
+
+.flag-globe {
+  background:
+    radial-gradient(circle at 38% 34%, rgba(255, 255, 255, 0.26), transparent 24%),
+    radial-gradient(circle at 62% 66%, rgba(255, 255, 255, 0.14), transparent 28%),
+    linear-gradient(180deg, #3e8ecf, #24659d);
+}
+
+.flag-globe::before {
+  inset: 18% 24%;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.flag-globe::after {
+  left: 50%;
+  top: 14%;
+  width: 1px;
+  height: 72%;
+  background: rgba(255, 255, 255, 0.32);
+  transform: translateX(-50%);
+  box-shadow: -0.22rem 0 0 rgba(255, 255, 255, 0.18), 0.22rem 0 0 rgba(255, 255, 255, 0.18);
 }
 
 .travel-card:hover .travel-flag {
@@ -5023,8 +5181,12 @@ ul.clean li {
 }
 
 .route-flag {
-  margin: 0.55rem 0 0;
-  font-size: 1.4rem;
+  width: 2rem;
+  height: 1.42rem;
+  margin: 0.65rem auto 0;
+  border-radius: 0.24rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.16);
 }
 
 .route-dot {
@@ -5161,13 +5323,11 @@ ul.clean li {
   align-items: center;
   justify-content: center;
   width: 1.9rem;
-  height: 1.9rem;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(10, 19, 31, 0.82);
+  height: 1.36rem;
+  border-radius: 0.24rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.18);
-  font-size: 1rem;
-  line-height: 1;
+  overflow: hidden;
 }
 
 .route-map-flag-india {
@@ -5282,7 +5442,11 @@ ul.clean li {
 }
 
 .travel-flag {
-  font-size: 2rem;
+  width: 2.35rem;
+  height: 1.7rem;
+  border-radius: 0.3rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.16);
 }
 
 .cta-panel {
