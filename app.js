@@ -6,6 +6,8 @@ const STORAGE_FEEDBACK_STATS_KEY = "feedback-form-stats";
 const STORAGE_FEEDBACK_LAST_SUBMISSION_KEY = "feedback-last-submission";
 const STORAGE_ADMIN_MODE_KEY = "portfolio-admin-mode";
 const WEB3FORMS_ENDPOINT = "https://api.web3forms.com/submit";
+const GOOGLE_ANALYTICS_ID = "G-00H12CYMW0";
+const CLARITY_PROJECT_ID = "vz7zebyj7z";
 const REQUEST_CV_LINKS = {
   en: "mailto:soorajsudhakaran1199@gmail.com?subject=Request%20for%20CV&body=Hi%20Sooraj%20Sudhakaran%2C%0D%0A%0D%0AI%20am%20interested%20in%20your%20profile%20for%20a%20relevant%20opportunity.%20Please%20share%20your%20latest%20CV%20with%20me%20via%20email.%0D%0A%0D%0AThank%20you%2C%0D%0A%5BYour%20Name%5D%0D%0A%5BCompany%20/%20Role%5D",
   de: "mailto:soorajsudhakaran1199@gmail.com?subject=Anfrage%20nach%20CV&body=Hallo%20Sooraj%20Sudhakaran%2C%0D%0A%0D%0AIch%20interessiere%20mich%20f%C3%BCr%20Ihr%20Profil%20im%20Rahmen%20einer%20passenden%20Position.%20Bitte%20senden%20Sie%20mir%20Ihren%20aktuellen%20CV%20per%20E-Mail%20zu.%0D%0A%0D%0AVielen%20Dank%2C%0D%0A%5BIhr%20Name%5D%0D%0A%5BUnternehmen%20/%20Rolle%5D"
@@ -544,6 +546,110 @@ const LANGUAGE_TEXT = {
     "This project supports the current robotics profile because it demonstrates hands-on building, real-world motivation, autonomous movement logic, and recognized execution quality before the later move into ROS, simulation, and industrial robotics.": "Dieses Projekt stützt das heutige Robotikprofil, weil es praktischen Aufbau, reale Motivation, autonome Bewegungslogik und anerkannte Umsetzungsqualität bereits vor dem späteren Schritt zu ROS, Simulation und Industrierobotik zeigt."
   }
 };
+
+function loadSiteAnalytics() {
+  if (window.__portfolioAnalyticsLoaded) {
+    return;
+  }
+
+  window.__portfolioAnalyticsLoaded = true;
+
+  if (GOOGLE_ANALYTICS_ID) {
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = window.gtag || function gtag() {
+      window.dataLayer.push(arguments);
+    };
+
+    const gaScript = document.createElement("script");
+    gaScript.async = true;
+    gaScript.src = `https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ANALYTICS_ID}`;
+    document.head.appendChild(gaScript);
+
+    window.gtag("js", new Date());
+    window.gtag("config", GOOGLE_ANALYTICS_ID, {
+      anonymize_ip: true,
+      transport_type: "beacon"
+    });
+  }
+
+  if (CLARITY_PROJECT_ID && typeof window.clarity !== "function") {
+    (function(c, l, a, r, i, t, y) {
+      c[a] = c[a] || function() {
+        (c[a].q = c[a].q || []).push(arguments);
+      };
+      t = l.createElement(r);
+      t.async = 1;
+      t.src = `https://www.clarity.ms/tag/${i}`;
+      y = l.getElementsByTagName(r)[0];
+      y.parentNode.insertBefore(t, y);
+    })(window, document, "clarity", "script", CLARITY_PROJECT_ID);
+  }
+}
+
+function trackAnalyticsEvent(name, params = {}) {
+  if (typeof window.gtag === "function") {
+    window.gtag("event", name, params);
+  }
+
+  if (typeof window.clarity === "function") {
+    try {
+      window.clarity("event", name);
+    } catch {
+      // Ignore provider-specific event issues without breaking site behavior.
+    }
+  }
+}
+
+function setupAnalyticsClickTracking() {
+  const trackedHrefPatterns = [
+    /feedback\.html/i,
+    /journey\.html/i,
+    /github\.com\/SoorajSudhakaran1199/i,
+    /linkedin\.com\/in\/sooraj-sudhakaran1999/i,
+    /^mailto:/i
+  ];
+
+  document.addEventListener("click", (event) => {
+    const target = event.target instanceof Element ? event.target.closest("a, button") : null;
+    if (!target) {
+      return;
+    }
+
+    const href = target instanceof HTMLAnchorElement ? target.getAttribute("href") || "" : "";
+    const text = (target.textContent || "").replace(/\s+/g, " ").trim().slice(0, 120);
+    const normalizedHref = href ? new URL(href, window.location.href).toString() : "";
+    const isTrackedButton = target.classList.contains("btn") || target.closest(".nav") || target instanceof HTMLButtonElement;
+    const isTrackedLink = trackedHrefPatterns.some((pattern) => pattern.test(href));
+
+    if (!isTrackedButton && !isTrackedLink) {
+      return;
+    }
+
+    let eventName = "cta_click";
+    if (/^mailto:/i.test(href)) {
+      eventName = "contact_click";
+    } else if (/feedback\.html/i.test(href)) {
+      eventName = "feedback_form_open";
+    } else if (/journey\.html/i.test(href)) {
+      eventName = "journey_open";
+    } else if (/github\.com\/SoorajSudhakaran1199/i.test(href)) {
+      eventName = "github_click";
+    } else if (/linkedin\.com\/in\/sooraj-sudhakaran1999/i.test(href)) {
+      eventName = "linkedin_click";
+    } else if (/request cv/i.test(text)) {
+      eventName = "request_cv_click";
+    } else if (target.closest(".nav")) {
+      eventName = "navigation_click";
+    }
+
+    trackAnalyticsEvent(eventName, {
+      page_path: window.location.pathname,
+      link_text: text || "untitled",
+      link_url: normalizedHref || window.location.href,
+      interaction_type: target.tagName.toLowerCase()
+    });
+  }, true);
+}
 
 const META_TRANSLATIONS = {
   de: {
@@ -2594,6 +2700,12 @@ function setupFeedbackForm() {
         subject: subjectLine || category || "",
         rating
       });
+      trackAnalyticsEvent("form_submit_success", {
+        page_path: window.location.pathname,
+        message_type: messageType,
+        response_preference: responsePreference || "not_specified",
+        has_rating: rating ? "yes" : "no"
+      });
       sessionStorage.setItem(
         STORAGE_FEEDBACK_LAST_SUBMISSION_KEY,
         JSON.stringify({
@@ -2613,6 +2725,10 @@ function setupFeedbackForm() {
       const submitError = lang === "de"
         ? "Die Uebermittlung ist fehlgeschlagen. Bitte pruefen Sie Ihre Verbindung und versuchen Sie es erneut."
         : "Submission failed. Please check your connection and try again.";
+      trackAnalyticsEvent("form_submit_error", {
+        page_path: window.location.pathname,
+        message_type: messageType
+      });
       setFormStatus(submitError, "error");
     } finally {
       if (submitButton) {
@@ -3091,6 +3207,8 @@ function decorateContactLinks() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  loadSiteAnalytics();
+  setupAnalyticsClickTracking();
   applyTheme(resolveInitialTheme());
   setupLanguageSwitcher();
   setupThemeToggle();
