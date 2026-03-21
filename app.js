@@ -5,6 +5,7 @@ const STORAGE_RETURN_TARGET_KEY = "detail-return-target";
 const STORAGE_FEEDBACK_STATS_KEY = "feedback-form-stats";
 const STORAGE_FEEDBACK_LAST_SUBMISSION_KEY = "feedback-last-submission";
 const STORAGE_ADMIN_MODE_KEY = "portfolio-admin-mode";
+const STORAGE_SITE_UPDATE_OVERRIDE_KEY = "portfolio-site-update-override";
 const WEB3FORMS_ENDPOINT = "https://api.web3forms.com/submit";
 const GOOGLE_ANALYTICS_ID = "G-00H12CYMW0";
 const CLARITY_PROJECT_ID = "vz7zebyj7z";
@@ -1973,17 +1974,22 @@ function setupRouteGlobe() {
   new RouteGlobe(canvas);
 }
 
+function syncAdminModeFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("admin") === "1") {
+    localStorage.setItem(STORAGE_ADMIN_MODE_KEY, "1");
+  } else if (params.get("admin") === "0") {
+    localStorage.removeItem(STORAGE_ADMIN_MODE_KEY);
+    localStorage.removeItem(STORAGE_SITE_UPDATE_OVERRIDE_KEY);
+  }
+}
+
 function setupFeedbackForm() {
   const form = document.querySelector("[data-feedback-form]");
   if (!form) return;
   form.noValidate = true;
 
-  const adminParams = new URLSearchParams(window.location.search);
-  if (adminParams.get("admin") === "1") {
-    localStorage.setItem(STORAGE_ADMIN_MODE_KEY, "1");
-  } else if (adminParams.get("admin") === "0") {
-    localStorage.removeItem(STORAGE_ADMIN_MODE_KEY);
-  }
+  syncAdminModeFromUrl();
 
   const isAdminMode = localStorage.getItem(STORAGE_ADMIN_MODE_KEY) === "1";
   const formCard = document.querySelector("[data-feedback-form-card]");
@@ -3135,13 +3141,16 @@ async function resolveLatestSiteUpdate() {
 }
 
 async function setupLastUpdated() {
+  syncAdminModeFromUrl();
   const fallbackModifiedAt = new Date(document.lastModified);
   if (Number.isNaN(fallbackModifiedAt.getTime())) return;
 
   const lang = document.documentElement.lang === "de" ? "de" : "en";
   const label = lang === "de" ? "Zuletzt aktualisiert" : "Last updated";
+  const adminButtonLabel = lang === "de" ? "Update-Zeit aktualisieren" : "Refresh update time";
   const nav = document.querySelector(".nav");
   if (!nav) return;
+  const isAdminMode = localStorage.getItem(STORAGE_ADMIN_MODE_KEY) === "1";
 
   let bar = nav.nextElementSibling;
   if (!bar || !bar.classList.contains("top-update-bar")) {
@@ -3167,12 +3176,19 @@ async function setupLastUpdated() {
 
     text.append(icon, badge, meta);
 
-    container.appendChild(text);
+    const adminButton = document.createElement("button");
+    adminButton.type = "button";
+    adminButton.className = "top-update-admin-btn";
+    adminButton.hidden = true;
+    adminButton.textContent = adminButtonLabel;
+
+    container.append(text, adminButton);
     bar.appendChild(container);
     nav.insertAdjacentElement("afterend", bar);
   }
 
   const text = bar.querySelector(".top-update-text");
+  const adminButton = bar.querySelector(".top-update-admin-btn");
   if (!text) return;
   const badge = text.querySelector(".top-update-badge");
   const meta = text.querySelector(".top-update-meta");
@@ -3188,11 +3204,29 @@ async function setupLastUpdated() {
     }
   };
 
-  applyUpdateState(fallbackModifiedAt);
+  const storedOverride = localStorage.getItem(STORAGE_SITE_UPDATE_OVERRIDE_KEY);
+  const overrideDate = storedOverride ? new Date(storedOverride) : null;
+  const hasValidOverride = overrideDate && !Number.isNaN(overrideDate.getTime());
+
+  applyUpdateState(hasValidOverride ? overrideDate : fallbackModifiedAt);
 
   const latestModifiedAt = await resolveLatestSiteUpdate();
-  if (!latestModifiedAt) return;
-  applyUpdateState(latestModifiedAt);
+  const effectiveDate = hasValidOverride && (!latestModifiedAt || overrideDate > latestModifiedAt)
+    ? overrideDate
+    : latestModifiedAt;
+
+  if (effectiveDate) {
+    applyUpdateState(effectiveDate);
+  }
+
+  if (!adminButton) return;
+  adminButton.textContent = adminButtonLabel;
+  adminButton.hidden = !isAdminMode;
+  adminButton.addEventListener("click", () => {
+    const now = new Date();
+    localStorage.setItem(STORAGE_SITE_UPDATE_OVERRIDE_KEY, now.toISOString());
+    applyUpdateState(now);
+  });
 }
 
 function decorateContactLinks() {

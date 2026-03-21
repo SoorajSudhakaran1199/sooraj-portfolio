@@ -13,7 +13,7 @@
 
 <p align="center">
   <a href="https://soorajsudhakaran1199.github.io/sooraj-portfolio/">
-    <img src="site/assets/images/readme-preview.png" alt="Preview of the Sooraj Sudhakaran portfolio website" width="100%" />
+    <img src="https://soorajsudhakaran1199.github.io/sooraj-portfolio/assets/images/readme-preview.png" alt="Preview of the Sooraj Sudhakaran portfolio website" width="100%" />
   </a>
 </p>
 
