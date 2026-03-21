@@ -5,11 +5,16 @@ const STORAGE_RETURN_TARGET_KEY = "detail-return-target";
 const STORAGE_FEEDBACK_STATS_KEY = "feedback-form-stats";
 const STORAGE_FEEDBACK_LAST_SUBMISSION_KEY = "feedback-last-submission";
 const STORAGE_SITE_UPDATE_OVERRIDE_KEY = "portfolio-site-update-override";
-const ADMIN_ACCESS_PARAM = "admin_key";
-const ADMIN_ACCESS_SECRET = "SoorajSahil@1449";
 const WEB3FORMS_ENDPOINT = "https://api.web3forms.com/submit";
 const GOOGLE_ANALYTICS_ID = "G-00H12CYMW0";
 const CLARITY_PROJECT_ID = "vz7zebyj7z";
+const SUPABASE_URL = "https://ofltnlwdwyjnsapqprlw.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_LC3P3UNYF3lr-5MIP2pA6Q_T6m4Tjn6";
+const SUPABASE_ADMIN_EMAIL = "soorajsudhakaran4@gmail.com";
+const SUPABASE_SCRIPT_URL = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+let supabaseClientPromise = null;
+let supabaseClient = null;
+let adminSessionActive = false;
 const REQUEST_CV_LINKS = {
   en: "mailto:soorajsudhakaran1199@gmail.com?subject=Request%20for%20CV&body=Hi%20Sooraj%20Sudhakaran%2C%0D%0A%0D%0AI%20am%20interested%20in%20your%20profile%20for%20a%20relevant%20opportunity.%20Please%20share%20your%20latest%20CV%20with%20me%20via%20email.%0D%0A%0D%0AThank%20you%2C%0D%0A%5BYour%20Name%5D%0D%0A%5BCompany%20/%20Role%5D",
   de: "mailto:soorajsudhakaran1199@gmail.com?subject=Anfrage%20nach%20CV&body=Hallo%20Sooraj%20Sudhakaran%2C%0D%0A%0D%0AIch%20interessiere%20mich%20f%C3%BCr%20Ihr%20Profil%20im%20Rahmen%20einer%20passenden%20Position.%20Bitte%20senden%20Sie%20mir%20Ihren%20aktuellen%20CV%20per%20E-Mail%20zu.%0D%0A%0D%0AVielen%20Dank%2C%0D%0A%5BIhr%20Name%5D%0D%0A%5BUnternehmen%20/%20Rolle%5D"
@@ -1975,13 +1980,460 @@ function setupRouteGlobe() {
   new RouteGlobe(canvas);
 }
 
-function getAdminModeState() {
-  const params = new URLSearchParams(window.location.search);
-  const isAdminMode = params.get(ADMIN_ACCESS_PARAM) === ADMIN_ACCESS_SECRET;
-  if (params.get("admin") === "0") {
-    localStorage.removeItem(STORAGE_SITE_UPDATE_OVERRIDE_KEY);
+function loadSupabaseBrowserClient() {
+  if (window.supabase?.createClient) {
+    return Promise.resolve(window.supabase);
   }
-  return isAdminMode;
+
+  if (!supabaseClientPromise) {
+    supabaseClientPromise = new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = SUPABASE_SCRIPT_URL;
+      script.async = true;
+      script.onload = () => {
+        if (window.supabase?.createClient) {
+          resolve(window.supabase);
+        } else {
+          reject(new Error("Supabase client did not load."));
+        }
+      };
+      script.onerror = () => reject(new Error("Failed to load Supabase client."));
+      document.head.appendChild(script);
+    });
+  }
+
+  return supabaseClientPromise;
+}
+
+async function getSupabaseClient() {
+  if (supabaseClient) return supabaseClient;
+
+  const supabaseBrowser = await loadSupabaseBrowserClient();
+  supabaseClient = supabaseBrowser.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: false
+    }
+  });
+  return supabaseClient;
+}
+
+function updateAdminSessionState(session) {
+  const email = session?.user?.email?.toLowerCase() || "";
+  adminSessionActive = email === SUPABASE_ADMIN_EMAIL.toLowerCase();
+  return adminSessionActive;
+}
+
+async function initializeAdminAuth() {
+  try {
+    const supabase = await getSupabaseClient();
+    const { data, error } = await supabase.auth.getSession();
+    if (error) throw error;
+    updateAdminSessionState(data?.session || null);
+    supabase.auth.onAuthStateChange((_event, session) => {
+      updateAdminSessionState(session);
+    });
+  } catch (error) {
+    adminSessionActive = false;
+  }
+}
+
+function getAdminModeState() {
+  return adminSessionActive;
+}
+
+function setupAdminModeControl() {
+  const navActions = document.querySelector(".nav-actions");
+  if (!navActions || navActions.querySelector("[data-admin-mode-switch]")) return;
+
+  const lang = document.documentElement.lang === "de" ? "de" : "en";
+  const copy = lang === "de"
+    ? {
+        groupLabel: "Seitenmodus",
+        userMode: "Nutzermodus",
+        adminMode: "Adminmodus",
+        modalTitle: "Adminmodus aktivieren",
+        modalBody: "Melden Sie sich mit dem gesicherten Admin-Konto an, um die privaten Verwaltungsfunktionen in diesem Browser zu aktivieren.",
+        passwordLabel: "Passwort",
+        passwordPlaceholder: "Admin-Passwort eingeben",
+        cancel: "Abbrechen",
+        enable: "Aktivieren",
+        signingIn: "Anmeldung...",
+        incorrect: "Die Anmeldung war nicht erfolgreich.",
+        unavailable: "Die sichere Admin-Anmeldung ist momentan nicht verfuegbar."
+      }
+    : {
+        groupLabel: "Site mode",
+        userMode: "User mode",
+        adminMode: "Admin mode",
+        modalTitle: "Enable admin mode",
+        modalBody: "Sign in with the secured admin account to enable the private management controls in this browser.",
+        passwordLabel: "Password",
+        passwordPlaceholder: "Enter admin password",
+        cancel: "Cancel",
+        enable: "Enable",
+        signingIn: "Signing in...",
+        incorrect: "Sign-in was not successful.",
+        unavailable: "Secure admin sign-in is currently unavailable."
+      };
+
+  const isAdminMode = getAdminModeState();
+  const switcher = document.createElement("div");
+  switcher.className = "admin-mode-switch";
+  switcher.dataset.adminModeSwitch = "true";
+  switcher.setAttribute("role", "group");
+  switcher.setAttribute("aria-label", copy.groupLabel);
+
+  const userButton = document.createElement("button");
+  userButton.type = "button";
+  userButton.className = "admin-mode-option";
+  userButton.dataset.mode = "user";
+  userButton.textContent = copy.userMode;
+  userButton.setAttribute("aria-pressed", String(!isAdminMode));
+
+  const adminButton = document.createElement("button");
+  adminButton.type = "button";
+  adminButton.className = "admin-mode-option";
+  adminButton.dataset.mode = "admin";
+  adminButton.textContent = copy.adminMode;
+  adminButton.setAttribute("aria-pressed", String(isAdminMode));
+
+  if (isAdminMode) {
+    adminButton.classList.add("is-active");
+  } else {
+    userButton.classList.add("is-active");
+  }
+
+  switcher.append(userButton, adminButton);
+  navActions.insertBefore(switcher, navActions.firstChild);
+
+  const modal = document.createElement("div");
+  modal.className = "admin-auth-modal";
+  modal.hidden = true;
+  modal.innerHTML = `
+    <div class="admin-auth-backdrop" data-admin-auth-close></div>
+    <div class="admin-auth-dialog" role="dialog" aria-modal="true" aria-labelledby="admin-auth-title">
+      <div class="admin-auth-head">
+        <h2 id="admin-auth-title">${copy.modalTitle}</h2>
+        <p>${copy.modalBody}</p>
+      </div>
+      <form class="admin-auth-form">
+        <label class="admin-auth-field">
+          <span>${copy.passwordLabel}</span>
+          <input type="password" name="admin_password" autocomplete="current-password" placeholder="${copy.passwordPlaceholder}" required>
+        </label>
+        <p class="admin-auth-error" hidden>${copy.incorrect}</p>
+        <div class="admin-auth-actions">
+          <button type="button" class="btn btn-small btn-ghost" data-admin-auth-close>${copy.cancel}</button>
+          <button type="submit" class="btn btn-small btn-primary">${copy.enable}</button>
+        </div>
+      </form>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  const passwordInput = modal.querySelector('input[name="admin_password"]');
+  const errorText = modal.querySelector(".admin-auth-error");
+  const form = modal.querySelector(".admin-auth-form");
+  const submitButton = form?.querySelector('button[type="submit"]');
+
+  const openModal = () => {
+    modal.hidden = false;
+    if (errorText) errorText.hidden = true;
+    if (passwordInput) {
+      passwordInput.value = "";
+      window.requestAnimationFrame(() => passwordInput.focus());
+    }
+    document.body.classList.add("admin-modal-open");
+  };
+
+  const closeModal = () => {
+    modal.hidden = true;
+    document.body.classList.remove("admin-modal-open");
+  };
+
+  userButton.addEventListener("click", async () => {
+    if (!getAdminModeState()) return;
+    localStorage.removeItem(STORAGE_SITE_UPDATE_OVERRIDE_KEY);
+
+    try {
+      const supabase = await getSupabaseClient();
+      await supabase.auth.signOut();
+    } catch (error) {
+      adminSessionActive = false;
+    }
+
+    window.location.reload();
+  });
+
+  adminButton.addEventListener("click", () => {
+    if (getAdminModeState()) return;
+    openModal();
+  });
+
+  modal.querySelectorAll("[data-admin-auth-close]").forEach((element) => {
+    element.addEventListener("click", closeModal);
+  });
+
+  modal.addEventListener("click", (event) => {
+    if (event.target === modal) {
+      closeModal();
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !modal.hidden) {
+      closeModal();
+    }
+  });
+
+  form?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const password = passwordInput?.value ?? "";
+    if (errorText) errorText.hidden = true;
+
+    const runSignIn = async () => {
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = copy.signingIn;
+      }
+
+      try {
+        const supabase = await getSupabaseClient();
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: SUPABASE_ADMIN_EMAIL,
+          password
+        });
+
+        if (error || !updateAdminSessionState(data?.session || null)) {
+          await supabase.auth.signOut().catch(() => {});
+          throw error || new Error("Unauthorized admin account.");
+        }
+
+        closeModal();
+        window.location.reload();
+      } catch (error) {
+        if (errorText) {
+          errorText.hidden = false;
+          errorText.textContent = /load Supabase client|Secure admin sign-in/i.test(String(error?.message || ""))
+            ? copy.unavailable
+            : copy.incorrect;
+        }
+        if (passwordInput) {
+          passwordInput.focus();
+          passwordInput.select();
+        }
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.textContent = copy.enable;
+        }
+      }
+    };
+
+    runSignIn();
+  });
+}
+
+function setupHomepageSectionFilter() {
+  const filterableSections = [
+    "about",
+    "skills",
+    "experience",
+    "thesis-highlight",
+    "projects",
+    "education",
+    "certificates",
+    "events-training",
+    "accomplishments",
+    "journey-preview",
+    "contact",
+    "explore-topics",
+    "faq",
+    "reviews"
+  ]
+    .map((id) => document.getElementById(id))
+    .filter(Boolean);
+
+  const navActions = document.querySelector(".nav-actions");
+  if (!filterableSections.length || !navActions || navActions.querySelector("[data-section-filter-toggle]")) {
+    return;
+  }
+
+  const lang = document.documentElement.lang === "de" ? "de" : "en";
+  const labels = {
+    en: {
+      trigger: "Filter sections",
+      title: "Filter homepage sections",
+      body: "Select one or more sections to focus on. The hero area stays visible, and only the selected sections from About onward will remain on the page.",
+      apply: "Apply filter",
+      clear: "Show all",
+      cancel: "Close"
+    },
+    de: {
+      trigger: "Bereiche filtern",
+      title: "Startseiten-Bereiche filtern",
+      body: "Waehlen Sie einen oder mehrere Bereiche aus. Der Hero-Bereich bleibt sichtbar, und ab \"Ueber mich\" werden nur die ausgewaehlten Bereiche angezeigt.",
+      apply: "Filter anwenden",
+      clear: "Alle anzeigen",
+      cancel: "Schliessen"
+    }
+  }[lang];
+
+  const sectionLabelMap = {
+    about: lang === "de" ? "Ueber mich" : "About",
+    skills: lang === "de" ? "Kompetenzen" : "Skills",
+    experience: lang === "de" ? "Erfahrung" : "Experience",
+    "thesis-highlight": lang === "de" ? "Thesis-Highlight" : "Thesis highlight",
+    projects: lang === "de" ? "Projekte" : "Projects",
+    education: lang === "de" ? "Ausbildung" : "Education",
+    certificates: lang === "de" ? "Zertifikate" : "Certificates",
+    "events-training": lang === "de" ? "Veranstaltungen und Training" : "Events and training",
+    accomplishments: lang === "de" ? "Erfolge" : "Accomplishments",
+    "journey-preview": lang === "de" ? "Werdegang" : "Journey",
+    contact: lang === "de" ? "Kontakt" : "Contact",
+    "explore-topics": lang === "de" ? "Nach Themen erkunden" : "Explore by topic",
+    faq: lang === "de" ? "Portfolio-Fragen" : "Common questions",
+    reviews: lang === "de" ? "Bewertungen" : "Reviews"
+  };
+
+  const toggle = document.createElement("button");
+  toggle.type = "button";
+  toggle.className = "section-filter-toggle";
+  toggle.dataset.sectionFilterToggle = "true";
+  toggle.setAttribute("aria-label", labels.trigger);
+  toggle.setAttribute("title", labels.trigger);
+  toggle.innerHTML = `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <path d="M4 6h16"/>
+      <path d="M7 12h10"/>
+      <path d="M10 18h4"/>
+    </svg>
+    <span class="sr-only">${labels.trigger}</span>
+  `;
+  navActions.insertBefore(toggle, navActions.lastElementChild || null);
+
+  const modal = document.createElement("div");
+  modal.className = "section-filter-modal";
+  modal.hidden = true;
+  modal.innerHTML = `
+    <div class="section-filter-backdrop" data-section-filter-close></div>
+    <div class="section-filter-dialog" role="dialog" aria-modal="true" aria-labelledby="section-filter-title">
+      <div class="section-filter-head">
+        <h2 id="section-filter-title">${labels.title}</h2>
+        <p>${labels.body}</p>
+      </div>
+      <form class="section-filter-form">
+        <div class="section-filter-grid">
+          ${filterableSections.map((section) => `
+            <label class="section-filter-option">
+              <input type="checkbox" name="section_filter" value="${section.id}">
+              <span>${sectionLabelMap[section.id] || section.id}</span>
+            </label>
+          `).join("")}
+        </div>
+        <div class="section-filter-actions">
+          <button type="button" class="btn btn-small btn-ghost" data-section-filter-clear>${labels.clear}</button>
+          <div class="section-filter-actions-right">
+            <button type="button" class="btn btn-small btn-ghost" data-section-filter-close>${labels.cancel}</button>
+            <button type="submit" class="btn btn-small btn-primary">${labels.apply}</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  const form = modal.querySelector(".section-filter-form");
+  const inputs = Array.from(modal.querySelectorAll('input[name="section_filter"]'));
+  const hashLinks = Array.from(document.querySelectorAll('.nav-links a[href^="#"]'));
+  const selectedIds = new Set();
+
+  const updateFilterButtonState = () => {
+    const count = selectedIds.size;
+    if (count > 0) {
+      toggle.dataset.count = String(count);
+      toggle.classList.add("has-active-filter");
+    } else {
+      delete toggle.dataset.count;
+      toggle.classList.remove("has-active-filter");
+    }
+  };
+
+  const applyFilterSelection = () => {
+    const hasActiveFilter = selectedIds.size > 0;
+
+    filterableSections.forEach((section) => {
+      section.hidden = hasActiveFilter && !selectedIds.has(section.id);
+    });
+
+    hashLinks.forEach((link) => {
+      const targetId = link.getAttribute("href")?.slice(1);
+      if (!targetId || !filterableSections.some((section) => section.id === targetId)) return;
+      const isVisible = !hasActiveFilter || selectedIds.has(targetId);
+      link.classList.toggle("is-filter-muted", !isVisible);
+      link.setAttribute("aria-disabled", String(!isVisible));
+      link.tabIndex = isVisible ? 0 : -1;
+    });
+
+    updateFilterButtonState();
+
+    if (hasActiveFilter) {
+      const firstVisible = filterableSections.find((section) => selectedIds.has(section.id) && !section.hidden);
+      firstVisible?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  const syncInputs = () => {
+    inputs.forEach((input) => {
+      input.checked = selectedIds.has(input.value);
+    });
+  };
+
+  const openModal = () => {
+    syncInputs();
+    modal.hidden = false;
+    document.body.classList.add("section-filter-open");
+  };
+
+  const closeModal = () => {
+    modal.hidden = true;
+    document.body.classList.remove("section-filter-open");
+  };
+
+  toggle.addEventListener("click", openModal);
+
+  modal.querySelectorAll("[data-section-filter-close]").forEach((element) => {
+    element.addEventListener("click", closeModal);
+  });
+
+  modal.querySelector("[data-section-filter-clear]")?.addEventListener("click", () => {
+    selectedIds.clear();
+    syncInputs();
+    applyFilterSelection();
+    closeModal();
+  });
+
+  form?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    selectedIds.clear();
+    inputs.forEach((input) => {
+      if (input.checked) selectedIds.add(input.value);
+    });
+    applyFilterSelection();
+    closeModal();
+  });
+
+  modal.addEventListener("click", (event) => {
+    if (event.target === modal) closeModal();
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !modal.hidden) {
+      closeModal();
+    }
+  });
 }
 
 function setupFeedbackForm() {
@@ -3302,12 +3754,15 @@ function decorateContactLinks() {
   });
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   loadSiteAnalytics();
   setupAnalyticsClickTracking();
   applyTheme(resolveInitialTheme());
   setupLanguageSwitcher();
   setupThemeToggle();
+  await initializeAdminAuth();
+  setupAdminModeControl();
+  setupHomepageSectionFilter();
   setupReveal();
   setupActiveNav();
   setupSectionTargetHighlight();
