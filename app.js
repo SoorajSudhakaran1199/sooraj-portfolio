@@ -8,6 +8,7 @@ const STORAGE_SITE_UPDATE_OVERRIDE_KEY = "portfolio-site-update-override";
 const WEB3FORMS_ENDPOINT = "https://api.web3forms.com/submit";
 const GOOGLE_ANALYTICS_ID = "G-00H12CYMW0";
 const CLARITY_PROJECT_ID = "vz7zebyj7z";
+const REQUEST_CV_PAGE = "request-cv.html";
 const SUPABASE_URL = "https://ofltnlwdwyjnsapqprlw.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_LC3P3UNYF3lr-5MIP2pA6Q_T6m4Tjn6";
 const SUPABASE_ADMIN_EMAIL = "soorajsudhakaran4@gmail.com";
@@ -16,8 +17,8 @@ let supabaseClientPromise = null;
 let supabaseClient = null;
 let adminSessionActive = false;
 const REQUEST_CV_LINKS = {
-  en: "mailto:soorajsudhakaran1199@gmail.com?subject=Request%20for%20CV&body=Hi%20Sooraj%20Sudhakaran%2C%0D%0A%0D%0AI%20am%20interested%20in%20your%20profile%20for%20a%20relevant%20opportunity.%20Please%20share%20your%20latest%20CV%20with%20me%20via%20email.%0D%0A%0D%0AThank%20you%2C%0D%0A%5BYour%20Name%5D%0D%0A%5BCompany%20/%20Role%5D",
-  de: "mailto:soorajsudhakaran1199@gmail.com?subject=Anfrage%20nach%20CV&body=Hallo%20Sooraj%20Sudhakaran%2C%0D%0A%0D%0AIch%20interessiere%20mich%20f%C3%BCr%20Ihr%20Profil%20im%20Rahmen%20einer%20passenden%20Position.%20Bitte%20senden%20Sie%20mir%20Ihren%20aktuellen%20CV%20per%20E-Mail%20zu.%0D%0A%0D%0AVielen%20Dank%2C%0D%0A%5BIhr%20Name%5D%0D%0A%5BUnternehmen%20/%20Rolle%5D"
+  en: REQUEST_CV_PAGE,
+  de: REQUEST_CV_PAGE
 };
 const FEEDBACK_MAIL_TEMPLATES = {
   en: {
@@ -85,6 +86,200 @@ const FEEDBACK_MAIL_TEMPLATES = {
     }
   }
 };
+
+function getEmptySubmissionStats() {
+  return { total: 0, countries: {}, submissions: [] };
+}
+
+function loadStoredSubmissionStats() {
+  try {
+    const raw = localStorage.getItem(STORAGE_FEEDBACK_STATS_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    if (!parsed || typeof parsed !== "object") {
+      return getEmptySubmissionStats();
+    }
+
+    return {
+      total: Number(parsed.total) || 0,
+      countries: parsed.countries && typeof parsed.countries === "object" ? parsed.countries : {},
+      submissions: Array.isArray(parsed.submissions) ? parsed.submissions : []
+    };
+  } catch {
+    return getEmptySubmissionStats();
+  }
+}
+
+function saveStoredSubmissionStats(stats) {
+  localStorage.setItem(STORAGE_FEEDBACK_STATS_KEY, JSON.stringify(stats));
+}
+
+function parseSubmissionRatingValue(entry) {
+  return Number.parseInt(String(entry?.rating || "").split("/")[0], 10);
+}
+
+function getSubmissionTypeLabel(type, lang) {
+  if (type === "contact") {
+    return lang === "de" ? "Kontaktanfrage" : "Contact request";
+  }
+
+  if (type === "cv") {
+    return lang === "de" ? "CV-Anfrage" : "CV request";
+  }
+
+  return lang === "de" ? "Feedback" : "Feedback";
+}
+
+function recordStoredSubmissionStat(submission) {
+  const stats = loadStoredSubmissionStats();
+  const normalizedCountry = String(submission?.country || "").trim();
+
+  stats.total = (Number(stats.total) || 0) + 1;
+  if (normalizedCountry) {
+    stats.countries[normalizedCountry] = (Number(stats.countries[normalizedCountry]) || 0) + 1;
+  }
+
+  stats.submissions = Array.isArray(stats.submissions) ? stats.submissions : [];
+  stats.submissions.push({
+    id: submission?.id || `${Date.now()}`,
+    type: submission?.type || "feedback",
+    country: normalizedCountry,
+    submittedAt: submission?.submittedAt || new Date().toISOString(),
+    subject: String(submission?.subject || "").trim(),
+    rating: String(submission?.rating || "").trim()
+  });
+
+  saveStoredSubmissionStats(stats);
+  return stats;
+}
+
+function clearStoredSubmissionStats() {
+  saveStoredSubmissionStats(getEmptySubmissionStats());
+}
+
+function deleteStoredSubmissionStat(id) {
+  const stats = loadStoredSubmissionStats();
+  const submissions = Array.isArray(stats.submissions) ? stats.submissions : [];
+  const nextSubmissions = submissions.filter((entry) => entry.id !== id);
+  if (nextSubmissions.length === submissions.length) {
+    return false;
+  }
+
+  const nextCountries = {};
+  nextSubmissions.forEach((entry) => {
+    const country = String(entry.country || "").trim();
+    if (!country) return;
+    nextCountries[country] = (Number(nextCountries[country]) || 0) + 1;
+  });
+
+  saveStoredSubmissionStats({
+    total: nextSubmissions.length,
+    countries: nextCountries,
+    submissions: nextSubmissions
+  });
+
+  return true;
+}
+
+function renderSubmissionSummary({ scope = document, lang = resolveInitialLanguage(), isAdminMode = getAdminModeState() } = {}) {
+  const statsTotal = scope.querySelector("[data-feedback-stats-total]");
+  const statsCvTotal = scope.querySelector("[data-feedback-stats-cv-total]");
+  const statsCountries = scope.querySelector("[data-feedback-stats-countries]");
+  const statsAdmin = scope.querySelector("[data-feedback-stats-admin]");
+  const statsAdminNote = scope.querySelector("[data-feedback-stats-admin-note]");
+  const statsLog = scope.querySelector("[data-feedback-stats-log]");
+  const statsLogList = scope.querySelector("[data-feedback-stats-log-list]");
+
+  if (!statsTotal && !statsCvTotal && !statsCountries && !statsLogList) {
+    return;
+  }
+
+  const stats = loadStoredSubmissionStats();
+  const emptyText = lang === "de" ? "Noch keine Eintraege gespeichert." : "No submissions recorded yet.";
+  const emptyLogText = lang === "de" ? "Keine lokalen Uebermittlungen verfuegbar." : "No local submissions available.";
+  const feedbackEntries = Array.isArray(stats.submissions)
+    ? stats.submissions.filter((entry) => entry?.type === "feedback")
+    : [];
+  const cvEntries = Array.isArray(stats.submissions)
+    ? stats.submissions.filter((entry) => entry?.type === "cv")
+    : [];
+  const countryEntries = Object.entries(stats.countries || {}).sort((a, b) => Number(b[1]) - Number(a[1]));
+  const submissionEntries = Array.isArray(stats.submissions) ? [...stats.submissions] : [];
+
+  if (statsAdmin) {
+    statsAdmin.hidden = !isAdminMode;
+  }
+  if (statsLog) {
+    statsLog.hidden = !isAdminMode;
+  }
+  if (statsAdminNote) {
+    statsAdminNote.textContent = lang === "de" ? "Private Admin-Steuerung" : "Private admin control";
+  }
+
+  if (statsTotal) {
+    statsTotal.textContent = String(stats.total || 0);
+  }
+  if (statsCvTotal) {
+    statsCvTotal.textContent = String(cvEntries.length);
+  }
+
+  if (statsCountries) {
+    statsCountries.innerHTML = "";
+    if (!countryEntries.length) {
+      const empty = document.createElement("span");
+      empty.className = "feedback-stats-empty";
+      empty.textContent = emptyText;
+      statsCountries.append(empty);
+    } else {
+      countryEntries.forEach(([country, count]) => {
+        const row = document.createElement("div");
+        row.className = "feedback-stats-country-item";
+        row.innerHTML = `<span class="feedback-stats-country-name">${country}</span><strong class="feedback-stats-country-count">${count}</strong>`;
+        statsCountries.append(row);
+      });
+    }
+  }
+
+  if (statsLogList) {
+    statsLogList.innerHTML = "";
+    if (!submissionEntries.length) {
+      const empty = document.createElement("span");
+      empty.className = "feedback-stats-empty";
+      empty.textContent = emptyLogText;
+      statsLogList.append(empty);
+    } else {
+      submissionEntries
+        .sort((a, b) => new Date(b.submittedAt || 0).getTime() - new Date(a.submittedAt || 0).getTime())
+        .forEach((entry) => {
+          const item = document.createElement("div");
+          item.className = "feedback-stats-log-item";
+          const typeLabel = getSubmissionTypeLabel(entry.type, lang);
+          const timeLabel = entry.submittedAt
+            ? formatUpdatedTimestamp(new Date(entry.submittedAt), lang)
+            : "";
+          const subjectLabel = entry.subject ? `<span>${entry.subject}</span>` : "";
+
+          item.innerHTML = `
+            <div class="feedback-stats-log-copy">
+              <strong>${typeLabel}</strong>
+              <small>${entry.country || "-"}${timeLabel ? ` • ${timeLabel}` : ""}</small>
+              ${subjectLabel}
+            </div>
+            <button class="btn btn-secondary btn-small" type="button" data-feedback-stats-delete="${entry.id}">${lang === "de" ? "Loeschen" : "Delete"}</button>
+          `;
+          statsLogList.append(item);
+        });
+    }
+  }
+
+  return {
+    stats,
+    feedbackEntries,
+    cvEntries,
+    ratings: feedbackEntries
+      .map(parseSubmissionRatingValue)
+      .filter((value) => Number.isFinite(value) && value > 0)
+  };
+}
 
 const LANGUAGE_TEXT = {
   de: {
@@ -609,6 +804,7 @@ function trackAnalyticsEvent(name, params = {}) {
 
 function setupAnalyticsClickTracking() {
   const trackedHrefPatterns = [
+    /request-cv\.html/i,
     /feedback\.html/i,
     /journey\.html/i,
     /github\.com\/SoorajSudhakaran1199/i,
@@ -635,6 +831,8 @@ function setupAnalyticsClickTracking() {
     let eventName = "cta_click";
     if (/^mailto:/i.test(href)) {
       eventName = "contact_click";
+    } else if (/request-cv\.html/i.test(href) || /request cv/i.test(text)) {
+      eventName = "request_cv_click";
     } else if (/feedback\.html/i.test(href)) {
       eventName = "feedback_form_open";
     } else if (/journey\.html/i.test(href)) {
@@ -643,8 +841,6 @@ function setupAnalyticsClickTracking() {
       eventName = "github_click";
     } else if (/linkedin\.com\/in\/sooraj-sudhakaran1999/i.test(href)) {
       eventName = "linkedin_click";
-    } else if (/request cv/i.test(text)) {
-      eventName = "request_cv_click";
     } else if (target.closest(".nav")) {
       eventName = "navigation_click";
     }
@@ -663,6 +859,7 @@ const META_TRANSLATIONS = {
     title: {
       "Sooraj Sudhakaran | Robotics and Automation Engineer": "Sooraj Sudhakaran | Robotik- und Automatisierungsingenieur",
       "Sooraj Sudhakaran | Journey": "Sooraj Sudhakaran | Werdegang",
+      "Request CV | Sooraj Sudhakaran": "CV anfragen | Sooraj Sudhakaran",
       "KEBA Group Industrial Robotics Experience | Sooraj Sudhakaran": "KEBA Group Industrierobotik-Erfahrung | Sooraj Sudhakaran",
       "Master's Thesis at KEBA Group | Sooraj Sudhakaran": "Masterarbeit bei KEBA Group | Sooraj Sudhakaran",
       "Non-Destructive Testing Technician | Sooraj Sudhakaran": "ZfP-Techniker | Sooraj Sudhakaran",
@@ -675,6 +872,7 @@ const META_TRANSLATIONS = {
     description: {
       "Portfolio of Sooraj Sudhakaran, a robotics and automation engineer in Germany focused on ROS, industrial robotics, motion planning, simulation, and deployment-ready systems.": "Portfolio von Sooraj Sudhakaran, Robotik- und Automatisierungsingenieur in Deutschland mit Fokus auf ROS, Industrierobotik, Motion Planning, Simulation und einsatzreife Systeme.",
       "The academic and professional journey of Sooraj Sudhakaran, from school achievements in India to mechatronics and industrial robotics work in Germany.": "Der akademische und berufliche Werdegang von Sooraj Sudhakaran, von schulischen Erfolgen in Indien bis zu Mechatronik und Industrierobotik in Deutschland.",
+      "Request the latest CV of Sooraj Sudhakaran through a structured website form. Submit your email address and the requested CV will be sent by email.": "Fordern Sie den aktuellen CV von Sooraj Sudhakaran ueber ein strukturiertes Website-Formular an. Geben Sie Ihre E-Mail-Adresse an, damit der angeforderte CV per E-Mail gesendet werden kann.",
       "Combined KEBA Group experience page covering working student work, master's thesis context, industrial robotics training, and exhibition participation.": "Kombinierte Erfahrungsseite zur KEBA Group mit Werkstudententätigkeit, Masterarbeitskontext, Training in Industrierobotik und Messebeteiligung.",
       "Detailed case study for Sooraj Sudhakaran's master's thesis in industrial robotics at KEBA Group.": "Detaillierte Fallstudie zu Sooraj Sudhakarans Masterarbeit in Industrierobotik bei KEBA Group.",
       "Detailed experience page for Sooraj Sudhakaran's role as a Non-Destructive Testing Technician.": "Detaillierte Erfahrungsseite zu Sooraj Sudhakarans Rolle als ZfP-Techniker.",
@@ -1038,15 +1236,56 @@ Object.assign(LANGUAGE_TEXT.de, {
   "Appropriate use": "Geeignete Verwendung",
   "Use this form for recruiter enquiries, professional contact, website feedback, bug reports, or content corrections.": "Verwenden Sie dieses Formular fuer Recruiter-Anfragen, professionellen Kontakt, Website-Feedback, Fehlermeldungen oder inhaltliche Korrekturen.",
   "Use this form for design feedback, content corrections, translation notes, bug reports, recruiter enquiries, or direct contact requests.": "Verwenden Sie dieses Formular fuer Design-Feedback, inhaltliche Korrekturen, Uebersetzungshinweise, Fehlermeldungen, Recruiter-Anfragen oder direkte Kontaktanfragen.",
+  "Use the links below to contact me, review where I fit best, explore my work, or request my CV through the website form.": "Nutzen Sie die folgenden Links, um mich zu kontaktieren, passende Rollen zu pruefen, meine Arbeit anzusehen oder meinen CV ueber das Website-Formular anzufordern.",
+  "For recruiter outreach, collaboration requests, CV enquiries, or technical discussions, direct email and the structured website forms are the fastest contact channels.": "Fuer Recruiter-Anfragen, Kooperationsanfragen, CV-Anfragen oder technische Gespraeche sind direkte E-Mails und die strukturierten Website-Formulare die schnellsten Kontaktwege.",
   "Thank you": "Vielen Dank",
   "Your message has been submitted.": "Ihre Nachricht wurde uebermittelt.",
   "Your form was submitted successfully. Thank you for your feedback or enquiry.": "Ihr Formular wurde erfolgreich uebermittelt. Vielen Dank fuer Ihr Feedback oder Ihre Anfrage.",
-  "Return to Portfolio": "Zurück zum Portfolio"
+  "Return to Portfolio": "Zurück zum Portfolio",
+  "CV request form": "CV-Anfrageformular",
+  "CV request": "CV-Anfrage",
+  "Request the latest CV directly.": "Den aktuellen CV direkt anfragen.",
+  "Use this page to request Sooraj Sudhakaran's latest CV. Submit your email address and the requested CV will be sent to you by email.": "Nutzen Sie diese Seite, um den aktuellen CV von Sooraj Sudhakaran anzufragen. Geben Sie Ihre E-Mail-Adresse an, damit der angeforderte CV per E-Mail gesendet werden kann.",
+  "Open CV Request": "CV-Anfrage oeffnen",
+  "Use the structured website form below to request the latest CV by email.": "Nutzen Sie das strukturierte Website-Formular unten, um den aktuellen CV per E-Mail anzufragen.",
+  "Automated request": "Automatische Anfrage",
+  "The request below is prepared automatically and sent through the website.": "Die folgende Anfrage wird automatisch vorbereitet und ueber die Website gesendet.",
+  "Request type": "Anfragetyp",
+  "Requested document": "Angefordertes Dokument",
+  "Delivery note": "Hinweis zur Zustellung",
+  "Latest CV": "Aktueller CV",
+  "The requested CV will be sent to the email address you provide below.": "Der angeforderte CV wird an die E-Mail-Adresse gesendet, die Sie unten angeben.",
+  "Provide the email address where the requested CV should be sent. Only the email field is mandatory.": "Geben Sie die E-Mail-Adresse an, an die der angeforderte CV gesendet werden soll. Nur das E-Mail-Feld ist verpflichtend.",
+  "Full name": "Vollstaendiger Name",
+  "Your full name": "Ihr voller Name",
+  "Company name": "Name des Unternehmens",
+  "Germany, India, United States, etc.": "Deutschland, Indien, Vereinigte Staaten usw.",
+  "Additional note": "Zusaetzliche Notiz",
+  "Optional message or context for the CV request.": "Optionale Nachricht oder Kontext zur CV-Anfrage.",
+  "If relevant, mention the role, company, or reason for the request.": "Falls relevant, nennen Sie die Rolle, das Unternehmen oder den Grund der Anfrage.",
+  "Request summary": "Anfragezusammenfassung",
+  "This CV request will be submitted through the website and reviewed for email follow-up.": "Diese CV-Anfrage wird ueber die Website uebermittelt und fuer die Rueckmeldung per E-Mail geprueft.",
+  "Submit CV Request": "CV-Anfrage absenden",
+  "Before you request": "Vor der Anfrage",
+  "Short notes for using this CV request form correctly.": "Kurze Hinweise zur korrekten Nutzung dieses CV-Anfrageformulars.",
+  "Enter the email address where the CV should be sent.": "Geben Sie die E-Mail-Adresse an, an die der CV gesendet werden soll.",
+  "Add your company or role only if relevant.": "Geben Sie Unternehmen oder Rolle nur an, wenn es relevant ist.",
+  "Requests are sent through the website and reviewed privately.": "Anfragen werden ueber die Website gesendet und privat geprueft.",
+  "Privacy and delivery": "Datenschutz und Zustellung",
+  "Short privacy notes for CV requests.": "Kurze Datenschutzhinweise fuer CV-Anfragen.",
+  "CV requests are sent through the website directly to the site owner.": "CV-Anfragen werden ueber die Website direkt an den Website-Betreiber gesendet.",
+  "Delivery": "Zustellung",
+  "The requested CV is sent by email to the address provided in the form.": "Der angeforderte CV wird per E-Mail an die im Formular angegebene Adresse gesendet.",
+  "Requests are reviewed privately and handled for relevant professional follow-up.": "Anfragen werden privat geprueft und fuer relevantes professionelles Follow-up bearbeitet.",
+  "Local overview of successful website form submissions recorded in this browser.": "Lokale Uebersicht erfolgreicher Website-Formularuebermittlungen, die in diesem Browser aufgezeichnet wurden.",
+  "CV requests": "CV-Anfragen",
+  "Total CV requests": "Gesamte CV-Anfragen"
 });
 
 Object.assign(META_TRANSLATIONS.de.title, {
   "Journey from India to Germany | Sooraj Sudhakaran": "Weg von Indien nach Deutschland | Sooraj Sudhakaran",
   "Feedback and Contact | Sooraj Sudhakaran": "Feedback und Kontakt | Sooraj Sudhakaran",
+  "Request CV | Sooraj Sudhakaran": "CV anfragen | Sooraj Sudhakaran",
   "Portfolio Map | Sooraj Sudhakaran": "Portfolio-Map | Sooraj Sudhakaran",
   "Feedback and Contact Form | Sooraj Sudhakaran": "Feedback- und Kontaktformular | Sooraj Sudhakaran",
   "Submission received | Sooraj Sudhakaran": "Uebermittlung erhalten | Sooraj Sudhakaran"
@@ -1055,9 +1294,11 @@ Object.assign(META_TRANSLATIONS.de.title, {
 Object.assign(META_TRANSLATIONS.de.description, {
   "Journey page covering Sooraj Sudhakaran's path from school and engineering foundations in India to graduate study, robotics software work, and industrial robotics experience in Germany.": "Werdegangsseite zu Sooraj Sudhakarans Weg von schulischen und technischen Grundlagen in Indien bis zu Masterstudium, Robotik-Softwarearbeit und Industrierobotik-Erfahrung in Deutschland.",
   "Feedback and contact form for sharing comments, corrections, recruiter enquiries, or direct contact requests about Sooraj Sudhakaran's portfolio website.": "Feedback- und Kontaktformular zum Teilen von Kommentaren, Korrekturen, Recruiter-Anfragen oder direkten Kontaktanfragen zur Portfolio-Website von Sooraj Sudhakaran.",
+  "Request the latest CV of Sooraj Sudhakaran through a structured website form. Submit your email address and the requested CV will be sent by email.": "Fordern Sie den aktuellen CV von Sooraj Sudhakaran ueber ein strukturiertes Website-Formular an. Geben Sie Ihre E-Mail-Adresse an, damit der angeforderte CV per E-Mail gesendet werden kann.",
   "Portfolio map page linking the main robotics, industrial automation, thesis, project, journey, and contact pages of Sooraj Sudhakaran's website.": "Portfolio-Map-Seite mit Verlinkungen zu den wichtigsten Robotik-, Industrieautomatisierungs-, Thesis-, Projekt-, Werdegangs- und Kontaktseiten der Website von Sooraj Sudhakaran.",
   "Feedback and contact form for sharing comments or sending a direct enquiry about Sooraj Sudhakaran's portfolio website.": "Feedback- und Kontaktformular zum Teilen von Kommentaren oder zum direkten Kontakt bezueglich der Portfolio-Website von Sooraj Sudhakaran.",
-  "Confirmation page for successful feedback or contact form submissions on Sooraj Sudhakaran's portfolio website.": "Bestaetigungsseite fuer erfolgreiche Feedback- oder Kontaktformular-Uebermittlungen auf der Portfolio-Website von Sooraj Sudhakaran."
+  "Confirmation page for successful feedback or contact form submissions on Sooraj Sudhakaran's portfolio website.": "Bestaetigungsseite fuer erfolgreiche Feedback- oder Kontaktformular-Uebermittlungen auf der Portfolio-Website von Sooraj Sudhakaran.",
+  "Confirmation page for successful feedback, contact, or CV request submissions on Sooraj Sudhakaran's portfolio website.": "Bestaetigungsseite fuer erfolgreiche Feedback-, Kontakt- oder CV-Anfrage-Uebermittlungen auf der Portfolio-Website von Sooraj Sudhakaran."
 });
 
 function resolveInitialLanguage() {
@@ -1136,7 +1377,7 @@ function translateDocument(lang) {
     element.setAttribute("aria-label", translated);
   });
 
-  document.querySelectorAll('a[href^="mailto:soorajsudhakaran1199@gmail.com?subject="]').forEach((link) => {
+  document.querySelectorAll("[data-request-cv-link]").forEach((link) => {
     link.setAttribute("href", REQUEST_CV_LINKS[lang]);
   });
 
@@ -2485,108 +2726,16 @@ function setupFeedbackForm() {
   const getSelectedMessageType = () =>
     messageTypeFields.find((field) => field.checked)?.value || "";
 
-  const loadFeedbackStats = () => {
-    try {
-      const raw = localStorage.getItem(STORAGE_FEEDBACK_STATS_KEY);
-      const parsed = raw ? JSON.parse(raw) : null;
-      if (!parsed || typeof parsed !== "object") {
-        return { total: 0, countries: {}, submissions: [] };
-      }
-
-      return {
-        total: Number(parsed.total) || 0,
-        countries: parsed.countries && typeof parsed.countries === "object" ? parsed.countries : {},
-        submissions: Array.isArray(parsed.submissions) ? parsed.submissions : []
-      };
-    } catch {
-      return { total: 0, countries: {}, submissions: [] };
-    }
-  };
-
-  const saveFeedbackStats = (stats) => {
-    localStorage.setItem(STORAGE_FEEDBACK_STATS_KEY, JSON.stringify(stats));
-  };
-
   const renderFeedbackStats = () => {
-    if (!statsTotal || !statsCountries) return;
-
-    const lang = resolveInitialLanguage();
-    const stats = loadFeedbackStats();
-    const emptyText = lang === "de" ? "Noch keine Eintraege gespeichert." : "No submissions recorded yet.";
-    const emptyLogText = lang === "de" ? "Keine lokalen Uebermittlungen verfuegbar." : "No local submissions available.";
-    const countryEntries = Object.entries(stats.countries || {}).sort((a, b) => Number(b[1]) - Number(a[1]));
-    const submissionEntries = Array.isArray(stats.submissions) ? [...stats.submissions] : [];
-
-    statsTotal.textContent = String(stats.total || 0);
-    statsCountries.innerHTML = "";
-
-    if (!countryEntries.length) {
-      const empty = document.createElement("span");
-      empty.className = "feedback-stats-empty";
-      empty.textContent = emptyText;
-      statsCountries.append(empty);
-    } else {
-      countryEntries.forEach(([country, count]) => {
-        const row = document.createElement("div");
-        row.className = "feedback-stats-country-item";
-        row.innerHTML = `<span class="feedback-stats-country-name">${country}</span><strong class="feedback-stats-country-count">${count}</strong>`;
-        statsCountries.append(row);
-      });
-    }
-
-    if (!statsLogList) return;
-    statsLogList.innerHTML = "";
-
-    if (!submissionEntries.length) {
-      const empty = document.createElement("span");
-      empty.className = "feedback-stats-empty";
-      empty.textContent = emptyLogText;
-      statsLogList.append(empty);
-      return;
-    }
-
-    submissionEntries
-      .sort((a, b) => new Date(b.submittedAt || 0).getTime() - new Date(a.submittedAt || 0).getTime())
-      .forEach((entry) => {
-        const item = document.createElement("div");
-        item.className = "feedback-stats-log-item";
-        const typeLabel = entry.type === "contact"
-          ? (lang === "de" ? "Kontaktanfrage" : "Contact request")
-          : (lang === "de" ? "Feedback" : "Feedback");
-        const timeLabel = entry.submittedAt
-          ? formatUpdatedTimestamp(new Date(entry.submittedAt), lang)
-          : "";
-        const subjectLabel = entry.subject ? `<span>${entry.subject}</span>` : "";
-
-        item.innerHTML = `
-          <div class="feedback-stats-log-copy">
-            <strong>${typeLabel}</strong>
-            <small>${entry.country || "-"}${timeLabel ? ` • ${timeLabel}` : ""}</small>
-            ${subjectLabel}
-          </div>
-          <button class="btn btn-secondary btn-small" type="button" data-feedback-stats-delete="${entry.id}">${lang === "de" ? "Loeschen" : "Delete"}</button>
-        `;
-        statsLogList.append(item);
-      });
+    renderSubmissionSummary({
+      scope: document,
+      lang: resolveInitialLanguage(),
+      isAdminMode: getAdminModeState()
+    });
   };
 
   const recordFeedbackStat = (submission) => {
-    const normalizedCountry = String(submission?.country || "").trim();
-    if (!normalizedCountry) return;
-
-    const stats = loadFeedbackStats();
-    stats.total = (Number(stats.total) || 0) + 1;
-    stats.countries[normalizedCountry] = (Number(stats.countries[normalizedCountry]) || 0) + 1;
-    stats.submissions = Array.isArray(stats.submissions) ? stats.submissions : [];
-    stats.submissions.push({
-      id: submission?.id || `${Date.now()}`,
-      type: submission?.type || "feedback",
-      country: normalizedCountry,
-      submittedAt: submission?.submittedAt || new Date().toISOString(),
-      subject: String(submission?.subject || "").trim(),
-      rating: String(submission?.rating || "").trim()
-    });
-    saveFeedbackStats(stats);
+    recordStoredSubmissionStat(submission);
     renderFeedbackStats();
   };
 
@@ -2600,7 +2749,7 @@ function setupFeedbackForm() {
   };
 
   const clearStatsStatus = () => {
-    saveFeedbackStats({ total: 0, countries: {}, submissions: [] });
+    clearStoredSubmissionStats();
     renderFeedbackStats();
     if (statsAdminNote) {
       statsAdminNote.textContent = resolveInitialLanguage() === "de"
@@ -2610,23 +2759,7 @@ function setupFeedbackForm() {
   };
 
   const deleteFeedbackStat = (id) => {
-    const stats = loadFeedbackStats();
-    const submissions = Array.isArray(stats.submissions) ? stats.submissions : [];
-    const nextSubmissions = submissions.filter((entry) => entry.id !== id);
-    if (nextSubmissions.length === submissions.length) return;
-
-    const nextCountries = {};
-    nextSubmissions.forEach((entry) => {
-      const key = String(entry.country || "").trim();
-      if (!key) return;
-      nextCountries[key] = (Number(nextCountries[key]) || 0) + 1;
-    });
-
-    saveFeedbackStats({
-      total: nextSubmissions.length,
-      countries: nextCountries,
-      submissions: nextSubmissions
-    });
+    if (!deleteStoredSubmissionStat(id)) return;
     renderFeedbackStats();
 
     if (statsAdminNote) {
@@ -3269,6 +3402,374 @@ function setupFeedbackForm() {
   });
 }
 
+function setupRequestCvForm() {
+  const form = document.querySelector("[data-request-cv-form]");
+  if (!form) return;
+  form.noValidate = true;
+
+  const submitButton = form.querySelector("[data-request-cv-submit]");
+  const formStatus = document.querySelector("[data-request-cv-status]");
+  const statsAdminNote = document.querySelector("[data-feedback-stats-admin-note]");
+  const statsRefreshButton = document.querySelector("[data-feedback-stats-refresh]");
+  const statsClearButton = document.querySelector("[data-feedback-stats-clear]");
+  const statsLogList = document.querySelector("[data-feedback-stats-log-list]");
+
+  const getRequiredFields = () =>
+    Array.from(form.querySelectorAll("[required]")).filter((field) => !field.disabled);
+
+  const setFormStatus = (message = "", state = "error") => {
+    if (!formStatus) return;
+    formStatus.textContent = message;
+    formStatus.dataset.state = state;
+    formStatus.hidden = !message;
+  };
+
+  const clearFormStatus = () => {
+    if (!formStatus) return;
+    formStatus.textContent = "";
+    formStatus.hidden = true;
+    delete formStatus.dataset.state;
+  };
+
+  const getValidationTarget = (field) => field.closest(".feedback-field");
+
+  const getValidationMessageElement = (field) => {
+    const target = getValidationTarget(field);
+    if (!target) return null;
+
+    let message = target.querySelector(".feedback-validation-message");
+    if (message) return message;
+
+    message = document.createElement("small");
+    message.className = "feedback-validation-message";
+    message.hidden = true;
+    target.append(message);
+    return message;
+  };
+
+  const getFieldErrorMessage = (field) => {
+    const lang = resolveInitialLanguage();
+    const copy = lang === "de"
+      ? {
+          required: "Dieses Feld ist erforderlich.",
+          email: "Geben Sie eine gueltige E-Mail-Adresse ein.",
+          invalid: "Geben Sie einen gueltigen Wert ein."
+        }
+      : {
+          required: "This field is required.",
+          email: "Enter a valid email address.",
+          invalid: "Enter a valid value."
+        };
+
+    if (field.validity.valueMissing) return copy.required;
+    if (field instanceof HTMLInputElement && field.type === "email" && field.validity.typeMismatch) {
+      return copy.email;
+    }
+
+    return copy.invalid;
+  };
+
+  const clearInvalidState = (field) => {
+    const target = getValidationTarget(field);
+    const message = getValidationMessageElement(field);
+
+    if (target) {
+      target.classList.remove("is-invalid", "invalid-bounce");
+    }
+
+    if (message) {
+      message.textContent = "";
+      message.hidden = true;
+    }
+
+    if (
+      field instanceof HTMLInputElement ||
+      field instanceof HTMLTextAreaElement ||
+      field instanceof HTMLSelectElement
+    ) {
+      field.removeAttribute("aria-invalid");
+    }
+  };
+
+  const showInvalidState = (field) => {
+    const target = getValidationTarget(field);
+    const message = getValidationMessageElement(field);
+    if (!target) return;
+
+    target.classList.remove("invalid-bounce");
+    void target.offsetWidth;
+    target.classList.add("is-invalid", "invalid-bounce");
+
+    if (message) {
+      message.textContent = getFieldErrorMessage(field);
+      message.hidden = false;
+    }
+
+    if (
+      field instanceof HTMLInputElement ||
+      field instanceof HTMLTextAreaElement ||
+      field instanceof HTMLSelectElement
+    ) {
+      field.setAttribute("aria-invalid", "true");
+    }
+  };
+
+  const normalizeFieldValue = (field) => {
+    if (
+      (field instanceof HTMLInputElement && field.type !== "checkbox") ||
+      field instanceof HTMLTextAreaElement
+    ) {
+      field.value = field.value.trim();
+    }
+  };
+
+  const syncFieldValidity = (field) => {
+    if (
+      !(
+        field instanceof HTMLInputElement ||
+        field instanceof HTMLTextAreaElement ||
+        field instanceof HTMLSelectElement
+      )
+    ) {
+      return;
+    }
+
+    if (!field.required) {
+      field.setCustomValidity("");
+      return;
+    }
+
+    if (!String(field.value || "").trim()) {
+      field.setCustomValidity("Please fill out this field.");
+      return;
+    }
+
+    field.setCustomValidity("");
+  };
+
+  const refreshFieldValidationState = (field, shouldHighlight = false) => {
+    syncFieldValidity(field);
+
+    if (shouldHighlight && !field.checkValidity()) {
+      showInvalidState(field);
+      return;
+    }
+
+    clearInvalidState(field);
+  };
+
+  const isFormReady = () =>
+    getRequiredFields().every((field) => {
+      syncFieldValidity(field);
+      return field.checkValidity();
+    });
+
+  const updateSubmitState = () => {
+    if (!submitButton) return;
+    submitButton.disabled = !isFormReady();
+  };
+
+  const renderRequestCvStats = () => {
+    renderSubmissionSummary({
+      scope: document,
+      lang: resolveInitialLanguage(),
+      isAdminMode: getAdminModeState()
+    });
+  };
+
+  form.querySelectorAll("input, textarea, select").forEach((field) => {
+    field.addEventListener("input", () => {
+      clearFormStatus();
+      refreshFieldValidationState(field, form.dataset.showValidation === "true");
+      updateSubmitState();
+    });
+
+    field.addEventListener("blur", () => {
+      normalizeFieldValue(field);
+      clearFormStatus();
+      refreshFieldValidationState(field, form.dataset.showValidation === "true");
+      updateSubmitState();
+    });
+  });
+
+  renderRequestCvStats();
+  if (statsRefreshButton) {
+    statsRefreshButton.addEventListener("click", () => {
+      renderRequestCvStats();
+      if (statsAdminNote) {
+        statsAdminNote.textContent = resolveInitialLanguage() === "de"
+          ? "Status wurde gerade aktualisiert."
+          : "Status refreshed just now.";
+      }
+    });
+  }
+  if (statsClearButton) {
+    statsClearButton.addEventListener("click", () => {
+      clearStoredSubmissionStats();
+      renderRequestCvStats();
+      if (statsAdminNote) {
+        statsAdminNote.textContent = resolveInitialLanguage() === "de"
+          ? "Status geloescht. Die Uebersicht wurde auf null zurueckgesetzt."
+          : "Status cleared. Submission summary reset to zero.";
+      }
+    });
+  }
+  if (statsLogList) {
+    statsLogList.addEventListener("click", (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+      const id = target.getAttribute("data-feedback-stats-delete");
+      if (!id || !getAdminModeState()) return;
+      if (!deleteStoredSubmissionStat(id)) return;
+      renderRequestCvStats();
+      if (statsAdminNote) {
+        statsAdminNote.textContent = resolveInitialLanguage() === "de"
+          ? "Eintrag geloescht."
+          : "Entry deleted.";
+      }
+    });
+  }
+  updateSubmitState();
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    clearFormStatus();
+    form.dataset.showValidation = "true";
+    const requiredFields = getRequiredFields();
+
+    requiredFields.forEach((field) => {
+      normalizeFieldValue(field);
+      refreshFieldValidationState(field, true);
+    });
+
+    updateSubmitState();
+    if (!isFormReady()) {
+      const lang = resolveInitialLanguage();
+      const invalidSummary = lang === "de"
+        ? "Bitte fuellen Sie die markierten Pflichtfelder korrekt aus."
+        : "Please complete the highlighted required fields correctly.";
+      setFormStatus(invalidSummary, "error");
+      const firstInvalidField = requiredFields.find((field) => !field.checkValidity());
+      const firstInvalidTarget = firstInvalidField ? getValidationTarget(firstInvalidField) : null;
+
+      if (firstInvalidField) {
+        firstInvalidField.focus({ preventScroll: true });
+      }
+
+      if (firstInvalidTarget) {
+        firstInvalidTarget.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+
+      return;
+    }
+
+    const lang = resolveInitialLanguage();
+    const formData = new FormData(form);
+    const value = (name) => String(formData.get(name) || "").trim();
+    const fullName = value("fullName");
+    const company = value("company");
+    const role = value("role");
+    const email = value("email");
+    const country = value("country");
+    const note = value("note");
+    const subject = lang === "de" ? "Neue CV-Anfrage ueber die Portfolio-Website" : "New CV request from the portfolio website";
+    const lines = [
+      lang === "de" ? "Hallo Sooraj Sudhakaran," : "Hello Sooraj Sudhakaran,",
+      "",
+      lang === "de"
+        ? "eine Besucherin oder ein Besucher Ihrer Website hat Ihren aktuellen CV angefragt."
+        : "A visitor requested your latest CV from the website.",
+      "",
+      `${lang === "de" ? "Anfragetyp" : "Request type"}: ${lang === "de" ? "CV-Anfrage" : "CV request"}`,
+      `${lang === "de" ? "E-Mail" : "Email"}: ${email}`
+    ];
+
+    if (fullName) lines.push(`${lang === "de" ? "Name" : "Name"}: ${fullName}`);
+    if (company) lines.push(`${lang === "de" ? "Unternehmen" : "Company"}: ${company}`);
+    if (role) lines.push(`${lang === "de" ? "Rolle" : "Role"}: ${role}`);
+    if (country) lines.push(`${lang === "de" ? "Land" : "Country"}: ${country}`);
+    if (note) {
+      lines.push("", `${lang === "de" ? "Zusätzliche Notiz" : "Additional note"}:`, note);
+    }
+
+    lines.push(
+      "",
+      lang === "de"
+        ? "Die angeforderte CV-Datei soll an die oben angegebene E-Mail-Adresse gesendet werden."
+        : "The requested CV should be sent to the email address above."
+    );
+
+    formData.set("subject", subject);
+    formData.set("from_name", "Sooraj Sudhakaran Portfolio");
+    formData.set("replyto", email);
+    formData.set("message", lines.join("\r\n"));
+
+    if (submitButton) {
+      submitButton.disabled = true;
+      submitButton.setAttribute("aria-busy", "true");
+      submitButton.textContent = lang === "de" ? "Wird gesendet..." : "Submitting...";
+    }
+
+    try {
+      const response = await fetch(form.getAttribute("action") || WEB3FORMS_ENDPOINT, {
+        method: "POST",
+        body: formData,
+        headers: {
+          Accept: "application/json"
+        }
+      });
+
+      const result = await response.json().catch(() => null);
+      if (!response.ok || result?.success === false) {
+        throw new Error(result?.message || "Submission failed");
+      }
+
+      recordStoredSubmissionStat({
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        type: "cv",
+        country,
+        submittedAt: new Date().toISOString(),
+        subject: lang === "de" ? "CV-Anfrage" : "CV request"
+      });
+      renderRequestCvStats();
+      trackAnalyticsEvent("cv_request_submit_success", {
+        page_path: window.location.pathname,
+        has_company: company ? "yes" : "no",
+        has_country: country ? "yes" : "no"
+      });
+      sessionStorage.setItem(
+        STORAGE_FEEDBACK_LAST_SUBMISSION_KEY,
+        JSON.stringify({
+          type: "cv",
+          submittedAt: new Date().toISOString()
+        })
+      );
+      form.reset();
+      delete form.dataset.showValidation;
+      clearFormStatus();
+      updateSubmitState();
+      const thankYouUrl = new URL("feedback-thank-you.html", window.location.href);
+      thankYouUrl.searchParams.set("type", "cv");
+      window.location.href = thankYouUrl.toString();
+    } catch {
+      const submitError = lang === "de"
+        ? "Die Uebermittlung ist fehlgeschlagen. Bitte pruefen Sie Ihre Verbindung und versuchen Sie es erneut."
+        : "Submission failed. Please check your connection and try again.";
+      trackAnalyticsEvent("cv_request_submit_error", {
+        page_path: window.location.pathname
+      });
+      setFormStatus(submitError, "error");
+    } finally {
+      if (submitButton) {
+        submitButton.removeAttribute("aria-busy");
+        submitButton.textContent = lang === "de" ? "CV-Anfrage absenden" : "Submit CV Request";
+      }
+      updateSubmitState();
+    }
+  });
+}
+
 function setupFeedbackThankYouPage() {
   const title = document.querySelector("[data-feedback-thankyou-title]");
   if (!title) return;
@@ -3277,6 +3778,9 @@ function setupFeedbackThankYouPage() {
   const reviewCountValue = document.querySelector("[data-feedback-thankyou-review-count]");
   const averageRatingValue = document.querySelector("[data-feedback-thankyou-average-rating]");
   const lead = document.querySelector("[data-feedback-thankyou-lead]");
+  const primaryLinks = Array.from(document.querySelectorAll("[data-feedback-thankyou-primary-link]"));
+  const reviewTrigger = document.querySelector("[data-feedback-thankyou-review-trigger]");
+  const reviewPanel = document.querySelector("[data-feedback-thankyou-review-panel]");
   const panelTriggers = Array.from(document.querySelectorAll("[data-feedback-panel-trigger]"));
   let storedSubmission = null;
   try {
@@ -3285,9 +3789,12 @@ function setupFeedbackThankYouPage() {
     storedSubmission = null;
   }
 
-  const mode = (storedSubmission?.type || new URLSearchParams(window.location.search).get("type")) === "contact"
+  const requestedType = storedSubmission?.type || new URLSearchParams(window.location.search).get("type");
+  const mode = requestedType === "contact"
     ? "contact"
-    : "feedback";
+    : requestedType === "cv"
+      ? "cv"
+      : "feedback";
   const lang = resolveInitialLanguage();
   const submittedAt = storedSubmission?.submittedAt
     ? new Date(storedSubmission.submittedAt)
@@ -3295,18 +3802,13 @@ function setupFeedbackThankYouPage() {
   const submittedAtLabel = Number.isNaN(submittedAt.getTime())
     ? ""
     : formatUpdatedTimestamp(submittedAt, lang);
-  let storedStats = { total: 0, countries: {}, submissions: [] };
-  try {
-    storedStats = JSON.parse(localStorage.getItem(STORAGE_FEEDBACK_STATS_KEY) || "null") || storedStats;
-  } catch {
-    storedStats = { total: 0, countries: {}, submissions: [] };
-  }
+  const storedStats = loadStoredSubmissionStats();
 
   const feedbackReviews = Array.isArray(storedStats.submissions)
     ? storedStats.submissions.filter((entry) => entry?.type === "feedback")
     : [];
   const ratings = feedbackReviews
-    .map((entry) => Number.parseInt(String(entry?.rating || "").split("/")[0], 10))
+    .map(parseSubmissionRatingValue)
     .filter((value) => Number.isFinite(value) && value > 0);
   const averageRating = ratings.length
     ? `${(ratings.reduce((sum, value) => sum + value, 0) / ratings.length).toFixed(1)}/5`
@@ -3316,30 +3818,61 @@ function setupFeedbackThankYouPage() {
     ? {
         feedbackTitle: "Feedback erhalten",
         contactTitle: "Kontaktanfrage erhalten",
+        cvTitle: "CV-Anfrage erhalten",
         lead: "Ihr Formular wurde erfolgreich gesendet.",
+        cvLead: "Vielen Dank. Ihre CV-Anfrage wurde erfolgreich uebermittelt. Sooraj Sudhakaran sendet den angeforderten CV per E-Mail.",
         status: "Erfolgreich gesendet",
+        cvStatus: "CV-Anfrage uebermittelt",
+        cvPrimary: "Neue CV-Anfrage",
         noRatings: "Noch keine Bewertungen"
       }
     : {
         feedbackTitle: "Feedback received",
         contactTitle: "Contact request received",
+        cvTitle: "CV request received",
         lead: "Your form was submitted successfully.",
+        cvLead: "Thank you. Your CV request was submitted successfully. Sooraj Sudhakaran will send the requested CV by email.",
         status: "Submitted successfully",
+        cvStatus: "CV request submitted",
+        cvPrimary: "Submit another CV request",
         noRatings: "No ratings yet"
       };
 
-  title.textContent = mode === "contact" ? copy.contactTitle : copy.feedbackTitle;
+  title.textContent = mode === "contact"
+    ? copy.contactTitle
+    : mode === "cv"
+      ? copy.cvTitle
+      : copy.feedbackTitle;
   if (lead) {
-    lead.textContent = copy.lead;
+    lead.textContent = mode === "cv" ? copy.cvLead : copy.lead;
   }
   if (statusValue) {
-    statusValue.textContent = copy.status;
+    statusValue.textContent = mode === "cv" ? copy.cvStatus : copy.status;
   }
   if (reviewCountValue) {
     reviewCountValue.textContent = String(feedbackReviews.length);
   }
   if (averageRatingValue) {
     averageRatingValue.textContent = averageRating || copy.noRatings;
+  }
+  primaryLinks.forEach((link) => {
+    if (!(link instanceof HTMLAnchorElement)) return;
+    if (mode === "cv") {
+      link.href = REQUEST_CV_PAGE;
+      link.textContent = copy.cvPrimary;
+    } else {
+      link.href = "feedback.html";
+      link.textContent = lang === "de" ? "Neues Formular senden" : "Submit new form";
+    }
+  });
+  if (reviewTrigger) {
+    reviewTrigger.hidden = mode === "cv";
+  }
+  if (reviewPanel) {
+    reviewPanel.hidden = mode === "cv";
+    if (mode === "cv" && reviewPanel instanceof HTMLDetailsElement) {
+      reviewPanel.open = false;
+    }
   }
 
   panelTriggers.forEach((trigger) => {
@@ -3356,24 +3889,6 @@ function setupFeedbackThankYouPage() {
       }
     });
   });
-}
-
-function loadStoredFeedbackStats() {
-  try {
-    const raw = localStorage.getItem(STORAGE_FEEDBACK_STATS_KEY);
-    const parsed = raw ? JSON.parse(raw) : null;
-    if (!parsed || typeof parsed !== "object") {
-      return { total: 0, countries: {}, submissions: [] };
-    }
-
-    return {
-      total: Number(parsed.total) || 0,
-      countries: parsed.countries && typeof parsed.countries === "object" ? parsed.countries : {},
-      submissions: Array.isArray(parsed.submissions) ? parsed.submissions : []
-    };
-  } catch {
-    return { total: 0, countries: {}, submissions: [] };
-  }
 }
 
 function setupPublicReviewSummary() {
@@ -3411,7 +3926,7 @@ function setupPublicReviewSummary() {
         reviews: "reviews"
       };
 
-  const stats = loadStoredFeedbackStats();
+  const stats = loadStoredSubmissionStats();
   const feedbackEntries = Array.isArray(stats.submissions)
     ? stats.submissions.filter((entry) => entry?.type === "feedback")
     : [];
@@ -3501,6 +4016,7 @@ const SITE_UPDATE_TRACKED_FILES = [
   "index.html",
   "journey.html",
   "feedback.html",
+  "request-cv.html",
   "feedback-thank-you.html",
   "experience-working-student-keba.html",
   "experience-masters-thesis-keba.html",
@@ -3681,7 +4197,7 @@ async function setupLastUpdated() {
 function decorateContactLinks() {
   const specs = [
     {
-      match: (href) => href.startsWith("mailto:soorajsudhakaran1199@gmail.com") && href.includes("subject=Request%20for%20CV"),
+      match: (href, link) => /(^|\/)request-cv\.html(?:$|[?#])/i.test(href) || /\brequest cv\b/i.test(link.textContent || ""),
       icon: "assets/images/request cv.png",
       typeClass: "icon-request-cv",
       alt: ""
@@ -3771,6 +4287,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupParticles();
   setupRouteGlobe();
   setupFeedbackForm();
+  setupRequestCvForm();
   setupFeedbackThankYouPage();
   setupPublicReviewSummary();
   setupLastUpdated();

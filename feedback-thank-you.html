@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Submission received | Sooraj Sudhakaran</title>
-  <meta name="description" content="Confirmation page for successful feedback or contact form submissions on Sooraj Sudhakaran's portfolio website." />
+  <meta name="description" content="Confirmation page for successful feedback, contact, or CV request submissions on Sooraj Sudhakaran's portfolio website." />
   <meta name="author" content="Sooraj Sudhakaran" />
   <meta name="robots" content="noindex, follow, noarchive" />
   <link rel="canonical" href="https://soorajsudhakaran1199.github.io/sooraj-portfolio/feedback-thank-you.html" />
@@ -40,11 +40,11 @@
         </a>
         <nav class="nav-links" aria-label="Confirmation navigation">
           <a href="index.html">Portfolio</a>
-          <a href="feedback.html">Feedback form</a>
+          <a href="feedback.html" data-feedback-thankyou-primary-link>Feedback form</a>
           <a href="journey.html">Journey</a>
         </nav>
         <div class="nav-actions">
-          <a class="btn btn-small btn-ghost" href="feedback.html">Submit new form</a>
+          <a class="btn btn-small btn-ghost" href="feedback.html" data-feedback-thankyou-primary-link>Submit new form</a>
           <a class="btn btn-small btn-ghost" href="index.html">Back to Portfolio</a>
           <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle theme">
             <span data-theme-icon="moon" aria-hidden="true">
@@ -78,13 +78,13 @@
             </div>
 
             <div class="feedback-thank-you-actions">
-              <a class="btn btn-primary" href="feedback.html">Submit new form</a>
+              <a class="btn btn-primary" href="feedback.html" data-feedback-thankyou-primary-link>Submit new form</a>
               <a class="btn btn-secondary" href="index.html">Back to Portfolio</a>
-              <button class="btn btn-secondary" type="button" data-feedback-panel-trigger="review-summary" aria-controls="review-summary">View reviews and rating</button>
+              <button class="btn btn-secondary" type="button" data-feedback-thankyou-review-trigger data-feedback-panel-trigger="review-summary" aria-controls="review-summary">View reviews and rating</button>
             </div>
 
             <div class="feedback-thank-you-panels">
-              <details class="feedback-conditions feedback-thank-you-status" id="review-summary">
+              <details class="feedback-conditions feedback-thank-you-status" id="review-summary" data-feedback-thankyou-review-panel>
                 <summary>
                   <span class="feedback-disclosure-copy">
                     <strong>View reviews and rating</strong>

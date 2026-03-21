@@ -5994,6 +5994,12 @@ body.detail-page.feedback-page .shine-card::after {
   padding-top: 0.2rem;
 }
 
+.feedback-stats-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.95rem;
+}
+
 .feedback-stats-admin {
   display: flex;
   align-items: center;
@@ -6040,6 +6046,13 @@ body.detail-page.feedback-page .shine-card::after {
   gap: 0.28rem;
   background:
     radial-gradient(circle at top right, rgba(89, 226, 188, 0.1), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)),
+    rgba(12, 25, 39, 0.42);
+}
+
+.feedback-stats-total-secondary {
+  background:
+    radial-gradient(circle at top right, rgba(128, 184, 255, 0.12), transparent 34%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02)),
     rgba(12, 25, 39, 0.42);
 }
@@ -6175,6 +6188,25 @@ body.detail-page.feedback-page .shine-card::after {
 .feedback-stats-log-copy span {
   color: var(--text-muted);
   line-height: 1.45;
+}
+
+.request-cv-preview {
+  padding: 0;
+  overflow: hidden;
+}
+
+.request-cv-preview .feedback-privacy-list {
+  gap: 0;
+}
+
+.request-cv-preview .feedback-privacy-list div {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.request-cv-preview .feedback-privacy-list div + div {
+  border-top: 1px solid rgba(128, 184, 255, 0.08);
 }
 
 .feedback-conditions .feedback-points {
@@ -6599,6 +6631,10 @@ body.detail-page.feedback-page .shine-card::after {
     font-size: 1.65rem;
   }
 
+  .feedback-stats-metrics {
+    grid-template-columns: 1fr;
+  }
+
   .feedback-stats-country-item {
     padding-top: 0.5rem;
   }
@@ -6716,6 +6752,10 @@ body.detail-page.feedback-page .shine-card::after {
   .feedback-rating strong,
   .feedback-rating em {
     font-size: 1rem;
+  }
+
+  .feedback-stats-metrics {
+    gap: 0.75rem;
   }
 
   .feedback-conditions summary {
