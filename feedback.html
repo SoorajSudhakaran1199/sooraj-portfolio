@@ -93,7 +93,7 @@
           <a href="#privacy">Privacy</a>
         </nav>
         <div class="nav-actions">
-          <a class="btn btn-small btn-ghost" href="index.html#experience">Back to Experience</a>
+          <a class="btn btn-small btn-ghost" href="index.html">Back to Portfolio</a>
           <a class="btn btn-small btn-ghost" href="journey.html">Journey</a>
           <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle theme">
             <span data-theme-icon="moon" aria-hidden="true">
@@ -108,20 +108,28 @@
       </div>
     </header>
 
-    <main id="overview">
+    <main id="overview" data-feedback-page>
       <section class="hero feedback-hero">
         <div class="container detail-shell">
           <div class="feedback-hero-panel card shine-card reveal-on-scroll">
             <div class="feedback-hero-copy">
               <div class="eyebrow">
                 <span class="spark"></span>
-                Feedback and contact
+                <span data-feedback-hero-eyebrow>Choose the right path</span>
               </div>
-              <h1>Send feedback or contact me directly.</h1>
-              <p class="lead">Use this page to share feedback about the portfolio or send a direct contact request. The form submits directly through the website and is not posted publicly.</p>
-              <div class="journey-actions">
-                <a class="btn btn-primary" href="#feedback-form">Open Feedback Form</a>
-                <a class="btn btn-secondary" href="index.html">Back to Portfolio</a>
+              <h1 data-feedback-hero-title>Choose feedback or contact.</h1>
+              <p class="lead" data-feedback-hero-lead>Use the feedback form for website comments and portfolio suggestions, or choose the contact form for direct professional enquiries. Both go directly through the website.</p>
+              <div class="feedback-entry-panel">
+                <div class="feedback-entry-actions">
+                  <a class="feedback-entry-button" href="feedback.html?type=feedback#feedback-form" data-feedback-entry-choice="feedback">
+                    <span class="feedback-entry-button-label">Feedback form</span>
+                    <small>Comments, corrections, suggestions, reviews</small>
+                  </a>
+                  <a class="feedback-entry-button" href="feedback.html?type=contact#feedback-form" data-feedback-entry-choice="contact">
+                    <span class="feedback-entry-button-label">Contact form</span>
+                    <small>Recruiter message, collaboration, enquiry</small>
+                  </a>
+                </div>
               </div>
             </div>
           </div>
@@ -130,55 +138,31 @@
 
       <section class="section" id="feedback-form">
         <div class="container">
-          <div class="feedback-layout">
+          <div class="feedback-layout feedback-layout-single">
             <article class="card shine-card feedback-form-card reveal-on-scroll" data-feedback-form-card>
               <div class="feedback-card-head">
                 <h2 data-feedback-form-title>Choose message type</h2>
-                <p class="muted" data-feedback-form-description>Select either Feedback form or Contact form to continue.</p>
+                <p class="muted" data-feedback-form-description>Select feedback or contact to start.</p>
               </div>
               <form class="feedback-form" data-feedback-form action="https://api.web3forms.com/submit" method="POST" novalidate>
                 <input type="hidden" name="access_key" value="d419d102-cb71-4958-b6e7-06fb6001803b" />
                 <input type="hidden" name="from_name" value="Sooraj Sudhakaran Portfolio" />
                 <input type="hidden" name="subject" value="Portfolio website form submission" />
                 <input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" hidden />
-                <section class="feedback-form-section feedback-type-section" aria-labelledby="feedback-type-heading">
-                  <div class="feedback-section-head">
-                    <span class="feedback-step-tag">Step 1</span>
-                    <h3 id="feedback-type-heading">Select message type</h3>
-                    <p class="muted" data-feedback-type-description>Choose whether you want to open the feedback form or the contact form.</p>
-                  </div>
-                  <div class="feedback-mode-options" role="radiogroup" aria-labelledby="feedback-type-heading">
-                    <label class="feedback-mode-option">
-                      <input type="radio" name="messageType" value="feedback" />
-                      <span class="feedback-mode-card">
-                        <span class="feedback-mode-card-head">
-                          <strong>Feedback form</strong>
-                          <span class="feedback-mode-card-badge">Open</span>
-                        </span>
-                        <small>Share website feedback, design comments, corrections, or suggestions.</small>
-                        <span class="feedback-mode-card-cta">Click to continue <span aria-hidden="true">→</span></span>
-                      </span>
-                    </label>
-                    <label class="feedback-mode-option">
-                      <input type="radio" name="messageType" value="contact" />
-                      <span class="feedback-mode-card">
-                        <span class="feedback-mode-card-head">
-                          <strong>Contact form</strong>
-                          <span class="feedback-mode-card-badge">Open</span>
-                        </span>
-                        <small>Send a direct professional enquiry, recruiter message, or collaboration request.</small>
-                        <span class="feedback-mode-card-cta">Click to continue <span aria-hidden="true">→</span></span>
-                      </span>
-                    </label>
-                  </div>
-                </section>
+                <div class="feedback-mode-inputs" hidden aria-hidden="true">
+                  <input type="radio" name="messageType" value="feedback" />
+                  <input type="radio" name="messageType" value="contact" />
+                </div>
 
                 <div class="feedback-form-flow" data-feedback-form-content hidden>
+                  <div class="feedback-flow-actions">
+                    <a class="btn btn-secondary btn-small" href="feedback.html#feedback-form" data-feedback-mode-change hidden>Change message type</a>
+                  </div>
                   <nav class="feedback-form-nav" aria-label="Form sections" data-feedback-form-nav>
-                    <a href="#feedback-details-heading">Your details</a>
-                    <a href="#feedback-context-heading" data-feedback-nav-link="feedback">Additional context</a>
-                    <a href="#feedback-message-heading">Your message</a>
-                    <a href="#feedback-submit-heading" data-feedback-nav-link="feedback">Review and submit</a>
+                    <a href="#feedback-details-heading">1. Details</a>
+                    <a href="#feedback-context-heading" data-feedback-nav-link="feedback">2. Context</a>
+                    <a href="#feedback-message-heading">3. Message</a>
+                    <a href="#feedback-submit-heading" data-feedback-nav-link="feedback">4. Submit</a>
                   </nav>
                   <div class="feedback-note">
                     <strong data-feedback-note-title>Contact form</strong>
@@ -192,16 +176,16 @@
                   </div>
                   <div class="feedback-grid">
                     <label class="feedback-field">
-                      <span>First name</span>
-                      <input type="text" name="firstName" autocomplete="given-name" placeholder="Your first name" />
+                      <span data-feedback-first-name-label>First name</span>
+                      <input type="text" name="firstName" autocomplete="given-name" placeholder="Your first name" data-feedback-first-name-input />
                     </label>
-                    <label class="feedback-field">
+                    <label class="feedback-field" data-feedback-last-name-field>
                       <span class="feedback-label-row"><span>Last name <span class="feedback-required-star" aria-hidden="true">*</span></span></span>
-                      <input type="text" name="lastName" autocomplete="family-name" placeholder="Your last name" required />
+                      <input type="text" name="lastName" autocomplete="family-name" placeholder="Your last name" required data-feedback-last-name-input />
                     </label>
                     <label class="feedback-field">
-                      <span>Company or organization <span class="feedback-required-star feedback-required-star-conditional" aria-hidden="true" data-feedback-required-for="contact">*</span></span>
-                      <input type="text" name="company" autocomplete="organization" placeholder="Company name" />
+                      <span data-feedback-company-label>Company or organization</span>
+                      <input type="text" name="company" autocomplete="organization" placeholder="Company name" data-feedback-company-input />
                     </label>
                     <label class="feedback-field">
                       <span class="feedback-label-row"><span>Email <span class="feedback-required-star" aria-hidden="true">*</span></span></span>
@@ -209,7 +193,7 @@
                     </label>
                     <label class="feedback-field">
                       <span class="feedback-label-row"><span>Country <span class="feedback-required-star" aria-hidden="true">*</span></span></span>
-                      <input type="text" name="country" autocomplete="country-name" placeholder="Germany, India, United States, etc." required />
+                      <select name="country" data-country-select data-country-placeholder="Select country" required></select>
                     </label>
                     <label class="feedback-field" data-feedback-only>
                       <span>Role or title</span>
@@ -260,16 +244,12 @@
                       </select>
                     </label>
                     <label class="feedback-field">
-                      <span class="feedback-label-row"><span>Subject <span class="feedback-required-star" aria-hidden="true">*</span></span></span>
-                      <input type="text" name="subjectLine" placeholder="Short subject for your message" required />
-                    </label>
-                    <label class="feedback-field">
                       <span>Preferred response</span>
                       <select name="responsePreference">
                         <option value="">No preference</option>
-                        <option>Email response</option>
-                        <option>Schedule a call</option>
-                        <option>LinkedIn response</option>
+                        <option value="email-response">Email response</option>
+                        <option value="call-response">Schedule a call</option>
+                        <option value="linkedin-response">LinkedIn response</option>
                       </select>
                     </label>
                     <label class="feedback-field">
@@ -337,21 +317,44 @@
                     <small class="feedback-hint" data-feedback-comments-hint>Include the issue, suggestion, or context you want to share.</small>
                   </label>
 
+                  <div class="feedback-review-visibility-block feedback-field feedback-field-full" data-feedback-only data-feedback-review-visibility-section>
+                    <span class="feedback-label-row">
+                      <span>Publish comment <span class="feedback-required-star" aria-hidden="true">*</span></span>
+                    </span>
+                    <div class="feedback-review-visibility-panel" data-feedback-review-visibility-panel>
+                      <div class="feedback-review-visibility-intro">
+                        <div class="feedback-review-visibility-head">
+                          <strong>Select one option</strong>
+                          <span class="feedback-required-pill">Required before submit</span>
+                        </div>
+                        <small data-feedback-review-visibility-description>Choose whether this feedback comment stays private for Sooraj Sudhakaran or appears publicly on the website with your name and country.</small>
+                      </div>
+                      <div class="feedback-review-visibility-options" role="radiogroup" aria-label="Publish comment visibility">
+                        <label class="feedback-review-option">
+                          <input type="radio" name="reviewVisibility" value="private" data-feedback-review-visibility-field />
+                          <span class="feedback-review-option-card">
+                            <span class="feedback-review-option-check" aria-hidden="true">&#10003;</span>
+                            <strong>Private</strong>
+                          </span>
+                        </label>
+                        <label class="feedback-review-option">
+                          <input type="radio" name="reviewVisibility" value="public" data-feedback-review-visibility-field />
+                          <span class="feedback-review-option-card">
+                            <span class="feedback-review-option-check" aria-hidden="true">&#10003;</span>
+                            <strong>Public</strong>
+                          </span>
+                        </label>
+                      </div>
+                      <div class="feedback-review-visibility-note" data-feedback-review-visibility-note>
+                        <strong data-feedback-review-visibility-note-title>Select Private or Public</strong>
+                        <p data-feedback-review-visibility-note-body>Choose one option to decide whether your review stays visible only to Sooraj Sudhakaran or can appear publicly for all visitors.</p>
+                      </div>
+                    </div>
+                  </div>
+
                   <label class="feedback-field feedback-field-full" data-feedback-only>
                     <span>Suggested improvement</span>
                     <textarea name="suggestion" rows="4" placeholder="Share a suggested change, if any."></textarea>
-                  </label>
-                </section>
-
-                <section class="feedback-form-section" aria-labelledby="feedback-submit-heading" data-feedback-only>
-                  <div class="feedback-section-head">
-                    <h3 id="feedback-submit-heading">Review and submit</h3>
-                    <p class="muted">Confirm that the information is ready to be submitted through the website.</p>
-                  </div>
-                  <label class="feedback-consent">
-                    <input type="checkbox" name="consent" required />
-                    <span class="feedback-consent-marker feedback-required-star" aria-hidden="true">*</span>
-                    <span class="feedback-consent-copy">I understand that this form submits my message directly through the website.</span>
                   </label>
                 </section>
 
@@ -361,6 +364,12 @@
                   <p class="muted" data-feedback-footer-copy>The form submits directly through the website and delivers your message to the site owner.</p>
                 </div>
 
+                <ul class="feedback-info-points clean" aria-label="Form information">
+                  <li>Private unless you choose Public for a feedback review.</li>
+                  <li>Public reviews can show your name, country, rating, and comment.</li>
+                  <li>Shared review and submission sections appear after successful submission.</li>
+                </ul>
+
                 <div class="feedback-actions">
                   <button class="btn btn-primary" type="submit" data-feedback-submit disabled>Submit Message</button>
                   <a class="btn btn-secondary" href="index.html#contact">Back to Contact</a>
@@ -368,111 +377,6 @@
                 </div>
               </form>
             </article>
-
-            <div class="feedback-side-stack">
-              <article class="card shine-card feedback-side-card feedback-side-card-compact reveal-on-scroll">
-                <div class="feedback-card-head">
-                  <h2>Before you submit</h2>
-                  <p class="muted">Short notes for using this form correctly.</p>
-                </div>
-                <details class="feedback-conditions feedback-conditions-compact">
-                  <summary>
-                    <span class="feedback-disclosure-copy">
-                      <strong>Show notes</strong>
-                      <small>Click to expand</small>
-                    </span>
-                  </summary>
-                  <ul class="clean feedback-points">
-                    <li>Required fields are marked with a red star.</li>
-                    <li>Select either the feedback form or the contact form before filling details.</li>
-                    <li>Your message is submitted through the website and is not posted publicly.</li>
-                  </ul>
-                </details>
-              </article>
-
-              <article class="card shine-card feedback-side-card feedback-side-card-compact reveal-on-scroll" id="privacy">
-                <div class="feedback-card-head">
-                  <h2>Privacy and handling</h2>
-                  <p class="muted">Short privacy notes for this form.</p>
-                </div>
-                <details class="feedback-conditions feedback-conditions-compact">
-                  <summary>
-                    <span class="feedback-disclosure-copy">
-                      <strong>Show privacy notes</strong>
-                      <small>Click to expand</small>
-                    </span>
-                  </summary>
-                  <div class="feedback-privacy-list">
-                    <div>
-                      <strong>Submission</strong>
-                      <span>Messages are sent through the website directly to the site owner.</span>
-                    </div>
-                    <div>
-                      <strong>Visibility</strong>
-                      <span>Messages from this form are not published on the website.</span>
-                    </div>
-                    <div>
-                      <strong>Handling</strong>
-                      <span>Submitted messages are reviewed privately for follow-up when relevant.</span>
-                    </div>
-                  </div>
-                </details>
-              </article>
-
-              <article class="card shine-card feedback-side-card reveal-on-scroll">
-                <div class="feedback-card-head">
-                  <h2>Submission summary</h2>
-                  <p class="muted">Shared overview of successful website form submissions and CV requests.</p>
-                </div>
-                <details class="feedback-conditions">
-                  <summary>
-                    <span class="feedback-disclosure-copy">
-                      <strong>View submission summary</strong>
-                      <small>Click to expand</small>
-                    </span>
-                  </summary>
-                  <div class="feedback-stats-panel">
-                    <div class="feedback-stats-admin" data-feedback-stats-admin hidden>
-                      <div class="feedback-stats-admin-actions">
-                        <button class="btn btn-secondary btn-small" type="button" data-feedback-stats-refresh>Refresh status</button>
-                        <button class="btn btn-secondary btn-small" type="button" data-feedback-stats-clear>Clear status</button>
-                      </div>
-                      <span class="feedback-stats-admin-note" data-feedback-stats-admin-note>Private admin control</span>
-                    </div>
-                    <div class="feedback-stats-metrics">
-                      <div class="feedback-stats-total">
-                        <span class="feedback-stats-kicker">Recorded submissions</span>
-                        <strong data-feedback-stats-total>0</strong>
-                        <span>Total successful submissions</span>
-                      </div>
-                      <div class="feedback-stats-total feedback-stats-total-secondary">
-                        <span class="feedback-stats-kicker">CV requests</span>
-                        <strong data-feedback-stats-cv-total>0</strong>
-                        <span>Total CV requests</span>
-                      </div>
-                    </div>
-                    <div class="feedback-stats-country-block">
-                      <div class="feedback-stats-head">
-                        <strong>Country distribution</strong>
-                        <small>Shared website reach</small>
-                      </div>
-                      <div class="feedback-stats-country-list" data-feedback-stats-countries>
-                        <span class="feedback-stats-empty">No submissions recorded yet.</span>
-                      </div>
-                    </div>
-                    <div class="feedback-stats-log" data-feedback-stats-log hidden>
-                      <div class="feedback-stats-head">
-                        <strong>Submission log</strong>
-                        <small>Private admin view</small>
-                      </div>
-                      <div class="feedback-stats-log-list" data-feedback-stats-log-list>
-                        <span class="feedback-stats-empty">No submissions available.</span>
-                      </div>
-                    </div>
-                  </div>
-                </details>
-              </article>
-            </div>
           </div>
 
         </div>

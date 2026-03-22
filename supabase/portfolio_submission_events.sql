@@ -48,6 +48,10 @@ create table if not exists public.portfolio_public_reviews (
   created_at timestamptz not null default timezone('utc', now())
 );
 
+alter table public.portfolio_public_reviews
+  add column if not exists admin_reply text,
+  add column if not exists admin_reply_created_at timestamptz;
+
 create index if not exists portfolio_public_reviews_created_at_idx
   on public.portfolio_public_reviews (created_at desc);
 
@@ -78,6 +82,14 @@ on public.portfolio_public_reviews
 for delete
 to authenticated
 using (lower(coalesce(auth.jwt() ->> 'email', '')) = 'soorajsudhakaran4@gmail.com');
+
+drop policy if exists "Admin can update portfolio public reviews" on public.portfolio_public_reviews;
+create policy "Admin can update portfolio public reviews"
+on public.portfolio_public_reviews
+for update
+to authenticated
+using (lower(coalesce(auth.jwt() ->> 'email', '')) = 'soorajsudhakaran4@gmail.com')
+with check (lower(coalesce(auth.jwt() ->> 'email', '')) = 'soorajsudhakaran4@gmail.com');
 
 create table if not exists public.portfolio_site_state (
   id text primary key,

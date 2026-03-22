@@ -182,8 +182,11 @@
           <a href="feedback.html">Feedback form</a>
         </nav>
         <div class="nav-actions">
+          <div class="portfolio-view-switch" role="group" aria-label="Portfolio view switch">
+            <a class="portfolio-view-option is-active" href="index.html" aria-current="page">Detailed portfolio</a>
+            <a class="portfolio-view-option" href="portfolio-map.html">Portfolio map</a>
+          </div>
           <a class="btn btn-small btn-fit-top" href="#about">Where I Fit</a>
-          <a class="btn btn-small btn-ghost" href="journey.html">Journey</a>
           <a class="btn btn-small btn-cv-top" href="request-cv.html" data-request-cv-link>Request CV</a>
           <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle theme">
             <span data-theme-icon="moon" aria-hidden="true">
@@ -1308,7 +1311,7 @@
               </div>
 
               <div class="review-actions">
-                <a class="btn btn-secondary" href="feedback.html">Open Feedback Form</a>
+                <a class="btn btn-primary" href="feedback.html">Open Feedback Form</a>
               </div>
             </article>
 
@@ -1325,6 +1328,7 @@
                 <div class="review-metric-card">
                   <span class="contact-label">Website reach</span>
                   <strong class="review-metric-value" data-public-review-reach>0 countries</strong>
+                  <div class="review-reach-flags" data-public-review-reach-flags hidden aria-label="Countries reached"></div>
                 </div>
               </div>
 
@@ -1347,6 +1351,26 @@
                   <span class="feedback-stats-empty">No public reviews yet.</span>
                 </div>
               </div>
+
+              <div class="review-comments-callout">
+                <div class="review-section-head review-section-head-stack">
+                  <strong>Public review comments</strong>
+                  <small>Expand to read published feedback</small>
+                </div>
+                <button class="btn btn-secondary review-comments-trigger" type="button" data-public-review-toggle aria-controls="homepage-public-reviews">View public reviews</button>
+              </div>
+
+              <details class="review-comments-panel" id="homepage-public-reviews">
+                <summary>
+                  <span class="feedback-disclosure-copy">
+                    <strong>Review list</strong>
+                    <small>Click to expand or collapse</small>
+                  </span>
+                </summary>
+                <div class="feedback-public-review-list" data-public-review-list data-public-review-limit="6">
+                  <span class="feedback-stats-empty">No public reviews yet.</span>
+                </div>
+              </details>
             </article>
           </div>
         </div>

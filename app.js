@@ -3,8 +3,10 @@ const STORAGE_LANGUAGE_KEY = "site-language";
 const STORAGE_DETAIL_ORIGIN_PREFIX = "detail-origin:";
 const STORAGE_RETURN_TARGET_KEY = "detail-return-target";
 const STORAGE_FEEDBACK_STATS_KEY = "feedback-form-stats";
+const STORAGE_PUBLIC_REVIEWS_KEY = "public-feedback-reviews";
 const STORAGE_FEEDBACK_LAST_SUBMISSION_KEY = "feedback-last-submission";
 const SUPABASE_SUBMISSION_EVENTS_TABLE = "portfolio_submission_events";
+const SUPABASE_PUBLIC_REVIEWS_TABLE = "portfolio_public_reviews";
 const SUPABASE_SITE_STATE_TABLE = "portfolio_site_state";
 const SUPABASE_SITE_UPDATE_STATE_ID = "public_site_update";
 const WEB3FORMS_ENDPOINT = "https://api.web3forms.com/submit";
@@ -20,6 +22,8 @@ let supabaseClient = null;
 let adminSessionActive = false;
 let sharedSubmissionStatsCache = null;
 let sharedSubmissionStatsPromise = null;
+let sharedPublicReviewsCache = null;
+let sharedPublicReviewsPromise = null;
 const REQUEST_CV_LINKS = {
   en: REQUEST_CV_PAGE,
   de: REQUEST_CV_PAGE
@@ -53,6 +57,7 @@ const FEEDBACK_MAIL_TEMPLATES = {
       subjectLine: "Subject",
       responsePreference: "Preferred response",
       timeline: "Timeline",
+      reviewVisibility: "Review visibility",
       comments: "Comments",
       suggestion: "Suggested improvement"
     }
@@ -85,14 +90,356 @@ const FEEDBACK_MAIL_TEMPLATES = {
       subjectLine: "Betreff",
       responsePreference: "Bevorzugte Rueckmeldung",
       timeline: "Zeitrahmen",
+      reviewVisibility: "Sichtbarkeit der Bewertung",
       comments: "Kommentar",
       suggestion: "Vorgeschlagene Verbesserung"
     }
   }
 };
 
+const COUNTRY_OPTIONS = [
+  "Afghanistan",
+  "Albania",
+  "Algeria",
+  "Andorra",
+  "Angola",
+  "Antigua and Barbuda",
+  "Argentina",
+  "Armenia",
+  "Australia",
+  "Austria",
+  "Azerbaijan",
+  "Bahamas",
+  "Bahrain",
+  "Bangladesh",
+  "Barbados",
+  "Belarus",
+  "Belgium",
+  "Belize",
+  "Benin",
+  "Bhutan",
+  "Bolivia",
+  "Bosnia and Herzegovina",
+  "Botswana",
+  "Brazil",
+  "Brunei",
+  "Bulgaria",
+  "Burkina Faso",
+  "Burundi",
+  "Cabo Verde",
+  "Cambodia",
+  "Cameroon",
+  "Canada",
+  "Central African Republic",
+  "Chad",
+  "Chile",
+  "China",
+  "Colombia",
+  "Comoros",
+  "Congo",
+  "Costa Rica",
+  "Cote d'Ivoire",
+  "Croatia",
+  "Cuba",
+  "Cyprus",
+  "Czech Republic",
+  "Democratic Republic of the Congo",
+  "Denmark",
+  "Djibouti",
+  "Dominica",
+  "Dominican Republic",
+  "Ecuador",
+  "Egypt",
+  "El Salvador",
+  "Equatorial Guinea",
+  "Eritrea",
+  "Estonia",
+  "Eswatini",
+  "Ethiopia",
+  "Fiji",
+  "Finland",
+  "France",
+  "Gabon",
+  "Gambia",
+  "Georgia",
+  "Germany",
+  "Ghana",
+  "Greece",
+  "Grenada",
+  "Guatemala",
+  "Guinea",
+  "Guinea-Bissau",
+  "Guyana",
+  "Haiti",
+  "Honduras",
+  "Hungary",
+  "Iceland",
+  "India",
+  "Indonesia",
+  "Iran",
+  "Iraq",
+  "Ireland",
+  "Israel",
+  "Italy",
+  "Jamaica",
+  "Japan",
+  "Jordan",
+  "Kazakhstan",
+  "Kenya",
+  "Kiribati",
+  "Kosovo",
+  "Kuwait",
+  "Kyrgyzstan",
+  "Laos",
+  "Latvia",
+  "Lebanon",
+  "Lesotho",
+  "Liberia",
+  "Libya",
+  "Liechtenstein",
+  "Lithuania",
+  "Luxembourg",
+  "Madagascar",
+  "Malawi",
+  "Malaysia",
+  "Maldives",
+  "Mali",
+  "Malta",
+  "Marshall Islands",
+  "Mauritania",
+  "Mauritius",
+  "Mexico",
+  "Micronesia",
+  "Moldova",
+  "Monaco",
+  "Mongolia",
+  "Montenegro",
+  "Morocco",
+  "Mozambique",
+  "Myanmar",
+  "Namibia",
+  "Nauru",
+  "Nepal",
+  "Netherlands",
+  "New Zealand",
+  "Nicaragua",
+  "Niger",
+  "Nigeria",
+  "North Korea",
+  "North Macedonia",
+  "Norway",
+  "Oman",
+  "Pakistan",
+  "Palau",
+  "Palestine",
+  "Panama",
+  "Papua New Guinea",
+  "Paraguay",
+  "Peru",
+  "Philippines",
+  "Poland",
+  "Portugal",
+  "Qatar",
+  "Romania",
+  "Russia",
+  "Rwanda",
+  "Saint Kitts and Nevis",
+  "Saint Lucia",
+  "Saint Vincent and the Grenadines",
+  "Samoa",
+  "San Marino",
+  "Sao Tome and Principe",
+  "Saudi Arabia",
+  "Senegal",
+  "Serbia",
+  "Seychelles",
+  "Sierra Leone",
+  "Singapore",
+  "Slovakia",
+  "Slovenia",
+  "Solomon Islands",
+  "Somalia",
+  "South Africa",
+  "South Korea",
+  "South Sudan",
+  "Spain",
+  "Sri Lanka",
+  "Sudan",
+  "Suriname",
+  "Sweden",
+  "Switzerland",
+  "Syria",
+  "Taiwan",
+  "Tajikistan",
+  "Tanzania",
+  "Thailand",
+  "Timor-Leste",
+  "Togo",
+  "Tonga",
+  "Trinidad and Tobago",
+  "Tunisia",
+  "Turkey",
+  "Turkmenistan",
+  "Tuvalu",
+  "Uganda",
+  "Ukraine",
+  "United Arab Emirates",
+  "United Kingdom",
+  "United States",
+  "Uruguay",
+  "Uzbekistan",
+  "Vanuatu",
+  "Vatican City",
+  "Venezuela",
+  "Vietnam",
+  "Yemen",
+  "Zambia",
+  "Zimbabwe"
+];
+
+let countryCodeLookupCache = null;
+
+function normalizeCountryLookupKey(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/&/g, "and")
+    .replace(/[().']/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+function getCountryCodeLookup() {
+  if (countryCodeLookupCache) return countryCodeLookupCache;
+
+  const lookup = new Map();
+
+  if (typeof Intl !== "undefined" && typeof Intl.DisplayNames === "function" && typeof Intl.supportedValuesOf === "function") {
+    const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
+    Intl.supportedValuesOf("region").forEach((code) => {
+      const label = regionNames.of(code);
+      if (label && label !== code) {
+        lookup.set(normalizeCountryLookupKey(label), code);
+      }
+    });
+  }
+
+  const aliases = {
+    bolivia: "BO",
+    brunei: "BN",
+    "cabo verde": "CV",
+    congo: "CG",
+    "cote divoire": "CI",
+    "czech republic": "CZ",
+    "democratic republic of the congo": "CD",
+    eswatini: "SZ",
+    iran: "IR",
+    kosovo: "XK",
+    laos: "LA",
+    micronesia: "FM",
+    moldova: "MD",
+    myanmar: "MM",
+    "north korea": "KP",
+    palestine: "PS",
+    russia: "RU",
+    "south korea": "KR",
+    syria: "SY",
+    tanzania: "TZ",
+    turkey: "TR",
+    venezuela: "VE",
+    vietnam: "VN"
+  };
+
+  Object.entries(aliases).forEach(([label, code]) => {
+    lookup.set(label, code);
+  });
+
+  countryCodeLookupCache = lookup;
+  return lookup;
+}
+
+function regionCodeToFlag(code) {
+  const normalized = String(code || "").trim().toUpperCase();
+  if (normalized === "XK") return "🇽🇰";
+  if (!/^[A-Z]{2}$/.test(normalized)) return "🌐";
+  return Array.from(normalized, (character) => String.fromCodePoint(127397 + character.charCodeAt(0))).join("");
+}
+
+function getCountryDisplayMeta(country, fallbackLabel = "Unknown") {
+  const label = String(country || "").trim();
+  if (!label) {
+    return { label: fallbackLabel, flag: "🌐", isUnknown: true };
+  }
+
+  const regionCode = getCountryCodeLookup().get(normalizeCountryLookupKey(label)) || "";
+  return {
+    label,
+    flag: regionCode ? regionCodeToFlag(regionCode) : "🌐",
+    isUnknown: !regionCode
+  };
+}
+
 function getEmptySubmissionStats() {
   return { total: 0, countries: {}, submissions: [] };
+}
+
+function getEmptyPublicReviews() {
+  return [];
+}
+
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (character) => {
+    const entities = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    };
+    return entities[character] || character;
+  });
+}
+
+function createClientUuid() {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (character) => {
+    const random = Math.random() * 16 | 0;
+    const value = character === "x" ? random : (random & 0x3) | 0x8;
+    return value.toString(16);
+  });
+}
+
+function populateCountrySelects(scope = document) {
+  const selects = Array.from(scope.querySelectorAll("select[data-country-select]"));
+  if (!selects.length) return;
+
+  selects.forEach((select) => {
+    const currentValue = String(select.value || select.dataset.selectedCountry || "").trim();
+    const placeholder = select.getAttribute("data-country-placeholder") || "Select country";
+
+    select.innerHTML = "";
+
+    const placeholderOption = document.createElement("option");
+    placeholderOption.value = "";
+    placeholderOption.textContent = placeholder;
+    if (select.required) {
+      placeholderOption.disabled = true;
+    }
+    placeholderOption.selected = !currentValue;
+    select.append(placeholderOption);
+
+    COUNTRY_OPTIONS.forEach((country) => {
+      const option = document.createElement("option");
+      option.value = country;
+      option.textContent = country;
+      option.selected = country === currentValue;
+      select.append(option);
+    });
+  });
 }
 
 function normalizeSubmissionEntry(entry) {
@@ -110,6 +457,33 @@ function normalizeSubmissionEntry(entry) {
     submittedAt: entry.created_at || entry.submittedAt || new Date().toISOString(),
     subject: String(entry.subject || "").trim(),
     rating: ratingLabel
+  };
+}
+
+function normalizePublicReviewEntry(entry) {
+  if (!entry || typeof entry !== "object") return null;
+
+  const ratingValue = Number(
+    entry.rating_value ??
+    entry.ratingValue ??
+    Number.parseInt(String(entry.rating || "").split("/")[0], 10)
+  );
+  const reviewerName = String(entry.reviewer_name || entry.reviewerName || "").trim();
+  const reviewText = String(entry.review_text || entry.reviewText || "").trim();
+
+  if (!reviewerName || !reviewText) return null;
+
+  return {
+    id: String(entry.id || ""),
+    reviewerName,
+    country: String(entry.country || "").trim(),
+    ratingValue: Number.isFinite(ratingValue) && ratingValue > 0 ? ratingValue : null,
+    rating: Number.isFinite(ratingValue) && ratingValue > 0 ? `${ratingValue}/5` : "",
+    reviewTitle: String(entry.review_title || entry.reviewTitle || "").trim(),
+    reviewText,
+    adminReply: String(entry.admin_reply || entry.adminReply || "").trim(),
+    adminReplyCreatedAt: entry.admin_reply_created_at || entry.adminReplyCreatedAt || "",
+    submittedAt: entry.created_at || entry.submittedAt || new Date().toISOString()
   };
 }
 
@@ -132,6 +506,13 @@ function buildSubmissionStats(submissions = []) {
   };
 }
 
+function buildPublicReviews(reviews = []) {
+  return reviews
+    .map(normalizePublicReviewEntry)
+    .filter(Boolean)
+    .sort((a, b) => new Date(b.submittedAt || 0).getTime() - new Date(a.submittedAt || 0).getTime());
+}
+
 function loadStoredSubmissionStats() {
   try {
     const raw = localStorage.getItem(STORAGE_FEEDBACK_STATS_KEY);
@@ -148,6 +529,20 @@ function loadStoredSubmissionStats() {
 
 function saveStoredSubmissionStats(stats) {
   localStorage.setItem(STORAGE_FEEDBACK_STATS_KEY, JSON.stringify(stats));
+}
+
+function loadStoredPublicReviews() {
+  try {
+    const raw = localStorage.getItem(STORAGE_PUBLIC_REVIEWS_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    return buildPublicReviews(Array.isArray(parsed) ? parsed : []);
+  } catch {
+    return getEmptyPublicReviews();
+  }
+}
+
+function saveStoredPublicReviews(reviews) {
+  localStorage.setItem(STORAGE_PUBLIC_REVIEWS_KEY, JSON.stringify(reviews));
 }
 
 function parseSubmissionRatingValue(entry) {
@@ -174,8 +569,38 @@ function recordStoredSubmissionStat(submission) {
   return nextStats;
 }
 
+function recordStoredPublicReview(review) {
+  const reviews = loadStoredPublicReviews();
+  reviews.push(normalizePublicReviewEntry(review));
+  const nextReviews = buildPublicReviews(reviews);
+  saveStoredPublicReviews(nextReviews);
+  return nextReviews;
+}
+
+function updateStoredPublicReview(id, updater) {
+  const reviews = loadStoredPublicReviews();
+  let didUpdate = false;
+  const nextReviews = reviews.map((entry) => {
+    if (entry.id !== id) return entry;
+    didUpdate = true;
+    return normalizePublicReviewEntry(updater(entry));
+  }).filter(Boolean);
+
+  if (!didUpdate) {
+    return null;
+  }
+
+  const sortedReviews = buildPublicReviews(nextReviews);
+  saveStoredPublicReviews(sortedReviews);
+  return sortedReviews;
+}
+
 function clearStoredSubmissionStats() {
   saveStoredSubmissionStats(getEmptySubmissionStats());
+}
+
+function clearStoredPublicReviews() {
+  saveStoredPublicReviews(getEmptyPublicReviews());
 }
 
 function deleteStoredSubmissionStat(id) {
@@ -190,9 +615,25 @@ function deleteStoredSubmissionStat(id) {
   return true;
 }
 
+function deleteStoredPublicReview(id) {
+  const reviews = loadStoredPublicReviews();
+  const nextReviews = reviews.filter((entry) => entry.id !== id);
+  if (nextReviews.length === reviews.length) {
+    return false;
+  }
+
+  saveStoredPublicReviews(buildPublicReviews(nextReviews));
+  return true;
+}
+
 function setSharedSubmissionStatsCache(stats) {
   sharedSubmissionStatsCache = buildSubmissionStats(stats?.submissions || stats || []);
   return sharedSubmissionStatsCache;
+}
+
+function setSharedPublicReviewsCache(reviews) {
+  sharedPublicReviewsCache = buildPublicReviews(reviews);
+  return sharedPublicReviewsCache;
 }
 
 async function loadSharedSubmissionStats({ forceRefresh = false } = {}) {
@@ -224,6 +665,35 @@ async function loadSharedSubmissionStats({ forceRefresh = false } = {}) {
   return sharedSubmissionStatsPromise;
 }
 
+async function loadSharedPublicReviews({ forceRefresh = false } = {}) {
+  if (!forceRefresh && sharedPublicReviewsCache) {
+    return sharedPublicReviewsCache;
+  }
+
+  if (!forceRefresh && sharedPublicReviewsPromise) {
+    return sharedPublicReviewsPromise;
+  }
+
+  sharedPublicReviewsPromise = (async () => {
+    try {
+      const supabase = await getSupabaseClient();
+      const { data, error } = await supabase
+        .from(SUPABASE_PUBLIC_REVIEWS_TABLE)
+        .select("id, reviewer_name, country, rating_value, review_title, review_text, admin_reply, admin_reply_created_at, created_at")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return setSharedPublicReviewsCache(data || []);
+    } catch {
+      return setSharedPublicReviewsCache(loadStoredPublicReviews());
+    } finally {
+      sharedPublicReviewsPromise = null;
+    }
+  })();
+
+  return sharedPublicReviewsPromise;
+}
+
 async function recordSharedSubmissionEvent(submission) {
   const localStats = recordStoredSubmissionStat(submission);
 
@@ -231,6 +701,7 @@ async function recordSharedSubmissionEvent(submission) {
     const supabase = await getSupabaseClient();
     const ratingValue = parseSubmissionRatingValue(submission);
     const payload = {
+      id: submission?.id || createClientUuid(),
       type: submission?.type || "feedback",
       country: String(submission?.country || "").trim() || null,
       rating_value: Number.isFinite(ratingValue) && ratingValue > 0 ? ratingValue : null
@@ -243,8 +714,61 @@ async function recordSharedSubmissionEvent(submission) {
   }
 }
 
+async function recordSharedPublicReview(review) {
+  const normalizedReview = normalizePublicReviewEntry(review);
+  if (!normalizedReview) {
+    return loadSharedPublicReviews();
+  }
+
+  const localReviews = recordStoredPublicReview(normalizedReview);
+
+  try {
+    const supabase = await getSupabaseClient();
+    const payload = {
+      id: normalizedReview.id,
+      reviewer_name: normalizedReview.reviewerName,
+      country: normalizedReview.country || null,
+      rating_value: normalizedReview.ratingValue,
+      review_title: normalizedReview.reviewTitle || null,
+      review_text: normalizedReview.reviewText
+    };
+    const { error } = await supabase.from(SUPABASE_PUBLIC_REVIEWS_TABLE).insert(payload);
+    if (error) throw error;
+    return await loadSharedPublicReviews({ forceRefresh: true });
+  } catch {
+    return localReviews;
+  }
+}
+
+async function saveSharedPublicReviewReply(id, replyText) {
+  const trimmedReply = String(replyText || "").trim();
+  const replyDate = trimmedReply ? new Date().toISOString() : "";
+  const localReviews = updateStoredPublicReview(id, (review) => ({
+    ...review,
+    adminReply: trimmedReply,
+    adminReplyCreatedAt: replyDate
+  }));
+
+  try {
+    const supabase = await getSupabaseClient();
+    const { error } = await supabase
+      .from(SUPABASE_PUBLIC_REVIEWS_TABLE)
+      .update({
+        admin_reply: trimmedReply || null,
+        admin_reply_created_at: trimmedReply ? replyDate : null
+      })
+      .eq("id", id);
+
+    if (error) throw error;
+    return await loadSharedPublicReviews({ forceRefresh: true });
+  } catch {
+    return localReviews || loadStoredPublicReviews();
+  }
+}
+
 async function clearSharedSubmissionEvents() {
   clearStoredSubmissionStats();
+  clearStoredPublicReviews();
 
   try {
     const supabase = await getSupabaseClient();
@@ -261,6 +785,7 @@ async function clearSharedSubmissionEvents() {
 
 async function deleteSharedSubmissionEvent(id) {
   const localDeleted = deleteStoredSubmissionStat(id);
+  deleteStoredPublicReview(id);
 
   try {
     const supabase = await getSupabaseClient();
@@ -372,6 +897,270 @@ async function renderSubmissionSummary({ scope = document, lang = resolveInitial
       .map(parseSubmissionRatingValue)
       .filter((value) => Number.isFinite(value) && value > 0)
   };
+}
+
+function getPublicReviewUiCopy(lang) {
+  return lang === "de"
+    ? {
+        noRatings: "Noch keine Bewertungen",
+        noReviews: "Noch keine öffentlichen Bewertungen.",
+        awaiting: "Noch keine bewertete Rückmeldung vorhanden.",
+        countries: "Laender",
+        basedOn: (count) => `Basierend auf ${count} bewerteten oeffentlichen Rueckmeldungen`,
+        ratingLabel: (value) => `${value} von 5`,
+        reviewBadge: "Oeffentliche Bewertung",
+        countryFallback: "Land nicht angegeben",
+        viewPublicReviews: "Oeffentliche Bewertungen ansehen",
+        publicReplyLabel: "Oeffentliche Antwort von Sooraj Sudhakaran",
+        adminToolsLabel: "Admin-Aktionen",
+        adminToolsDescription: "Antwort veroeffentlichen oder diese Bewertung aus der Website entfernen.",
+        replyFieldLabel: "Oeffentliche Antwort",
+        replyPlaceholder: "Oeffentliche Antwort auf diese Bewertung schreiben",
+        saveReply: "Antwort veroeffentlichen",
+        updateReply: "Antwort aktualisieren",
+        deleteReview: "Bewertung loeschen",
+        deleteConfirm: "Diese oeffentliche Bewertung wirklich loeschen?",
+        replySaved: "Oeffentliche Antwort gespeichert.",
+        reviewDeleted: "Bewertung geloescht.",
+        adminError: "Die Admin-Aktion konnte nicht abgeschlossen werden."
+      }
+    : {
+        noRatings: "No ratings yet",
+        noReviews: "No public reviews yet.",
+        awaiting: "Awaiting first rated review.",
+        countries: "countries",
+        basedOn: (count) => `Based on ${count} rated public reviews`,
+        ratingLabel: (value) => `${value} out of 5`,
+        reviewBadge: "Public review",
+        countryFallback: "Country not shared",
+        viewPublicReviews: "View public reviews",
+        publicReplyLabel: "Public reply from Sooraj Sudhakaran",
+        adminToolsLabel: "Admin actions",
+        adminToolsDescription: "Publish a visible reply or remove this review from the website.",
+        replyFieldLabel: "Public reply",
+        replyPlaceholder: "Write a public reply to this review",
+        saveReply: "Publish reply",
+        updateReply: "Update reply",
+        deleteReview: "Delete review",
+        deleteConfirm: "Delete this public review?",
+        replySaved: "Public reply saved.",
+        reviewDeleted: "Review deleted.",
+        adminError: "The admin action could not be completed."
+      };
+}
+
+function calculatePublicReviewMetrics(publicReviews = []) {
+  const ratings = publicReviews
+    .map((entry) => Number(entry?.ratingValue))
+    .filter((value) => Number.isFinite(value) && value > 0);
+  const average = ratings.length
+    ? ratings.reduce((sum, value) => sum + value, 0) / ratings.length
+    : 0;
+
+  const countryCounts = {};
+  publicReviews.forEach((entry) => {
+    const country = String(entry?.country || "").trim();
+    const key = country || "__unknown__";
+    countryCounts[key] = (countryCounts[key] || 0) + 1;
+  });
+
+  return {
+    ratings,
+    average,
+    countryEntries: Object.entries(countryCounts).sort((a, b) => Number(b[1]) - Number(a[1]))
+  };
+}
+
+async function renderPublicReviewLists({ scope = document, forceRefresh = false } = {}) {
+  const reviewLists = Array.from(scope.querySelectorAll("[data-public-review-list]"));
+  if (!reviewLists.length) return [];
+
+  const lang = resolveInitialLanguage();
+  const copy = getPublicReviewUiCopy(lang);
+  const isAdminMode = getAdminModeState();
+  const publicReviews = await loadSharedPublicReviews({ forceRefresh });
+
+  reviewLists.forEach((list) => {
+    list.innerHTML = "";
+
+    const limit = Number.parseInt(list.getAttribute("data-public-review-limit") || "", 10);
+    const visibleReviews = Number.isFinite(limit) && limit > 0
+      ? publicReviews.slice(0, limit)
+      : publicReviews;
+
+    if (!visibleReviews.length) {
+      const empty = document.createElement("span");
+      empty.className = "feedback-stats-empty";
+      empty.textContent = copy.noReviews;
+      list.append(empty);
+      return;
+    }
+
+    visibleReviews.forEach((review) => {
+      const card = document.createElement("article");
+      card.className = "feedback-public-review-card";
+
+      const countryMeta = getCountryDisplayMeta(review.country, copy.countryFallback);
+      const countryLabel = `${countryMeta.flag} ${countryMeta.label}`;
+      const submittedDate = review.submittedAt ? new Date(review.submittedAt) : null;
+      const submittedLabel = submittedDate && !Number.isNaN(submittedDate.getTime())
+        ? formatUpdatedTimestamp(submittedDate, lang)
+        : "";
+      const ratingLabel = review.ratingValue
+        ? `${review.ratingValue}/5`
+        : copy.reviewBadge;
+      const metaParts = [countryLabel, submittedLabel].filter(Boolean);
+      const replyDate = review.adminReplyCreatedAt ? new Date(review.adminReplyCreatedAt) : null;
+      const replyDateLabel = replyDate && !Number.isNaN(replyDate.getTime())
+        ? formatUpdatedTimestamp(replyDate, lang)
+        : "";
+      const replyBlock = review.adminReply
+        ? `
+          <div class="feedback-public-review-reply">
+            <span class="feedback-public-review-reply-label">${escapeHtml(copy.publicReplyLabel)}</span>
+            <p class="feedback-public-review-reply-text">${escapeHtml(review.adminReply)}</p>
+            ${replyDateLabel ? `<small class="feedback-public-review-reply-date">${escapeHtml(replyDateLabel)}</small>` : ""}
+          </div>
+        `
+        : "";
+      const adminControls = isAdminMode
+        ? `
+          <form class="feedback-public-review-admin-form" data-public-review-admin-form="${escapeHtml(review.id)}">
+            <div class="feedback-public-review-admin-head">
+              <span class="feedback-public-review-admin-kicker">${escapeHtml(copy.adminToolsLabel)}</span>
+              <p class="feedback-public-review-admin-copy">${escapeHtml(copy.adminToolsDescription)}</p>
+            </div>
+            <label class="feedback-public-review-admin-field">
+              <span>${escapeHtml(copy.replyFieldLabel)}</span>
+              <textarea name="adminReply" rows="3" placeholder="${escapeHtml(copy.replyPlaceholder)}">${escapeHtml(review.adminReply || "")}</textarea>
+            </label>
+            <div class="feedback-public-review-admin-actions">
+              <button class="btn btn-secondary btn-small" type="submit">${escapeHtml(review.adminReply ? copy.updateReply : copy.saveReply)}</button>
+              <button class="btn btn-secondary btn-small feedback-public-review-delete" type="button" data-public-review-delete="${escapeHtml(review.id)}">${escapeHtml(copy.deleteReview)}</button>
+            </div>
+          </form>
+        `
+        : "";
+
+      card.innerHTML = `
+        <div class="feedback-public-review-head">
+          <div class="feedback-public-review-identity">
+            <strong class="feedback-public-review-name">${escapeHtml(review.reviewerName)}</strong>
+            <span class="feedback-public-review-meta">${escapeHtml(metaParts.join(" • "))}</span>
+          </div>
+          <span class="feedback-public-review-rating">${escapeHtml(ratingLabel)}</span>
+        </div>
+        ${review.reviewTitle ? `<span class="feedback-public-review-title">${escapeHtml(review.reviewTitle)}</span>` : ""}
+        <p class="feedback-public-review-text">${escapeHtml(review.reviewText)}</p>
+        ${replyBlock}
+        ${adminControls}
+      `;
+
+      list.append(card);
+    });
+  });
+
+  return publicReviews;
+}
+
+function setupPublicReviewPanels() {
+  const triggers = Array.from(document.querySelectorAll("[data-public-review-toggle]"));
+  if (!triggers.length) return;
+
+  triggers.forEach((trigger) => {
+    trigger.addEventListener("click", () => {
+      const targetId = trigger.getAttribute("aria-controls");
+      if (!targetId) return;
+      const panel = document.getElementById(targetId);
+      if (!(panel instanceof HTMLDetailsElement)) return;
+      panel.open = true;
+      panel.scrollIntoView({ behavior: "smooth", block: "start" });
+      const summary = panel.querySelector("summary");
+      if (summary instanceof HTMLElement) {
+        window.setTimeout(() => summary.focus({ preventScroll: true }), 180);
+      }
+    });
+  });
+}
+
+async function refreshPublicReviewUi({ forceRefresh = true } = {}) {
+  await Promise.all([
+    renderPublicReviewLists({ scope: document, forceRefresh }),
+    setupPublicReviewSummary(),
+    renderSubmissionSummary({
+      scope: document,
+      lang: resolveInitialLanguage(),
+      isAdminMode: getAdminModeState(),
+      forceRefresh
+    })
+  ]);
+  setupAdminWorkspace();
+}
+
+function setupPublicReviewAdminActions() {
+  document.addEventListener("submit", async (event) => {
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement)) return;
+
+    const reviewId = form.getAttribute("data-public-review-admin-form");
+    if (!reviewId || !getAdminModeState()) return;
+
+    event.preventDefault();
+
+    const lang = resolveInitialLanguage();
+    const copy = getPublicReviewUiCopy(lang);
+    const textarea = form.querySelector('textarea[name="adminReply"]');
+    const submitButton = form.querySelector('button[type="submit"]');
+    const replyText = textarea instanceof HTMLTextAreaElement ? textarea.value : "";
+
+    if (submitButton instanceof HTMLButtonElement) {
+      submitButton.disabled = true;
+      submitButton.setAttribute("aria-busy", "true");
+    }
+
+    try {
+      await saveSharedPublicReviewReply(reviewId, replyText);
+      await refreshPublicReviewUi({ forceRefresh: true });
+    } catch {
+      window.alert(copy.adminError);
+    } finally {
+      if (submitButton instanceof HTMLButtonElement) {
+        submitButton.disabled = false;
+        submitButton.removeAttribute("aria-busy");
+      }
+    }
+  });
+
+  document.addEventListener("click", async (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+
+    const deleteId = target.getAttribute("data-public-review-delete");
+    if (!deleteId || !getAdminModeState()) return;
+
+    const lang = resolveInitialLanguage();
+    const copy = getPublicReviewUiCopy(lang);
+    if (!window.confirm(copy.deleteConfirm)) {
+      return;
+    }
+
+    if (target instanceof HTMLButtonElement) {
+      target.disabled = true;
+      target.setAttribute("aria-busy", "true");
+    }
+
+    try {
+      await deleteSharedSubmissionEvent(deleteId);
+      await refreshPublicReviewUi({ forceRefresh: true });
+    } catch {
+      window.alert(copy.adminError);
+    } finally {
+      if (target instanceof HTMLButtonElement) {
+        target.disabled = false;
+        target.removeAttribute("aria-busy");
+      }
+    }
+  });
 }
 
 const LANGUAGE_TEXT = {
@@ -1013,8 +1802,13 @@ Object.assign(LANGUAGE_TEXT.de, {
   "Open contact section": "Kontaktbereich oeffnen",
   "Portfolio Map": "Portfolio-Map",
   "Portfolio map": "Portfolio-Map",
+  "Portfolio view switch": "Portfolio-Ansicht umschalten",
+  "Detailed portfolio": "Detailliertes Portfolio",
   "Use this page to explore the full portfolio structure.": "Nutzen Sie diese Seite, um die vollstaendige Portfoliostruktur zu erkunden.",
   "This page links the main robotics, industrial automation, thesis, project, journey, and contact pages of the website in one crawlable overview.": "Diese Seite verlinkt die wichtigsten Robotik-, Industrieautomatisierungs-, Thesis-, Projekt-, Werdegangs- und Kontaktseiten der Website in einer crawlbaren Uebersicht.",
+  "Use the map for a fast structured overview of the main robotics, industrial automation, thesis, project, journey, and contact pages. Open the detailed portfolio when you want the full evidence and longer explanations.": "Nutzen Sie die Map fuer einen schnellen strukturierten Ueberblick ueber die wichtigsten Seiten zu Robotik, Industrieautomatisierung, Thesis, Projekten, Werdegang und Kontakt. Oeffnen Sie das detaillierte Portfolio, wenn Sie die vollstaendigen Nachweise und ausfuehrlicheren Erlaeuterungen sehen moechten.",
+  "Open detailed portfolio": "Detailliertes Portfolio oeffnen",
+  "Use the detailed portfolio for the full project, experience, and recruiter-ready context.": "Nutzen Sie das detaillierte Portfolio fuer die vollstaendige Projekt-, Erfahrungs- und recruiter-taugliche Einordnung.",
   "Best entry points": "Beste Einstiegsseiten",
   "Start here if you want the strongest pages first.": "Beginnen Sie hier, wenn Sie zuerst die staerksten Seiten sehen moechten.",
   "Industrial robotics thesis": "Masterarbeit in Industrierobotik",
@@ -1026,6 +1820,14 @@ Object.assign(LANGUAGE_TEXT.de, {
   "ROS and autonomous systems": "ROS und autonome Systeme",
   "Best page for ROS workflow, autonomous robot behavior, localization, and simulation-led robotics software work.": "Die beste Seite fuer ROS-Workflows, autonomes Roboterverhalten, Lokalisierung und simulationsgestuetzte Robotik-Softwarearbeit.",
   "Open ROS project": "ROS-Projekt oeffnen",
+  "Comment visibility": "Kommentarsichtbarkeit",
+  "Choose public or private comment": "Oeffentlichen oder privaten Kommentar waehlen",
+  "This selection is required for feedback comments": "Diese Auswahl ist fuer Feedback-Kommentare erforderlich",
+  "Private comment": "Privater Kommentar",
+  "Your comment stays visible only to Sooraj Sudhakaran.": "Ihr Kommentar bleibt nur fuer Sooraj Sudhakaran sichtbar.",
+  "Publish on website": "Auf der Website veroeffentlichen",
+  "After writing a feedback comment, choose whether it stays private or can appear publicly with your name and country.": "Nachdem Sie einen Feedback-Kommentar geschrieben haben, waehlen Sie, ob er privat bleibt oder mit Ihrem Namen und Land oeffentlich angezeigt werden darf.",
+  "View public comments": "Oeffentliche Kommentare ansehen",
   "Experience pages": "Erfahrungsseiten",
   "Professional and academic experience pages related to robotics, industrial automation, and engineering practice.": "Berufliche und akademische Erfahrungsseiten zu Robotik, Industrieautomatisierung und technischer Praxis.",
   "Project pages": "Projektseiten",
@@ -1141,9 +1943,38 @@ Object.assign(LANGUAGE_TEXT.de, {
   "Send feedback or contact me directly.": "Senden Sie Feedback oder kontaktieren Sie mich direkt.",
   "Use this page to share feedback about the portfolio or send a direct contact request. The form submits directly through the website and is not posted publicly.": "Nutzen Sie diese Seite, um Feedback zum Portfolio zu geben oder eine direkte Kontaktanfrage zu senden. Das Formular wird direkt ueber die Website uebermittelt und nicht oeffentlich veroeffentlicht.",
   "Open Feedback Form": "Feedback-Formular öffnen",
+  "Open feedback form": "Feedback-Formular oeffnen",
+  "Open contact form": "Kontaktformular oeffnen",
   "Guidance": "Hinweise",
   "Before you submit": "Vor dem Absenden",
   "Short notes for using this form correctly.": "Kurze Hinweise zur korrekten Nutzung dieses Formulars.",
+  "Select feedback or contact to start.": "Waehlen Sie Feedback oder Kontakt, um zu starten.",
+  "Choose a form.": "Waehlen Sie ein Formular.",
+  "Choose the form you want to open.": "Waehlen Sie das Formular, das Sie oeffnen moechten.",
+  "Use feedback for website comments and reviews. Use contact for direct professional enquiries.": "Verwenden Sie Feedback fuer Website-Kommentare und Bewertungen. Verwenden Sie Kontakt fuer direkte professionelle Anfragen.",
+  "Direct website submission": "Direkte Website-Uebermittlung",
+  "Both forms are sent through the website. Contact stays private. Reviews become public only if you allow it.": "Beide Formulare werden ueber die Website uebermittelt. Kontakt bleibt privat. Bewertungen werden nur oeffentlich, wenn Sie es erlauben.",
+  "Choose one option to open the correct form. Contact stays private. Reviews are public only if you allow it.": "Waehlen Sie eine Option, um das passende Formular zu oeffnen. Kontakt bleibt privat. Bewertungen sind nur dann oeffentlich, wenn Sie es erlauben.",
+  "Comments, corrections, suggestions, reviews": "Kommentare, Korrekturen, Vorschlaege, Bewertungen",
+  "Recruiter message, collaboration, enquiry": "Recruiter-Nachricht, Zusammenarbeit, Anfrage",
+  "Choose the right path": "Den richtigen Weg waehlen",
+  "Choose feedback or contact.": "Feedback oder Kontakt waehlen.",
+  "Use the feedback form for website comments and portfolio suggestions, or choose the contact form for direct professional enquiries. Both go directly through the website.": "Verwenden Sie das Feedback-Formular fuer Website-Kommentare und Portfolio-Vorschlaege oder das Kontaktformular fuer direkte professionelle Anfragen. Beide Wege gehen direkt ueber die Website.",
+  "Submission method": "Uebermittlungsweg",
+  "Website form": "Website-Formular",
+  "Sent directly through the website.": "Direkt ueber die Website uebermittelt.",
+  "Direct submission": "Direkte Uebermittlung",
+  "Your message is sent straight through the website.": "Ihre Nachricht wird direkt ueber die Website gesendet.",
+  "Private by default": "Standardmaessig privat",
+  "Visibility": "Sichtbarkeit",
+  "Public only if you choose to publish a review.": "Oeffentlich nur, wenn Sie eine Bewertung zur Veroeffentlichung freigeben.",
+  "Nothing is public unless you explicitly publish a review.": "Nichts wird oeffentlich sichtbar, ausser Sie geben eine Bewertung ausdruecklich frei.",
+  "Process": "Ablauf",
+  "Choose, complete, submit": "Waehlen, ausfuellen, absenden",
+  "Select the right form, add details, and send.": "Das passende Formular waehlen, Angaben ausfuellen und absenden.",
+  "Clear next step": "Klarer naechster Schritt",
+  "Choose the correct form, complete the details, and submit.": "Waehlen Sie das richtige Formular, fuellen Sie die Angaben aus und senden Sie es ab.",
+  "Choose a form below": "Unten ein Formular waehlen",
   "How it works": "So funktioniert es",
   "Review how this form works before you start.": "Pruefen Sie vor dem Start, wie dieses Formular funktioniert.",
   "View guidance": "Hinweise anzeigen",
@@ -1152,6 +1983,7 @@ Object.assign(LANGUAGE_TEXT.de, {
   "Required fields are marked with a red star.": "Pflichtfelder sind mit einem roten Stern markiert.",
   "Select either the feedback form or the contact form before filling details.": "Waehlen Sie vor dem Ausfuellen entweder das Feedback-Formular oder das Kontaktformular.",
   "Your message is submitted through the website and is not posted publicly.": "Ihre Nachricht wird ueber die Website uebermittelt und nicht oeffentlich angezeigt.",
+  "Your message is private by default unless you choose to publish it as a public review.": "Ihre Nachricht bleibt standardmaessig privat, sofern Sie sie nicht als oeffentliche Bewertung freigeben.",
   "Feedback or direct contact": "Feedback oder direkter Kontakt",
   "You can use the form for website feedback or a direct contact request.": "Sie koennen das Formular fuer Website-Feedback oder eine direkte Kontaktanfrage verwenden.",
   "The form submits directly through the website without opening your email app.": "Das Formular wird direkt ueber die Website uebermittelt, ohne Ihre E-Mail-App zu oeffnen.",
@@ -1165,6 +1997,23 @@ Object.assign(LANGUAGE_TEXT.de, {
   "Choose whether you want to open the feedback form or the contact form.": "Waehlen Sie, ob Sie das Feedback-Formular oder das Kontaktformular oeffnen moechten.",
   "Share website feedback, design comments, corrections, or suggestions.": "Teilen Sie Website-Feedback, Designhinweise, Korrekturen oder Vorschlaege mit.",
   "Send a direct professional enquiry, recruiter message, or collaboration request.": "Senden Sie eine direkte professionelle Anfrage, eine Recruiter-Nachricht oder eine Anfrage zur Zusammenarbeit.",
+  "A clear path from choosing the right form to sending the message correctly.": "Ein klarer Ablauf von der richtigen Formularwahl bis zur korrekten Uebermittlung Ihrer Nachricht.",
+  "How this page works": "So funktioniert diese Seite",
+  "Choose feedback form for website comments, corrections, suggestions, and public reviews.": "Waehlen Sie das Feedback-Formular fuer Website-Kommentare, Korrekturen, Vorschlaege und oeffentliche Bewertungen.",
+  "Choose contact form for recruiter outreach, collaboration, or direct professional enquiries.": "Waehlen Sie das Kontaktformular fuer Recruiter-Anfragen, Zusammenarbeit oder direkte professionelle Anfragen.",
+  "Complete the required fields marked with a red star and submit directly through the website.": "Fuellen Sie die mit einem roten Stern markierten Pflichtfelder aus und senden Sie direkt ueber die Website ab.",
+  "Privacy and visibility": "Privatsphaere und Sichtbarkeit",
+  "Private by default. Public only if you choose it.": "Standardmaessig privat. Oeffentlich nur, wenn Sie es auswaehlen.",
+  "Simple rules for what stays private and what can appear publicly.": "Einfache Regeln dazu, was privat bleibt und was oeffentlich erscheinen kann.",
+  "Private messages": "Private Nachrichten",
+  "Contact requests stay private and are visible only to Sooraj Sudhakaran.": "Kontaktanfragen bleiben privat und sind nur fuer Sooraj Sudhakaran sichtbar.",
+  "Contact requests stay private.": "Kontaktanfragen bleiben privat.",
+  "Feedback comments appear publicly only if you choose the public review option yourself.": "Feedback-Kommentare erscheinen nur dann oeffentlich, wenn Sie selbst die Option fuer eine oeffentliche Bewertung auswaehlen.",
+  "Feedback is public only when you select Public.": "Feedback ist nur dann oeffentlich, wenn Sie Oeffentlich auswaehlen.",
+  "What gets shown": "Was angezeigt wird",
+  "Public reviews can show your name, country, rating, and comment for other visitors to read.": "Oeffentliche Bewertungen koennen Ihren Namen, Ihr Land, Ihre Bewertung und Ihren Kommentar fuer andere Besucher anzeigen.",
+  "Shown publicly": "Oeffentlich sichtbar",
+  "Name, country, rating, and comment.": "Name, Land, Bewertung und Kommentar.",
   "Choose message type": "Nachrichtentyp waehlen",
   "Select either Feedback form or Contact form to continue.": "Waehlen Sie zum Fortfahren entweder das Feedback-Formular oder das Kontaktformular.",
   "Use this form to send a direct contact request. Only the essential business details are required.": "Verwenden Sie dieses Formular fuer eine direkte Kontaktanfrage. Es werden nur die wesentlichen geschaeftlichen Angaben abgefragt.",
@@ -1184,6 +2033,8 @@ Object.assign(LANGUAGE_TEXT.de, {
   "your@email.com": "ihre@email.de",
   "Country": "Land",
   "Germany, India, United States, etc.": "Deutschland, Indien, Vereinigte Staaten usw.",
+  "Select country": "Land auswaehlen",
+  "Select country (optional)": "Land auswaehlen (optional)",
   "Phone number": "Telefonnummer",
   "+49 123 456 7890": "+49 123 456 7890",
   "Message type": "Nachrichtentyp",
@@ -1235,6 +2086,21 @@ Object.assign(LANGUAGE_TEXT.de, {
   "Your message": "Ihre Nachricht",
   "Write the main message clearly. Use suggested improvement for recommendations or next steps.": "Formulieren Sie die Hauptnachricht klar. Nutzen Sie das Feld fuer Verbesserungsvorschlaege bei Empfehlungen oder naechsten Schritten.",
   "Write your message clearly and professionally.": "Formulieren Sie Ihre Nachricht klar und professionell.",
+  "Review visibility": "Sichtbarkeit der Bewertung",
+  "Choose whether your review stays private or can appear publicly with your name and country.": "Waehlen Sie, ob Ihre Bewertung privat bleibt oder mit Ihrem Namen und Land oeffentlich angezeigt werden darf.",
+  "Choose public or private review": "Oeffentliche oder private Bewertung waehlen",
+  "Private is selected by default": "Privat ist standardmaessig ausgewaehlt",
+  "Private review": "Private Bewertung",
+  "Your message stays private between you and the site owner.": "Ihre Nachricht bleibt privat zwischen Ihnen und dem Website-Betreiber.",
+  "Public review": "Oeffentliche Bewertung",
+  "Your rating and comment can be shown publicly with your name and country.": "Ihre Bewertung und Ihr Kommentar koennen oeffentlich mit Ihrem Namen und Land angezeigt werden.",
+  "Publish comment": "Kommentar veroeffentlichen",
+  "Select one option": "Eine Option auswaehlen",
+  "Choose whether this feedback comment stays private for Sooraj Sudhakaran or appears publicly on the website with your name and country.": "Waehlen Sie, ob dieser Feedback-Kommentar nur fuer Sooraj Sudhakaran privat bleibt oder mit Ihrem Namen und Land oeffentlich auf der Website erscheint.",
+  "Private": "Privat",
+  "Public": "Oeffentlich",
+  "Select Private or Public": "Privat oder oeffentlich auswaehlen",
+  "Choose one option to decide whether your review stays visible only to Sooraj Sudhakaran or can appear publicly for all visitors.": "Waehlen Sie eine Option, damit klar ist, ob Ihre Bewertung nur fuer Sooraj Sudhakaran sichtbar bleibt oder fuer alle Besucher oeffentlich erscheinen darf.",
   "Comments": "Kommentar",
   "Describe your feedback or observation.": "Beschreiben Sie Ihr Feedback oder Ihre Beobachtung.",
   "Write your message, enquiry, or reason for contact.": "Schreiben Sie Ihre Nachricht, Anfrage oder den Grund Ihrer Kontaktaufnahme.",
@@ -1273,6 +2139,8 @@ Object.assign(LANGUAGE_TEXT.de, {
   "View submission status": "Uebermittlungsstatus anzeigen",
   "View status": "Status anzeigen",
   "View reviews and rating": "Bewertungen und Gesamtbewertung anzeigen",
+  "View public reviews and rating": "Oeffentliche Bewertungen und Gesamtbewertung anzeigen",
+  "Required before submit": "Vor dem Absenden erforderlich",
   "Submission time": "Uebermittlungszeit",
   "Submission channel": "Uebermittlungskanal",
   "Submitted through the website form.": "Ueber das Website-Formular uebermittelt.",
@@ -1294,6 +2162,7 @@ Object.assign(LANGUAGE_TEXT.de, {
   "Confidentiality": "Vertraulichkeit",
   "Messages from this page are not published on the website or displayed publicly.": "Nachrichten von dieser Seite werden nicht auf der Website veroeffentlicht oder oeffentlich angezeigt.",
   "Messages from this form are not published on the website.": "Nachrichten aus diesem Formular werden nicht auf der Website veroeffentlicht.",
+  "Reviews stay private unless you explicitly choose the public review option.": "Bewertungen bleiben privat, sofern Sie nicht ausdruecklich die oeffentliche Bewertungsoption waehlen.",
   "Access and handling": "Zugriff und Verarbeitung",
   "Submitted messages are reviewed privately by the site owner as part of the normal contact and feedback process.": "Uebermittelte Nachrichten werden vom Website-Betreiber vertraulich im normalen Kontakt- und Feedbackprozess geprueft.",
   "Handling": "Verarbeitung",
@@ -1303,6 +2172,9 @@ Object.assign(LANGUAGE_TEXT.de, {
   "Submission summary": "Uebermittlungsuebersicht",
   "Shared overview of successful form submissions and CV requests.": "Gemeinsame Uebersicht erfolgreicher Formularuebermittlungen und CV-Anfragen.",
   "View submission summary": "Uebermittlungsuebersicht anzeigen",
+  "Private unless you choose Public for a feedback review.": "Privat, sofern Sie fuer eine Feedback-Bewertung nicht Oeffentlich waehlen.",
+  "Public reviews can show your name, country, rating, and comment.": "Oeffentliche Bewertungen koennen Ihren Namen, Ihr Land, Ihre Bewertung und Ihren Kommentar anzeigen.",
+  "Shared review and submission sections appear after successful submission.": "Gemeinsame Bereiche fuer Bewertungen und Uebermittlungen erscheinen nach erfolgreicher Uebermittlung.",
   "Recorded submissions": "Erfasste Uebermittlungen",
   "Total successful submissions": "Erfolgreiche Uebermittlungen gesamt",
   "Country distribution": "Laenderverteilung",
@@ -1318,6 +2190,26 @@ Object.assign(LANGUAGE_TEXT.de, {
   "No submissions available.": "Keine Uebermittlungen verfuegbar.",
   "Delete": "Loeschen",
   "Entry deleted.": "Eintrag geloescht.",
+  "Public reviews": "Oeffentliche Bewertungen",
+  "Public review comments": "Oeffentliche Bewertungskommentare",
+  "Professional reviews published by visitors who chose to share them publicly.": "Professionelle Bewertungen von Besuchern, die ihre Rueckmeldung oeffentlich teilen wollten.",
+  "Professional feedback from visitors who explicitly chose to publish their review.": "Professionelles Feedback von Besuchern, die ihre Bewertung ausdruecklich zur Veroeffentlichung freigegeben haben.",
+  "Published comments from visitors.": "Veroeffentlichte Kommentare von Besuchern.",
+  "Expand public reviews": "Oeffentliche Bewertungen erweitern",
+  "View public reviews": "Oeffentliche Bewertungen ansehen",
+  "Review list": "Bewertungsliste",
+  "Click to expand or collapse": "Zum Oeffnen oder Schliessen klicken",
+  "View public review comments": "Oeffentliche Bewertungskommentare ansehen",
+  "Expand to read published feedback": "Zum Lesen veroeffentlichter Rueckmeldungen erweitern",
+  "Simple process": "Einfacher Ablauf",
+  "Three quick steps to complete the form.": "Drei kurze Schritte zum Ausfuellen des Formulars.",
+  "Choose form": "Formular waehlen",
+  "Feedback or contact.": "Feedback oder Kontakt.",
+  "Fill details": "Angaben ausfuellen",
+  "Add the required information.": "Erforderliche Angaben eintragen.",
+  "Submit": "Absenden",
+  "Send it through the website.": "Ueber die Website absenden.",
+  "Country not shared": "Land nicht angegeben",
   "Feedback": "Feedback",
   "Contact request": "Kontaktanfrage",
   "Privacy and handling": "Datenschutz und Umgang",
@@ -1470,6 +2362,24 @@ function translateDocument(lang) {
     element.setAttribute("aria-label", translated);
   });
 
+  document.querySelectorAll("[placeholder]").forEach((element) => {
+    if (!element.dataset.originalPlaceholder) {
+      element.dataset.originalPlaceholder = element.getAttribute("placeholder") || "";
+    }
+    const original = element.dataset.originalPlaceholder;
+    const translated = lang === "de" && dictionary[original] ? dictionary[original] : original;
+    element.setAttribute("placeholder", translated);
+  });
+
+  document.querySelectorAll("[data-country-placeholder]").forEach((element) => {
+    if (!element.dataset.originalCountryPlaceholder) {
+      element.dataset.originalCountryPlaceholder = element.getAttribute("data-country-placeholder") || "";
+    }
+    const original = element.dataset.originalCountryPlaceholder;
+    const translated = lang === "de" && dictionary[original] ? dictionary[original] : original;
+    element.setAttribute("data-country-placeholder", translated);
+  });
+
   document.querySelectorAll("[data-request-cv-link]").forEach((link) => {
     link.setAttribute("href", REQUEST_CV_LINKS[lang]);
   });
@@ -1533,15 +2443,118 @@ function applyTheme(theme) {
 function setupThemeToggle() {
   const toggles = document.querySelectorAll("[data-theme-toggle]");
   if (!toggles.length) return;
+  const lang = document.documentElement.lang === "de" ? "de" : "en";
+  const copy = lang === "de"
+    ? {
+        darkMode: "Dunkelmodus",
+        switchToLight: "Zum Hellmodus wechseln",
+        switchToDark: "Zum Dunkelmodus wechseln"
+      }
+    : {
+        darkMode: "Dark mode",
+        switchToLight: "Switch to light mode",
+        switchToDark: "Switch to dark mode"
+      };
+
+  const syncToggleState = (toggle) => {
+    const current = document.documentElement.getAttribute("data-theme") || "dark";
+    const isDark = current === "dark";
+    toggle.dataset.themeState = current;
+    toggle.setAttribute("aria-label", isDark ? copy.switchToLight : copy.switchToDark);
+    toggle.setAttribute("title", isDark ? copy.switchToLight : copy.switchToDark);
+  };
 
   toggles.forEach((toggle) => {
+    if (!toggle.querySelector(".theme-toggle-track")) {
+      toggle.innerHTML = `
+        <span class="theme-toggle-track" aria-hidden="true">
+          <span class="theme-toggle-switch-label">${copy.darkMode}</span>
+          <span class="theme-toggle-switch-control">
+            <span class="theme-toggle-switch-state theme-toggle-switch-state-off">
+              <span class="theme-toggle-switch-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="4"></circle>
+                  <path d="M12 2.8v2.2"></path>
+                  <path d="M12 19v2.2"></path>
+                  <path d="m4.93 4.93 1.56 1.56"></path>
+                  <path d="m17.51 17.51 1.56 1.56"></path>
+                  <path d="M2.8 12H5"></path>
+                  <path d="M19 12h2.2"></path>
+                  <path d="m4.93 19.07 1.56-1.56"></path>
+                  <path d="m17.51 6.49 1.56-1.56"></path>
+                </svg>
+              </span>
+            </span>
+            <span class="theme-toggle-switch-state theme-toggle-switch-state-on">
+              <span class="theme-toggle-switch-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 12.4A8.9 8.9 0 1 1 11.6 3a7 7 0 0 0 9.4 9.4z"></path>
+                </svg>
+              </span>
+            </span>
+            <span class="theme-toggle-switch-thumb">
+              <span class="theme-toggle-switch-thumb-core"></span>
+            </span>
+          </span>
+        </span>
+      `;
+    }
+
+    syncToggleState(toggle);
     toggle.addEventListener("click", () => {
       const current = document.documentElement.getAttribute("data-theme") || "dark";
       const next = current === "dark" ? "light" : "dark";
       applyTheme(next);
       localStorage.setItem(STORAGE_THEME_KEY, next);
+      toggles.forEach((item) => syncToggleState(item));
     });
   });
+}
+
+function setupFooterDeclaration() {
+  const footerInner = document.querySelector(".footer-inner");
+  if (!footerInner || footerInner.querySelector("[data-footer-declaration]")) return;
+
+  const lang = document.documentElement.lang === "de" ? "de" : "en";
+  const copy = lang === "de"
+    ? {
+        button: "Entwicklungsnotiz",
+        title: "Entwicklungsnotiz",
+        body: "Diese Portfolio-Website wurde mit Unterstuetzung generativer KI-Werkzeuge fuer einzelne Bildideen, Iterationen und Skriptentwicklung weiterentwickelt. Konzeption, Auswahl, fachliche Pruefung, Anpassung und finale Integration wurden von Sooraj Sudhakaran uebernommen."
+      }
+    : {
+        button: "Development note",
+        title: "Development note",
+        body: "This portfolio website was developed with assistance from generative AI tools for selected image ideas, iteration support, and script development. Concept direction, selection, technical review, adaptation, and final integration were completed by Sooraj Sudhakaran."
+      };
+
+  const copyright = footerInner.querySelector("p");
+  let meta = footerInner.querySelector(".footer-meta");
+  if (!meta) {
+    meta = document.createElement("div");
+    meta.className = "footer-meta";
+    if (copyright) {
+      footerInner.insertBefore(meta, copyright);
+      meta.appendChild(copyright);
+    } else {
+      footerInner.insertBefore(meta, footerInner.firstChild);
+    }
+  }
+
+  const disclosure = document.createElement("div");
+  disclosure.className = "footer-declaration";
+  disclosure.dataset.footerDeclaration = "true";
+  disclosure.innerHTML = `
+    <button type="button" class="footer-declaration-trigger" aria-label="${copy.button}">
+      <span class="footer-declaration-icon" aria-hidden="true">i</span>
+      <span class="footer-declaration-label">${copy.button}</span>
+    </button>
+    <div class="footer-declaration-panel">
+      <strong>${copy.title}</strong>
+      <p>${copy.body}</p>
+    </div>
+  `;
+  meta.appendChild(disclosure);
 }
 
 function setupMobileNav() {
@@ -1834,6 +2847,7 @@ function setupDetailOriginTracking() {
 function setupSmartDetailBack() {
   if (!document.body.classList.contains("detail-page")) return;
   if (document.body.classList.contains("feedback-page")) return;
+  if (document.body.classList.contains("portfolio-map-page")) return;
 
   const detailPageName = getCurrentPageName();
   const isProjectDetail = /^project-/.test(detailPageName);
@@ -1918,23 +2932,48 @@ function setupStoredReturnPosition() {
 }
 
 function resolveMotionProfile() {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    return "static";
+  }
+
+  const width = window.innerWidth || document.documentElement.clientWidth || 0;
+  const height = window.innerHeight || document.documentElement.clientHeight || 0;
+  const area = width * height;
+  const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
+  const dpr = window.devicePixelRatio || 1;
+  const deviceMemory = Number(window.navigator?.deviceMemory || 0);
+  const hardwareThreads = Number(window.navigator?.hardwareConcurrency || 0);
+
+  if (
+    coarsePointer ||
+    area <= 520000 ||
+    dpr >= 2.2 ||
+    (deviceMemory && deviceMemory <= 4) ||
+    (hardwareThreads && hardwareThreads <= 4)
+  ) {
+    return "lite";
+  }
+
   return "full";
 }
 
 class ParticleSystem {
   constructor(canvas) {
     this.canvas = canvas;
-    this.ctx = canvas.getContext("2d");
+    this.ctx = canvas.getContext("2d", { alpha: true, desynchronized: true }) || canvas.getContext("2d");
     this.pageMode = document.body.classList.contains("journey-page") ? "journey" : "portfolio";
     this.particles = [];
-    this.pointer = { x: null, y: null, radius: 240 };
-    this.motionProfile = resolveMotionProfile();
+    this.orbs = [];
+    this.pointer = { x: null, y: null, radius: 220 };
+    this.motionProfile = "full";
     this.isStatic = false;
     this.isReduced = false;
-    this.particleCount = this.getParticleCount();
-    this.connectionDistance = this.getConnectionDistance();
+    this.viewportWidth = window.innerWidth || 0;
+    this.viewportHeight = window.innerHeight || 0;
+    this.dpr = 1;
+    this.particleCount = 0;
+    this.connectionDistance = 0;
     this.animationFrame = null;
-    this.orbs = [];
     this.resizeTimer = null;
     this.resizeUiTimer = null;
     this.targetFrameMs = 1000 / 36;
@@ -1942,10 +2981,11 @@ class ParticleSystem {
 
     if (!this.ctx) return;
 
+    this.applyMotionProfile();
     this.resize();
     this.seed();
     this.attachEvents();
-    this.animate();
+    this.start();
   }
 
   attachEvents() {
@@ -1957,68 +2997,159 @@ class ParticleSystem {
         document.body.classList.remove("is-resizing");
       }, 260);
       this.resizeTimer = window.setTimeout(() => {
-        this.motionProfile = resolveMotionProfile();
-        this.isStatic = false;
-        this.isReduced = false;
-        this.particleCount = this.getParticleCount();
-        this.connectionDistance = this.getConnectionDistance();
+        this.applyMotionProfile();
         this.resize();
         this.seed();
-        if (!this.animationFrame) {
-          this.animate();
-        }
+        this.start();
       }, 160);
     });
 
-    window.addEventListener("mousemove", (event) => {
+    window.addEventListener("pointermove", (event) => {
       this.pointer.x = event.clientX;
       this.pointer.y = event.clientY;
-    });
+    }, { passive: true });
 
-    window.addEventListener("mouseout", () => {
+    window.addEventListener("pointerdown", (event) => {
+      this.pointer.x = event.clientX;
+      this.pointer.y = event.clientY;
+    }, { passive: true });
+
+    window.addEventListener("pointerup", () => {
       this.pointer.x = null;
       this.pointer.y = null;
+    }, { passive: true });
+
+    window.addEventListener("pointercancel", () => {
+      this.pointer.x = null;
+      this.pointer.y = null;
+    }, { passive: true });
+
+    window.addEventListener("pointerout", (event) => {
+      if (event.relatedTarget) return;
+      this.pointer.x = null;
+      this.pointer.y = null;
+    }, { passive: true });
+
+    window.addEventListener("blur", () => {
+      this.pointer.x = null;
+      this.pointer.y = null;
+    });
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        this.stop();
+        return;
+      }
+
+      this.lastFrameTime = 0;
+      this.start();
     });
   }
 
   resize() {
-    this.canvas.width = window.innerWidth;
-    this.canvas.height = window.innerHeight;
+    this.viewportWidth = window.innerWidth || 0;
+    this.viewportHeight = window.innerHeight || 0;
+    this.dpr = Math.min(window.devicePixelRatio || 1, this.getMaxPixelRatio());
+    this.canvas.width = Math.round(this.viewportWidth * this.dpr);
+    this.canvas.height = Math.round(this.viewportHeight * this.dpr);
+    this.canvas.style.width = `${this.viewportWidth}px`;
+    this.canvas.style.height = `${this.viewportHeight}px`;
+    this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+  }
+
+  applyMotionProfile() {
+    this.motionProfile = resolveMotionProfile();
+    this.isStatic = this.motionProfile === "static";
+    this.isReduced = this.motionProfile !== "full";
+    this.particleCount = this.getParticleCount();
+    this.connectionDistance = this.getConnectionDistance();
+    this.pointer.radius = this.getPointerRadius();
+    this.targetFrameMs = this.motionProfile === "full"
+      ? 1000 / 40
+      : this.motionProfile === "lite"
+        ? 1000 / 28
+        : 1000 / 10;
+  }
+
+  getMaxPixelRatio() {
+    if (this.motionProfile === "full") {
+      return this.pageMode === "journey" ? 1.5 : 1.8;
+    }
+
+    return this.pageMode === "journey" ? 1.2 : 1.35;
   }
 
   getParticleCount() {
+    const areaFactor = Math.min(
+      Math.max(((this.viewportWidth || window.innerWidth) * (this.viewportHeight || window.innerHeight)) / 900000, 0.78),
+      1.45
+    );
+
     if (this.pageMode === "journey") {
-      return window.innerWidth < 768 ? 28 : 72;
+      const base = this.motionProfile === "full"
+        ? 56
+        : this.motionProfile === "lite"
+          ? 32
+          : 20;
+      return Math.round(base * areaFactor);
     }
-    return window.innerWidth < 768 ? 36 : 96;
+
+    const base = this.motionProfile === "full"
+      ? 78
+      : this.motionProfile === "lite"
+        ? 44
+        : 28;
+    return Math.round(base * areaFactor);
   }
 
   getConnectionDistance() {
     if (this.pageMode === "journey") {
-      return window.innerWidth < 768 ? 98 : 142;
+      return this.motionProfile === "full" ? 134 : 94;
     }
-    return window.innerWidth < 768 ? 122 : 170;
+    return this.motionProfile === "full" ? 158 : 118;
+  }
+
+  getParticleSpeed() {
+    if (this.pageMode === "journey") {
+      return this.motionProfile === "full" ? 0.2 : 0.12;
+    }
+
+    return this.motionProfile === "full" ? 0.34 : 0.2;
+  }
+
+  getOrbCount() {
+    return this.motionProfile === "full" ? 4 : this.motionProfile === "lite" ? 3 : 2;
+  }
+
+  getPointerRadius() {
+    if (this.motionProfile === "full") {
+      return this.pageMode === "journey" ? 190 : 230;
+    }
+
+    return this.motionProfile === "static" ? 0 : this.pageMode === "journey" ? 130 : 160;
   }
 
   seed() {
+    const speed = this.getParticleSpeed();
     this.particles = Array.from({ length: this.particleCount }, () => ({
-      x: Math.random() * this.canvas.width,
-      y: Math.random() * this.canvas.height,
+      x: Math.random() * this.viewportWidth,
+      y: Math.random() * this.viewportHeight,
       r: this.pageMode === "journey" ? (Math.random() > 0.82 ? 2.4 : 1.25) : (Math.random() > 0.8 ? 2.9 : 1.6),
-      vx: (Math.random() - 0.5) * (this.pageMode === "journey" ? 0.22 : 0.42),
-      vy: (Math.random() - 0.5) * (this.pageMode === "journey" ? 0.22 : 0.42),
-      pulse: Math.random() * Math.PI * 2,
+      vx: (Math.random() - 0.5) * speed,
+      vy: (Math.random() - 0.5) * speed,
+      pulse: Math.random() * Math.PI * 2
     }));
-    this.orbs = Array.from({ length: 4 }, (_, index) => ({
-      x: (this.canvas.width / 5) * (index + 1),
-      y: Math.random() * this.canvas.height,
+
+    this.orbs = Array.from({ length: this.getOrbCount() }, (_, index) => ({
+      x: (this.viewportWidth / (this.getOrbCount() + 1)) * (index + 1),
+      y: Math.random() * this.viewportHeight,
       r: this.pageMode === "journey"
-        ? (window.innerWidth < 768 ? 95 + index * 8 : 135 + index * 14)
-        : (window.innerWidth < 768 ? 120 + index * 10 : 180 + index * 20),
+        ? (this.motionProfile === "full" ? 132 + index * 12 : 92 + index * 8)
+        : (this.motionProfile === "full" ? 164 + index * 18 : 112 + index * 10),
       drift: this.pageMode === "journey"
-        ? (0.06 + index * 0.022)
-        : (0.11 + index * 0.032),
-      phase: Math.random() * Math.PI * 2,
+        ? (this.motionProfile === "full" ? 0.065 + index * 0.018 : 0.048 + index * 0.014)
+        : (this.motionProfile === "full" ? 0.1 + index * 0.028 : 0.075 + index * 0.018),
+      phase: Math.random() * Math.PI * 2
     }));
   }
 
@@ -2058,7 +3189,7 @@ class ParticleSystem {
 
   drawFrame() {
     const { base, accent, glow, accentGlow, point, trail, connection, pointer } = this.colors();
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.ctx.clearRect(0, 0, this.viewportWidth, this.viewportHeight);
     this.drawAtmosphere();
 
     this.particles.forEach((particle, index) => {
@@ -2066,8 +3197,8 @@ class ParticleSystem {
       particle.y += particle.vy;
       particle.pulse += 0.032;
 
-      if (particle.x < 0 || particle.x > this.canvas.width) particle.vx *= -1;
-      if (particle.y < 0 || particle.y > this.canvas.height) particle.vy *= -1;
+      if (particle.x < 0 || particle.x > this.viewportWidth) particle.vx *= -1;
+      if (particle.y < 0 || particle.y > this.viewportHeight) particle.vy *= -1;
 
       const glowRadius = particle.r * (index % 6 === 0 ? (this.pageMode === "journey" ? 4.2 : 5.8) : 2.6 + Math.sin(particle.pulse) * 0.8);
       this.ctx.beginPath();
@@ -2107,7 +3238,7 @@ class ParticleSystem {
       }
       }
 
-      if (this.pointer.x === null || this.pointer.y === null) return;
+      if (this.pointer.x === null || this.pointer.y === null || this.pointer.radius <= 0) return;
       const pdx = particle.x - this.pointer.x;
       const pdy = particle.y - this.pointer.y;
       const pointerDistance = Math.hypot(pdx, pdy);
@@ -2124,12 +3255,32 @@ class ParticleSystem {
   }
 
   animate() {
+    if (this.isStatic) {
+      this.drawFrame();
+      this.animationFrame = null;
+      return;
+    }
+
     const now = performance.now();
     if (!this.lastFrameTime || now - this.lastFrameTime >= this.targetFrameMs) {
       this.drawFrame();
       this.lastFrameTime = now;
     }
     this.animationFrame = window.requestAnimationFrame(() => this.animate());
+  }
+
+  start() {
+    if (!this.ctx) return;
+    if (this.animationFrame) return;
+    this.lastFrameTime = 0;
+    this.animate();
+  }
+
+  stop() {
+    if (this.animationFrame) {
+      window.cancelAnimationFrame(this.animationFrame);
+      this.animationFrame = null;
+    }
   }
 
   drawAtmosphere() {
@@ -2154,30 +3305,30 @@ class ParticleSystem {
   }
 
   drawJourneyBands(base, accent, bandBase, bandAccent) {
-    const bandA = this.ctx.createLinearGradient(0, this.canvas.height * 0.28, this.canvas.width, this.canvas.height * 0.42);
+    const bandA = this.ctx.createLinearGradient(0, this.viewportHeight * 0.28, this.viewportWidth, this.viewportHeight * 0.42);
     bandA.addColorStop(0, `${base}0)`);
     bandA.addColorStop(0.35, `${base}${bandBase})`);
     bandA.addColorStop(0.65, `${accent}${bandAccent})`);
     bandA.addColorStop(1, `${accent}0)`);
     this.ctx.fillStyle = bandA;
     this.ctx.beginPath();
-    this.ctx.moveTo(0, this.canvas.height * 0.25);
+    this.ctx.moveTo(0, this.viewportHeight * 0.25);
     this.ctx.bezierCurveTo(
-      this.canvas.width * 0.2,
-      this.canvas.height * 0.18,
-      this.canvas.width * 0.48,
-      this.canvas.height * 0.38,
-      this.canvas.width,
-      this.canvas.height * 0.24
+      this.viewportWidth * 0.2,
+      this.viewportHeight * 0.18,
+      this.viewportWidth * 0.48,
+      this.viewportHeight * 0.38,
+      this.viewportWidth,
+      this.viewportHeight * 0.24
     );
-    this.ctx.lineTo(this.canvas.width, this.canvas.height * 0.4);
+    this.ctx.lineTo(this.viewportWidth, this.viewportHeight * 0.4);
     this.ctx.bezierCurveTo(
-      this.canvas.width * 0.68,
-      this.canvas.height * 0.52,
-      this.canvas.width * 0.34,
-      this.canvas.height * 0.3,
+      this.viewportWidth * 0.68,
+      this.viewportHeight * 0.52,
+      this.viewportWidth * 0.34,
+      this.viewportHeight * 0.3,
       0,
-      this.canvas.height * 0.42
+      this.viewportHeight * 0.42
     );
     this.ctx.closePath();
     this.ctx.fill();
@@ -2513,6 +3664,140 @@ function getAdminModeState() {
   return adminSessionActive;
 }
 
+function setupAdminWorkspace() {
+  const existing = document.querySelector("[data-admin-workspace]");
+  if (!getAdminModeState()) {
+    existing?.remove();
+    return;
+  }
+
+  const lang = resolveInitialLanguage();
+  const copy = lang === "de"
+    ? {
+        badge: "Adminmodus aktiv",
+        scope: "Private Browser-Sitzung",
+        title: "Verwaltungstools sind fuer diese Ansicht aktiv.",
+        lead: "Sie koennen oeffentliche Bewertungen moderieren, die Update-Zeit steuern und private Uebermittlungsdaten dort einsehen, wo sie verfuegbar sind.",
+        activeTools: "Auf dieser Seite aktiv",
+        updateTool: "Geteilte Update-Zeit aktualisieren",
+        reviewsTool: "Oeffentliche Bewertungen beantworten oder loeschen",
+        submissionsTool: "Private Uebermittlungsuebersicht einsehen",
+        refreshAction: "Update-Zeit aktualisieren",
+        reviewsAction: "Zu Bewertungen",
+        summaryAction: "Zur Uebersicht"
+      }
+    : {
+        badge: "Admin mode active",
+        scope: "Private browser session",
+        title: "Management tools are active for this view.",
+        lead: "You can moderate public reviews, control the shared update time, and inspect private submission data where it is available.",
+        activeTools: "Active on this page",
+        updateTool: "Refresh the shared update timestamp",
+        reviewsTool: "Reply to or remove public reviews",
+        submissionsTool: "Inspect the private submission summary",
+        refreshAction: "Refresh update time",
+        reviewsAction: "Go to reviews",
+        summaryAction: "Open summary"
+      };
+
+  const refreshButton = document.querySelector(".top-update-admin-btn");
+  const reviewPanel = document.getElementById("homepage-public-reviews")
+    || document.querySelector("[data-feedback-thankyou-review-panel]");
+  const reviewSection = document.querySelector("[data-public-review-section]")
+    || document.getElementById("reviews")
+    || reviewPanel
+    || document.querySelector("[data-public-review-list]");
+  const summaryPanel = document.querySelector("[data-feedback-thankyou-summary-panel]");
+  const submissionLog = document.querySelector("[data-feedback-stats-log]");
+
+  const toolLabels = [];
+  const actions = [];
+
+  if (refreshButton) {
+    toolLabels.push(copy.updateTool);
+    actions.push({ type: "refresh", label: copy.refreshAction });
+  }
+  if (reviewSection) {
+    toolLabels.push(copy.reviewsTool);
+    actions.push({ type: "reviews", label: copy.reviewsAction });
+  }
+  if (summaryPanel || submissionLog) {
+    toolLabels.push(copy.submissionsTool);
+    actions.push({ type: "summary", label: copy.summaryAction });
+  }
+
+  if (!toolLabels.length) {
+    existing?.remove();
+    return;
+  }
+
+  const panel = existing || document.createElement("section");
+  panel.className = "admin-workspace";
+  panel.dataset.adminWorkspace = "true";
+  panel.innerHTML = `
+    <div class="container admin-workspace-inner">
+      <div class="admin-workspace-copy">
+        <div class="admin-workspace-head">
+          <span class="admin-workspace-badge">${copy.badge}</span>
+          <span class="admin-workspace-scope">${copy.scope}</span>
+        </div>
+        <h2>${copy.title}</h2>
+        <p>${copy.lead}</p>
+        <div class="admin-workspace-tools">
+          <span class="admin-workspace-tools-label">${copy.activeTools}</span>
+          <div class="admin-workspace-tool-list">
+            ${toolLabels.map((label) => `<span class="admin-workspace-tool">${label}</span>`).join("")}
+          </div>
+        </div>
+      </div>
+      <div class="admin-workspace-actions">
+        ${actions.map((action) => `<button class="btn btn-secondary btn-small" type="button" data-admin-workspace-action="${action.type}">${action.label}</button>`).join("")}
+      </div>
+    </div>
+  `;
+
+  const anchor = document.querySelector(".top-update-bar");
+  const main = document.querySelector("main");
+  if (anchor) {
+    anchor.insertAdjacentElement("afterend", panel);
+  } else if (main) {
+    main.insertAdjacentElement("afterbegin", panel);
+  } else {
+    return;
+  }
+
+  panel.querySelectorAll("[data-admin-workspace-action]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const action = button.getAttribute("data-admin-workspace-action");
+
+      if (action === "refresh" && refreshButton instanceof HTMLButtonElement) {
+        refreshButton.click();
+        return;
+      }
+
+      if (action === "reviews" && reviewSection instanceof HTMLElement) {
+        if (reviewPanel instanceof HTMLDetailsElement) {
+          reviewPanel.open = true;
+        }
+        reviewSection.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+
+      if (action === "summary") {
+        if (summaryPanel instanceof HTMLDetailsElement) {
+          summaryPanel.open = true;
+          summaryPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+          return;
+        }
+
+        if (submissionLog instanceof HTMLElement) {
+          submissionLog.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }
+    });
+  });
+}
+
 function setupAdminModeControl() {
   const navActions = document.querySelector(".nav-actions");
   if (!navActions || navActions.querySelector("[data-admin-mode-switch]")) return;
@@ -2521,8 +3806,9 @@ function setupAdminModeControl() {
   const copy = lang === "de"
     ? {
         groupLabel: "Seitenmodus",
-        userMode: "Nutzermodus",
-        adminMode: "Adminmodus",
+        adminMode: "Admin",
+        on: "Ein",
+        off: "Aus",
         modalTitle: "Adminmodus aktivieren",
         modalBody: "Melden Sie sich mit dem gesicherten Admin-Konto an, um die privaten Verwaltungsfunktionen in diesem Browser zu aktivieren.",
         passwordLabel: "Passwort",
@@ -2535,8 +3821,9 @@ function setupAdminModeControl() {
       }
     : {
         groupLabel: "Site mode",
-        userMode: "User mode",
-        adminMode: "Admin mode",
+        adminMode: "Admin",
+        on: "On",
+        off: "Off",
         modalTitle: "Enable admin mode",
         modalBody: "Sign in with the secured admin account to enable the private management controls in this browser.",
         passwordLabel: "Password",
@@ -2554,29 +3841,36 @@ function setupAdminModeControl() {
   switcher.dataset.adminModeSwitch = "true";
   switcher.setAttribute("role", "group");
   switcher.setAttribute("aria-label", copy.groupLabel);
-
-  const userButton = document.createElement("button");
-  userButton.type = "button";
-  userButton.className = "admin-mode-option";
-  userButton.dataset.mode = "user";
-  userButton.textContent = copy.userMode;
-  userButton.setAttribute("aria-pressed", String(!isAdminMode));
-
-  const adminButton = document.createElement("button");
-  adminButton.type = "button";
-  adminButton.className = "admin-mode-option";
-  adminButton.dataset.mode = "admin";
-  adminButton.textContent = copy.adminMode;
-  adminButton.setAttribute("aria-pressed", String(isAdminMode));
-
-  if (isAdminMode) {
-    adminButton.classList.add("is-active");
+  switcher.dataset.state = isAdminMode ? "on" : "off";
+  switcher.innerHTML = `
+    <span class="admin-mode-label">${copy.adminMode}</span>
+    <button
+      type="button"
+      class="admin-mode-toggle"
+      data-admin-mode-toggle
+      role="switch"
+      aria-checked="${String(isAdminMode)}"
+      aria-label="${copy.adminMode}: ${isAdminMode ? copy.on : copy.off}"
+    >
+      <span class="admin-mode-toggle-track">
+        <span class="admin-mode-toggle-state admin-mode-toggle-state-off">${copy.off}</span>
+        <span class="admin-mode-toggle-state admin-mode-toggle-state-on">${copy.on}</span>
+        <span class="admin-mode-toggle-thumb" aria-hidden="true">
+          <span class="admin-mode-toggle-thumb-core"></span>
+        </span>
+      </span>
+    </button>
+  `;
+  const toggleButton = switcher.querySelector("[data-admin-mode-toggle]");
+  const portfolioSwitch = navActions.querySelector(".portfolio-view-switch");
+  const themeToggle = navActions.querySelector("[data-theme-toggle]");
+  if (portfolioSwitch) {
+    portfolioSwitch.insertAdjacentElement("afterend", switcher);
+  } else if (themeToggle) {
+    themeToggle.insertAdjacentElement("afterend", switcher);
   } else {
-    userButton.classList.add("is-active");
+    navActions.appendChild(switcher);
   }
-
-  switcher.append(userButton, adminButton);
-  navActions.insertBefore(switcher, navActions.firstChild);
 
   const modal = document.createElement("div");
   modal.className = "admin-auth-modal";
@@ -2623,21 +3917,29 @@ function setupAdminModeControl() {
     document.body.classList.remove("admin-modal-open");
   };
 
-  userButton.addEventListener("click", async () => {
-    if (!getAdminModeState()) return;
+  const updateToggleState = (active) => {
+    switcher.dataset.state = active ? "on" : "off";
+    document.documentElement.setAttribute("data-admin-mode", active ? "on" : "off");
+    toggleButton?.setAttribute("aria-checked", String(active));
+    toggleButton?.setAttribute("aria-label", `${copy.adminMode}: ${active ? copy.on : copy.off}`);
+  };
 
-    try {
-      const supabase = await getSupabaseClient();
-      await supabase.auth.signOut();
-    } catch (error) {
-      adminSessionActive = false;
+  updateToggleState(isAdminMode);
+
+  toggleButton?.addEventListener("click", async () => {
+    if (getAdminModeState()) {
+      try {
+        const supabase = await getSupabaseClient();
+        await supabase.auth.signOut();
+      } catch (error) {
+        adminSessionActive = false;
+      }
+
+      updateToggleState(false);
+      window.location.reload();
+      return;
     }
 
-    window.location.reload();
-  });
-
-  adminButton.addEventListener("click", () => {
-    if (getAdminModeState()) return;
     openModal();
   });
 
@@ -2917,12 +4219,23 @@ function setupFeedbackForm() {
 
   const isAdminMode = getAdminModeState();
   const formCard = document.querySelector("[data-feedback-form-card]");
+  const feedbackPage = document.querySelector("[data-feedback-page]");
   const formTitle = document.querySelector("[data-feedback-form-title]");
   const formContent = document.querySelector("[data-feedback-form-content]");
   const formNav = document.querySelector("[data-feedback-form-nav]");
   const submitButton = form.querySelector("[data-feedback-submit]");
   const messageTypeFields = Array.from(form.querySelectorAll('[name="messageType"]'));
+  const typeSection = form.querySelector(".feedback-type-section");
+  const continueButton = form.querySelector("[data-feedback-mode-continue]");
+  const changeModeLink = form.querySelector("[data-feedback-mode-change]");
+  const firstNameField = form.querySelector('[name="firstName"]');
+  const lastNameField = form.querySelector('[name="lastName"]');
   const companyField = form.querySelector('[name="company"]');
+  const firstNameLabel = document.querySelector("[data-feedback-first-name-label]");
+  const firstNameInput = document.querySelector("[data-feedback-first-name-input]");
+  const lastNameFieldWrapper = document.querySelector("[data-feedback-last-name-field]");
+  const companyLabel = document.querySelector("[data-feedback-company-label]");
+  const companyInput = document.querySelector("[data-feedback-company-input]");
   const responsePreferenceField = form.querySelector('[name="responsePreference"]');
   const referenceLinkField = form.querySelector('[name="referenceLink"]');
   const phoneField = form.querySelector('[name="phone"]');
@@ -2930,12 +4243,25 @@ function setupFeedbackForm() {
   const feedbackOnlySections = Array.from(form.querySelectorAll("[data-feedback-only]"));
   const feedbackNavLinks = Array.from(document.querySelectorAll("[data-feedback-nav-link='feedback']"));
   const conditionalStars = Array.from(form.querySelectorAll(".feedback-required-star-conditional"));
+  const detailsSection = form.querySelector('[aria-labelledby="feedback-details-heading"]');
   const formDescription = document.querySelector("[data-feedback-form-description]");
   const typeDescription = document.querySelector("[data-feedback-type-description]");
   const detailsDescription = document.querySelector("[data-feedback-details-description]");
   const noteTitle = document.querySelector("[data-feedback-note-title]");
   const noteCopy = document.querySelector("[data-feedback-note-copy]");
   const messageDescription = document.querySelector("[data-feedback-message-description]");
+  const heroEyebrow = document.querySelector("[data-feedback-hero-eyebrow]");
+  const heroTitle = document.querySelector("[data-feedback-hero-title]");
+  const heroLead = document.querySelector("[data-feedback-hero-lead]");
+  const heroPrimary = document.querySelector("[data-feedback-hero-primary]");
+  const postformGrid = document.querySelector("[data-feedback-postform-grid]");
+  const heroEntryButtons = Array.from(document.querySelectorAll("[data-feedback-entry-choice]"));
+  const reviewVisibilitySection = document.querySelector("[data-feedback-review-visibility-section]");
+  const reviewVisibilityPanel = document.querySelector("[data-feedback-review-visibility-panel]");
+  const reviewVisibilityDescription = document.querySelector("[data-feedback-review-visibility-description]");
+  const reviewVisibilityNoteTitle = document.querySelector("[data-feedback-review-visibility-note-title]");
+  const reviewVisibilityNoteBody = document.querySelector("[data-feedback-review-visibility-note-body]");
+  const reviewVisibilityFields = Array.from(form.querySelectorAll("[data-feedback-review-visibility-field]"));
   const commentsLabel = document.querySelector("[data-feedback-comments-label]");
   const commentsInput = document.querySelector("[data-feedback-comments-input]");
   const commentsHint = document.querySelector("[data-feedback-comments-hint]");
@@ -2952,12 +4278,58 @@ function setupFeedbackForm() {
   const flowFields = formContent
     ? Array.from(formContent.querySelectorAll("input, textarea, select"))
     : [];
+  const mobileFeedbackLayout = window.matchMedia("(max-width: 780px)");
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const requestedMode = (() => {
+    const type = new URLSearchParams(window.location.search).get("type");
+    return type === "feedback" || type === "contact" ? type : "";
+  })();
+  let feedbackEntryMode = requestedMode ? "direct" : "chooser";
 
   const getRequiredFields = () =>
     Array.from(form.querySelectorAll("[required]")).filter((field) => !field.disabled);
 
   const getSelectedMessageType = () =>
     messageTypeFields.find((field) => field.checked)?.value || "";
+
+  const getSelectedOptionLabel = (field) =>
+    field instanceof HTMLSelectElement
+      ? String(field.selectedOptions?.[0]?.textContent || "").trim()
+      : "";
+
+  const buildFeedbackModeUrl = (mode) => {
+    const url = new URL(window.location.pathname, window.location.href);
+    url.searchParams.set("type", mode);
+    url.hash = "feedback-form";
+    return url.toString();
+  };
+
+  let lastSelectedMessageType = getSelectedMessageType();
+
+  if (requestedMode) {
+    const requestedField = messageTypeFields.find((field) => field.value === requestedMode);
+    if (requestedField) {
+      requestedField.checked = true;
+      lastSelectedMessageType = requestedMode;
+    }
+  }
+
+  const revealActiveFormSection = () => {
+    if (!mobileFeedbackLayout.matches || !detailsSection || formContent?.hidden) return;
+
+    const targetTop = detailsSection.getBoundingClientRect().top + window.scrollY - getScrollOffset();
+    const targetViewportTop = detailsSection.getBoundingClientRect().top;
+    const targetAlreadyVisible =
+      targetViewportTop >= getScrollOffset() &&
+      targetViewportTop <= window.innerHeight * 0.45;
+
+    if (targetAlreadyVisible) return;
+
+    window.scrollTo({
+      top: Math.max(targetTop - 8, 0),
+      behavior: prefersReducedMotion.matches ? "auto" : "smooth"
+    });
+  };
 
   const renderFeedbackStats = (forceRefresh = false) => {
     return renderSubmissionSummary({
@@ -2968,8 +4340,11 @@ function setupFeedbackForm() {
     });
   };
 
-  const recordFeedbackStat = async (submission) => {
+  const recordFeedbackStat = async (submission, publicReview = null) => {
     await recordSharedSubmissionEvent(submission);
+    if (publicReview) {
+      await recordSharedPublicReview(publicReview);
+    }
     await renderFeedbackStats(true);
   };
 
@@ -3016,6 +4391,141 @@ function setupFeedbackForm() {
     formStatus.textContent = "";
     formStatus.hidden = true;
     delete formStatus.dataset.state;
+  };
+
+  const getCommentVisibilitySelection = () =>
+    reviewVisibilityFields.find((field) => field.checked)?.value || "";
+
+  const buildDerivedSubject = (message = "", fallback = "") => {
+    const normalizedMessage = String(message || "").replace(/\s+/g, " ").trim();
+    if (normalizedMessage) {
+      return normalizedMessage.length > 72
+        ? `${normalizedMessage.slice(0, 69).trimEnd()}...`
+        : normalizedMessage;
+    }
+    return String(fallback || "").trim();
+  };
+
+  const getReviewVisibilityNoteCopy = (selection = "", lang = resolveInitialLanguage()) => {
+    const copy = lang === "de"
+      ? {
+          defaultTitle: "Privat oder oeffentlich auswaehlen",
+          defaultBody: "Waehlen Sie eine Option, damit klar ist, ob Ihre Bewertung nur fuer Sooraj Sudhakaran sichtbar bleibt oder fuer alle Besucher oeffentlich erscheinen darf.",
+          privateTitle: "Private Bewertung",
+          privateBody: "Wenn Sie Privat waehlen, bleibt Ihr Kommentar nur fuer Sooraj Sudhakaran sichtbar und wird nicht in den oeffentlichen Bewertungen angezeigt.",
+          publicTitle: "Oeffentliche Bewertung",
+          publicBody: "Wenn Sie Oeffentlich waehlen, koennen Ihr Name, Ihr Land, Ihre Bewertung und Ihr Kommentar in den oeffentlichen Bewertungen fuer alle Besucher angezeigt werden."
+        }
+      : {
+          defaultTitle: "Select Private or Public",
+          defaultBody: "Choose one option to decide whether your review stays visible only to Sooraj Sudhakaran or can appear publicly for all visitors.",
+          privateTitle: "Private review",
+          privateBody: "If you choose Private, your comment stays visible only to Sooraj Sudhakaran and will not appear in public reviews.",
+          publicTitle: "Public review",
+          publicBody: "If you choose Public, your name, country, rating, and comment can appear in public reviews for all visitors to read."
+        };
+
+    if (selection === "private") {
+      return { title: copy.privateTitle, body: copy.privateBody };
+    }
+
+    if (selection === "public") {
+      return { title: copy.publicTitle, body: copy.publicBody };
+    }
+
+    return { title: copy.defaultTitle, body: copy.defaultBody };
+  };
+
+  const syncReviewVisibilityNote = () => {
+    const noteCopy = getReviewVisibilityNoteCopy(getCommentVisibilitySelection());
+    if (reviewVisibilityNoteTitle) {
+      reviewVisibilityNoteTitle.textContent = noteCopy.title;
+    }
+    if (reviewVisibilityNoteBody) {
+      reviewVisibilityNoteBody.textContent = noteCopy.body;
+    }
+  };
+
+  const shouldShowCommentVisibilitySection = () =>
+    feedbackEntryMode === "direct" && getSelectedMessageType() === "feedback";
+
+  const shouldRequireCommentVisibility = () =>
+    shouldShowCommentVisibilitySection();
+
+  const clearReviewVisibilityState = () => {
+    if (reviewVisibilityPanel) {
+      reviewVisibilityPanel.classList.remove("is-invalid");
+      reviewVisibilityPanel.classList.remove("invalid-bounce");
+    }
+
+    reviewVisibilityFields.forEach((field) => {
+      field.removeAttribute("aria-invalid");
+    });
+
+    const message = reviewVisibilityPanel?.querySelector(".feedback-validation-message");
+    if (message) {
+      message.textContent = "";
+      message.hidden = true;
+    }
+  };
+
+  const showReviewVisibilityState = () => {
+    if (!reviewVisibilityPanel) return;
+
+    reviewVisibilityPanel.classList.remove("invalid-bounce");
+    void reviewVisibilityPanel.offsetWidth;
+    reviewVisibilityPanel.classList.add("is-invalid");
+    reviewVisibilityPanel.classList.add("invalid-bounce");
+
+    reviewVisibilityFields.forEach((field) => {
+      field.setAttribute("aria-invalid", "true");
+    });
+
+    let message = reviewVisibilityPanel.querySelector(".feedback-validation-message");
+    if (!message) {
+      message = document.createElement("small");
+      message.className = "feedback-validation-message";
+      reviewVisibilityPanel.append(message);
+    }
+    message.textContent = resolveInitialLanguage() === "de"
+      ? "Waehlen Sie, ob Ihr Kommentar privat bleibt oder oeffentlich angezeigt werden darf."
+      : "Choose whether your comment stays private or is published on the website.";
+    message.hidden = false;
+  };
+
+  const syncReviewVisibilityState = (shouldHighlight = false) => {
+    const shouldShowSection = shouldShowCommentVisibilitySection();
+    const shouldRequire = shouldRequireCommentVisibility();
+
+    if (reviewVisibilitySection) {
+      reviewVisibilitySection.hidden = !shouldShowSection;
+    }
+
+    reviewVisibilityFields.forEach((field) => {
+      field.disabled = !shouldRequire;
+      if (!shouldRequire) {
+        field.checked = false;
+      }
+    });
+
+    if (!shouldShowSection) {
+      clearReviewVisibilityState();
+      return true;
+    }
+
+    if (!shouldRequire) {
+      clearReviewVisibilityState();
+      return true;
+    }
+
+    const hasSelection = Boolean(getCommentVisibilitySelection());
+    if (!hasSelection && shouldHighlight) {
+      showReviewVisibilityState();
+      return false;
+    }
+
+    clearReviewVisibilityState();
+    return hasSelection;
   };
 
   const getValidationTarget = (field) => {
@@ -3122,35 +4632,60 @@ function setupFeedbackForm() {
     const mode = getSelectedMessageType();
     const hasSelection = Boolean(mode);
     const isContactMode = mode === "contact";
+    const showFormFlow = feedbackEntryMode === "direct" && hasSelection;
     const lang = resolveInitialLanguage();
     const copy = lang === "de"
       ? {
           initialTitle: "Nachrichtentyp waehlen",
           feedbackTitle: "Feedback-Formular",
           contactTitle: "Kontaktformular",
-          initialDescription: "Waehlen Sie zum Fortfahren entweder das Feedback-Formular oder das Kontaktformular.",
-          feedbackDescription: "Verwenden Sie dieses Formular fuer professionelles Feedback, Korrekturen, Vorschlaege oder Website-Hinweise. Pflichtfelder sind mit einem roten Stern markiert.",
-          contactDescription: "Verwenden Sie dieses Formular fuer eine direkte Kontaktanfrage. Es werden nur die wesentlichen Angaben abgefragt.",
-          initialTypeDescription: "Waehlen Sie, ob Sie das Feedback-Formular oder das Kontaktformular oeffnen moechten.",
-          selectedTypeDescription: "Sie koennen diese Auswahl jederzeit vor dem Absenden aendern.",
-          feedbackDetailsDescription: "Geben Sie die Absenderdaten an, die in der Nachricht erscheinen sollen.",
-          contactDetailsDescription: "Geben Sie die wesentlichen Kontaktdaten fuer Ihre Anfrage an.",
+          initialDescription: "Waehlen Sie Feedback oder Kontakt, um zu starten.",
+          feedbackDescription: "Fuer Website-Feedback, Korrekturen und Bewertungen.",
+          contactDescription: "Fuer direkte professionelle Anfragen.",
+          initialTypeDescription: "Waehlen Sie das Formular, das Sie oeffnen moechten.",
+          selectedTypeDescription: "Sie koennen den Typ vor dem Absenden noch aendern.",
+          feedbackDetailsDescription: "Geben Sie Ihre Absenderdaten ein.",
+          contactDetailsDescription: "Geben Sie Ihren Namen, Ihre E-Mail-Adresse, Ihr Unternehmen und Ihr Land ein.",
           feedbackNoteTitle: "Feedback-Formular",
           contactNoteTitle: "Kontaktformular",
-          feedbackNoteCopy: "Dieses Formular uebermittelt Ihre Angaben direkt ueber die Website. Nichts wird oeffentlich veroeffentlicht.",
-          contactNoteCopy: "Dieses Kontaktformular uebermittelt Ihre Nachricht direkt ueber die Website.",
-          feedbackMessageDescription: "Formulieren Sie die Hauptnachricht klar. Nutzen Sie das Feld fuer Verbesserungsvorschlaege bei Empfehlungen oder naechsten Schritten.",
-          contactMessageDescription: "Formulieren Sie Ihre Nachricht klar und professionell.",
+          feedbackNoteCopy: "Direkte Uebermittlung ueber die Website. Oeffentlich nur bei Freigabe.",
+          contactNoteCopy: "Direkte private Uebermittlung ueber die Website.",
+          feedbackFirstNameLabel: "Vorname",
+          contactFirstNameLabel: 'Name <span class="feedback-required-star" aria-hidden="true">*</span>',
+          feedbackFirstNamePlaceholder: "Ihr Vorname",
+          contactFirstNamePlaceholder: "Ihr vollstaendiger Name",
+          feedbackCompanyLabel: "Unternehmen oder Organisation",
+          contactCompanyLabel: "Firmenname",
+          companyPlaceholder: "Firmenname",
+          feedbackMessageDescription: "Schreiben Sie Ihr Feedback klar und direkt.",
+          contactMessageDescription: "Schreiben Sie Ihre Nachricht klar und professionell.",
+          initialHeroEyebrow: "Passenden Weg waehlen",
+          feedbackHeroEyebrow: "Portfolio-Feedback",
+          contactHeroEyebrow: "Direkter Kontakt",
+          initialHeroTitle: "Feedback oder Kontakt klar auswaehlen.",
+          feedbackHeroTitle: "Website-Feedback klar senden.",
+          contactHeroTitle: "Direkte Kontaktanfrage senden.",
+          initialHeroLead: "Verwenden Sie das Feedback-Formular fuer Hinweise zur Website und das Kontaktformular fuer professionelle Anfragen. Beide Wege werden direkt ueber die Website uebermittelt.",
+          feedbackHeroLead: "Nutzen Sie dieses Formular fuer Website-Feedback, Korrekturen, Vorschlaege und oeffentliche oder private Bewertungen. Alles geht direkt an Sooraj Sudhakaran.",
+          contactHeroLead: "Nutzen Sie dieses Formular fuer Recruiter-Anfragen, Kooperationen und direkte professionelle Nachrichten. Diese Kontaktanfrage bleibt privat.",
+          initialHeroPrimary: "Formular unten waehlen",
+          feedbackHeroPrimary: "Zum Feedback-Formular",
+          contactHeroPrimary: "Zum Kontaktformular",
+          reviewVisibilityDescription: "Nachdem Sie einen Feedback-Kommentar geschrieben haben, waehlen Sie, ob er privat bleibt oder mit Ihrem Namen und Land oeffentlich angezeigt werden darf.",
           feedbackCommentsLabel: 'Kommentar <span class="feedback-required-star" aria-hidden="true">*</span>',
           contactCommentsLabel: 'Nachricht <span class="feedback-required-star" aria-hidden="true">*</span>',
           feedbackCommentsPlaceholder: "Beschreiben Sie Ihr Feedback oder Ihre Beobachtung.",
           contactCommentsPlaceholder: "Schreiben Sie Ihre Nachricht, Anfrage oder Ihren Kontaktgrund.",
           feedbackCommentsHint: "Nennen Sie das Thema, den Vorschlag oder den relevanten Kontext, den Sie teilen möchten.",
           contactCommentsHint: "Nennen Sie den Anlass Ihrer Kontaktaufnahme, relevanten Kontext und den gewuenschten naechsten Schritt.",
-          feedbackFooter: "Das Formular wird direkt ueber die Website uebermittelt und stellt Ihre Nachricht dem Website-Betreiber zu.",
-          contactFooter: "Das Kontaktformular wird direkt ueber die Website uebermittelt und stellt Ihre Anfrage dem Website-Betreiber zu.",
+          feedbackFooter: "Ihre Nachricht wird direkt ueber die Website uebermittelt.",
+          contactFooter: "Ihre Anfrage wird direkt ueber die Website uebermittelt.",
           feedbackSubmit: "Nachricht absenden",
           contactSubmit: "Formular absenden",
+          continueFeedback: "Weiter zum Feedback-Formular",
+          continueContact: "Weiter zum Kontaktformular",
+          continueDefault: "Zum Formular weiter",
+          changeType: "Anderes Formular waehlen",
           invalidSummary: "Bitte fuellen Sie die markierten Pflichtfelder korrekt aus.",
           submitting: "Wird gesendet...",
           submitError: "Die Uebermittlung ist fehlgeschlagen. Bitte pruefen Sie Ihre Verbindung und versuchen Sie es erneut."
@@ -3159,69 +4694,148 @@ function setupFeedbackForm() {
           initialTitle: "Choose message type",
           feedbackTitle: "Feedback form",
           contactTitle: "Contact form",
-          initialDescription: "Select either Feedback form or Contact form to continue.",
-          feedbackDescription: "Use this form for professional feedback, corrections, suggestions, or website observations. Required fields are marked with a red star.",
-          contactDescription: "Use this form to send a direct contact request. Only the essential business details are required.",
-          initialTypeDescription: "Choose whether you want to open the feedback form or the contact form.",
-          selectedTypeDescription: "You can change this selection at any time before submitting.",
-          feedbackDetailsDescription: "Provide the sender details that should appear in the message.",
-          contactDetailsDescription: "Provide the essential contact details for your business enquiry.",
+          initialDescription: "Select feedback or contact to start.",
+          feedbackDescription: "For website feedback, corrections, and reviews.",
+          contactDescription: "For direct professional enquiries.",
+          initialTypeDescription: "Choose the form you want to open.",
+          selectedTypeDescription: "You can change the form type before submitting.",
+          feedbackDetailsDescription: "Add your sender details.",
+          contactDetailsDescription: "Add your name, email, company, and country.",
           feedbackNoteTitle: "Feedback form",
           contactNoteTitle: "Contact form",
-          feedbackNoteCopy: "This form submits your details directly through the website. Nothing is published publicly.",
-          contactNoteCopy: "This contact form submits your message directly through the website.",
-          feedbackMessageDescription: "Write the main message clearly. Use suggested improvement for recommendations or next steps.",
+          feedbackNoteCopy: "Direct website submission. Public only if you allow it.",
+          contactNoteCopy: "Direct private submission through the website.",
+          feedbackFirstNameLabel: "First name",
+          contactFirstNameLabel: 'Name <span class="feedback-required-star" aria-hidden="true">*</span>',
+          feedbackFirstNamePlaceholder: "Your first name",
+          contactFirstNamePlaceholder: "Your full name",
+          feedbackCompanyLabel: "Company or organization",
+          contactCompanyLabel: "Company name",
+          companyPlaceholder: "Company name",
+          feedbackMessageDescription: "Write your feedback clearly.",
           contactMessageDescription: "Write your message clearly and professionally.",
+          initialHeroEyebrow: "Choose the right path",
+          feedbackHeroEyebrow: "Portfolio feedback",
+          contactHeroEyebrow: "Direct contact",
+          initialHeroTitle: "Choose feedback or contact clearly.",
+          feedbackHeroTitle: "Share website feedback clearly.",
+          contactHeroTitle: "Send a direct contact request.",
+          initialHeroLead: "Use the feedback form for website comments and suggestions, or choose the contact form for recruiter outreach and direct professional enquiries. Both are sent through the website.",
+          feedbackHeroLead: "Use this form for website feedback, corrections, suggestions, and private or public reviews. Your submission goes directly to Sooraj Sudhakaran.",
+          contactHeroLead: "Use this form for recruiter outreach, collaborations, and direct professional messages. This contact request stays private.",
+          initialHeroPrimary: "Choose a form below",
+          feedbackHeroPrimary: "Jump to feedback form",
+          contactHeroPrimary: "Jump to contact form",
+          reviewVisibilityDescription: "After writing a feedback comment, choose whether it stays private or can appear publicly with your name and country.",
           feedbackCommentsLabel: 'Comments <span class="feedback-required-star" aria-hidden="true">*</span>',
           contactCommentsLabel: 'Message <span class="feedback-required-star" aria-hidden="true">*</span>',
           feedbackCommentsPlaceholder: "Describe your feedback or observation.",
           contactCommentsPlaceholder: "Write your message, enquiry, or reason for contact.",
           feedbackCommentsHint: "Include the issue, suggestion, or context you want to share.",
           contactCommentsHint: "Include the reason for your contact, relevant context, and any next step you expect.",
-          feedbackFooter: "The form submits directly through the website and delivers your message to the site owner.",
-          contactFooter: "The contact form submits directly through the website and delivers your enquiry to the site owner.",
+          feedbackFooter: "Your message is submitted directly through the website.",
+          contactFooter: "Your enquiry is submitted directly through the website.",
           feedbackSubmit: "Submit Message",
           contactSubmit: "Submit Form",
+          continueFeedback: "Continue to feedback details",
+          continueContact: "Continue to contact details",
+          continueDefault: "Continue to details",
+          changeType: "Choose another form",
           invalidSummary: "Please complete the highlighted required fields correctly.",
           submitting: "Submitting...",
           submitError: "Submission failed. Please check your connection and try again."
         };
 
     form.dataset.mode = mode || "unselected";
+    form.dataset.entryMode = feedbackEntryMode;
+    if (feedbackPage) {
+      feedbackPage.dataset.mode = mode || "unselected";
+      feedbackPage.dataset.entryMode = feedbackEntryMode;
+    }
     if (formCard) {
       formCard.dataset.mode = mode || "unselected";
+      formCard.dataset.entryMode = feedbackEntryMode;
+      formCard.hidden = !showFormFlow;
     }
 
+    if (postformGrid) {
+      postformGrid.hidden = !showFormFlow;
+    }
+
+    heroEntryButtons.forEach((button) => {
+      const isActiveChoice = showFormFlow && button.getAttribute("data-feedback-entry-choice") === mode;
+      button.classList.toggle("is-active", isActiveChoice);
+      button.setAttribute("aria-current", isActiveChoice ? "page" : "false");
+    });
+
     if (formContent) {
-      formContent.hidden = !hasSelection;
+      formContent.hidden = !showFormFlow;
     }
 
     flowFields.forEach((field) => {
-      field.disabled = !hasSelection;
+      field.disabled = !showFormFlow;
     });
 
     feedbackOnlySections.forEach((element) => {
-      element.hidden = !hasSelection || isContactMode;
+      element.hidden = !showFormFlow || isContactMode;
       element.querySelectorAll("input, textarea, select").forEach((field) => {
-        field.disabled = !hasSelection || isContactMode;
+        field.disabled = !showFormFlow || isContactMode;
       });
     });
 
     feedbackNavLinks.forEach((link) => {
-      link.hidden = !hasSelection || isContactMode;
+      link.hidden = !showFormFlow || isContactMode;
     });
 
     if (formNav) {
-      formNav.hidden = !hasSelection || isContactMode;
+      formNav.hidden = !showFormFlow || isContactMode;
+    }
+
+    if (typeSection) {
+      typeSection.hidden = showFormFlow;
+    }
+
+    if (continueButton) {
+      continueButton.disabled = !hasSelection;
+      continueButton.textContent = !hasSelection
+        ? copy.continueDefault
+        : isContactMode
+          ? copy.continueContact
+          : copy.continueFeedback;
+    }
+
+    if (changeModeLink) {
+      changeModeLink.hidden = !showFormFlow;
+      changeModeLink.textContent = copy.changeType;
+    }
+
+    if (firstNameField) {
+      firstNameField.required = showFormFlow && isContactMode;
+      if (!showFormFlow || !isContactMode) {
+        clearInvalidState(firstNameField);
+      }
+    }
+
+    if (lastNameFieldWrapper) {
+      lastNameFieldWrapper.hidden = !showFormFlow || isContactMode;
+    }
+
+    if (lastNameField) {
+      lastNameField.disabled = !showFormFlow || isContactMode;
+      lastNameField.required = showFormFlow && !isContactMode;
+      if (!showFormFlow || isContactMode) {
+        lastNameField.value = "";
+        clearInvalidState(lastNameField);
+      }
     }
 
     if (companyField) {
-      companyField.required = hasSelection && isContactMode;
+      companyField.required = false;
     }
 
     const responsePreference = String(responsePreferenceField?.value || "");
-    const needsCallNumber = hasSelection && !isContactMode && responsePreference === "Schedule a call";
-    const needsLinkedProfile = hasSelection && !isContactMode && responsePreference === "LinkedIn response";
+    const needsCallNumber = showFormFlow && !isContactMode && responsePreference === "call-response";
+    const needsLinkedProfile = showFormFlow && !isContactMode && responsePreference === "linkedin-response";
 
     if (phoneFieldWrapper) {
       phoneFieldWrapper.hidden = !needsCallNumber;
@@ -3245,7 +4859,7 @@ function setupFeedbackForm() {
 
     conditionalStars.forEach((star) => {
       const requirement = star.getAttribute("data-feedback-required-for");
-      const shouldShow = hasSelection && (
+      const shouldShow = showFormFlow && (
         (requirement === "contact" && isContactMode) ||
         (requirement === "linkedin-response" && needsLinkedProfile) ||
         (requirement === "call-response" && needsCallNumber)
@@ -3269,12 +4883,65 @@ function setupFeedbackForm() {
           : copy.feedbackDescription;
     }
 
+    if (heroEyebrow) {
+      heroEyebrow.textContent = !hasSelection
+        ? copy.initialHeroEyebrow
+        : isContactMode
+          ? copy.contactHeroEyebrow
+          : copy.feedbackHeroEyebrow;
+    }
+
+    if (heroTitle) {
+      heroTitle.textContent = !hasSelection
+        ? copy.initialHeroTitle
+        : isContactMode
+          ? copy.contactHeroTitle
+          : copy.feedbackHeroTitle;
+    }
+
+    if (heroLead) {
+      heroLead.textContent = !hasSelection
+        ? copy.initialHeroLead
+        : isContactMode
+          ? copy.contactHeroLead
+          : copy.feedbackHeroLead;
+    }
+
+    if (heroPrimary) {
+      heroPrimary.textContent = !hasSelection
+        ? copy.initialHeroPrimary
+        : isContactMode
+          ? copy.contactHeroPrimary
+          : copy.feedbackHeroPrimary;
+      heroPrimary.setAttribute("href", "#feedback-form");
+    }
+
     if (typeDescription) {
       typeDescription.textContent = hasSelection ? copy.selectedTypeDescription : copy.initialTypeDescription;
     }
 
     if (detailsDescription) {
       detailsDescription.textContent = isContactMode ? copy.contactDetailsDescription : copy.feedbackDetailsDescription;
+    }
+
+    if (firstNameLabel) {
+      firstNameLabel.innerHTML = isContactMode ? copy.contactFirstNameLabel : copy.feedbackFirstNameLabel;
+    }
+
+    if (firstNameInput) {
+      firstNameInput.setAttribute(
+        "placeholder",
+        isContactMode ? copy.contactFirstNamePlaceholder : copy.feedbackFirstNamePlaceholder
+      );
+      firstNameInput.setAttribute("autocomplete", isContactMode ? "name" : "given-name");
+    }
+
+    if (companyLabel) {
+      companyLabel.textContent = isContactMode ? copy.contactCompanyLabel : copy.feedbackCompanyLabel;
+    }
+
+    if (companyInput) {
+      companyInput.setAttribute("placeholder", copy.companyPlaceholder);
     }
 
     if (noteTitle) {
@@ -3288,6 +4955,11 @@ function setupFeedbackForm() {
     if (messageDescription) {
       messageDescription.textContent = isContactMode ? copy.contactMessageDescription : copy.feedbackMessageDescription;
     }
+
+    if (reviewVisibilityDescription) {
+      reviewVisibilityDescription.textContent = copy.reviewVisibilityDescription;
+    }
+    syncReviewVisibilityNote();
 
     if (commentsLabel) {
       commentsLabel.innerHTML = isContactMode ? copy.contactCommentsLabel : copy.feedbackCommentsLabel;
@@ -3316,6 +4988,7 @@ function setupFeedbackForm() {
       syncFieldValidity(field);
       clearInvalidState(field);
     });
+    syncReviewVisibilityState();
   };
 
   const normalizeFieldValue = (field) => {
@@ -3382,6 +5055,7 @@ function setupFeedbackForm() {
     field.addEventListener("input", () => {
       clearFormStatus();
       refreshFieldValidationState(field, form.dataset.showValidation === "true");
+      syncReviewVisibilityState(form.dataset.showValidation === "true");
       updateSubmitState();
     });
 
@@ -3389,16 +5063,47 @@ function setupFeedbackForm() {
       normalizeFieldValue(field);
       clearFormStatus();
       refreshFieldValidationState(field, form.dataset.showValidation === "true");
+      syncReviewVisibilityState(form.dataset.showValidation === "true");
       updateSubmitState();
+    });
+  });
+
+  reviewVisibilityFields.forEach((field) => {
+    field.addEventListener("change", () => {
+      clearFormStatus();
+      syncReviewVisibilityNote();
+      syncReviewVisibilityState(form.dataset.showValidation === "true");
     });
   });
 
   messageTypeFields.forEach((field) => {
     field.addEventListener("change", () => {
+      const selectedMode = getSelectedMessageType();
+      if (feedbackEntryMode === "chooser" && selectedMode) {
+        window.location.href = buildFeedbackModeUrl(selectedMode);
+        return;
+      }
+      applyModeState();
+      updateSubmitState();
+      lastSelectedMessageType = getSelectedMessageType();
+    });
+  });
+
+  if (continueButton) {
+    continueButton.addEventListener("click", () => {
+      const selectedMode = getSelectedMessageType();
+      if (!selectedMode) return;
+      window.location.href = buildFeedbackModeUrl(selectedMode);
+    });
+  }
+
+  if (changeModeLink) {
+    changeModeLink.addEventListener("click", () => {
+      feedbackEntryMode = "chooser";
       applyModeState();
       updateSubmitState();
     });
-  });
+  }
 
   if (responsePreferenceField) {
     responsePreferenceField.addEventListener("change", () => {
@@ -3443,6 +5148,14 @@ function setupFeedbackForm() {
   applyModeState();
   updateSubmitState();
 
+  if (feedbackEntryMode === "direct" && requestedMode) {
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        revealActiveFormSection();
+      });
+    });
+  }
+
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
 
@@ -3456,6 +5169,7 @@ function setupFeedbackForm() {
     });
 
     updateSubmitState();
+    const isReviewVisibilityReady = syncReviewVisibilityState(true);
     if (!isFeedbackFormReady()) {
       const lang = resolveInitialLanguage();
       const invalidSummary = lang === "de"
@@ -3473,6 +5187,15 @@ function setupFeedbackForm() {
         firstInvalidTarget.scrollIntoView({ behavior: "smooth", block: "center" });
       }
 
+      return;
+    }
+
+    if (!isReviewVisibilityReady) {
+      const invalidSummary = resolveInitialLanguage() === "de"
+        ? "Bitte waehlen Sie, ob Ihr Feedback-Kommentar privat bleibt oder oeffentlich angezeigt werden darf."
+        : "Please choose whether your feedback comment stays private or is published on the website.";
+      setFormStatus(invalidSummary, "error");
+      reviewVisibilityPanel?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
 
@@ -3504,11 +5227,26 @@ function setupFeedbackForm() {
     const section = value("section");
     const rating = value("rating");
     const category = value("category");
-    const subjectLine = value("subjectLine");
-    const responsePreference = value("responsePreference");
+    const responsePreferenceValue = value("responsePreference");
+    const responsePreference = getSelectedOptionLabel(responsePreferenceField);
     const timeline = value("timeline");
+    const reviewVisibility = messageType === "feedback"
+      ? value("reviewVisibility") || "private"
+      : "private";
+    const reviewVisibilityLabel = messageType === "feedback"
+      ? reviewVisibility === "public"
+        ? lang === "de"
+          ? "Oeffentlich"
+          : "Public"
+        : lang === "de"
+          ? "Privat"
+          : "Private"
+      : "";
     const comments = value("comments");
     const suggestion = value("suggestion");
+    const submittedAt = new Date().toISOString();
+    const submissionId = createClientUuid();
+    const derivedSubject = buildDerivedSubject(comments, category || baseSubject);
     const commentsOutputLabel = messageType === "contact"
       ? lang === "de"
         ? "Nachricht"
@@ -3526,10 +5264,6 @@ function setupFeedbackForm() {
       lines.push(`${template.labels.messageType}: ${messageTypeLabel}`);
     }
 
-    if (subjectLine) {
-      lines.push(`${template.labels.subjectLine}: ${subjectLine}`);
-    }
-
     lines.push(
       `${template.labels.name}: ${fullName || lastName || firstName}`,
       `${template.labels.email}: ${email}`,
@@ -3545,6 +5279,7 @@ function setupFeedbackForm() {
     if (category) lines.push(`${template.labels.category}: ${category}`);
     if (responsePreference) lines.push(`${template.labels.responsePreference}: ${responsePreference}`);
     if (timeline) lines.push(`${template.labels.timeline}: ${timeline}`);
+    if (reviewVisibilityLabel) lines.push(`${template.labels.reviewVisibility}: ${reviewVisibilityLabel}`);
 
     lines.push("", `${commentsOutputLabel}:`, comments);
 
@@ -3554,7 +5289,7 @@ function setupFeedbackForm() {
 
     lines.push("", template.closing, fullName || lastName || firstName);
 
-    const finalSubject = subjectLine ? `${baseSubject}: ${subjectLine}` : baseSubject;
+    const finalSubject = derivedSubject ? `${baseSubject}: ${derivedSubject}` : baseSubject;
     const requestBody = new FormData(form);
     requestBody.set("subject", finalSubject);
     requestBody.set("from_name", "Sooraj Sudhakaran Portfolio");
@@ -3581,25 +5316,39 @@ function setupFeedbackForm() {
         throw new Error(result?.message || "Submission failed");
       }
 
+      const publicReview = messageType === "feedback" && reviewVisibility === "public"
+        ? {
+            id: submissionId,
+            reviewerName: fullName || lastName || firstName,
+            country,
+            rating,
+            reviewTitle: derivedSubject || category || "",
+            reviewText: comments,
+            submittedAt
+          }
+        : null;
+
       await recordFeedbackStat({
-        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        id: submissionId,
         type: messageType,
         country,
-        submittedAt: new Date().toISOString(),
-        subject: subjectLine || category || "",
+        submittedAt,
+        subject: derivedSubject || category || "",
         rating
-      });
+      }, publicReview);
       trackAnalyticsEvent("form_submit_success", {
         page_path: window.location.pathname,
         message_type: messageType,
-        response_preference: responsePreference || "not_specified",
-        has_rating: rating ? "yes" : "no"
+        response_preference: responsePreferenceValue || "not_specified",
+        has_rating: rating ? "yes" : "no",
+        review_visibility: reviewVisibility
       });
       sessionStorage.setItem(
         STORAGE_FEEDBACK_LAST_SUBMISSION_KEY,
         JSON.stringify({
           type: messageType,
-          submittedAt: new Date().toISOString()
+          submittedAt,
+          reviewVisibility
         })
       );
       form.reset();
@@ -3962,7 +5711,7 @@ function setupRequestCvForm() {
       }
 
       await recordSharedSubmissionEvent({
-        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        id: createClientUuid(),
         type: "cv",
         country,
         submittedAt: new Date().toISOString(),
@@ -4017,6 +5766,8 @@ async function setupFeedbackThankYouPage() {
   const primaryLinks = Array.from(document.querySelectorAll("[data-feedback-thankyou-primary-link]"));
   const reviewTrigger = document.querySelector("[data-feedback-thankyou-review-trigger]");
   const reviewPanel = document.querySelector("[data-feedback-thankyou-review-panel]");
+  const summaryTrigger = document.querySelector("[data-feedback-thankyou-summary-trigger]");
+  const summaryPanel = document.querySelector("[data-feedback-thankyou-summary-panel]");
   const panelTriggers = Array.from(document.querySelectorAll("[data-feedback-panel-trigger]"));
   let storedSubmission = null;
   try {
@@ -4038,16 +5789,10 @@ async function setupFeedbackThankYouPage() {
   const submittedAtLabel = Number.isNaN(submittedAt.getTime())
     ? ""
     : formatUpdatedTimestamp(submittedAt, lang);
-  const storedStats = await loadSharedSubmissionStats();
-
-  const feedbackReviews = Array.isArray(storedStats.submissions)
-    ? storedStats.submissions.filter((entry) => entry?.type === "feedback")
-    : [];
-  const ratings = feedbackReviews
-    .map(parseSubmissionRatingValue)
-    .filter((value) => Number.isFinite(value) && value > 0);
+  const publicReviews = await loadSharedPublicReviews();
+  const { ratings, average } = calculatePublicReviewMetrics(publicReviews);
   const averageRating = ratings.length
-    ? `${(ratings.reduce((sum, value) => sum + value, 0) / ratings.length).toFixed(1)}/5`
+    ? `${average.toFixed(1)}/5`
     : "";
 
   const copy = lang === "de"
@@ -4086,11 +5831,18 @@ async function setupFeedbackThankYouPage() {
     statusValue.textContent = mode === "cv" ? copy.cvStatus : copy.status;
   }
   if (reviewCountValue) {
-    reviewCountValue.textContent = String(feedbackReviews.length);
+    reviewCountValue.textContent = String(publicReviews.length);
   }
   if (averageRatingValue) {
     averageRatingValue.textContent = averageRating || copy.noRatings;
   }
+  await renderPublicReviewLists({ scope: document });
+  await renderSubmissionSummary({
+    scope: document,
+    lang,
+    isAdminMode: getAdminModeState()
+  });
+  setupAdminWorkspace();
   primaryLinks.forEach((link) => {
     if (!(link instanceof HTMLAnchorElement)) return;
     if (mode === "cv") {
@@ -4109,6 +5861,12 @@ async function setupFeedbackThankYouPage() {
     if (mode === "cv" && reviewPanel instanceof HTMLDetailsElement) {
       reviewPanel.open = false;
     }
+  }
+  if (summaryTrigger) {
+    summaryTrigger.hidden = false;
+  }
+  if (summaryPanel) {
+    summaryPanel.hidden = false;
   }
 
   panelTriggers.forEach((trigger) => {
@@ -4135,6 +5893,7 @@ async function setupPublicReviewSummary() {
   const metricAverageValue = document.querySelector("[data-public-review-metric-average]");
   const reviewCountValue = document.querySelector("[data-public-review-count]");
   const reachValue = document.querySelector("[data-public-review-reach]");
+  const reachFlags = document.querySelector("[data-public-review-reach-flags]");
   const captionValue = document.querySelector("[data-public-review-caption]");
   const distributionList = document.querySelector("[data-public-review-distribution]");
   const countryList = document.querySelector("[data-public-review-countries]");
@@ -4142,47 +5901,12 @@ async function setupPublicReviewSummary() {
   const starsFill = document.querySelector("[data-public-review-stars-fill]");
 
   const lang = resolveInitialLanguage();
-  const copy = lang === "de"
-    ? {
-        noRatings: "Noch keine Bewertungen",
-        noReviews: "Noch keine öffentlichen Bewertungen.",
-        awaiting: "Noch keine bewertete Rückmeldung vorhanden.",
-        countries: "Länder",
-        basedOn: (count) => `Basierend auf ${count} bewerteten Rückmeldungen`,
-        ratingLabel: (value) => `${value} von 5`,
-        reviews: "Bewertungen"
-      }
-    : {
-        noRatings: "No ratings yet",
-        noReviews: "No public reviews yet.",
-        awaiting: "Awaiting first rated review.",
-        countries: "countries",
-        basedOn: (count) => `Based on ${count} rated reviews`,
-        ratingLabel: (value) => `${value} out of 5`,
-        reviews: "reviews"
-      };
+  const copy = getPublicReviewUiCopy(lang);
 
-  const stats = await loadSharedSubmissionStats();
-  const feedbackEntries = Array.isArray(stats.submissions)
-    ? stats.submissions.filter((entry) => entry?.type === "feedback")
-    : [];
-  const ratings = feedbackEntries
-    .map((entry) => Number.parseInt(String(entry?.rating || "").split("/")[0], 10))
-    .filter((value) => Number.isFinite(value) && value > 0);
-
-  const average = ratings.length
-    ? ratings.reduce((sum, value) => sum + value, 0) / ratings.length
-    : 0;
+  const publicReviews = await loadSharedPublicReviews();
+  const { ratings, average, countryEntries } = calculatePublicReviewMetrics(publicReviews);
   const averageLabel = ratings.length ? `${average.toFixed(1)}/5` : copy.noRatings;
-  const reviewCount = feedbackEntries.length;
-
-  const countryCounts = {};
-  feedbackEntries.forEach((entry) => {
-    const country = String(entry?.country || "").trim();
-    if (!country) return;
-    countryCounts[country] = (countryCounts[country] || 0) + 1;
-  });
-  const countryEntries = Object.entries(countryCounts).sort((a, b) => Number(b[1]) - Number(a[1]));
+  const reviewCount = publicReviews.length;
   const reachCount = countryEntries.length;
 
   if (averageValue) {
@@ -4196,6 +5920,23 @@ async function setupPublicReviewSummary() {
   }
   if (reachValue) {
     reachValue.textContent = `${reachCount} ${copy.countries}`;
+  }
+  if (reachFlags) {
+    reachFlags.innerHTML = "";
+    if (!countryEntries.length) {
+      reachFlags.hidden = true;
+    } else {
+      reachFlags.hidden = false;
+      countryEntries.slice(0, 8).forEach(([country]) => {
+        const countryMeta = getCountryDisplayMeta(country === "__unknown__" ? "" : country, copy.countryFallback);
+        const flag = document.createElement("span");
+        flag.className = "review-reach-flag";
+        flag.textContent = countryMeta.flag;
+        flag.setAttribute("title", countryMeta.label);
+        flag.setAttribute("aria-label", countryMeta.label);
+        reachFlags.append(flag);
+      });
+    }
   }
   if (captionValue) {
     captionValue.textContent = ratings.length ? copy.basedOn(ratings.length) : copy.awaiting;
@@ -4239,9 +5980,10 @@ async function setupPublicReviewSummary() {
       countryList.append(empty);
     } else {
       countryEntries.slice(0, 4).forEach(([country, count]) => {
+        const countryMeta = getCountryDisplayMeta(country === "__unknown__" ? "" : country, copy.countryFallback);
         const item = document.createElement("span");
         item.className = "review-country-chip";
-        item.textContent = `${country} · ${count}`;
+        item.innerHTML = `<span class="review-country-flag" aria-hidden="true">${escapeHtml(countryMeta.flag)}</span><span>${escapeHtml(countryMeta.label)} · ${escapeHtml(count)}</span>`;
         countryList.append(item);
       });
     }
@@ -4552,6 +6294,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   applyTheme(resolveInitialTheme());
   setupLanguageSwitcher();
   setupThemeToggle();
+  setupFooterDeclaration();
+  populateCountrySelects();
 
   // Start the shared visual systems first so public visitors still get
   // the animated background even if auth or admin-only UI loads slowly.
@@ -4572,7 +6316,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupRequestCvForm();
   setupFeedbackThankYouPage();
   setupPublicReviewSummary();
-  setupLastUpdated();
+  setupPublicReviewPanels();
+  setupPublicReviewAdminActions();
+  await renderPublicReviewLists();
+  await setupLastUpdated();
+  setupAdminWorkspace();
   setupStoredReturnPosition();
   decorateContactLinks();
 });

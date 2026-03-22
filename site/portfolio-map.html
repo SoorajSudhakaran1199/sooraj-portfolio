@@ -72,7 +72,7 @@
     }
   </script>
 </head>
-<body class="portfolio-page detail-page">
+<body class="portfolio-page detail-page portfolio-map-page">
   <canvas id="bg-canvas" aria-hidden="true"></canvas>
   <div class="page-shell">
     <header class="nav">
@@ -93,7 +93,11 @@
           <a href="#connect">Connect</a>
         </nav>
         <div class="nav-actions">
-          <a class="btn btn-small btn-ghost" href="index.html">Portfolio</a>
+          <div class="portfolio-view-switch" role="group" aria-label="Portfolio view switch">
+            <a class="portfolio-view-option" href="index.html">Detailed portfolio</a>
+            <a class="portfolio-view-option is-active" href="portfolio-map.html" aria-current="page">Portfolio map</a>
+          </div>
+          <a class="btn btn-small btn-ghost" href="index.html">Move to Portfolio</a>
           <a class="btn btn-small btn-ghost" href="journey.html">Journey</a>
           <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle theme">
             <span data-theme-icon="moon" aria-hidden="true">
@@ -112,17 +116,51 @@
       <section class="hero">
         <div class="container detail-shell">
           <article class="card shine-card portfolio-map-hero reveal-on-scroll">
-            <div class="feedback-hero-copy">
-              <div class="eyebrow">
-                <span class="spark"></span>
-                Portfolio map
+            <div class="portfolio-map-hero-shell">
+              <div class="feedback-hero-copy">
+                <div class="eyebrow">
+                  <span class="spark"></span>
+                  Portfolio map
+                </div>
+                <h1>Use this page to explore the full portfolio structure.</h1>
+                <p class="lead">Use the map for a fast structured overview of the main robotics, industrial automation, thesis, project, journey, and contact pages. Open the detailed portfolio when you want the full evidence and longer explanations.</p>
+                <div class="journey-actions portfolio-map-actions">
+                  <a class="btn btn-primary" href="index.html">Open detailed portfolio</a>
+                  <a class="btn btn-secondary" href="request-cv.html">Request CV</a>
+                  <a class="btn btn-secondary" href="feedback.html">Feedback and Contact</a>
+                </div>
               </div>
-              <h1>Use this page to explore the full portfolio structure.</h1>
-              <p class="lead">This page links the main robotics, industrial automation, thesis, project, journey, and contact pages of the website in one crawlable overview.</p>
-              <div class="journey-actions">
-                <a class="btn btn-primary" href="index.html">Back to Portfolio</a>
-                <a class="btn btn-secondary" href="feedback.html">Feedback and Contact</a>
-              </div>
+              <aside class="portfolio-map-snapshot" aria-label="Current snapshot">
+                <div class="portfolio-map-snapshot-head">
+                  <div class="hero-card-kicker">Current snapshot</div>
+                  <div class="hero-card-status">
+                    <span class="status-dot" aria-hidden="true"></span>
+                    <span>Active in Stuttgart</span>
+                  </div>
+                </div>
+                <div class="portfolio-map-profile">
+                  <div class="portfolio-map-profile-photo-wrap">
+                    <img class="portfolio-map-profile-photo" src="assets/images/profile/sooraj-sudhakaran-profile.jpeg" alt="Portrait of Sooraj Sudhakaran" />
+                  </div>
+                  <div class="portfolio-map-profile-copy">
+                    <strong>Sooraj Sudhakaran</strong>
+                    <span>Robotics and automation engineer</span>
+                  </div>
+                </div>
+                <div class="portfolio-map-snapshot-list">
+                  <article class="portfolio-map-snapshot-item">
+                    <span class="label">Current role</span>
+                    <strong>Working Student, KEBA Group</strong>
+                    <span class="small">Industrial robotics and automation, Stuttgart</span>
+                  </article>
+                  <article class="portfolio-map-snapshot-item">
+                    <span class="label">Focus areas</span>
+                    <strong>Motion planning, ROS, simulation</strong>
+                    <span class="small">Deployment-ready engineering focus</span>
+                  </article>
+                </div>
+                <p class="portfolio-map-snapshot-note">Use the detailed portfolio for the full project, experience, and recruiter-ready context.</p>
+              </aside>
             </div>
           </article>
         </div>
@@ -248,6 +286,7 @@
         <p>© 2026 Sooraj Sudhakaran</p>
         <div class="footer-links">
           <a href="index.html">Portfolio</a>
+          <a href="request-cv.html">Request CV</a>
           <a href="journey.html">My Journey</a>
           <a href="feedback.html">Feedback form</a>
           <a href="mailto:soorajsudhakaran1199@gmail.com">Email</a>

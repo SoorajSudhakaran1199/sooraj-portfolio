@@ -80,14 +80,15 @@
             <div class="feedback-thank-you-actions">
               <a class="btn btn-primary" href="feedback.html" data-feedback-thankyou-primary-link>Submit new form</a>
               <a class="btn btn-secondary" href="index.html">Back to Portfolio</a>
-              <button class="btn btn-secondary" type="button" data-feedback-thankyou-review-trigger data-feedback-panel-trigger="review-summary" aria-controls="review-summary">View reviews and rating</button>
+              <button class="btn btn-secondary" type="button" data-feedback-thankyou-review-trigger data-feedback-panel-trigger="review-summary" aria-controls="review-summary">View public reviews and rating</button>
+              <button class="btn btn-secondary" type="button" data-feedback-thankyou-summary-trigger data-feedback-panel-trigger="submission-summary" aria-controls="submission-summary">View submission summary</button>
             </div>
 
             <div class="feedback-thank-you-panels">
               <details class="feedback-conditions feedback-thank-you-status" id="review-summary" data-feedback-thankyou-review-panel>
                 <summary>
                   <span class="feedback-disclosure-copy">
-                    <strong>View reviews and rating</strong>
+                    <strong>View public reviews and rating</strong>
                     <small>Click to expand</small>
                   </span>
                 </summary>
@@ -99,6 +100,57 @@
                   <div class="feedback-thank-you-metric">
                     <span class="feedback-stats-kicker">Average rating</span>
                     <strong data-feedback-thankyou-average-rating>No ratings yet</strong>
+                  </div>
+                </div>
+                <div class="feedback-public-review-list" data-public-review-list data-public-review-limit="3">
+                  <span class="feedback-stats-empty">No public reviews yet.</span>
+                </div>
+              </details>
+
+              <details class="feedback-conditions feedback-thank-you-status" id="submission-summary" data-feedback-thankyou-summary-panel>
+                <summary>
+                  <span class="feedback-disclosure-copy">
+                    <strong>View submission summary</strong>
+                    <small>Click to expand</small>
+                  </span>
+                </summary>
+                <div class="feedback-stats-panel">
+                  <div class="feedback-stats-admin" data-feedback-stats-admin hidden>
+                    <div class="feedback-stats-admin-actions">
+                      <button class="btn btn-secondary btn-small" type="button" data-feedback-stats-refresh>Refresh status</button>
+                      <button class="btn btn-secondary btn-small" type="button" data-feedback-stats-clear>Clear status</button>
+                    </div>
+                    <span class="feedback-stats-admin-note" data-feedback-stats-admin-note>Private admin control</span>
+                  </div>
+                  <div class="feedback-stats-metrics">
+                    <div class="feedback-stats-total">
+                      <span class="feedback-stats-kicker">Recorded submissions</span>
+                      <strong data-feedback-stats-total>0</strong>
+                      <span>Total successful submissions</span>
+                    </div>
+                    <div class="feedback-stats-total feedback-stats-total-secondary">
+                      <span class="feedback-stats-kicker">CV requests</span>
+                      <strong data-feedback-stats-cv-total>0</strong>
+                      <span>Total CV requests</span>
+                    </div>
+                  </div>
+                  <div class="feedback-stats-country-block">
+                    <div class="feedback-stats-head">
+                      <strong>Country distribution</strong>
+                      <small>Shared website reach</small>
+                    </div>
+                    <div class="feedback-stats-country-list" data-feedback-stats-countries>
+                      <span class="feedback-stats-empty">No submissions recorded yet.</span>
+                    </div>
+                  </div>
+                  <div class="feedback-stats-log" data-feedback-stats-log hidden>
+                    <div class="feedback-stats-head">
+                      <strong>Submission log</strong>
+                      <small>Private admin view</small>
+                    </div>
+                    <div class="feedback-stats-log-list" data-feedback-stats-log-list>
+                      <span class="feedback-stats-empty">No submissions available.</span>
+                    </div>
                   </div>
                 </div>
               </details>
