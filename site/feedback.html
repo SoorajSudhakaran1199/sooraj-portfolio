@@ -171,9 +171,15 @@
                       </span>
                     </label>
                   </div>
+                  <div class="feedback-type-actions">
+                    <button class="btn btn-primary" type="button" data-feedback-mode-continue disabled>Continue to details</button>
+                  </div>
                 </section>
 
                 <div class="feedback-form-flow" data-feedback-form-content hidden>
+                  <div class="feedback-flow-actions">
+                    <a class="btn btn-secondary btn-small" href="feedback.html#feedback-form" data-feedback-mode-change hidden>Change message type</a>
+                  </div>
                   <nav class="feedback-form-nav" aria-label="Form sections" data-feedback-form-nav>
                     <a href="#feedback-details-heading">Your details</a>
                     <a href="#feedback-context-heading" data-feedback-nav-link="feedback">Additional context</a>
@@ -267,9 +273,9 @@
                       <span>Preferred response</span>
                       <select name="responsePreference">
                         <option value="">No preference</option>
-                        <option>Email response</option>
-                        <option>Schedule a call</option>
-                        <option>LinkedIn response</option>
+                        <option value="email-response">Email response</option>
+                        <option value="call-response">Schedule a call</option>
+                        <option value="linkedin-response">LinkedIn response</option>
                       </select>
                     </label>
                     <label class="feedback-field">
@@ -343,30 +349,30 @@
                   </label>
                 </section>
 
-                <section class="feedback-form-section" aria-labelledby="feedback-review-visibility-heading" data-feedback-only>
+                <section class="feedback-form-section" aria-labelledby="feedback-review-visibility-heading" data-feedback-only data-feedback-review-visibility-section hidden>
                   <div class="feedback-section-head">
-                    <h3 id="feedback-review-visibility-heading">Review visibility</h3>
-                    <p class="muted" data-feedback-review-visibility-description>Choose whether your review stays private or can appear publicly with your name and country.</p>
+                    <h3 id="feedback-review-visibility-heading">Comment visibility</h3>
+                    <p class="muted" data-feedback-review-visibility-description>After writing a feedback comment, choose whether it stays private or can appear publicly with your name and country.</p>
                   </div>
-                  <details class="feedback-conditions feedback-conditions-compact feedback-review-visibility-panel">
+                  <details class="feedback-conditions feedback-conditions-compact feedback-review-visibility-panel" data-feedback-review-visibility-panel>
                     <summary>
                       <span class="feedback-disclosure-copy">
-                        <strong>Choose public or private review</strong>
-                        <small>Private is selected by default</small>
+                        <strong>Choose public or private comment</strong>
+                        <small>This selection is required for feedback comments</small>
                       </span>
                     </summary>
                     <div class="feedback-review-visibility-options">
                       <label class="feedback-review-option">
-                        <input type="radio" name="reviewVisibility" value="private" checked />
+                        <input type="radio" name="reviewVisibility" value="private" data-feedback-review-visibility-field />
                         <span class="feedback-review-option-card">
-                          <strong>Private review</strong>
-                          <small>Your message stays private between you and the site owner.</small>
+                          <strong>Private comment</strong>
+                          <small>Your comment stays visible only to Sooraj Sudhakaran.</small>
                         </span>
                       </label>
                       <label class="feedback-review-option">
-                        <input type="radio" name="reviewVisibility" value="public" />
+                        <input type="radio" name="reviewVisibility" value="public" data-feedback-review-visibility-field />
                         <span class="feedback-review-option-card">
-                          <strong>Public review</strong>
+                          <strong>Publish on website</strong>
                           <small>Your rating and comment can be shown publicly with your name and country.</small>
                         </span>
                       </label>

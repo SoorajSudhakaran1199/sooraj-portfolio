@@ -1309,6 +1309,7 @@
 
               <div class="review-actions">
                 <a class="btn btn-secondary" href="feedback.html">Open Feedback Form</a>
+                <button class="btn btn-secondary" type="button" data-public-review-toggle aria-controls="homepage-public-reviews">View public comments</button>
               </div>
             </article>
 
@@ -1347,6 +1348,18 @@
                   <span class="feedback-stats-empty">No public reviews yet.</span>
                 </div>
               </div>
+
+              <details class="review-comments-panel" id="homepage-public-reviews">
+                <summary>
+                  <span class="feedback-disclosure-copy">
+                    <strong>View public comments</strong>
+                    <small>Click to expand</small>
+                  </span>
+                </summary>
+                <div class="feedback-public-review-list" data-public-review-list data-public-review-limit="6">
+                  <span class="feedback-stats-empty">No public reviews yet.</span>
+                </div>
+              </details>
             </article>
           </div>
         </div>

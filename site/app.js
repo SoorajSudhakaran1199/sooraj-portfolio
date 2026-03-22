@@ -1318,6 +1318,14 @@ Object.assign(LANGUAGE_TEXT.de, {
   "ROS and autonomous systems": "ROS und autonome Systeme",
   "Best page for ROS workflow, autonomous robot behavior, localization, and simulation-led robotics software work.": "Die beste Seite fuer ROS-Workflows, autonomes Roboterverhalten, Lokalisierung und simulationsgestuetzte Robotik-Softwarearbeit.",
   "Open ROS project": "ROS-Projekt oeffnen",
+  "Comment visibility": "Kommentarsichtbarkeit",
+  "Choose public or private comment": "Oeffentlichen oder privaten Kommentar waehlen",
+  "This selection is required for feedback comments": "Diese Auswahl ist fuer Feedback-Kommentare erforderlich",
+  "Private comment": "Privater Kommentar",
+  "Your comment stays visible only to Sooraj Sudhakaran.": "Ihr Kommentar bleibt nur fuer Sooraj Sudhakaran sichtbar.",
+  "Publish on website": "Auf der Website veroeffentlichen",
+  "After writing a feedback comment, choose whether it stays private or can appear publicly with your name and country.": "Nachdem Sie einen Feedback-Kommentar geschrieben haben, waehlen Sie, ob er privat bleibt oder mit Ihrem Namen und Land oeffentlich angezeigt werden darf.",
+  "View public comments": "Oeffentliche Kommentare ansehen",
   "Experience pages": "Erfahrungsseiten",
   "Professional and academic experience pages related to robotics, industrial automation, and engineering practice.": "Berufliche und akademische Erfahrungsseiten zu Robotik, Industrieautomatisierung und technischer Praxis.",
   "Project pages": "Projektseiten",
@@ -3230,6 +3238,9 @@ function setupFeedbackForm() {
   const formNav = document.querySelector("[data-feedback-form-nav]");
   const submitButton = form.querySelector("[data-feedback-submit]");
   const messageTypeFields = Array.from(form.querySelectorAll('[name="messageType"]'));
+  const typeSection = form.querySelector(".feedback-type-section");
+  const continueButton = form.querySelector("[data-feedback-mode-continue]");
+  const changeModeLink = form.querySelector("[data-feedback-mode-change]");
   const companyField = form.querySelector('[name="company"]');
   const responsePreferenceField = form.querySelector('[name="responsePreference"]');
   const referenceLinkField = form.querySelector('[name="referenceLink"]');
@@ -3245,7 +3256,10 @@ function setupFeedbackForm() {
   const noteTitle = document.querySelector("[data-feedback-note-title]");
   const noteCopy = document.querySelector("[data-feedback-note-copy]");
   const messageDescription = document.querySelector("[data-feedback-message-description]");
+  const reviewVisibilitySection = document.querySelector("[data-feedback-review-visibility-section]");
+  const reviewVisibilityPanel = document.querySelector("[data-feedback-review-visibility-panel]");
   const reviewVisibilityDescription = document.querySelector("[data-feedback-review-visibility-description]");
+  const reviewVisibilityFields = Array.from(form.querySelectorAll("[data-feedback-review-visibility-field]"));
   const commentsLabel = document.querySelector("[data-feedback-comments-label]");
   const commentsInput = document.querySelector("[data-feedback-comments-input]");
   const commentsHint = document.querySelector("[data-feedback-comments-hint]");
@@ -3264,6 +3278,11 @@ function setupFeedbackForm() {
     : [];
   const mobileFeedbackLayout = window.matchMedia("(max-width: 780px)");
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const requestedMode = (() => {
+    const type = new URLSearchParams(window.location.search).get("type");
+    return type === "feedback" || type === "contact" ? type : "";
+  })();
+  let feedbackEntryMode = requestedMode ? "direct" : "chooser";
 
   const getRequiredFields = () =>
     Array.from(form.querySelectorAll("[required]")).filter((field) => !field.disabled);
@@ -3271,7 +3290,27 @@ function setupFeedbackForm() {
   const getSelectedMessageType = () =>
     messageTypeFields.find((field) => field.checked)?.value || "";
 
+  const getSelectedOptionLabel = (field) =>
+    field instanceof HTMLSelectElement
+      ? String(field.selectedOptions?.[0]?.textContent || "").trim()
+      : "";
+
+  const buildFeedbackModeUrl = (mode) => {
+    const url = new URL(window.location.pathname, window.location.href);
+    url.searchParams.set("type", mode);
+    url.hash = "feedback-form";
+    return url.toString();
+  };
+
   let lastSelectedMessageType = getSelectedMessageType();
+
+  if (requestedMode) {
+    const requestedField = messageTypeFields.find((field) => field.value === requestedMode);
+    if (requestedField) {
+      requestedField.checked = true;
+      lastSelectedMessageType = requestedMode;
+    }
+  }
 
   const revealActiveFormSection = () => {
     if (!mobileFeedbackLayout.matches || !detailsSection || formContent?.hidden) return;
@@ -3350,6 +3389,89 @@ function setupFeedbackForm() {
     formStatus.textContent = "";
     formStatus.hidden = true;
     delete formStatus.dataset.state;
+  };
+
+  const getCommentVisibilitySelection = () =>
+    reviewVisibilityFields.find((field) => field.checked)?.value || "";
+
+  const shouldRequireCommentVisibility = () => {
+    const isFeedbackMode = getSelectedMessageType() === "feedback";
+    const hasComment = Boolean(String(commentsInput?.value || "").trim());
+    return feedbackEntryMode === "direct" && isFeedbackMode && hasComment;
+  };
+
+  const clearReviewVisibilityState = () => {
+    if (reviewVisibilityPanel) {
+      reviewVisibilityPanel.classList.remove("is-invalid");
+      reviewVisibilityPanel.classList.remove("invalid-bounce");
+    }
+
+    reviewVisibilityFields.forEach((field) => {
+      field.removeAttribute("aria-invalid");
+    });
+
+    const message = reviewVisibilityPanel?.querySelector(".feedback-validation-message");
+    if (message) {
+      message.textContent = "";
+      message.hidden = true;
+    }
+  };
+
+  const showReviewVisibilityState = () => {
+    if (!reviewVisibilityPanel) return;
+
+    reviewVisibilityPanel.classList.remove("invalid-bounce");
+    void reviewVisibilityPanel.offsetWidth;
+    reviewVisibilityPanel.classList.add("is-invalid");
+    reviewVisibilityPanel.classList.add("invalid-bounce");
+
+    reviewVisibilityFields.forEach((field) => {
+      field.setAttribute("aria-invalid", "true");
+    });
+
+    let message = reviewVisibilityPanel.querySelector(".feedback-validation-message");
+    if (!message) {
+      message = document.createElement("small");
+      message.className = "feedback-validation-message";
+      reviewVisibilityPanel.append(message);
+    }
+    message.textContent = resolveInitialLanguage() === "de"
+      ? "Waehlen Sie, ob Ihr Kommentar privat bleibt oder oeffentlich angezeigt werden darf."
+      : "Choose whether your comment stays private or is published on the website.";
+    message.hidden = false;
+  };
+
+  const syncReviewVisibilityState = (shouldHighlight = false) => {
+    const shouldShow = shouldRequireCommentVisibility();
+
+    if (reviewVisibilitySection) {
+      reviewVisibilitySection.hidden = !shouldShow;
+    }
+
+    if (reviewVisibilityPanel instanceof HTMLDetailsElement && shouldShow) {
+      reviewVisibilityPanel.open = true;
+    }
+
+    reviewVisibilityFields.forEach((field) => {
+      field.disabled = !shouldShow;
+      if (!shouldShow) {
+        field.checked = false;
+      }
+    });
+
+    if (!shouldShow) {
+      clearReviewVisibilityState();
+      return true;
+    }
+
+    const hasSelection = Boolean(getCommentVisibilitySelection());
+    if (!hasSelection && shouldHighlight) {
+      showReviewVisibilityState();
+      return false;
+    }
+
+    clearReviewVisibilityState();
+    return hasSelection;
   };
 
   const getValidationTarget = (field) => {
@@ -3456,6 +3578,7 @@ function setupFeedbackForm() {
     const mode = getSelectedMessageType();
     const hasSelection = Boolean(mode);
     const isContactMode = mode === "contact";
+    const showFormFlow = feedbackEntryMode === "direct" && hasSelection;
     const lang = resolveInitialLanguage();
     const copy = lang === "de"
       ? {
@@ -3475,7 +3598,7 @@ function setupFeedbackForm() {
           contactNoteCopy: "Dieses Kontaktformular uebermittelt Ihre Nachricht direkt ueber die Website.",
           feedbackMessageDescription: "Formulieren Sie die Hauptnachricht klar. Nutzen Sie das Feld fuer Verbesserungsvorschlaege bei Empfehlungen oder naechsten Schritten.",
           contactMessageDescription: "Formulieren Sie Ihre Nachricht klar und professionell.",
-          reviewVisibilityDescription: "Waehlen Sie, ob Ihre Bewertung privat bleibt oder mit Ihrem Namen und Land oeffentlich angezeigt werden darf.",
+          reviewVisibilityDescription: "Nachdem Sie einen Feedback-Kommentar geschrieben haben, waehlen Sie, ob er privat bleibt oder mit Ihrem Namen und Land oeffentlich angezeigt werden darf.",
           feedbackCommentsLabel: 'Kommentar <span class="feedback-required-star" aria-hidden="true">*</span>',
           contactCommentsLabel: 'Nachricht <span class="feedback-required-star" aria-hidden="true">*</span>',
           feedbackCommentsPlaceholder: "Beschreiben Sie Ihr Feedback oder Ihre Beobachtung.",
@@ -3486,6 +3609,10 @@ function setupFeedbackForm() {
           contactFooter: "Das Kontaktformular wird direkt ueber die Website uebermittelt und stellt Ihre Anfrage dem Website-Betreiber zu.",
           feedbackSubmit: "Nachricht absenden",
           contactSubmit: "Formular absenden",
+          continueFeedback: "Weiter zum Feedback-Formular",
+          continueContact: "Weiter zum Kontaktformular",
+          continueDefault: "Zum Formular weiter",
+          changeType: "Nachrichtentyp aendern",
           invalidSummary: "Bitte fuellen Sie die markierten Pflichtfelder korrekt aus.",
           submitting: "Wird gesendet...",
           submitError: "Die Uebermittlung ist fehlgeschlagen. Bitte pruefen Sie Ihre Verbindung und versuchen Sie es erneut."
@@ -3507,7 +3634,7 @@ function setupFeedbackForm() {
           contactNoteCopy: "This contact form submits your message directly through the website.",
           feedbackMessageDescription: "Write the main message clearly. Use suggested improvement for recommendations or next steps.",
           contactMessageDescription: "Write your message clearly and professionally.",
-          reviewVisibilityDescription: "Choose whether your review stays private or can appear publicly with your name and country.",
+          reviewVisibilityDescription: "After writing a feedback comment, choose whether it stays private or can appear publicly with your name and country.",
           feedbackCommentsLabel: 'Comments <span class="feedback-required-star" aria-hidden="true">*</span>',
           contactCommentsLabel: 'Message <span class="feedback-required-star" aria-hidden="true">*</span>',
           feedbackCommentsPlaceholder: "Describe your feedback or observation.",
@@ -3518,46 +3645,70 @@ function setupFeedbackForm() {
           contactFooter: "The contact form submits directly through the website and delivers your enquiry to the site owner.",
           feedbackSubmit: "Submit Message",
           contactSubmit: "Submit Form",
+          continueFeedback: "Continue to feedback details",
+          continueContact: "Continue to contact details",
+          continueDefault: "Continue to details",
+          changeType: "Change message type",
           invalidSummary: "Please complete the highlighted required fields correctly.",
           submitting: "Submitting...",
           submitError: "Submission failed. Please check your connection and try again."
         };
 
     form.dataset.mode = mode || "unselected";
+    form.dataset.entryMode = feedbackEntryMode;
     if (formCard) {
       formCard.dataset.mode = mode || "unselected";
+      formCard.dataset.entryMode = feedbackEntryMode;
     }
 
     if (formContent) {
-      formContent.hidden = !hasSelection;
+      formContent.hidden = !showFormFlow;
     }
 
     flowFields.forEach((field) => {
-      field.disabled = !hasSelection;
+      field.disabled = !showFormFlow;
     });
 
     feedbackOnlySections.forEach((element) => {
-      element.hidden = !hasSelection || isContactMode;
+      element.hidden = !showFormFlow || isContactMode;
       element.querySelectorAll("input, textarea, select").forEach((field) => {
-        field.disabled = !hasSelection || isContactMode;
+        field.disabled = !showFormFlow || isContactMode;
       });
     });
 
     feedbackNavLinks.forEach((link) => {
-      link.hidden = !hasSelection || isContactMode;
+      link.hidden = !showFormFlow || isContactMode;
     });
 
     if (formNav) {
-      formNav.hidden = !hasSelection || isContactMode;
+      formNav.hidden = !showFormFlow || isContactMode;
+    }
+
+    if (typeSection) {
+      typeSection.hidden = showFormFlow;
+    }
+
+    if (continueButton) {
+      continueButton.disabled = !hasSelection;
+      continueButton.textContent = !hasSelection
+        ? copy.continueDefault
+        : isContactMode
+          ? copy.continueContact
+          : copy.continueFeedback;
+    }
+
+    if (changeModeLink) {
+      changeModeLink.hidden = !showFormFlow;
+      changeModeLink.textContent = copy.changeType;
     }
 
     if (companyField) {
-      companyField.required = hasSelection && isContactMode;
+      companyField.required = showFormFlow && isContactMode;
     }
 
     const responsePreference = String(responsePreferenceField?.value || "");
-    const needsCallNumber = hasSelection && !isContactMode && responsePreference === "Schedule a call";
-    const needsLinkedProfile = hasSelection && !isContactMode && responsePreference === "LinkedIn response";
+    const needsCallNumber = showFormFlow && !isContactMode && responsePreference === "call-response";
+    const needsLinkedProfile = showFormFlow && !isContactMode && responsePreference === "linkedin-response";
 
     if (phoneFieldWrapper) {
       phoneFieldWrapper.hidden = !needsCallNumber;
@@ -3581,7 +3732,7 @@ function setupFeedbackForm() {
 
     conditionalStars.forEach((star) => {
       const requirement = star.getAttribute("data-feedback-required-for");
-      const shouldShow = hasSelection && (
+      const shouldShow = showFormFlow && (
         (requirement === "contact" && isContactMode) ||
         (requirement === "linkedin-response" && needsLinkedProfile) ||
         (requirement === "call-response" && needsCallNumber)
@@ -3656,6 +3807,7 @@ function setupFeedbackForm() {
       syncFieldValidity(field);
       clearInvalidState(field);
     });
+    syncReviewVisibilityState();
   };
 
   const normalizeFieldValue = (field) => {
@@ -3722,6 +3874,7 @@ function setupFeedbackForm() {
     field.addEventListener("input", () => {
       clearFormStatus();
       refreshFieldValidationState(field, form.dataset.showValidation === "true");
+      syncReviewVisibilityState(form.dataset.showValidation === "true");
       updateSubmitState();
     });
 
@@ -3729,26 +3882,39 @@ function setupFeedbackForm() {
       normalizeFieldValue(field);
       clearFormStatus();
       refreshFieldValidationState(field, form.dataset.showValidation === "true");
+      syncReviewVisibilityState(form.dataset.showValidation === "true");
       updateSubmitState();
+    });
+  });
+
+  reviewVisibilityFields.forEach((field) => {
+    field.addEventListener("change", () => {
+      clearFormStatus();
+      syncReviewVisibilityState(form.dataset.showValidation === "true");
     });
   });
 
   messageTypeFields.forEach((field) => {
     field.addEventListener("change", () => {
-      const previousSelection = lastSelectedMessageType;
       applyModeState();
       updateSubmitState();
       lastSelectedMessageType = getSelectedMessageType();
-
-      if (!previousSelection && lastSelectedMessageType) {
-        window.requestAnimationFrame(() => {
-          window.requestAnimationFrame(() => {
-            revealActiveFormSection();
-          });
-        });
-      }
     });
   });
+
+  if (continueButton) {
+    continueButton.addEventListener("click", () => {
+      const selectedMode = getSelectedMessageType();
+      if (!selectedMode) return;
+      window.location.href = buildFeedbackModeUrl(selectedMode);
+    });
+  }
+
+  if (changeModeLink) {
+    changeModeLink.addEventListener("click", () => {
+      feedbackEntryMode = "chooser";
+    });
+  }
 
   if (responsePreferenceField) {
     responsePreferenceField.addEventListener("change", () => {
@@ -3793,6 +3959,14 @@ function setupFeedbackForm() {
   applyModeState();
   updateSubmitState();
 
+  if (feedbackEntryMode === "direct" && requestedMode) {
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        revealActiveFormSection();
+      });
+    });
+  }
+
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
 
@@ -3806,6 +3980,7 @@ function setupFeedbackForm() {
     });
 
     updateSubmitState();
+    const isReviewVisibilityReady = syncReviewVisibilityState(true);
     if (!isFeedbackFormReady()) {
       const lang = resolveInitialLanguage();
       const invalidSummary = lang === "de"
@@ -3823,6 +3998,15 @@ function setupFeedbackForm() {
         firstInvalidTarget.scrollIntoView({ behavior: "smooth", block: "center" });
       }
 
+      return;
+    }
+
+    if (!isReviewVisibilityReady) {
+      const invalidSummary = resolveInitialLanguage() === "de"
+        ? "Bitte waehlen Sie, ob Ihr Feedback-Kommentar privat bleibt oder oeffentlich angezeigt werden darf."
+        : "Please choose whether your feedback comment stays private or is published on the website.";
+      setFormStatus(invalidSummary, "error");
+      reviewVisibilityPanel?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
 
@@ -3855,7 +4039,8 @@ function setupFeedbackForm() {
     const rating = value("rating");
     const category = value("category");
     const subjectLine = value("subjectLine");
-    const responsePreference = value("responsePreference");
+    const responsePreferenceValue = value("responsePreference");
+    const responsePreference = getSelectedOptionLabel(responsePreferenceField);
     const timeline = value("timeline");
     const reviewVisibility = messageType === "feedback"
       ? value("reviewVisibility") || "private"
@@ -3969,7 +4154,7 @@ function setupFeedbackForm() {
       trackAnalyticsEvent("form_submit_success", {
         page_path: window.location.pathname,
         message_type: messageType,
-        response_preference: responsePreference || "not_specified",
+        response_preference: responsePreferenceValue || "not_specified",
         has_rating: rating ? "yes" : "no",
         review_visibility: reviewVisibility
       });
