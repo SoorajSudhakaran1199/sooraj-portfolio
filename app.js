@@ -24,6 +24,8 @@ let sharedSubmissionStatsCache = null;
 let sharedSubmissionStatsPromise = null;
 let sharedPublicReviewsCache = null;
 let sharedPublicReviewsPromise = null;
+let sharedSubmissionStatsSource = "unknown";
+let sharedPublicReviewsSource = "unknown";
 const REQUEST_CV_LINKS = {
   en: REQUEST_CV_PAGE,
   de: REQUEST_CV_PAGE
@@ -654,8 +656,10 @@ async function loadSharedSubmissionStats({ forceRefresh = false } = {}) {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
+      sharedSubmissionStatsSource = "remote";
       return setSharedSubmissionStatsCache(buildSubmissionStats(data || []));
     } catch {
+      sharedSubmissionStatsSource = "local";
       return loadStoredSubmissionStats();
     } finally {
       sharedSubmissionStatsPromise = null;
@@ -683,8 +687,10 @@ async function loadSharedPublicReviews({ forceRefresh = false } = {}) {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
+      sharedPublicReviewsSource = "remote";
       return setSharedPublicReviewsCache(data || []);
     } catch {
+      sharedPublicReviewsSource = "local";
       return setSharedPublicReviewsCache(loadStoredPublicReviews());
     } finally {
       sharedPublicReviewsPromise = null;
@@ -708,8 +714,10 @@ async function recordSharedSubmissionEvent(submission) {
     };
     const { error } = await supabase.from(SUPABASE_SUBMISSION_EVENTS_TABLE).insert(payload);
     if (error) throw error;
+    sharedSubmissionStatsSource = "remote";
     return await loadSharedSubmissionStats({ forceRefresh: true });
   } catch {
+    sharedSubmissionStatsSource = "local";
     return localStats;
   }
 }
@@ -734,8 +742,11 @@ async function recordSharedPublicReview(review) {
     };
     const { error } = await supabase.from(SUPABASE_PUBLIC_REVIEWS_TABLE).insert(payload);
     if (error) throw error;
+    sharedPublicReviewsSource = "remote";
     return await loadSharedPublicReviews({ forceRefresh: true });
   } catch {
+    sharedPublicReviewsSource = "local";
+    console.warn("Public reviews are using local browser storage. Apply the Supabase SQL to share reviews for all visitors.");
     return localReviews;
   }
 }
@@ -760,8 +771,10 @@ async function saveSharedPublicReviewReply(id, replyText) {
       .eq("id", id);
 
     if (error) throw error;
+    sharedPublicReviewsSource = "remote";
     return await loadSharedPublicReviews({ forceRefresh: true });
   } catch {
+    sharedPublicReviewsSource = "local";
     return localReviews || loadStoredPublicReviews();
   }
 }
@@ -777,8 +790,12 @@ async function clearSharedSubmissionEvents() {
       .delete()
       .not("id", "is", null);
     if (error) throw error;
+    sharedSubmissionStatsSource = "remote";
+    sharedPublicReviewsSource = "remote";
     return setSharedSubmissionStatsCache(getEmptySubmissionStats());
   } catch {
+    sharedSubmissionStatsSource = "local";
+    sharedPublicReviewsSource = "local";
     return getEmptySubmissionStats();
   }
 }
@@ -794,8 +811,12 @@ async function deleteSharedSubmissionEvent(id) {
       .delete()
       .eq("id", id);
     if (error) throw error;
+    sharedSubmissionStatsSource = "remote";
+    sharedPublicReviewsSource = "remote";
     return await loadSharedSubmissionStats({ forceRefresh: true });
   } catch {
+    sharedSubmissionStatsSource = "local";
+    sharedPublicReviewsSource = "local";
     return localDeleted ? loadStoredSubmissionStats() : null;
   }
 }
@@ -3697,7 +3718,10 @@ function setupAdminWorkspace() {
         submissionsTool: "Inspect the private submission summary",
         refreshAction: "Refresh update time",
         reviewsAction: "Go to reviews",
-        summaryAction: "Open summary"
+        summaryAction: "Open summary",
+        reviewSyncLabel: "Public review sync",
+        reviewSyncRemote: "Live for all visitors",
+        reviewSyncLocal: "Local browser only"
       };
 
   const refreshButton = document.querySelector(".top-update-admin-btn");
@@ -3710,8 +3734,9 @@ function setupAdminWorkspace() {
   const summaryPanel = document.querySelector("[data-feedback-thankyou-summary-panel]");
   const submissionLog = document.querySelector("[data-feedback-stats-log]");
 
-  const toolLabels = [];
+	  const toolLabels = [];
   const actions = [];
+  const reviewSyncState = sharedPublicReviewsSource === "remote" ? copy.reviewSyncRemote : copy.reviewSyncLocal;
 
   if (refreshButton) {
     toolLabels.push(copy.updateTool);
@@ -3743,6 +3768,10 @@ function setupAdminWorkspace() {
         </div>
         <h2>${copy.title}</h2>
         <p>${copy.lead}</p>
+        <div class="admin-workspace-sync">
+          <span class="admin-workspace-tools-label">${copy.reviewSyncLabel}</span>
+          <span class="admin-workspace-tool">${reviewSyncState}</span>
+        </div>
         <div class="admin-workspace-tools">
           <span class="admin-workspace-tools-label">${copy.activeTools}</span>
           <div class="admin-workspace-tool-list">
@@ -3853,8 +3882,17 @@ function setupAdminModeControl() {
       aria-label="${copy.adminMode}: ${isAdminMode ? copy.on : copy.off}"
     >
       <span class="admin-mode-toggle-track">
-        <span class="admin-mode-toggle-state admin-mode-toggle-state-off">${copy.off}</span>
-        <span class="admin-mode-toggle-state admin-mode-toggle-state-on">${copy.on}</span>
+        <span class="admin-mode-toggle-state admin-mode-toggle-state-off" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M7 7l10 10"></path>
+            <path d="M17 7 7 17"></path>
+          </svg>
+        </span>
+        <span class="admin-mode-toggle-state admin-mode-toggle-state-on" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m6 12 4 4 8-8"></path>
+          </svg>
+        </span>
         <span class="admin-mode-toggle-thumb" aria-hidden="true">
           <span class="admin-mode-toggle-thumb-core"></span>
         </span>
@@ -4748,6 +4786,10 @@ function setupFeedbackForm() {
 
     form.dataset.mode = mode || "unselected";
     form.dataset.entryMode = feedbackEntryMode;
+    if (document.body.classList.contains("feedback-page")) {
+      document.body.dataset.feedbackMode = mode || "unselected";
+      document.body.dataset.feedbackEntryMode = feedbackEntryMode;
+    }
     if (feedbackPage) {
       feedbackPage.dataset.mode = mode || "unselected";
       feedbackPage.dataset.entryMode = feedbackEntryMode;
