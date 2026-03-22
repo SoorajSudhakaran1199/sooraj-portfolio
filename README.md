@@ -161,6 +161,208 @@ The result is a portfolio site that should remain understandable for non-experts
   - Twitter metadata
   - JSON-LD structured data
 
+## Feature Walkthrough
+
+The website is designed so that a recruiter, hiring manager, professor, collaborator, or general visitor can understand the profile quickly and then move into deeper technical pages only when needed.
+
+Important live entry points:
+
+- Homepage: `https://soorajsudhakaran1199.github.io/sooraj-portfolio/`
+- Feedback and contact page: `https://soorajsudhakaran1199.github.io/sooraj-portfolio/feedback.html`
+- CV request page: `https://soorajsudhakaran1199.github.io/sooraj-portfolio/request-cv.html`
+- Journey page: `https://soorajsudhakaran1199.github.io/sooraj-portfolio/journey.html`
+- Industrial robotics thesis page: `https://soorajsudhakaran1199.github.io/sooraj-portfolio/experience-masters-thesis-keba.html`
+
+<p align="center">
+  <a href="https://soorajsudhakaran1199.github.io/sooraj-portfolio/request-cv.html">
+    <img
+      src="https://soorajsudhakaran1199.github.io/sooraj-portfolio/assets/images/request%20cv.png"
+      alt="Preview of the CV request workflow page"
+      width="100%"
+    />
+  </a>
+</p>
+
+## How The Feedback And Contact System Works
+
+The feedback page was created to serve two different needs inside one clean workflow:
+
+- professional feedback about the website, profile, or presentation
+- direct contact messages from recruiters, companies, or collaborators
+
+Instead of building two completely separate pages, the website uses one structured form that changes its wording and required fields based on the visitor's selected message type.
+
+In simple terms, the flow works like this:
+
+1. the visitor opens the feedback page and chooses either `Feedback form` or `Contact form`
+2. the page automatically updates the visible fields, labels, hints, and required information
+3. the form validates the information in the browser before sending it
+4. the submission is sent through `Web3Forms`, which handles delivery without needing a traditional custom backend server
+5. after a successful submission, the visitor is redirected to a thank-you page
+6. the website updates the shared submission summary so the overall activity can be reviewed later
+
+This approach was chosen because it is practical, fast to maintain, and suitable for a GitHub Pages website. It gives the portfolio a real professional contact workflow without turning the project into a heavy full-stack application.
+
+What makes this form professional:
+
+- clear separation between feedback messages and direct contact requests
+- custom validation and error messaging instead of relying only on browser defaults
+- bilingual wording for English and German visitors
+- thank-you confirmation flow after successful submission
+- structured submission summaries for operational visibility
+
+## How The CV Request Flow Works
+
+The `Request CV` page is a separate workflow because a CV request is different from a normal contact message. A recruiter or hiring manager often wants the latest CV quickly, without writing a long message.
+
+The CV request flow was created so the visitor can:
+
+- enter their name, company, role, email, country, and an optional note
+- submit a simple request through the website
+- receive a clear confirmation path after submission
+
+Behind the scenes, the page uses the same reliable submission idea as the feedback workflow:
+
+- the browser checks the required fields before sending
+- the request is submitted through `Web3Forms`
+- the website records the request as a `cv` type submission for later summary and analysis
+- the visitor is redirected to the thank-you page after success
+
+This makes the website more recruiter-friendly because it reduces friction. A visitor does not need to search for an email template or guess what information to provide.
+
+## How Admin Mode Was Created
+
+Admin mode was created as a private management layer on top of the public portfolio. The goal was not to build a large content-management system, but to provide a secure and lightweight way to manage operational controls directly from the live website.
+
+The admin experience works in a simple way:
+
+1. every visitor sees the website in `User mode` by default
+2. an `Admin mode` switch is available in the navigation
+3. when admin mode is selected, the website opens a secure sign-in dialog
+4. authentication is handled through `Supabase Auth`
+5. admin access is only enabled when the signed-in session matches the approved admin email
+6. once authenticated, private management controls become available in that browser session
+
+What admin mode is used for:
+
+- refreshing private submission statistics
+- clearing or deleting individual submission records from the admin log
+- reviewing summary counts such as total submissions, CV requests, and country distribution
+- refreshing the website update timestamp shown in the top status bar
+
+Why this is a strong design choice:
+
+- the public website stays simple for normal visitors
+- private controls are hidden unless authentication succeeds
+- the solution fits well with a static website architecture
+- it avoids exposing sensitive management actions to general users
+
+In non-technical terms, admin mode acts like a secure private control panel built into the website rather than a separate dashboard application.
+
+## How Viewer Insights And Submission Analysis Work
+
+The website analyses visitor activity using two different layers so the owner can understand both traffic and meaningful engagement.
+
+### 1. Visitor behavior analytics
+
+General visitor behavior is measured with:
+
+- `Google Analytics 4`
+- `Microsoft Clarity`
+
+In practice, this means the site owner can review aggregate traffic and interaction patterns through established analytics tools, while keeping the public website itself lightweight.
+
+These tools help answer questions such as:
+
+- how many people are visiting the site
+- which pages attract the most attention
+- which buttons or links are clicked most often
+- whether people open the CV request flow, journey page, GitHub profile, LinkedIn profile, or feedback form
+- how visitors move through the website
+
+The website also tracks important call-to-action events such as:
+
+- contact clicks
+- CV request opens and successful CV submissions
+- feedback form opens
+- journey page opens
+- GitHub and LinkedIn clicks
+- navigation interactions
+
+### 2. Submission-level business insight
+
+The website also keeps a structured summary of form activity so the owner can understand the practical outcome of visitor interest, not only raw page traffic.
+
+This includes information such as:
+
+- total submissions received
+- number of CV requests
+- country-level submission distribution
+- rating values from feedback entries
+- review count and average rating used in the public review summary
+
+The shared event data is stored through `Supabase`, with local fallback handling for resilience when needed. This gives the site a lightweight reporting layer without requiring a large reporting platform.
+
+For a non-expert reader, the easiest way to understand it is:
+
+- analytics tools show how people use the website
+- submission summaries show what useful actions people actually completed
+
+## Privacy And Professional Handling Of Visitor Data
+
+The website is designed to be professional in how it handles visitor interactions.
+
+Important practical principles:
+
+- submitted messages are used for direct communication and operational review
+- public pages show summary information such as ratings, counts, and country reach, not private message content
+- admin-only controls are protected behind authentication
+- analytics are used to understand traffic and user behavior, not to publish personal contact information
+- the form and summary design focuses on business usefulness rather than unnecessary data collection
+
+This separation is important because it keeps the site credible for recruiters and professional visitors while still giving the site owner useful operational visibility.
+
+## Website Status And Update Tracking
+
+The website also includes a visible `Last updated` status bar. This was created so visitors can see whether the portfolio is actively maintained.
+
+The update indicator works by checking the latest modification time across important public files such as:
+
+- main pages
+- project and experience pages
+- `style.css`
+- `app.js`
+
+An admin can also refresh the shared update timestamp so the live website reflects the latest publish state more clearly.
+
+This adds a professional maintenance signal because the portfolio does not look abandoned or uncertain about its freshness.
+
+## Non-Technical System Flow
+
+The overall website logic can be understood with this simplified map:
+
+```text
+Visitor
+  -> opens portfolio page
+  -> explores pages, buttons, and links
+  -> analytics tools record page and click behavior
+
+Visitor
+  -> opens Feedback or Request CV workflow
+  -> completes validated form
+  -> submission is delivered through Web3Forms
+  -> summary event is recorded for reporting
+  -> thank-you page confirms completion
+
+Admin
+  -> signs in through Supabase Auth
+  -> unlocks private controls
+  -> reviews submission summaries and maintenance status
+  -> refreshes update time or manages submission records
+```
+
+This architecture keeps the website understandable for non-experts while still providing real operational value behind the scenes.
+
 ## Repository Structure
 
 ```text
