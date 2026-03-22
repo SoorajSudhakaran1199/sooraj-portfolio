@@ -785,13 +785,21 @@ async function clearSharedSubmissionEvents() {
 
   try {
     const supabase = await getSupabaseClient();
-    const { error } = await supabase
-      .from(SUPABASE_SUBMISSION_EVENTS_TABLE)
-      .delete()
-      .not("id", "is", null);
-    if (error) throw error;
+    const [{ error: submissionError }, { error: publicReviewError }] = await Promise.all([
+      supabase
+        .from(SUPABASE_SUBMISSION_EVENTS_TABLE)
+        .delete()
+        .not("id", "is", null),
+      supabase
+        .from(SUPABASE_PUBLIC_REVIEWS_TABLE)
+        .delete()
+        .not("id", "is", null)
+    ]);
+    if (submissionError) throw submissionError;
+    if (publicReviewError) throw publicReviewError;
     sharedSubmissionStatsSource = "remote";
     sharedPublicReviewsSource = "remote";
+    setSharedPublicReviewsCache(getEmptyPublicReviews());
     return setSharedSubmissionStatsCache(getEmptySubmissionStats());
   } catch {
     sharedSubmissionStatsSource = "local";
@@ -806,13 +814,21 @@ async function deleteSharedSubmissionEvent(id) {
 
   try {
     const supabase = await getSupabaseClient();
-    const { error } = await supabase
-      .from(SUPABASE_SUBMISSION_EVENTS_TABLE)
-      .delete()
-      .eq("id", id);
-    if (error) throw error;
+    const [{ error: submissionError }, { error: publicReviewError }] = await Promise.all([
+      supabase
+        .from(SUPABASE_SUBMISSION_EVENTS_TABLE)
+        .delete()
+        .eq("id", id),
+      supabase
+        .from(SUPABASE_PUBLIC_REVIEWS_TABLE)
+        .delete()
+        .eq("id", id)
+    ]);
+    if (submissionError) throw submissionError;
+    if (publicReviewError) throw publicReviewError;
     sharedSubmissionStatsSource = "remote";
     sharedPublicReviewsSource = "remote";
+    await loadSharedPublicReviews({ forceRefresh: true });
     return await loadSharedSubmissionStats({ forceRefresh: true });
   } catch {
     sharedSubmissionStatsSource = "local";
@@ -992,14 +1008,16 @@ function calculatePublicReviewMetrics(publicReviews = []) {
   };
 }
 
-async function renderPublicReviewLists({ scope = document, forceRefresh = false } = {}) {
+async function renderPublicReviewLists({ scope = document, forceRefresh = false, publicReviews: providedPublicReviews = null } = {}) {
   const reviewLists = Array.from(scope.querySelectorAll("[data-public-review-list]"));
   if (!reviewLists.length) return [];
 
   const lang = resolveInitialLanguage();
   const copy = getPublicReviewUiCopy(lang);
   const isAdminMode = getAdminModeState();
-  const publicReviews = await loadSharedPublicReviews({ forceRefresh });
+  const publicReviews = Array.isArray(providedPublicReviews)
+    ? buildPublicReviews(providedPublicReviews)
+    : await loadSharedPublicReviews({ forceRefresh });
 
   reviewLists.forEach((list) => {
     const limit = Number.parseInt(list.getAttribute("data-public-review-limit") || "", 10);
@@ -1116,9 +1134,10 @@ function setupPublicReviewPanels() {
 }
 
 async function refreshPublicReviewUi({ forceRefresh = true } = {}) {
+  const publicReviews = await loadSharedPublicReviews({ forceRefresh });
   await Promise.all([
-    renderPublicReviewLists({ scope: document, forceRefresh }),
-    setupPublicReviewSummary(),
+    renderPublicReviewLists({ scope: document, forceRefresh, publicReviews }),
+    setupPublicReviewSummary({ publicReviews }),
     renderSubmissionSummary({
       scope: document,
       lang: resolveInitialLanguage(),
@@ -5938,7 +5957,7 @@ async function setupFeedbackThankYouPage() {
   });
 }
 
-async function setupPublicReviewSummary() {
+async function setupPublicReviewSummary({ publicReviews: providedPublicReviews = null, forceRefresh = false } = {}) {
   const section = document.querySelector("[data-public-review-section]");
   if (!section) return;
 
@@ -5957,7 +5976,9 @@ async function setupPublicReviewSummary() {
   const lang = resolveInitialLanguage();
   const copy = getPublicReviewUiCopy(lang);
 
-  const publicReviews = await loadSharedPublicReviews();
+  const publicReviews = Array.isArray(providedPublicReviews)
+    ? buildPublicReviews(providedPublicReviews)
+    : await loadSharedPublicReviews({ forceRefresh });
   const { ratings, average, countryEntries } = calculatePublicReviewMetrics(publicReviews);
   const averageLabel = ratings.length ? `${average.toFixed(1)}/5` : copy.noRatings;
   const reviewCount = publicReviews.length;
@@ -6196,11 +6217,7 @@ async function setupLastUpdated() {
   const nav = document.querySelector(".nav");
   if (!nav) return;
 
-  let bar = nav.nextElementSibling;
-  if (!bar || !bar.classList.contains("top-update-bar")) {
-    bar = document.createElement("div");
-    bar.className = "top-update-bar";
-
+  const populateUpdateBar = (targetBar) => {
     const container = document.createElement("div");
     container.className = "container top-update-inner";
 
@@ -6227,8 +6244,17 @@ async function setupLastUpdated() {
     adminButton.textContent = adminButtonLabel;
 
     container.append(text, adminButton);
-    bar.appendChild(container);
+    targetBar.replaceChildren(container);
+  };
+
+  let bar = nav.nextElementSibling;
+  if (!bar || !bar.classList.contains("top-update-bar")) {
+    bar = document.createElement("div");
+    bar.className = "top-update-bar";
+    populateUpdateBar(bar);
     nav.insertAdjacentElement("afterend", bar);
+  } else if (!bar.querySelector(".top-update-text")) {
+    populateUpdateBar(bar);
   }
 
   const text = bar.querySelector(".top-update-text");
@@ -6379,10 +6405,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupFeedbackForm();
   setupRequestCvForm();
   setupFeedbackThankYouPage();
-  setupPublicReviewSummary();
   setupPublicReviewPanels();
   setupPublicReviewAdminActions();
-  await renderPublicReviewLists();
+  await refreshPublicReviewUi({ forceRefresh: true });
   await setupLastUpdated();
   setupAdminWorkspace();
   setupStoredReturnPosition();
