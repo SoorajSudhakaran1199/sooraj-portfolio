@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://soorajsudhakaran1199.github.io/sooraj-portfolio/sitemap.xml

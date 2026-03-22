@@ -38,6 +38,47 @@ for delete
 to authenticated
 using (lower(coalesce(auth.jwt() ->> 'email', '')) = 'soorajsudhakaran4@gmail.com');
 
+create table if not exists public.portfolio_public_reviews (
+  id uuid primary key references public.portfolio_submission_events(id) on delete cascade,
+  reviewer_name text not null,
+  country text,
+  rating_value integer check (rating_value between 1 and 5),
+  review_title text,
+  review_text text not null,
+  created_at timestamptz not null default timezone('utc', now())
+);
+
+create index if not exists portfolio_public_reviews_created_at_idx
+  on public.portfolio_public_reviews (created_at desc);
+
+create index if not exists portfolio_public_reviews_rating_value_idx
+  on public.portfolio_public_reviews (rating_value);
+
+alter table public.portfolio_public_reviews enable row level security;
+
+drop policy if exists "Public can read portfolio public reviews" on public.portfolio_public_reviews;
+create policy "Public can read portfolio public reviews"
+on public.portfolio_public_reviews
+for select
+using (true);
+
+drop policy if exists "Public can insert portfolio public reviews" on public.portfolio_public_reviews;
+create policy "Public can insert portfolio public reviews"
+on public.portfolio_public_reviews
+for insert
+with check (
+  length(trim(coalesce(reviewer_name, ''))) > 0
+  and length(trim(coalesce(review_text, ''))) > 0
+  and (rating_value is null or rating_value between 1 and 5)
+);
+
+drop policy if exists "Admin can delete portfolio public reviews" on public.portfolio_public_reviews;
+create policy "Admin can delete portfolio public reviews"
+on public.portfolio_public_reviews
+for delete
+to authenticated
+using (lower(coalesce(auth.jwt() ->> 'email', '')) = 'soorajsudhakaran4@gmail.com');
+
 create table if not exists public.portfolio_site_state (
   id text primary key,
   updated_at timestamptz not null default timezone('utc', now())
