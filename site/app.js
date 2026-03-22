@@ -1002,86 +1002,97 @@ async function renderPublicReviewLists({ scope = document, forceRefresh = false 
   const publicReviews = await loadSharedPublicReviews({ forceRefresh });
 
   reviewLists.forEach((list) => {
-    list.innerHTML = "";
-
     const limit = Number.parseInt(list.getAttribute("data-public-review-limit") || "", 10);
     const visibleReviews = Number.isFinite(limit) && limit > 0
       ? publicReviews.slice(0, limit)
       : publicReviews;
-
-    if (!visibleReviews.length) {
-      const empty = document.createElement("span");
-      empty.className = "feedback-stats-empty";
-      empty.textContent = copy.noReviews;
-      list.append(empty);
-      return;
-    }
-
-    visibleReviews.forEach((review) => {
-      const card = document.createElement("article");
-      card.className = "feedback-public-review-card";
-
-      const countryMeta = getCountryDisplayMeta(review.country, copy.countryFallback);
-      const countryLabel = `${countryMeta.flag} ${countryMeta.label}`;
-      const submittedDate = review.submittedAt ? new Date(review.submittedAt) : null;
-      const submittedLabel = submittedDate && !Number.isNaN(submittedDate.getTime())
-        ? formatUpdatedTimestamp(submittedDate, lang)
-        : "";
-      const ratingLabel = review.ratingValue
-        ? `${review.ratingValue}/5`
-        : copy.reviewBadge;
-      const metaParts = [countryLabel, submittedLabel].filter(Boolean);
-      const replyDate = review.adminReplyCreatedAt ? new Date(review.adminReplyCreatedAt) : null;
-      const replyDateLabel = replyDate && !Number.isNaN(replyDate.getTime())
-        ? formatUpdatedTimestamp(replyDate, lang)
-        : "";
-      const replyBlock = review.adminReply
-        ? `
-          <div class="feedback-public-review-reply">
-            <span class="feedback-public-review-reply-label">${escapeHtml(copy.publicReplyLabel)}</span>
-            <p class="feedback-public-review-reply-text">${escapeHtml(review.adminReply)}</p>
-            ${replyDateLabel ? `<small class="feedback-public-review-reply-date">${escapeHtml(replyDateLabel)}</small>` : ""}
-          </div>
-        `
-        : "";
-      const adminControls = isAdminMode
-        ? `
-          <form class="feedback-public-review-admin-form" data-public-review-admin-form="${escapeHtml(review.id)}">
-            <div class="feedback-public-review-admin-head">
-              <span class="feedback-public-review-admin-kicker">${escapeHtml(copy.adminToolsLabel)}</span>
-              <p class="feedback-public-review-admin-copy">${escapeHtml(copy.adminToolsDescription)}</p>
-            </div>
-            <label class="feedback-public-review-admin-field">
-              <span>${escapeHtml(copy.replyFieldLabel)}</span>
-              <textarea name="adminReply" rows="3" placeholder="${escapeHtml(copy.replyPlaceholder)}">${escapeHtml(review.adminReply || "")}</textarea>
-            </label>
-            <div class="feedback-public-review-admin-actions">
-              <button class="btn btn-secondary btn-small" type="submit">${escapeHtml(review.adminReply ? copy.updateReply : copy.saveReply)}</button>
-              <button class="btn btn-secondary btn-small feedback-public-review-delete" type="button" data-public-review-delete="${escapeHtml(review.id)}">${escapeHtml(copy.deleteReview)}</button>
-            </div>
-          </form>
-        `
-        : "";
-
-      card.innerHTML = `
-        <div class="feedback-public-review-head">
-          <div class="feedback-public-review-identity">
-            <strong class="feedback-public-review-name">${escapeHtml(review.reviewerName)}</strong>
-            <span class="feedback-public-review-meta">${escapeHtml(metaParts.join(" • "))}</span>
-          </div>
-          <span class="feedback-public-review-rating">${escapeHtml(ratingLabel)}</span>
-        </div>
-        ${review.reviewTitle ? `<span class="feedback-public-review-title">${escapeHtml(review.reviewTitle)}</span>` : ""}
-        <p class="feedback-public-review-text">${escapeHtml(review.reviewText)}</p>
-        ${replyBlock}
-        ${adminControls}
-      `;
-
-      list.append(card);
+    renderPublicReviewListContent({
+      list,
+      reviews: visibleReviews,
+      copy,
+      lang,
+      isAdminMode
     });
   });
 
   return publicReviews;
+}
+
+function renderPublicReviewListContent({ list, reviews, copy, lang, isAdminMode }) {
+  if (!(list instanceof HTMLElement)) return;
+
+  list.innerHTML = "";
+
+  if (!reviews.length) {
+    const empty = document.createElement("span");
+    empty.className = "feedback-stats-empty";
+    empty.textContent = copy.noReviews;
+    list.append(empty);
+    return;
+  }
+
+  reviews.forEach((review) => {
+    const card = document.createElement("article");
+    card.className = "feedback-public-review-card";
+
+    const countryMeta = getCountryDisplayMeta(review.country, copy.countryFallback);
+    const countryLabel = `${countryMeta.flag} ${countryMeta.label}`;
+    const submittedDate = review.submittedAt ? new Date(review.submittedAt) : null;
+    const submittedLabel = submittedDate && !Number.isNaN(submittedDate.getTime())
+      ? formatUpdatedTimestamp(submittedDate, lang)
+      : "";
+    const ratingLabel = review.ratingValue
+      ? `${review.ratingValue}/5`
+      : copy.reviewBadge;
+    const metaParts = [countryLabel, submittedLabel].filter(Boolean);
+    const replyDate = review.adminReplyCreatedAt ? new Date(review.adminReplyCreatedAt) : null;
+    const replyDateLabel = replyDate && !Number.isNaN(replyDate.getTime())
+      ? formatUpdatedTimestamp(replyDate, lang)
+      : "";
+    const replyBlock = review.adminReply
+      ? `
+        <div class="feedback-public-review-reply">
+          <span class="feedback-public-review-reply-label">${escapeHtml(copy.publicReplyLabel)}</span>
+          <p class="feedback-public-review-reply-text">${escapeHtml(review.adminReply)}</p>
+          ${replyDateLabel ? `<small class="feedback-public-review-reply-date">${escapeHtml(replyDateLabel)}</small>` : ""}
+        </div>
+      `
+      : "";
+    const adminControls = isAdminMode
+      ? `
+        <form class="feedback-public-review-admin-form" data-public-review-admin-form="${escapeHtml(review.id)}">
+          <div class="feedback-public-review-admin-head">
+            <span class="feedback-public-review-admin-kicker">${escapeHtml(copy.adminToolsLabel)}</span>
+            <p class="feedback-public-review-admin-copy">${escapeHtml(copy.adminToolsDescription)}</p>
+          </div>
+          <label class="feedback-public-review-admin-field">
+            <span>${escapeHtml(copy.replyFieldLabel)}</span>
+            <textarea name="adminReply" rows="3" placeholder="${escapeHtml(copy.replyPlaceholder)}">${escapeHtml(review.adminReply || "")}</textarea>
+          </label>
+          <div class="feedback-public-review-admin-actions">
+            <button class="btn btn-secondary btn-small" type="submit">${escapeHtml(review.adminReply ? copy.updateReply : copy.saveReply)}</button>
+            <button class="btn btn-secondary btn-small feedback-public-review-delete" type="button" data-public-review-delete="${escapeHtml(review.id)}">${escapeHtml(copy.deleteReview)}</button>
+          </div>
+        </form>
+      `
+      : "";
+
+    card.innerHTML = `
+      <div class="feedback-public-review-head">
+        <div class="feedback-public-review-identity">
+          <strong class="feedback-public-review-name">${escapeHtml(review.reviewerName)}</strong>
+          <span class="feedback-public-review-meta">${escapeHtml(metaParts.join(" • "))}</span>
+        </div>
+        <span class="feedback-public-review-rating">${escapeHtml(ratingLabel)}</span>
+      </div>
+      ${review.reviewTitle ? `<span class="feedback-public-review-title">${escapeHtml(review.reviewTitle)}</span>` : ""}
+      <p class="feedback-public-review-text">${escapeHtml(review.reviewText)}</p>
+      ${replyBlock}
+      ${adminControls}
+    `;
+
+    list.append(card);
+  });
 }
 
 function setupPublicReviewPanels() {
@@ -5941,6 +5952,7 @@ async function setupPublicReviewSummary() {
   const countryList = document.querySelector("[data-public-review-countries]");
   const starsShell = document.querySelector("[data-public-review-stars-shell]");
   const starsFill = document.querySelector("[data-public-review-stars-fill]");
+  const homepageReviewList = document.querySelector("#homepage-public-reviews [data-public-review-list]");
 
   const lang = resolveInitialLanguage();
   const copy = getPublicReviewUiCopy(lang);
@@ -5950,6 +5962,16 @@ async function setupPublicReviewSummary() {
   const averageLabel = ratings.length ? `${average.toFixed(1)}/5` : copy.noRatings;
   const reviewCount = publicReviews.length;
   const reachCount = countryEntries.length;
+
+  if (homepageReviewList) {
+    renderPublicReviewListContent({
+      list: homepageReviewList,
+      reviews: publicReviews.slice(0, 6),
+      copy,
+      lang,
+      isAdminMode: getAdminModeState()
+    });
+  }
 
   if (averageValue) {
     averageValue.textContent = averageLabel;
