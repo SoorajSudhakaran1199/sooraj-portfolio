@@ -1148,6 +1148,36 @@ async function refreshPublicReviewUi({ forceRefresh = true } = {}) {
   setupAdminWorkspace();
 }
 
+function setupPublicReviewAutoRefresh() {
+  const hasReviewUi = document.querySelector("[data-public-review-section]")
+    || document.querySelector("[data-feedback-thankyou-review-panel]")
+    || document.querySelector("[data-public-review-list]");
+  if (!hasReviewUi) return;
+
+  let refreshPromise = null;
+  const runRefresh = () => {
+    if (refreshPromise) return refreshPromise;
+    refreshPromise = refreshPublicReviewUi({ forceRefresh: true }).finally(() => {
+      refreshPromise = null;
+    });
+    return refreshPromise;
+  };
+
+  window.addEventListener("pageshow", () => {
+    runRefresh();
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      runRefresh();
+    }
+  });
+
+  window.addEventListener("focus", () => {
+    runRefresh();
+  });
+}
+
 function setupPublicReviewAdminActions() {
   document.addEventListener("submit", async (event) => {
     const form = event.target;
@@ -6405,10 +6435,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupFeedbackForm();
   setupRequestCvForm();
   setupFeedbackThankYouPage();
+  await setupLastUpdated();
   setupPublicReviewPanels();
   setupPublicReviewAdminActions();
+  setupPublicReviewAutoRefresh();
   await refreshPublicReviewUi({ forceRefresh: true });
-  await setupLastUpdated();
   setupAdminWorkspace();
   setupStoredReturnPosition();
   decorateContactLinks();
