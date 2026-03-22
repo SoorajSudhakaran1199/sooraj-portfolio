@@ -173,16 +173,6 @@ Important live entry points:
 - Journey page: `https://soorajsudhakaran1199.github.io/sooraj-portfolio/journey.html`
 - Industrial robotics thesis page: `https://soorajsudhakaran1199.github.io/sooraj-portfolio/experience-masters-thesis-keba.html`
 
-<p align="center">
-  <a href="https://soorajsudhakaran1199.github.io/sooraj-portfolio/request-cv.html">
-    <img
-      src="https://soorajsudhakaran1199.github.io/sooraj-portfolio/assets/images/request%20cv.png"
-      alt="Preview of the CV request workflow page"
-      width="100%"
-    />
-  </a>
-</p>
-
 ## How The Feedback And Contact System Works
 
 The feedback page was created to serve two different needs inside one clean workflow:
@@ -448,3 +438,21 @@ For professional contact, collaboration, portfolio review, or recruiter outreach
 ## Site Folder Reference
 
 For the site-level structure and deployment notes, see [site/README.md](site/README.md).
+
+## Share Feedback Or Review
+
+If you review the website, profile, project pages, or overall presentation, professional feedback is welcome. Thoughtful feedback helps improve clarity, recruiter experience, technical presentation, and the overall quality of the portfolio.
+
+Best ways to respond:
+
+- Share feedback or a professional review: `https://soorajsudhakaran1199.github.io/sooraj-portfolio/feedback.html`
+- View the live portfolio before reviewing: `https://soorajsudhakaran1199.github.io/sooraj-portfolio/`
+
+<p align="center">
+  <a href="https://soorajsudhakaran1199.github.io/sooraj-portfolio/feedback.html">
+    <img src="https://img.shields.io/badge/Share-Feedback%20or%20Review-0b3d2e?style=for-the-badge" alt="Share feedback or review" />
+  </a>
+  <a href="https://soorajsudhakaran1199.github.io/sooraj-portfolio/">
+    <img src="https://img.shields.io/badge/Open-Live%20Portfolio-10233f?style=for-the-badge" alt="Open live portfolio" />
+  </a>
+</p>
