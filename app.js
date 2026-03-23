@@ -1352,6 +1352,7 @@ const LANGUAGE_TEXT = {
     "Get in touch": "Kontakt",
     "Use the links below to contact me, review where I fit best, explore my work, or request my CV directly by email.": "Nutzen Sie die folgenden Links, um mich zu kontaktieren, passende Rollen zu prüfen, meine Arbeit anzusehen oder meinen CV direkt per E-Mail anzufordern.",
     "Check Where I Fit": "Wo ich passe",
+    "Check how this profile aligns with your role description, team needs, and deployment context.": "Pruefen Sie, wie dieses Profil zu Ihrer Rollenbeschreibung, den Anforderungen Ihres Teams und dem Einsatzkontext passt.",
     "Robotics engineer based in Stuttgart, Germany": "Robotikingenieur mit Standort Stuttgart, Deutschland",
     "Building robotics that work outside the demo.": "Robotik entwickeln, die auch außerhalb der Demo funktioniert.",
     "I am Sooraj Sudhakaran, a mechatronics engineer focused on industrial robotics, automation, motion planning, ROS workflows, simulation-driven development, and deployment-ready engineering. My work sits at the point where control logic, robot behavior, and practical implementation have to hold up in the real world.": "Ich bin Sooraj Sudhakaran, Mechatronikingenieur mit Fokus auf industrielle Robotik, Automatisierung, Motion Planning, ROS-Workflows, simulationsgestützte Entwicklung und einsatzreife Technik. Meine Arbeit liegt dort, wo Steuerlogik, Roboterverhalten und praktische Umsetzung in der realen Welt bestehen müssen.",
@@ -6442,7 +6443,7 @@ function decorateContactLinks() {
       alt: ""
     },
     {
-      match: (href, link) => /#about$/.test(href) || /\b(where i fit|wo ich passe|role match)\b/i.test(link.textContent || ""),
+      match: (href, link) => /#(about|where-i-fit)$/.test(href) || /\b(where i fit|wo ich passe|role match)\b/i.test(link.textContent || ""),
       icon: "assets/images/check where i fit logo.webp",
       typeClass: "icon-fit",
       alt: ""

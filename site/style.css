@@ -4303,6 +4303,14 @@ h3 {
   gap: 0.55rem;
 }
 
+.fit-module-lead {
+  margin: 0.42rem 0 0;
+  color: var(--text);
+  font-size: 0.96rem;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
 .fit-showcase {
   position: relative;
   isolation: isolate;
@@ -4691,7 +4699,8 @@ h3 {
 [data-theme="light"] .fit-evidence-card h5,
 [data-theme="light"] .fit-item .muted,
 [data-theme="light"] .fit-card-meta,
-[data-theme="light"] .fit-summary-label {
+[data-theme="light"] .fit-summary-label,
+[data-theme="light"] .fit-module-lead {
   color: #1b2f46;
 }
 
