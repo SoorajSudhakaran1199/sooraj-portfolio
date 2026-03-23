@@ -14,6 +14,7 @@ const GOOGLE_ANALYTICS_ID = "G-00H12CYMW0";
 const CLARITY_PROJECT_ID = "vz7zebyj7z";
 const REQUEST_CV_PAGE = "request-cv.html";
 const SUPABASE_URL = "https://ofltnlwdwyjnsapqprlw.supabase.co";
+const SUPABASE_REST_URL = `${SUPABASE_URL}/rest/v1`;
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_LC3P3UNYF3lr-5MIP2pA6Q_T6m4Tjn6";
 const SUPABASE_ADMIN_EMAIL = "soorajsudhakaran4@gmail.com";
 const SUPABASE_SCRIPT_URL = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
@@ -317,38 +318,87 @@ function getCountryCodeLookup() {
 
   const lookup = new Map();
 
-  if (typeof Intl !== "undefined" && typeof Intl.DisplayNames === "function" && typeof Intl.supportedValuesOf === "function") {
-    const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
-    Intl.supportedValuesOf("region").forEach((code) => {
-      const label = regionNames.of(code);
-      if (label && label !== code) {
-        lookup.set(normalizeCountryLookupKey(label), code);
-      }
-    });
+  try {
+    if (typeof Intl !== "undefined" && typeof Intl.DisplayNames === "function" && typeof Intl.supportedValuesOf === "function") {
+      const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
+      Intl.supportedValuesOf("region").forEach((code) => {
+        const label = regionNames.of(code);
+        if (label && label !== code) {
+          lookup.set(normalizeCountryLookupKey(label), code);
+        }
+      });
+    }
+  } catch {
+    // Some engines throw for Intl.supportedValuesOf("region").
+    // Fall back to the explicit aliases below instead of breaking the review UI.
   }
 
   const aliases = {
+    argentina: "AR",
+    australia: "AU",
+    austria: "AT",
+    bangladesh: "BD",
+    belgium: "BE",
     bolivia: "BO",
+    brazil: "BR",
     brunei: "BN",
+    canada: "CA",
     "cabo verde": "CV",
+    china: "CN",
     congo: "CG",
     "cote divoire": "CI",
     "czech republic": "CZ",
+    denmark: "DK",
     "democratic republic of the congo": "CD",
+    egypt: "EG",
     eswatini: "SZ",
+    finland: "FI",
+    france: "FR",
+    germany: "DE",
+    ghana: "GH",
+    greece: "GR",
+    india: "IN",
+    indonesia: "ID",
     iran: "IR",
+    iraq: "IQ",
+    ireland: "IE",
+    israel: "IL",
+    italy: "IT",
+    japan: "JP",
     kosovo: "XK",
     laos: "LA",
+    malaysia: "MY",
     micronesia: "FM",
     moldova: "MD",
+    netherlands: "NL",
+    "new zealand": "NZ",
     myanmar: "MM",
     "north korea": "KP",
+    norway: "NO",
+    pakistan: "PK",
     palestine: "PS",
+    philippines: "PH",
+    poland: "PL",
+    portugal: "PT",
+    qatar: "QA",
     russia: "RU",
+    "saudi arabia": "SA",
+    singapore: "SG",
+    "south africa": "ZA",
     "south korea": "KR",
+    spain: "ES",
+    "sri lanka": "LK",
+    sweden: "SE",
+    switzerland: "CH",
     syria: "SY",
+    taiwan: "TW",
     tanzania: "TZ",
+    thailand: "TH",
     turkey: "TR",
+    ukraine: "UA",
+    "united arab emirates": "AE",
+    "united kingdom": "GB",
+    "united states": "US",
     venezuela: "VE",
     vietnam: "VN"
   };
@@ -547,6 +597,37 @@ function saveStoredPublicReviews(reviews) {
   localStorage.setItem(STORAGE_PUBLIC_REVIEWS_KEY, JSON.stringify(reviews));
 }
 
+async function fetchSupabaseRest(path, { method = "GET", body = null, authToken = SUPABASE_PUBLISHABLE_KEY, prefer = "" } = {}) {
+  const headers = {
+    apikey: SUPABASE_PUBLISHABLE_KEY,
+    Authorization: `Bearer ${authToken}`,
+    Accept: "application/json"
+  };
+
+  if (body !== null) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  if (prefer) {
+    headers.Prefer = prefer;
+  }
+
+  const response = await fetch(`${SUPABASE_REST_URL}/${path}`, {
+    method,
+    headers,
+    body: body === null ? undefined : JSON.stringify(body)
+  });
+
+  const raw = await response.text();
+  const data = raw ? JSON.parse(raw) : null;
+
+  if (!response.ok) {
+    throw new Error(data?.message || data?.error || `Supabase REST request failed with ${response.status}`);
+  }
+
+  return data;
+}
+
 function parseSubmissionRatingValue(entry) {
   return Number.parseInt(String(entry?.rating || "").split("/")[0], 10);
 }
@@ -649,13 +730,9 @@ async function loadSharedSubmissionStats({ forceRefresh = false } = {}) {
 
   sharedSubmissionStatsPromise = (async () => {
     try {
-      const supabase = await getSupabaseClient();
-      const { data, error } = await supabase
-        .from(SUPABASE_SUBMISSION_EVENTS_TABLE)
-        .select("id, type, country, rating_value, created_at")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
+      const data = await fetchSupabaseRest(
+        `${SUPABASE_SUBMISSION_EVENTS_TABLE}?select=id,type,country,rating_value,created_at&order=created_at.desc`
+      );
       sharedSubmissionStatsSource = "remote";
       return setSharedSubmissionStatsCache(buildSubmissionStats(data || []));
     } catch {
@@ -680,13 +757,9 @@ async function loadSharedPublicReviews({ forceRefresh = false } = {}) {
 
   sharedPublicReviewsPromise = (async () => {
     try {
-      const supabase = await getSupabaseClient();
-      const { data, error } = await supabase
-        .from(SUPABASE_PUBLIC_REVIEWS_TABLE)
-        .select("id, reviewer_name, country, rating_value, review_title, review_text, admin_reply, admin_reply_created_at, created_at")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
+      const data = await fetchSupabaseRest(
+        `${SUPABASE_PUBLIC_REVIEWS_TABLE}?select=id,reviewer_name,country,rating_value,review_title,review_text,admin_reply,admin_reply_created_at,created_at&order=created_at.desc`
+      );
       sharedPublicReviewsSource = "remote";
       return setSharedPublicReviewsCache(data || []);
     } catch {
@@ -704,7 +777,6 @@ async function recordSharedSubmissionEvent(submission) {
   const localStats = recordStoredSubmissionStat(submission);
 
   try {
-    const supabase = await getSupabaseClient();
     const ratingValue = parseSubmissionRatingValue(submission);
     const payload = {
       id: submission?.id || createClientUuid(),
@@ -712,8 +784,11 @@ async function recordSharedSubmissionEvent(submission) {
       country: String(submission?.country || "").trim() || null,
       rating_value: Number.isFinite(ratingValue) && ratingValue > 0 ? ratingValue : null
     };
-    const { error } = await supabase.from(SUPABASE_SUBMISSION_EVENTS_TABLE).insert(payload);
-    if (error) throw error;
+    await fetchSupabaseRest(SUPABASE_SUBMISSION_EVENTS_TABLE, {
+      method: "POST",
+      body: payload,
+      prefer: "return=minimal"
+    });
     sharedSubmissionStatsSource = "remote";
     return await loadSharedSubmissionStats({ forceRefresh: true });
   } catch {
@@ -731,7 +806,6 @@ async function recordSharedPublicReview(review) {
   const localReviews = recordStoredPublicReview(normalizedReview);
 
   try {
-    const supabase = await getSupabaseClient();
     const payload = {
       id: normalizedReview.id,
       reviewer_name: normalizedReview.reviewerName,
@@ -740,8 +814,11 @@ async function recordSharedPublicReview(review) {
       review_title: normalizedReview.reviewTitle || null,
       review_text: normalizedReview.reviewText
     };
-    const { error } = await supabase.from(SUPABASE_PUBLIC_REVIEWS_TABLE).insert(payload);
-    if (error) throw error;
+    await fetchSupabaseRest(SUPABASE_PUBLIC_REVIEWS_TABLE, {
+      method: "POST",
+      body: payload,
+      prefer: "return=minimal"
+    });
     sharedPublicReviewsSource = "remote";
     return await loadSharedPublicReviews({ forceRefresh: true });
   } catch {
