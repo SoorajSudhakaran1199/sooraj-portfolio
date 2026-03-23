@@ -528,6 +528,7 @@ function normalizePublicReviewEntry(entry) {
   return {
     id: String(entry.id || ""),
     reviewerName,
+    company: String(entry.company || "").trim(),
     country: String(entry.country || "").trim(),
     ratingValue: Number.isFinite(ratingValue) && ratingValue > 0 ? ratingValue : null,
     rating: Number.isFinite(ratingValue) && ratingValue > 0 ? `${ratingValue}/5` : "",
@@ -758,7 +759,7 @@ async function loadSharedPublicReviews({ forceRefresh = false } = {}) {
   sharedPublicReviewsPromise = (async () => {
     try {
       const data = await fetchSupabaseRest(
-        `${SUPABASE_PUBLIC_REVIEWS_TABLE}?select=id,reviewer_name,country,rating_value,review_title,review_text,admin_reply,admin_reply_created_at,created_at&order=created_at.desc`
+        `${SUPABASE_PUBLIC_REVIEWS_TABLE}?select=id,reviewer_name,company,country,rating_value,review_title,review_text,admin_reply,admin_reply_created_at,created_at&order=created_at.desc`
       );
       sharedPublicReviewsSource = "remote";
       return setSharedPublicReviewsCache(data || []);
@@ -809,6 +810,7 @@ async function recordSharedPublicReview(review) {
     const payload = {
       id: normalizedReview.id,
       reviewer_name: normalizedReview.reviewerName,
+      company: normalizedReview.company || null,
       country: normalizedReview.country || null,
       rating_value: normalizedReview.ratingValue,
       review_title: normalizedReview.reviewTitle || null,
@@ -1132,6 +1134,7 @@ function renderPublicReviewListContent({ list, reviews, copy, lang, isAdminMode 
 
     const countryMeta = getCountryDisplayMeta(review.country, copy.countryFallback);
     const countryLabel = `${countryMeta.flag} ${countryMeta.label}`;
+    const companyLabel = String(review.company || "").trim();
     const submittedDate = review.submittedAt ? new Date(review.submittedAt) : null;
     const submittedLabel = submittedDate && !Number.isNaN(submittedDate.getTime())
       ? formatUpdatedTimestamp(submittedDate, lang)
@@ -1139,7 +1142,7 @@ function renderPublicReviewListContent({ list, reviews, copy, lang, isAdminMode 
     const ratingLabel = review.ratingValue
       ? `${review.ratingValue}/5`
       : copy.reviewBadge;
-    const metaParts = [countryLabel, submittedLabel].filter(Boolean);
+    const metaParts = [companyLabel, countryLabel, submittedLabel].filter(Boolean);
     const replyDate = review.adminReplyCreatedAt ? new Date(review.adminReplyCreatedAt) : null;
     const replyDateLabel = replyDate && !Number.isNaN(replyDate.getTime())
       ? formatUpdatedTimestamp(replyDate, lang)
@@ -5500,6 +5503,7 @@ function setupFeedbackForm() {
         ? {
             id: submissionId,
             reviewerName: fullName || lastName || firstName,
+            company,
             country,
             rating,
             reviewTitle: derivedSubject || category || "",

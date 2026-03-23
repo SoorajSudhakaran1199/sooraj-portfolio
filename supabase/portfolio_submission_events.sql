@@ -41,6 +41,7 @@ using (lower(coalesce(auth.jwt() ->> 'email', '')) = 'soorajsudhakaran4@gmail.co
 create table if not exists public.portfolio_public_reviews (
   id uuid primary key references public.portfolio_submission_events(id) on delete cascade,
   reviewer_name text not null,
+  company text,
   country text,
   rating_value integer check (rating_value between 1 and 5),
   review_title text,
@@ -49,6 +50,7 @@ create table if not exists public.portfolio_public_reviews (
 );
 
 alter table public.portfolio_public_reviews
+  add column if not exists company text,
   add column if not exists admin_reply text,
   add column if not exists admin_reply_created_at timestamptz;
 
