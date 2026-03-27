@@ -5,6 +5,9 @@ const STORAGE_RETURN_TARGET_KEY = "detail-return-target";
 const STORAGE_FEEDBACK_STATS_KEY = "feedback-form-stats";
 const STORAGE_PUBLIC_REVIEWS_KEY = "public-feedback-reviews";
 const STORAGE_FEEDBACK_LAST_SUBMISSION_KEY = "feedback-last-submission";
+const STORAGE_FEEDBACK_LAST_SUBMISSION_PERSISTED_KEY = "feedback-last-submission-persisted";
+const STORAGE_HOMEPAGE_REVIEW_PROMPT_KEY = "homepage-review-prompt-state";
+const REVIEW_PROMPT_ELIGIBLE_PAGES = new Set(["index.html", "portfolio-map.html", "journey.html"]);
 const SUPABASE_SUBMISSION_EVENTS_TABLE = "portfolio_submission_events";
 const SUPABASE_PUBLIC_REVIEWS_TABLE = "portfolio_public_reviews";
 const SUPABASE_SITE_STATE_TABLE = "portfolio_site_state";
@@ -18,6 +21,10 @@ const SUPABASE_REST_URL = `${SUPABASE_URL}/rest/v1`;
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_LC3P3UNYF3lr-5MIP2pA6Q_T6m4Tjn6";
 const SUPABASE_ADMIN_EMAIL = "soorajsudhakaran4@gmail.com";
 const SUPABASE_SCRIPT_URL = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+const HOMEPAGE_REVIEW_PROMPT_DELAY_MS = 15000;
+const HOMEPAGE_REVIEW_PROMPT_SCROLL_RATIO = 0.35;
+const HOMEPAGE_REVIEW_PROMPT_COOLDOWN_MS = 24 * 60 * 60 * 1000;
+const HOMEPAGE_REVIEW_PROMPT_SUBMISSION_SUPPRESS_MS = 30 * 24 * 60 * 60 * 1000;
 let supabaseClientPromise = null;
 let supabaseClient = null;
 let adminSessionActive = false;
@@ -2947,6 +2954,90 @@ function getCurrentPageName() {
   return window.location.pathname.split("/").pop() || "index.html";
 }
 
+function loadStoredJson(storage, key) {
+  try {
+    return JSON.parse(storage.getItem(key) || "null");
+  } catch {
+    return null;
+  }
+}
+
+function saveStoredJson(storage, key, value) {
+  try {
+    storage.setItem(key, JSON.stringify(value));
+  } catch {
+    // Ignore storage write failures without breaking the site.
+  }
+}
+
+function parseStoredTimestamp(value) {
+  const timestamp = Date.parse(value);
+  return Number.isFinite(timestamp) ? timestamp : 0;
+}
+
+function persistRecentSubmission(record) {
+  if (!record || !record.submittedAt) return;
+  saveStoredJson(localStorage, STORAGE_FEEDBACK_LAST_SUBMISSION_PERSISTED_KEY, record);
+}
+
+function loadRecentSubmissionRecord() {
+  const sessionRecord = loadStoredJson(sessionStorage, STORAGE_FEEDBACK_LAST_SUBMISSION_KEY);
+  const persistedRecord = loadStoredJson(localStorage, STORAGE_FEEDBACK_LAST_SUBMISSION_PERSISTED_KEY);
+  const sessionTime = parseStoredTimestamp(sessionRecord?.submittedAt);
+  const persistedTime = parseStoredTimestamp(persistedRecord?.submittedAt);
+  return sessionTime >= persistedTime ? sessionRecord : persistedRecord;
+}
+
+function getHomepageReviewPromptCopy(lang) {
+  return lang === "de"
+    ? {
+        kicker: "Portfolio-Feedback",
+        title: "Wie war dieses Portfolio fuer Ihre Einschaetzung?",
+        body: "Wenn diese Portfolio-Seite bei der Bewertung des Profils geholfen hat, koennen Sie in unter einer Minute eine oeffentliche Bewertung oder private Rueckmeldung senden.",
+        primary: "Bewertung starten",
+        secondary: "Spaeter",
+        note: "Wird nach echter Nutzung oder beim Erreichen des letzten Abschnitts eingeblendet.",
+        close: "Bewertungs-Hinweis schliessen"
+      }
+    : {
+        kicker: "Portfolio feedback",
+        title: "How was this portfolio to review?",
+        body: "If this portfolio page helped you evaluate the profile, you can leave a public review or private feedback in under a minute.",
+        primary: "Start review",
+        secondary: "Maybe later",
+        note: "Shown after real engagement or when you reach the final section.",
+        close: "Dismiss review prompt"
+      };
+}
+
+function getHomepageReviewPromptCooldownAnchor(state) {
+  return Math.max(
+    parseStoredTimestamp(state?.dismissedAt),
+    parseStoredTimestamp(state?.startedAt),
+    parseStoredTimestamp(state?.shownAt)
+  );
+}
+
+function shouldSkipHomepageReviewPrompt() {
+  if (!REVIEW_PROMPT_ELIGIBLE_PAGES.has(getCurrentPageName()) || adminSessionActive) {
+    return true;
+  }
+
+  const recentSubmission = loadRecentSubmissionRecord();
+  const submittedAt = parseStoredTimestamp(recentSubmission?.submittedAt);
+  if (submittedAt && Date.now() - submittedAt < HOMEPAGE_REVIEW_PROMPT_SUBMISSION_SUPPRESS_MS) {
+    return true;
+  }
+
+  const promptState = loadStoredJson(localStorage, STORAGE_HOMEPAGE_REVIEW_PROMPT_KEY);
+  const lastPromptAt = getHomepageReviewPromptCooldownAnchor(promptState);
+  if (lastPromptAt && Date.now() - lastPromptAt < HOMEPAGE_REVIEW_PROMPT_COOLDOWN_MS) {
+    return true;
+  }
+
+  return false;
+}
+
 function getOriginSectionId(link) {
   const linkedSection = link.closest("section[id]");
   if (linkedSection) return linkedSection.id;
@@ -3906,7 +3997,7 @@ function setupAdminWorkspace() {
   const summaryPanel = document.querySelector("[data-feedback-thankyou-summary-panel]");
   const submissionLog = document.querySelector("[data-feedback-stats-log]");
 
-  const toolLabels = [];
+	  const toolLabels = [];
   const actions = [];
   const reviewSyncState = sharedPublicReviewsSource === "remote"
     ? copy.reviewSyncRemote
@@ -5577,6 +5668,13 @@ function setupFeedbackForm() {
           publicReviewPublished: Boolean(publicReview) && Boolean(recordResult?.publicReviewPublished)
         })
       );
+      persistRecentSubmission({
+        type: messageType,
+        submittedAt,
+        reviewVisibility,
+        publicReviewRequested: Boolean(publicReview),
+        publicReviewPublished: Boolean(publicReview) && Boolean(recordResult?.publicReviewPublished)
+      });
       form.reset();
       delete form.dataset.showValidation;
       clearFormStatus();
@@ -5956,6 +6054,10 @@ function setupRequestCvForm() {
           submittedAt: new Date().toISOString()
         })
       );
+      persistRecentSubmission({
+        type: "cv",
+        submittedAt: new Date().toISOString()
+      });
       form.reset();
       delete form.dataset.showValidation;
       clearFormStatus();
@@ -6547,6 +6649,124 @@ function decorateContactLinks() {
   });
 }
 
+function setupHomepageReviewPrompt() {
+  if (shouldSkipHomepageReviewPrompt()) return;
+
+  const lang = resolveInitialLanguage();
+  const copy = getHomepageReviewPromptCopy(lang);
+  const prompt = document.createElement("aside");
+  prompt.className = "review-prompt";
+  prompt.hidden = true;
+  prompt.setAttribute("aria-hidden", "true");
+  prompt.setAttribute("aria-live", "polite");
+  prompt.innerHTML = `
+    <button class="review-prompt-close" type="button" aria-label="${escapeHtml(copy.close)}">x</button>
+    <span class="review-prompt-kicker">${escapeHtml(copy.kicker)}</span>
+    <h2 class="review-prompt-title">${escapeHtml(copy.title)}</h2>
+    <p class="review-prompt-copy">${escapeHtml(copy.body)}</p>
+    <div class="review-prompt-actions">
+      <a class="review-prompt-action review-prompt-action-primary" href="feedback.html?type=feedback#feedback-form">${escapeHtml(copy.primary)}</a>
+      <button class="review-prompt-action review-prompt-action-secondary" type="button">${escapeHtml(copy.secondary)}</button>
+    </div>
+    <p class="review-prompt-note">${escapeHtml(copy.note)}</p>
+  `;
+  document.body.append(prompt);
+
+  const dismissButton = prompt.querySelector(".review-prompt-close");
+  const secondaryButton = prompt.querySelector(".review-prompt-action-secondary");
+  const primaryLink = prompt.querySelector(".review-prompt-action-primary");
+  const sectionNodes = Array.from(document.querySelectorAll("main section[id], section[id]"));
+  const lastSection = sectionNodes.length ? sectionNodes[sectionNodes.length - 1] : null;
+  let delayReached = false;
+  let engagementReached = false;
+  let isVisible = false;
+
+  const recordPromptState = (patch) => {
+    const currentState = loadStoredJson(localStorage, STORAGE_HOMEPAGE_REVIEW_PROMPT_KEY) || {};
+    saveStoredJson(localStorage, STORAGE_HOMEPAGE_REVIEW_PROMPT_KEY, {
+      ...currentState,
+      ...patch
+    });
+  };
+
+  const hidePrompt = (reason) => {
+    if (!isVisible) return;
+
+    isVisible = false;
+    prompt.classList.remove("is-visible");
+    prompt.setAttribute("aria-hidden", "true");
+    window.setTimeout(() => {
+      prompt.hidden = true;
+    }, 220);
+
+    if (reason === "dismissed") {
+      recordPromptState({ dismissedAt: new Date().toISOString() });
+      trackAnalyticsEvent("homepage_review_prompt_dismissed", {
+        page_path: window.location.pathname
+      });
+    }
+  };
+
+  const maybeShowPrompt = () => {
+    if (isVisible || !delayReached || !engagementReached || shouldSkipHomepageReviewPrompt()) {
+      return;
+    }
+
+    isVisible = true;
+    recordPromptState({ shownAt: new Date().toISOString() });
+    prompt.hidden = false;
+    prompt.setAttribute("aria-hidden", "false");
+    window.requestAnimationFrame(() => {
+      prompt.classList.add("is-visible");
+    });
+    trackAnalyticsEvent("homepage_review_prompt_shown", {
+      page_path: window.location.pathname
+    });
+  };
+
+  const handleScrollProgress = () => {
+    const scrollRange = Math.max(document.documentElement.scrollHeight - window.innerHeight, 0);
+    const progress = scrollRange > 0 ? window.scrollY / scrollRange : 1;
+    const lastSectionReached = lastSection instanceof HTMLElement
+      ? lastSection.getBoundingClientRect().top <= window.innerHeight * 0.9
+      : false;
+    if (progress >= HOMEPAGE_REVIEW_PROMPT_SCROLL_RATIO || lastSectionReached) {
+      engagementReached = true;
+      window.removeEventListener("scroll", handleScrollProgress);
+      maybeShowPrompt();
+    }
+  };
+
+  window.setTimeout(() => {
+    delayReached = true;
+    maybeShowPrompt();
+  }, HOMEPAGE_REVIEW_PROMPT_DELAY_MS);
+
+  window.addEventListener("scroll", handleScrollProgress, { passive: true });
+  handleScrollProgress();
+
+  dismissButton?.addEventListener("click", () => {
+    hidePrompt("dismissed");
+  });
+
+  secondaryButton?.addEventListener("click", () => {
+    hidePrompt("dismissed");
+  });
+
+  primaryLink?.addEventListener("click", () => {
+    recordPromptState({ startedAt: new Date().toISOString() });
+    trackAnalyticsEvent("homepage_review_prompt_started", {
+      page_path: window.location.pathname
+    });
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      hidePrompt("dismissed");
+    }
+  });
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   loadSiteAnalytics();
   setupAnalyticsClickTracking();
@@ -6579,6 +6799,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupPublicReviewAdminActions();
   setupPublicReviewAutoRefresh();
   await refreshPublicReviewUi({ forceRefresh: true });
+  setupHomepageReviewPrompt();
   setupAdminWorkspace();
   setupStoredReturnPosition();
   decorateContactLinks();
