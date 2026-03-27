@@ -764,8 +764,8 @@ async function loadSharedPublicReviews({ forceRefresh = false } = {}) {
       sharedPublicReviewsSource = "remote";
       return setSharedPublicReviewsCache(data || []);
     } catch {
-      sharedPublicReviewsSource = "local";
-      return setSharedPublicReviewsCache(loadStoredPublicReviews());
+      sharedPublicReviewsSource = "unavailable";
+      return setSharedPublicReviewsCache(getEmptyPublicReviews());
     } finally {
       sharedPublicReviewsPromise = null;
     }
@@ -804,8 +804,6 @@ async function recordSharedPublicReview(review) {
     return loadSharedPublicReviews();
   }
 
-  const localReviews = recordStoredPublicReview(normalizedReview);
-
   try {
     const payload = {
       id: normalizedReview.id,
@@ -824,20 +822,14 @@ async function recordSharedPublicReview(review) {
     sharedPublicReviewsSource = "remote";
     return await loadSharedPublicReviews({ forceRefresh: true });
   } catch {
-    sharedPublicReviewsSource = "local";
-    console.warn("Public reviews are using local browser storage. Apply the Supabase SQL to share reviews for all visitors.");
-    return localReviews;
+    sharedPublicReviewsSource = "unavailable";
+    throw new Error("Public review could not be saved to the shared website store.");
   }
 }
 
 async function saveSharedPublicReviewReply(id, replyText) {
   const trimmedReply = String(replyText || "").trim();
   const replyDate = trimmedReply ? new Date().toISOString() : "";
-  const localReviews = updateStoredPublicReview(id, (review) => ({
-    ...review,
-    adminReply: trimmedReply,
-    adminReplyCreatedAt: replyDate
-  }));
 
   try {
     const supabase = await getSupabaseClient();
@@ -853,8 +845,8 @@ async function saveSharedPublicReviewReply(id, replyText) {
     sharedPublicReviewsSource = "remote";
     return await loadSharedPublicReviews({ forceRefresh: true });
   } catch {
-    sharedPublicReviewsSource = "local";
-    return localReviews || loadStoredPublicReviews();
+    sharedPublicReviewsSource = "unavailable";
+    throw new Error("Public review reply could not be saved to the shared website store.");
   }
 }
 
@@ -882,7 +874,7 @@ async function clearSharedSubmissionEvents() {
     return setSharedSubmissionStatsCache(getEmptySubmissionStats());
   } catch {
     sharedSubmissionStatsSource = "local";
-    sharedPublicReviewsSource = "local";
+    sharedPublicReviewsSource = "unavailable";
     return getEmptySubmissionStats();
   }
 }
@@ -911,7 +903,7 @@ async function deleteSharedSubmissionEvent(id) {
     return await loadSharedSubmissionStats({ forceRefresh: true });
   } catch {
     sharedSubmissionStatsSource = "local";
-    sharedPublicReviewsSource = "local";
+    sharedPublicReviewsSource = "unavailable";
     return localDeleted ? loadStoredSubmissionStats() : null;
   }
 }
@@ -3862,7 +3854,7 @@ function setupAdminWorkspace() {
         summaryAction: "Open summary",
         reviewSyncLabel: "Public review sync",
         reviewSyncRemote: "Live for all visitors",
-        reviewSyncLocal: "Local browser only"
+        reviewSyncUnavailable: "Shared publishing unavailable"
       };
 
   const refreshButton = document.querySelector(".top-update-admin-btn");
@@ -3877,7 +3869,9 @@ function setupAdminWorkspace() {
 
 	  const toolLabels = [];
   const actions = [];
-  const reviewSyncState = sharedPublicReviewsSource === "remote" ? copy.reviewSyncRemote : copy.reviewSyncLocal;
+  const reviewSyncState = sharedPublicReviewsSource === "remote"
+    ? copy.reviewSyncRemote
+    : copy.reviewSyncUnavailable;
 
   if (refreshButton) {
     toolLabels.push(copy.updateTool);
@@ -4521,10 +4515,17 @@ function setupFeedbackForm() {
 
   const recordFeedbackStat = async (submission, publicReview = null) => {
     await recordSharedSubmissionEvent(submission);
+    let publicReviewPublished = false;
     if (publicReview) {
-      await recordSharedPublicReview(publicReview);
+      try {
+        await recordSharedPublicReview(publicReview);
+        publicReviewPublished = true;
+      } catch {
+        publicReviewPublished = false;
+      }
     }
     await renderFeedbackStats(true);
+    return { publicReviewPublished };
   };
 
   const refreshStatsStatus = async () => {
@@ -5512,7 +5513,7 @@ function setupFeedbackForm() {
           }
         : null;
 
-      await recordFeedbackStat({
+      const recordResult = await recordFeedbackStat({
         id: submissionId,
         type: messageType,
         country,
@@ -5532,7 +5533,9 @@ function setupFeedbackForm() {
         JSON.stringify({
           type: messageType,
           submittedAt,
-          reviewVisibility
+          reviewVisibility,
+          publicReviewRequested: Boolean(publicReview),
+          publicReviewPublished: Boolean(publicReview) && Boolean(recordResult?.publicReviewPublished)
         })
       );
       form.reset();
@@ -5947,6 +5950,7 @@ async function setupFeedbackThankYouPage() {
   const reviewCountValue = document.querySelector("[data-feedback-thankyou-review-count]");
   const averageRatingValue = document.querySelector("[data-feedback-thankyou-average-rating]");
   const lead = document.querySelector("[data-feedback-thankyou-lead]");
+  const publicReviewNote = document.querySelector("[data-feedback-thankyou-public-note]");
   const primaryLinks = Array.from(document.querySelectorAll("[data-feedback-thankyou-primary-link]"));
   const reviewTrigger = document.querySelector("[data-feedback-thankyou-review-trigger]");
   const reviewPanel = document.querySelector("[data-feedback-thankyou-review-panel]");
@@ -5989,7 +5993,9 @@ async function setupFeedbackThankYouPage() {
         status: "Erfolgreich gesendet",
         cvStatus: "CV-Anfrage uebermittelt",
         cvPrimary: "Neue CV-Anfrage",
-        noRatings: "Noch keine Bewertungen"
+        noRatings: "Noch keine Bewertungen",
+        publicReviewPublished: "Ihre oeffentliche Bewertung ist jetzt fuer alle Website-Besucher sichtbar.",
+        publicReviewUnavailable: "Ihre Nachricht wurde empfangen, aber die oeffentliche Bewertung konnte nicht fuer alle Besucher veroeffentlicht werden. Bitte richten Sie den gemeinsamen Reviewspeicher ein oder versuchen Sie es spaeter erneut."
       }
     : {
         feedbackTitle: "Feedback received",
@@ -6000,7 +6006,9 @@ async function setupFeedbackThankYouPage() {
         status: "Submitted successfully",
         cvStatus: "CV request submitted",
         cvPrimary: "Submit another CV request",
-        noRatings: "No ratings yet"
+        noRatings: "No ratings yet",
+        publicReviewPublished: "Your public review is now visible to all website visitors.",
+        publicReviewUnavailable: "Your message was received, but the public review could not be published for all visitors. Set up the shared review store or try again later."
       };
 
   title.textContent = mode === "contact"
@@ -6019,6 +6027,16 @@ async function setupFeedbackThankYouPage() {
   }
   if (averageRatingValue) {
     averageRatingValue.textContent = averageRating || copy.noRatings;
+  }
+  if (publicReviewNote) {
+    const reviewVisibility = String(storedSubmission?.reviewVisibility || "");
+    const publicReviewRequested = Boolean(storedSubmission?.publicReviewRequested || reviewVisibility === "public");
+    const publicReviewPublished = Boolean(storedSubmission?.publicReviewPublished);
+    const noteText = mode === "feedback" && publicReviewRequested
+      ? (publicReviewPublished ? copy.publicReviewPublished : copy.publicReviewUnavailable)
+      : "";
+    publicReviewNote.textContent = noteText;
+    publicReviewNote.hidden = !noteText;
   }
   await renderPublicReviewLists({ scope: document });
   await renderSubmissionSummary({
