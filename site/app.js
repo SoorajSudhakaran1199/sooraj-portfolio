@@ -12,6 +12,7 @@ const SUPABASE_SUBMISSION_EVENTS_TABLE = "portfolio_submission_events";
 const SUPABASE_PUBLIC_REVIEWS_TABLE = "portfolio_public_reviews";
 const SUPABASE_SITE_STATE_TABLE = "portfolio_site_state";
 const SUPABASE_SITE_UPDATE_STATE_ID = "public_site_update";
+const SUPABASE_REVIEW_PROMPT_STATE_ID = "public_review_prompt";
 const WEB3FORMS_ENDPOINT = "https://api.web3forms.com/submit";
 const GOOGLE_ANALYTICS_ID = "G-00H12CYMW0";
 const CLARITY_PROJECT_ID = "vz7zebyj7z";
@@ -21,10 +22,25 @@ const SUPABASE_REST_URL = `${SUPABASE_URL}/rest/v1`;
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_LC3P3UNYF3lr-5MIP2pA6Q_T6m4Tjn6";
 const SUPABASE_ADMIN_EMAIL = "soorajsudhakaran4@gmail.com";
 const SUPABASE_SCRIPT_URL = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";
+const DAY_IN_MS = 24 * 60 * 60 * 1000;
 const HOMEPAGE_REVIEW_PROMPT_DELAY_MS = 15000;
 const HOMEPAGE_REVIEW_PROMPT_SCROLL_RATIO = 0.35;
-const HOMEPAGE_REVIEW_PROMPT_COOLDOWN_MS = 24 * 60 * 60 * 1000;
-const HOMEPAGE_REVIEW_PROMPT_SUBMISSION_SUPPRESS_MS = 30 * 24 * 60 * 60 * 1000;
+const HOMEPAGE_REVIEW_PROMPT_COOLDOWN_MS = DAY_IN_MS;
+const HOMEPAGE_REVIEW_PROMPT_SUBMISSION_SUPPRESS_MS = 30 * DAY_IN_MS;
+const DEFAULT_REVIEW_PROMPT_SETTINGS = Object.freeze({
+  enabled: true,
+  showEveryVisit: false,
+  delaySeconds: HOMEPAGE_REVIEW_PROMPT_DELAY_MS / 1000,
+  scrollPercent: HOMEPAGE_REVIEW_PROMPT_SCROLL_RATIO * 100,
+  cooldownDays: HOMEPAGE_REVIEW_PROMPT_COOLDOWN_MS / DAY_IN_MS,
+  suppressAfterSubmissionDays: HOMEPAGE_REVIEW_PROMPT_SUBMISSION_SUPPRESS_MS / DAY_IN_MS,
+  triggerOnFinalSection: true,
+  eligiblePages: {
+    index: true,
+    portfolioMap: true,
+    journey: true
+  }
+});
 let supabaseClientPromise = null;
 let supabaseClient = null;
 let adminSessionActive = false;
@@ -32,6 +48,8 @@ let sharedSubmissionStatsCache = null;
 let sharedSubmissionStatsPromise = null;
 let sharedPublicReviewsCache = null;
 let sharedPublicReviewsPromise = null;
+let sharedReviewPromptSettingsCache = null;
+let sharedReviewPromptSettingsPromise = null;
 let sharedSubmissionStatsSource = "unknown";
 let sharedPublicReviewsSource = "unknown";
 const REQUEST_CV_LINKS = {
@@ -2975,6 +2993,53 @@ function parseStoredTimestamp(value) {
   return Number.isFinite(timestamp) ? timestamp : 0;
 }
 
+function clampNumber(value, min, max, fallback) {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) return fallback;
+  return Math.min(max, Math.max(min, numericValue));
+}
+
+function getReviewPromptPageKey(pageName = getCurrentPageName()) {
+  if (pageName === "index.html") return "index";
+  if (pageName === "portfolio-map.html") return "portfolioMap";
+  if (pageName === "journey.html") return "journey";
+  return null;
+}
+
+function normalizeReviewPromptSettings(raw = null) {
+  const defaults = DEFAULT_REVIEW_PROMPT_SETTINGS;
+  const source = raw && typeof raw === "object" ? raw : {};
+  const eligiblePages = source.eligiblePages && typeof source.eligiblePages === "object"
+    ? source.eligiblePages
+    : {};
+
+  return {
+    enabled: source.enabled !== false,
+    showEveryVisit: Boolean(source.showEveryVisit),
+    delaySeconds: clampNumber(source.delaySeconds, 0, 300, defaults.delaySeconds),
+    scrollPercent: clampNumber(source.scrollPercent, 0, 100, defaults.scrollPercent),
+    cooldownDays: clampNumber(source.cooldownDays, 0, 365, defaults.cooldownDays),
+    suppressAfterSubmissionDays: clampNumber(
+      source.suppressAfterSubmissionDays,
+      0,
+      365,
+      defaults.suppressAfterSubmissionDays
+    ),
+    triggerOnFinalSection: source.triggerOnFinalSection !== false,
+    eligiblePages: {
+      index: eligiblePages.index !== false,
+      portfolioMap: eligiblePages.portfolioMap !== false,
+      journey: eligiblePages.journey !== false
+    }
+  };
+}
+
+function isReviewPromptEnabledForPage(settings, pageName = getCurrentPageName()) {
+  const pageKey = getReviewPromptPageKey(pageName);
+  if (!pageKey || !REVIEW_PROMPT_ELIGIBLE_PAGES.has(pageName)) return false;
+  return Boolean(settings?.enabled) && Boolean(settings?.eligiblePages?.[pageKey]);
+}
+
 function persistRecentSubmission(record) {
   if (!record || !record.submittedAt) return;
   saveStoredJson(localStorage, STORAGE_FEEDBACK_LAST_SUBMISSION_PERSISTED_KEY, record);
@@ -3018,20 +3083,36 @@ function getHomepageReviewPromptCooldownAnchor(state) {
   );
 }
 
-function shouldSkipHomepageReviewPrompt() {
-  if (!REVIEW_PROMPT_ELIGIBLE_PAGES.has(getCurrentPageName()) || adminSessionActive) {
+function shouldSkipHomepageReviewPrompt(settings) {
+  if (adminSessionActive || !isReviewPromptEnabledForPage(settings)) {
     return true;
   }
 
   const recentSubmission = loadRecentSubmissionRecord();
   const submittedAt = parseStoredTimestamp(recentSubmission?.submittedAt);
-  if (submittedAt && Date.now() - submittedAt < HOMEPAGE_REVIEW_PROMPT_SUBMISSION_SUPPRESS_MS) {
+  const suppressWindowMs = clampNumber(
+    settings?.suppressAfterSubmissionDays,
+    0,
+    365,
+    DEFAULT_REVIEW_PROMPT_SETTINGS.suppressAfterSubmissionDays
+  ) * DAY_IN_MS;
+  if (submittedAt && suppressWindowMs > 0 && Date.now() - submittedAt < suppressWindowMs) {
     return true;
+  }
+
+  if (settings?.showEveryVisit) {
+    return false;
   }
 
   const promptState = loadStoredJson(localStorage, STORAGE_HOMEPAGE_REVIEW_PROMPT_KEY);
   const lastPromptAt = getHomepageReviewPromptCooldownAnchor(promptState);
-  if (lastPromptAt && Date.now() - lastPromptAt < HOMEPAGE_REVIEW_PROMPT_COOLDOWN_MS) {
+  const cooldownMs = clampNumber(
+    settings?.cooldownDays,
+    0,
+    365,
+    DEFAULT_REVIEW_PROMPT_SETTINGS.cooldownDays
+  ) * DAY_IN_MS;
+  if (lastPromptAt && cooldownMs > 0 && Date.now() - lastPromptAt < cooldownMs) {
     return true;
   }
 
@@ -3966,9 +4047,14 @@ function setupAdminWorkspace() {
         updateTool: "Geteilte Update-Zeit aktualisieren",
         reviewsTool: "Oeffentliche Bewertungen beantworten oder loeschen",
         submissionsTool: "Private Uebermittlungsuebersicht einsehen",
+        promptTool: "Review-Prompt fuer Besucher anpassen",
         refreshAction: "Update-Zeit aktualisieren",
         reviewsAction: "Zu Bewertungen",
-        summaryAction: "Zur Uebersicht"
+        summaryAction: "Zur Uebersicht",
+        promptAction: "Prompt-Einstellungen",
+        reviewSyncLabel: "Public-Review-Sync",
+        reviewSyncRemote: "Live fuer alle Besucher",
+        reviewSyncUnavailable: "Gemeinsame Veroeffentlichung nicht verfuegbar"
       }
     : {
         badge: "Admin mode active",
@@ -3979,9 +4065,11 @@ function setupAdminWorkspace() {
         updateTool: "Refresh the shared update timestamp",
         reviewsTool: "Reply to or remove public reviews",
         submissionsTool: "Inspect the private submission summary",
+        promptTool: "Adjust the visitor review prompt",
         refreshAction: "Refresh update time",
         reviewsAction: "Go to reviews",
         summaryAction: "Open summary",
+        promptAction: "Prompt settings",
         reviewSyncLabel: "Public review sync",
         reviewSyncRemote: "Live for all visitors",
         reviewSyncUnavailable: "Shared publishing unavailable"
@@ -3996,8 +4084,7 @@ function setupAdminWorkspace() {
     || document.querySelector("[data-public-review-list]");
   const summaryPanel = document.querySelector("[data-feedback-thankyou-summary-panel]");
   const submissionLog = document.querySelector("[data-feedback-stats-log]");
-
-	  const toolLabels = [];
+  const toolLabels = [copy.promptTool];
   const actions = [];
   const reviewSyncState = sharedPublicReviewsSource === "remote"
     ? copy.reviewSyncRemote
@@ -4015,6 +4102,7 @@ function setupAdminWorkspace() {
     toolLabels.push(copy.submissionsTool);
     actions.push({ type: "summary", label: copy.summaryAction });
   }
+  actions.push({ type: "prompt", label: copy.promptAction });
 
   if (!toolLabels.length) {
     existing?.remove();
@@ -4047,6 +4135,7 @@ function setupAdminWorkspace() {
       <div class="admin-workspace-actions">
         ${actions.map((action) => `<button class="btn btn-secondary btn-small" type="button" data-admin-workspace-action="${action.type}">${action.label}</button>`).join("")}
       </div>
+      <div class="admin-review-prompt-panel" data-admin-review-prompt-panel></div>
     </div>
   `;
 
@@ -4087,8 +4176,231 @@ function setupAdminWorkspace() {
         if (submissionLog instanceof HTMLElement) {
           submissionLog.scrollIntoView({ behavior: "smooth", block: "start" });
         }
+        return;
+      }
+
+      if (action === "prompt") {
+        const promptPanel = panel.querySelector("[data-admin-review-prompt-panel]");
+        if (promptPanel instanceof HTMLElement) {
+          promptPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
       }
     });
+  });
+
+  renderAdminReviewPromptControls(panel);
+}
+
+async function renderAdminReviewPromptControls(workspacePanel = document.querySelector("[data-admin-workspace]")) {
+  const panel = workspacePanel instanceof HTMLElement
+    ? workspacePanel.querySelector("[data-admin-review-prompt-panel]")
+    : null;
+  if (!(panel instanceof HTMLElement)) return;
+
+  if (!getAdminModeState()) {
+    panel.replaceChildren();
+    return;
+  }
+
+  const lang = resolveInitialLanguage();
+  const copy = lang === "de"
+    ? {
+        title: "Review-Prompt-Regeln",
+        lead: "Steuern Sie, wann der oeffentliche Bewertungs-Hinweis fuer Besucher erscheint. Die Einstellungen gelten fuer alle Besucher, sobald sie gespeichert sind.",
+        enabled: "Prompt aktivieren",
+        everyVisit: "Bei jedem berechtigten Besuch anzeigen",
+        delay: "Verzoegerung in Sekunden",
+        scroll: "Scroll-Schwelle in Prozent",
+        cooldown: "Ausblendung nach Anzeige in Tagen",
+        suppress: "Nach Formularversand ausblenden in Tagen",
+        finalSection: "Auch beim direkten Sprung zum letzten Abschnitt ausloesen",
+        pages: "Aktive Seiten",
+        pageIndex: "Detailed portfolio",
+        pageMap: "Portfolio map",
+        pageJourney: "Journey",
+        save: "Prompt-Einstellungen speichern",
+        reset: "Standardwerte einsetzen",
+        saved: "Prompt-Einstellungen gespeichert.",
+        saveError: "Speichern fehlgeschlagen. Fuehren Sie bei Bedarf das aktuelle Supabase-SQL fuer die Site-State-Spalte aus.",
+        note: "0 Tage deaktiviert die jeweilige Sperre. 'Bei jedem Besuch' ignoriert nur die Prompt-Cooldown-Sperre."
+      }
+    : {
+        title: "Review prompt rules",
+        lead: "Control when the public review prompt appears for visitors. Saved settings apply to all visitors.",
+        enabled: "Enable prompt",
+        everyVisit: "Show on every eligible visit",
+        delay: "Delay in seconds",
+        scroll: "Scroll threshold in percent",
+        cooldown: "Hide after prompt in days",
+        suppress: "Suppress after submission in days",
+        finalSection: "Also trigger when the visitor jumps straight to the final section",
+        pages: "Active pages",
+        pageIndex: "Detailed portfolio",
+        pageMap: "Portfolio map",
+        pageJourney: "Journey",
+        save: "Save prompt settings",
+        reset: "Restore defaults",
+        saved: "Prompt settings saved.",
+        saveError: "Saving failed. Run the latest Supabase SQL if the site-state settings column is missing.",
+        note: "A value of 0 disables that blocker. 'Show on every visit' only bypasses the prompt cooldown."
+      };
+  const settings = await loadSharedReviewPromptSettings();
+
+  panel.innerHTML = `
+    <div class="admin-review-prompt-card">
+      <div class="admin-review-prompt-head">
+        <h3>${copy.title}</h3>
+        <p>${copy.lead}</p>
+      </div>
+      <form class="admin-review-prompt-form" data-admin-review-prompt-form>
+        <div class="admin-review-prompt-grid">
+          <label class="admin-review-prompt-toggle">
+            <input type="checkbox" name="enabled" ${settings.enabled ? "checked" : ""}>
+            <span>${copy.enabled}</span>
+          </label>
+          <label class="admin-review-prompt-toggle">
+            <input type="checkbox" name="showEveryVisit" ${settings.showEveryVisit ? "checked" : ""}>
+            <span>${copy.everyVisit}</span>
+          </label>
+          <label class="admin-review-prompt-field">
+            <span>${copy.delay}</span>
+            <input type="number" name="delaySeconds" min="0" max="300" step="1" value="${settings.delaySeconds}">
+          </label>
+          <label class="admin-review-prompt-field">
+            <span>${copy.scroll}</span>
+            <input type="number" name="scrollPercent" min="0" max="100" step="1" value="${settings.scrollPercent}">
+          </label>
+          <label class="admin-review-prompt-field">
+            <span>${copy.cooldown}</span>
+            <input type="number" name="cooldownDays" min="0" max="365" step="1" value="${settings.cooldownDays}">
+          </label>
+          <label class="admin-review-prompt-field">
+            <span>${copy.suppress}</span>
+            <input type="number" name="suppressAfterSubmissionDays" min="0" max="365" step="1" value="${settings.suppressAfterSubmissionDays}">
+          </label>
+        </div>
+        <label class="admin-review-prompt-toggle admin-review-prompt-toggle-wide">
+          <input type="checkbox" name="triggerOnFinalSection" ${settings.triggerOnFinalSection ? "checked" : ""}>
+          <span>${copy.finalSection}</span>
+        </label>
+        <fieldset class="admin-review-prompt-pages">
+          <legend>${copy.pages}</legend>
+          <label class="admin-review-prompt-toggle">
+            <input type="checkbox" name="pageIndex" ${settings.eligiblePages.index ? "checked" : ""}>
+            <span>${copy.pageIndex}</span>
+          </label>
+          <label class="admin-review-prompt-toggle">
+            <input type="checkbox" name="pageMap" ${settings.eligiblePages.portfolioMap ? "checked" : ""}>
+            <span>${copy.pageMap}</span>
+          </label>
+          <label class="admin-review-prompt-toggle">
+            <input type="checkbox" name="pageJourney" ${settings.eligiblePages.journey ? "checked" : ""}>
+            <span>${copy.pageJourney}</span>
+          </label>
+        </fieldset>
+        <p class="admin-review-prompt-note">${copy.note}</p>
+        <div class="admin-review-prompt-actions">
+          <button class="btn btn-secondary btn-small" type="button" data-admin-review-prompt-reset>${copy.reset}</button>
+          <button class="btn btn-small" type="submit">${copy.save}</button>
+        </div>
+        <p class="admin-review-prompt-status" data-admin-review-prompt-status hidden></p>
+      </form>
+    </div>
+  `;
+
+  const form = panel.querySelector("[data-admin-review-prompt-form]");
+  const resetButton = panel.querySelector("[data-admin-review-prompt-reset]");
+  const status = panel.querySelector("[data-admin-review-prompt-status]");
+  const getField = (name) => (
+    form instanceof HTMLFormElement
+      ? form.elements.namedItem(name)
+      : null
+  );
+  const getCheckbox = (name) => {
+    const field = getField(name);
+    return field instanceof HTMLInputElement ? field : null;
+  };
+  const getNumberInput = (name) => {
+    const field = getField(name);
+    return field instanceof HTMLInputElement ? field : null;
+  };
+
+  const applySettingsToForm = (nextSettings) => {
+    if (!(form instanceof HTMLFormElement)) return;
+    const enabledField = getCheckbox("enabled");
+    const everyVisitField = getCheckbox("showEveryVisit");
+    const delayField = getNumberInput("delaySeconds");
+    const scrollField = getNumberInput("scrollPercent");
+    const cooldownField = getNumberInput("cooldownDays");
+    const suppressField = getNumberInput("suppressAfterSubmissionDays");
+    const finalSectionField = getCheckbox("triggerOnFinalSection");
+    const pageIndexField = getCheckbox("pageIndex");
+    const pageMapField = getCheckbox("pageMap");
+    const pageJourneyField = getCheckbox("pageJourney");
+
+    if (enabledField) enabledField.checked = nextSettings.enabled;
+    if (everyVisitField) everyVisitField.checked = nextSettings.showEveryVisit;
+    if (delayField) delayField.value = String(nextSettings.delaySeconds);
+    if (scrollField) scrollField.value = String(nextSettings.scrollPercent);
+    if (cooldownField) cooldownField.value = String(nextSettings.cooldownDays);
+    if (suppressField) suppressField.value = String(nextSettings.suppressAfterSubmissionDays);
+    if (finalSectionField) finalSectionField.checked = nextSettings.triggerOnFinalSection;
+    if (pageIndexField) pageIndexField.checked = nextSettings.eligiblePages.index;
+    if (pageMapField) pageMapField.checked = nextSettings.eligiblePages.portfolioMap;
+    if (pageJourneyField) pageJourneyField.checked = nextSettings.eligiblePages.journey;
+  };
+
+  form?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!(form instanceof HTMLFormElement)) return;
+    const enabledField = getCheckbox("enabled");
+    const everyVisitField = getCheckbox("showEveryVisit");
+    const delayField = getNumberInput("delaySeconds");
+    const scrollField = getNumberInput("scrollPercent");
+    const cooldownField = getNumberInput("cooldownDays");
+    const suppressField = getNumberInput("suppressAfterSubmissionDays");
+    const finalSectionField = getCheckbox("triggerOnFinalSection");
+    const pageIndexField = getCheckbox("pageIndex");
+    const pageMapField = getCheckbox("pageMap");
+    const pageJourneyField = getCheckbox("pageJourney");
+    const nextSettings = normalizeReviewPromptSettings({
+      enabled: enabledField?.checked,
+      showEveryVisit: everyVisitField?.checked,
+      delaySeconds: delayField?.value,
+      scrollPercent: scrollField?.value,
+      cooldownDays: cooldownField?.value,
+      suppressAfterSubmissionDays: suppressField?.value,
+      triggerOnFinalSection: finalSectionField?.checked,
+      eligiblePages: {
+        index: pageIndexField?.checked,
+        portfolioMap: pageMapField?.checked,
+        journey: pageJourneyField?.checked
+      }
+    });
+
+    try {
+      await saveSharedReviewPromptSettings(nextSettings);
+      if (status instanceof HTMLElement) {
+        status.hidden = false;
+        status.dataset.state = "success";
+        status.textContent = copy.saved;
+      }
+    } catch {
+      if (status instanceof HTMLElement) {
+        status.hidden = false;
+        status.dataset.state = "error";
+        status.textContent = copy.saveError;
+      }
+    }
+  });
+
+  resetButton?.addEventListener("click", () => {
+    applySettingsToForm(normalizeReviewPromptSettings());
+    if (status instanceof HTMLElement) {
+      status.hidden = true;
+      status.textContent = "";
+      status.dataset.state = "";
+    }
   });
 }
 
@@ -6477,6 +6789,68 @@ async function saveSharedSiteUpdateOverride(date) {
   }
 }
 
+async function fetchSharedReviewPromptSettings() {
+  try {
+    const supabase = await getSupabaseClient();
+    const { data, error } = await supabase
+      .from(SUPABASE_SITE_STATE_TABLE)
+      .select("settings")
+      .eq("id", SUPABASE_REVIEW_PROMPT_STATE_ID)
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    return normalizeReviewPromptSettings(data?.settings);
+  } catch {
+    return normalizeReviewPromptSettings();
+  }
+}
+
+async function loadSharedReviewPromptSettings({ forceRefresh = false } = {}) {
+  if (!forceRefresh && sharedReviewPromptSettingsCache) {
+    return sharedReviewPromptSettingsCache;
+  }
+
+  if (!forceRefresh && sharedReviewPromptSettingsPromise) {
+    return sharedReviewPromptSettingsPromise;
+  }
+
+  sharedReviewPromptSettingsPromise = fetchSharedReviewPromptSettings()
+    .then((settings) => {
+      sharedReviewPromptSettingsCache = settings;
+      return settings;
+    })
+    .finally(() => {
+      sharedReviewPromptSettingsPromise = null;
+    });
+
+  return sharedReviewPromptSettingsPromise;
+}
+
+async function saveSharedReviewPromptSettings(settings) {
+  const normalizedSettings = normalizeReviewPromptSettings(settings);
+  const supabase = await getSupabaseClient();
+  const { error } = await supabase
+    .from(SUPABASE_SITE_STATE_TABLE)
+    .upsert(
+      {
+        id: SUPABASE_REVIEW_PROMPT_STATE_ID,
+        updated_at: new Date().toISOString(),
+        settings: normalizedSettings
+      },
+      { onConflict: "id" }
+    );
+
+  if (error) {
+    throw error;
+  }
+
+  sharedReviewPromptSettingsCache = normalizedSettings;
+  return normalizedSettings;
+}
+
 async function setupLastUpdated() {
   const isAdminMode = getAdminModeState();
   const fallbackModifiedAt = new Date(document.lastModified);
@@ -6649,8 +7023,9 @@ function decorateContactLinks() {
   });
 }
 
-function setupHomepageReviewPrompt() {
-  if (shouldSkipHomepageReviewPrompt()) return;
+async function setupHomepageReviewPrompt() {
+  const settings = await loadSharedReviewPromptSettings();
+  if (shouldSkipHomepageReviewPrompt(settings)) return;
 
   const lang = resolveInitialLanguage();
   const copy = getHomepageReviewPromptCopy(lang);
@@ -6677,6 +7052,18 @@ function setupHomepageReviewPrompt() {
   const primaryLink = prompt.querySelector(".review-prompt-action-primary");
   const sectionNodes = Array.from(document.querySelectorAll("main section[id], section[id]"));
   const lastSection = sectionNodes.length ? sectionNodes[sectionNodes.length - 1] : null;
+  const scrollThreshold = clampNumber(
+    settings.scrollPercent,
+    0,
+    100,
+    DEFAULT_REVIEW_PROMPT_SETTINGS.scrollPercent
+  ) / 100;
+  const delayMs = clampNumber(
+    settings.delaySeconds,
+    0,
+    300,
+    DEFAULT_REVIEW_PROMPT_SETTINGS.delaySeconds
+  ) * 1000;
   let delayReached = false;
   let engagementReached = false;
   let isVisible = false;
@@ -6708,7 +7095,7 @@ function setupHomepageReviewPrompt() {
   };
 
   const maybeShowPrompt = () => {
-    if (isVisible || !delayReached || !engagementReached || shouldSkipHomepageReviewPrompt()) {
+    if (isVisible || !delayReached || !engagementReached || shouldSkipHomepageReviewPrompt(settings)) {
       return;
     }
 
@@ -6727,10 +7114,10 @@ function setupHomepageReviewPrompt() {
   const handleScrollProgress = () => {
     const scrollRange = Math.max(document.documentElement.scrollHeight - window.innerHeight, 0);
     const progress = scrollRange > 0 ? window.scrollY / scrollRange : 1;
-    const lastSectionReached = lastSection instanceof HTMLElement
+    const lastSectionReached = settings.triggerOnFinalSection && lastSection instanceof HTMLElement
       ? lastSection.getBoundingClientRect().top <= window.innerHeight * 0.9
       : false;
-    if (progress >= HOMEPAGE_REVIEW_PROMPT_SCROLL_RATIO || lastSectionReached) {
+    if (progress >= scrollThreshold || lastSectionReached) {
       engagementReached = true;
       window.removeEventListener("scroll", handleScrollProgress);
       maybeShowPrompt();
@@ -6740,7 +7127,7 @@ function setupHomepageReviewPrompt() {
   window.setTimeout(() => {
     delayReached = true;
     maybeShowPrompt();
-  }, HOMEPAGE_REVIEW_PROMPT_DELAY_MS);
+  }, delayMs);
 
   window.addEventListener("scroll", handleScrollProgress, { passive: true });
   handleScrollProgress();
@@ -6799,7 +7186,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupPublicReviewAdminActions();
   setupPublicReviewAutoRefresh();
   await refreshPublicReviewUi({ forceRefresh: true });
-  setupHomepageReviewPrompt();
+  await setupHomepageReviewPrompt();
   setupAdminWorkspace();
   setupStoredReturnPosition();
   decorateContactLinks();

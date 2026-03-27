@@ -1877,6 +1877,138 @@ body.admin-modal-open {
   align-items: center;
 }
 
+.admin-review-prompt-panel {
+  grid-column: 1 / -1;
+}
+
+.admin-review-prompt-card {
+  display: grid;
+  gap: 1rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid rgba(128, 184, 255, 0.12);
+}
+
+.admin-review-prompt-head {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.admin-review-prompt-head h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.admin-review-prompt-head p {
+  margin: 0;
+  color: var(--text-soft);
+}
+
+.admin-review-prompt-form {
+  display: grid;
+  gap: 0.95rem;
+}
+
+.admin-review-prompt-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.admin-review-prompt-field,
+.admin-review-prompt-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.72rem;
+  min-height: 54px;
+  padding: 0.82rem 0.92rem;
+  border: 1px solid rgba(128, 184, 255, 0.14);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.admin-review-prompt-field {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.admin-review-prompt-field span,
+.admin-review-prompt-toggle span,
+.admin-review-prompt-pages legend {
+  color: var(--text);
+  font-size: 0.83rem;
+  font-weight: 700;
+}
+
+.admin-review-prompt-field input[type="number"] {
+  width: 100%;
+  min-height: 42px;
+  padding: 0.72rem 0.84rem;
+  border: 1px solid rgba(128, 184, 255, 0.16);
+  border-radius: 14px;
+  background: rgba(7, 14, 24, 0.58);
+  color: var(--text);
+  font: inherit;
+}
+
+.admin-review-prompt-field input[type="number"]:focus,
+.admin-review-prompt-toggle input:focus-visible {
+  outline: none;
+  border-color: rgba(89, 226, 188, 0.28);
+  box-shadow: 0 0 0 3px rgba(89, 226, 188, 0.12);
+}
+
+.admin-review-prompt-toggle {
+  cursor: pointer;
+}
+
+.admin-review-prompt-toggle input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: #59e2bc;
+}
+
+.admin-review-prompt-pages {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.admin-review-prompt-pages legend {
+  margin-bottom: 0.45rem;
+}
+
+.admin-review-prompt-note {
+  margin: 0;
+  color: rgba(208, 222, 240, 0.78);
+  font-size: 0.82rem;
+  line-height: 1.62;
+}
+
+.admin-review-prompt-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  align-items: center;
+}
+
+.admin-review-prompt-status {
+  margin: 0;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.admin-review-prompt-status[data-state="success"] {
+  color: #8df1d2;
+}
+
+.admin-review-prompt-status[data-state="error"] {
+  color: #ffb7b7;
+}
+
 .top-update-text[data-update-age="fresh"] {
   border-color: rgba(89, 226, 188, 0.24);
   background:
@@ -2031,6 +2163,22 @@ body.admin-modal-open {
   border-color: rgba(21, 44, 74, 0.09);
   background: rgba(255, 255, 255, 0.76);
   color: #3f566f;
+}
+
+[data-theme="light"] .admin-review-prompt-field,
+[data-theme="light"] .admin-review-prompt-toggle {
+  border-color: rgba(21, 44, 74, 0.09);
+  background: rgba(255, 255, 255, 0.76);
+}
+
+[data-theme="light"] .admin-review-prompt-field input[type="number"] {
+  border-color: rgba(21, 44, 74, 0.12);
+  background: rgba(248, 251, 255, 0.96);
+  color: #17314f;
+}
+
+[data-theme="light"] .admin-review-prompt-note {
+  color: rgba(63, 86, 111, 0.84);
 }
 
 @media (max-width: 760px) {
@@ -10908,6 +11056,11 @@ body.detail-page.keba-detail-page .detail-hero-media {
   .admin-workspace-actions .btn {
     width: 100%;
     justify-content: center;
+  }
+
+  .admin-review-prompt-grid,
+  .admin-review-prompt-pages {
+    grid-template-columns: 1fr;
   }
 
   .section-heading,

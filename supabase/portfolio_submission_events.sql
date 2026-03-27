@@ -95,11 +95,19 @@ with check (lower(coalesce(auth.jwt() ->> 'email', '')) = 'soorajsudhakaran4@gma
 
 create table if not exists public.portfolio_site_state (
   id text primary key,
-  updated_at timestamptz not null default timezone('utc', now())
+  updated_at timestamptz not null default timezone('utc', now()),
+  settings jsonb not null default '{}'::jsonb
 );
+
+alter table public.portfolio_site_state
+  add column if not exists settings jsonb not null default '{}'::jsonb;
 
 insert into public.portfolio_site_state (id, updated_at)
 values ('public_site_update', timezone('utc', now()))
+on conflict (id) do nothing;
+
+insert into public.portfolio_site_state (id, updated_at, settings)
+values ('public_review_prompt', timezone('utc', now()), '{}'::jsonb)
 on conflict (id) do nothing;
 
 alter table public.portfolio_site_state enable row level security;
