@@ -17,7 +17,7 @@
     (() => {
       const lang = localStorage.getItem("site-language") === "de" ? "de" : "en";
       const saved = localStorage.getItem("theme");
-      const theme = saved || (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+      const theme = saved || "dark";
       document.documentElement.setAttribute("lang", lang);
       document.documentElement.setAttribute("data-lang-ready", "false");
       document.documentElement.setAttribute("data-theme", theme);

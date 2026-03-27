@@ -2651,7 +2651,7 @@ function setupLanguageSwitcher() {
 function resolveInitialTheme() {
   const saved = localStorage.getItem(STORAGE_THEME_KEY);
   if (saved === "light" || saved === "dark") return saved;
-  return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+  return "dark";
 }
 
 function applyTheme(theme) {
@@ -5276,9 +5276,10 @@ function setupFeedbackForm() {
           contactFirstNameLabel: 'Name <span class="feedback-required-star" aria-hidden="true">*</span>',
           feedbackFirstNamePlaceholder: "Ihr Vorname",
           contactFirstNamePlaceholder: "Ihr vollstaendiger Name",
-          feedbackCompanyLabel: "Unternehmen oder Organisation",
+          feedbackCompanyLabel: 'Unternehmensname oder Hochschulname <span class="feedback-required-star" aria-hidden="true">*</span>',
           contactCompanyLabel: "Firmenname",
-          companyPlaceholder: "Firmenname",
+          feedbackCompanyPlaceholder: "Unternehmensname oder Hochschulname",
+          contactCompanyPlaceholder: "Firmenname",
           feedbackMessageDescription: "Schreiben Sie Ihr Feedback klar und direkt.",
           contactMessageDescription: "Schreiben Sie Ihre Nachricht klar und professionell.",
           initialHeroEyebrow: "Passenden Weg waehlen",
@@ -5331,9 +5332,10 @@ function setupFeedbackForm() {
           contactFirstNameLabel: 'Name <span class="feedback-required-star" aria-hidden="true">*</span>',
           feedbackFirstNamePlaceholder: "Your first name",
           contactFirstNamePlaceholder: "Your full name",
-          feedbackCompanyLabel: "Company or organization",
+          feedbackCompanyLabel: 'Company or university name <span class="feedback-required-star" aria-hidden="true">*</span>',
           contactCompanyLabel: "Company name",
-          companyPlaceholder: "Company name",
+          feedbackCompanyPlaceholder: "Company or university name",
+          contactCompanyPlaceholder: "Company name",
           feedbackMessageDescription: "Write your feedback clearly.",
           contactMessageDescription: "Write your message clearly and professionally.",
           initialHeroEyebrow: "Choose the right path",
@@ -5456,7 +5458,10 @@ function setupFeedbackForm() {
     }
 
     if (companyField) {
-      companyField.required = false;
+      companyField.required = showFormFlow && !isContactMode;
+      if (!showFormFlow || isContactMode) {
+        clearInvalidState(companyField);
+      }
     }
 
     const responsePreference = String(responsePreferenceField?.value || "");
@@ -5563,11 +5568,14 @@ function setupFeedbackForm() {
     }
 
     if (companyLabel) {
-      companyLabel.textContent = isContactMode ? copy.contactCompanyLabel : copy.feedbackCompanyLabel;
+      companyLabel.innerHTML = isContactMode ? copy.contactCompanyLabel : copy.feedbackCompanyLabel;
     }
 
     if (companyInput) {
-      companyInput.setAttribute("placeholder", copy.companyPlaceholder);
+      companyInput.setAttribute(
+        "placeholder",
+        isContactMode ? copy.contactCompanyPlaceholder : copy.feedbackCompanyPlaceholder
+      );
     }
 
     if (noteTitle) {

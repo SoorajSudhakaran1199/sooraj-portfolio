@@ -28,7 +28,7 @@
     (() => {
       const lang = localStorage.getItem("site-language") === "de" ? "de" : "en";
       const saved = localStorage.getItem("theme");
-      const theme = saved || (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+      const theme = saved || "dark";
       document.documentElement.setAttribute("lang", lang);
       document.documentElement.setAttribute("data-lang-ready", "false");
       document.documentElement.setAttribute("data-theme", theme);
@@ -184,8 +184,8 @@
                       <input type="text" name="lastName" autocomplete="family-name" placeholder="Your last name" required data-feedback-last-name-input />
                     </label>
                     <label class="feedback-field">
-                      <span data-feedback-company-label>Company or organization</span>
-                      <input type="text" name="company" autocomplete="organization" placeholder="Company name" data-feedback-company-input />
+                      <span class="feedback-label-row"><span data-feedback-company-label>Company or university name <span class="feedback-required-star" aria-hidden="true">*</span></span></span>
+                      <input type="text" name="company" autocomplete="organization" placeholder="Company or university name" data-feedback-company-input />
                     </label>
                     <label class="feedback-field">
                       <span class="feedback-label-row"><span>Email <span class="feedback-required-star" aria-hidden="true">*</span></span></span>
@@ -229,8 +229,8 @@
                   </div>
                   <div class="feedback-grid">
                     <label class="feedback-field">
-                      <span class="feedback-label-row"><span>Category <span class="feedback-required-star" aria-hidden="true">*</span></span></span>
-                      <select name="category" required>
+                      <span class="feedback-label-row"><span>Category</span></span>
+                      <select name="category">
                         <option value="" selected>Choose a category</option>
                         <option>Positive feedback</option>
                         <option>Design</option>
@@ -265,10 +265,10 @@
                   </div>
 
                   <fieldset class="feedback-field feedback-rating-group">
-                    <legend>Website rating</legend>
+                    <legend>Website rating <span class="feedback-required-star" aria-hidden="true">*</span></legend>
                     <div class="feedback-rating">
                       <label>
-                        <input type="radio" name="rating" value="1/5" />
+                        <input type="radio" name="rating" value="1/5" required />
                         <span>
                           <strong>&#9733;</strong>
                           <em>&#128577;</em>
