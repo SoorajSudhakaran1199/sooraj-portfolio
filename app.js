@@ -1019,7 +1019,8 @@ function getPublicReviewUiCopy(lang) {
         reviewBadge: "Oeffentliche Bewertung",
         countryFallback: "Land nicht angegeben",
         viewPublicReviews: "Oeffentliche Bewertungen ansehen",
-        publicReplyLabel: "Oeffentliche Antwort von Sooraj Sudhakaran",
+        publicReplyLabel: "Oeffentliche Antwort",
+        verifiedOwnerReply: "Verifiziert",
         adminToolsLabel: "Admin-Aktionen",
         adminToolsDescription: "Antwort veroeffentlichen oder diese Bewertung aus der Website entfernen.",
         replyFieldLabel: "Oeffentliche Antwort",
@@ -1042,7 +1043,8 @@ function getPublicReviewUiCopy(lang) {
         reviewBadge: "Public review",
         countryFallback: "Country not shared",
         viewPublicReviews: "View public reviews",
-        publicReplyLabel: "Public reply from Sooraj Sudhakaran",
+        publicReplyLabel: "Public reply",
+        verifiedOwnerReply: "Verified",
         adminToolsLabel: "Admin actions",
         adminToolsDescription: "Publish a visible reply or remove this review from the website.",
         replyFieldLabel: "Public reply",
@@ -1139,12 +1141,34 @@ function renderPublicReviewListContent({ list, reviews, copy, lang, isAdminMode 
     const replyDateLabel = replyDate && !Number.isNaN(replyDate.getTime())
       ? formatUpdatedTimestamp(replyDate, lang)
       : "";
+    const reviewerInitials = review.reviewerName
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part.charAt(0).toUpperCase())
+      .join("") || "R";
+    const reviewTitle = String(review.reviewTitle || "").trim();
+    const reviewText = String(review.reviewText || "").trim();
+    const shouldShowReviewTitle = reviewTitle && reviewTitle.toLowerCase() !== reviewText.toLowerCase();
     const replyBlock = review.adminReply
       ? `
-        <div class="feedback-public-review-reply">
-          <span class="feedback-public-review-reply-label">${escapeHtml(copy.publicReplyLabel)}</span>
-          <p class="feedback-public-review-reply-text">${escapeHtml(review.adminReply)}</p>
-          ${replyDateLabel ? `<small class="feedback-public-review-reply-date">${escapeHtml(replyDateLabel)}</small>` : ""}
+        <div class="feedback-public-review-reply-shell">
+          <div class="feedback-public-review-reply">
+            <div class="feedback-public-review-reply-head">
+              <div class="feedback-public-review-reply-brand">
+                <span class="feedback-public-review-reply-mark" aria-hidden="true"></span>
+                <div class="feedback-public-review-reply-copy">
+                  <div class="feedback-public-review-reply-topline">
+                    <strong class="feedback-public-review-reply-owner">Sooraj Sudhakaran</strong>
+                    <span class="feedback-public-review-verified-badge"><span aria-hidden="true">✓</span>${escapeHtml(copy.verifiedOwnerReply)}</span>
+                  </div>
+                  <span class="feedback-public-review-reply-label">${escapeHtml(copy.publicReplyLabel)}</span>
+                </div>
+              </div>
+              ${replyDateLabel ? `<small class="feedback-public-review-reply-date">${escapeHtml(replyDateLabel)}</small>` : ""}
+            </div>
+            <p class="feedback-public-review-reply-text">${escapeHtml(review.adminReply)}</p>
+          </div>
         </div>
       `
       : "";
@@ -1169,14 +1193,21 @@ function renderPublicReviewListContent({ list, reviews, copy, lang, isAdminMode 
 
     card.innerHTML = `
       <div class="feedback-public-review-head">
-        <div class="feedback-public-review-identity">
-          <strong class="feedback-public-review-name">${escapeHtml(review.reviewerName)}</strong>
-          <span class="feedback-public-review-meta">${escapeHtml(metaParts.join(" • "))}</span>
+        <div class="feedback-public-review-profile">
+          <span class="feedback-public-review-avatar" aria-hidden="true">${escapeHtml(reviewerInitials)}</span>
+          <div class="feedback-public-review-identity">
+            <div class="feedback-public-review-topline">
+              <strong class="feedback-public-review-name">${escapeHtml(review.reviewerName)}</strong>
+              <span class="feedback-public-review-rating">${escapeHtml(ratingLabel)}</span>
+            </div>
+            <span class="feedback-public-review-meta">${escapeHtml(metaParts.join(" • "))}</span>
+          </div>
         </div>
-        <span class="feedback-public-review-rating">${escapeHtml(ratingLabel)}</span>
       </div>
-      ${review.reviewTitle ? `<span class="feedback-public-review-title">${escapeHtml(review.reviewTitle)}</span>` : ""}
-      <p class="feedback-public-review-text">${escapeHtml(review.reviewText)}</p>
+      <div class="feedback-public-review-body">
+        ${shouldShowReviewTitle ? `<span class="feedback-public-review-title">${escapeHtml(reviewTitle)}</span>` : ""}
+        <p class="feedback-public-review-text">${escapeHtml(review.reviewText)}</p>
+      </div>
       ${replyBlock}
       ${adminControls}
     `;
@@ -2096,7 +2127,15 @@ Object.assign(LANGUAGE_TEXT.de, {
   "Feedback and contact": "Feedback und Kontakt",
   "Send feedback or contact me directly.": "Senden Sie Feedback oder kontaktieren Sie mich direkt.",
   "Use this page to share feedback about the portfolio or send a direct contact request. The form submits directly through the website and is not posted publicly.": "Nutzen Sie diese Seite, um Feedback zum Portfolio zu geben oder eine direkte Kontaktanfrage zu senden. Das Formular wird direkt ueber die Website uebermittelt und nicht oeffentlich veroeffentlicht.",
-  "Open Feedback Form": "Feedback-Formular öffnen",
+    "Add your review": "Eigene Bewertung hinzufuegen",
+    "Join the conversation": "Am Gespraech teilnehmen",
+    "Add a public review or send a private message.": "Fuegen Sie eine oeffentliche Bewertung hinzu oder senden Sie eine private Nachricht.",
+    "Publish your review for visitors, or use the contact form for direct professional outreach.": "Veroeffentlichen Sie Ihre Bewertung fuer Besucher oder nutzen Sie das Kontaktformular fuer direkte professionelle Anfragen.",
+    "Published reviews": "Veroeffentlichte Bewertungen",
+    "Read public reviews": "Oeffentliche Bewertungen lesen",
+    "Read public reviews and visible owner replies": "Oeffentliche Bewertungen und sichtbare Antworten des Website-Betreibers lesen",
+    "Review archive": "Bewertungsarchiv",
+    "Open Feedback Form": "Feedback-Formular öffnen",
   "Open feedback form": "Feedback-Formular oeffnen",
   "Open contact form": "Kontaktformular oeffnen",
   "Guidance": "Hinweise",

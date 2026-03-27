@@ -1122,7 +1122,7 @@
                   <strong class="contact-feedback-title">Use the structured feedback form for website comments</strong>
                   <p class="muted">Share portfolio feedback, content corrections, translation notes, or design suggestions through the dedicated form.</p>
                 </div>
-                <a class="btn btn-secondary" href="feedback.html">Open Feedback Form</a>
+                <a class="btn btn-secondary" href="feedback.html?type=contact#feedback-form">Open contact form</a>
               </div>
               <div class="contact-secondary-links">
                 <a href="#where-i-fit">Recruiter: Check Where I Fit</a>
@@ -1317,8 +1317,22 @@
                 <p class="muted review-caption" data-public-review-caption>Awaiting first rated review.</p>
               </div>
 
-              <div class="review-actions">
-                <a class="btn btn-primary" href="feedback.html">Open Feedback Form</a>
+              <div class="review-entry-panel">
+                <div class="review-entry-copy">
+                  <span class="review-entry-kicker">Join the conversation</span>
+                  <strong>Add a public review or send a private message.</strong>
+                  <p class="muted">Publish your review for visitors, or use the contact form for direct professional outreach.</p>
+                </div>
+                <div class="review-actions review-actions-split">
+                  <a class="btn btn-primary review-add-btn" href="feedback.html?type=feedback#feedback-form">
+                    <span class="review-action-icon" aria-hidden="true">+</span>
+                    <span>Add your review</span>
+                  </a>
+                  <a class="btn btn-secondary review-contact-btn" href="feedback.html?type=contact#feedback-form">
+                    <span class="review-action-icon" aria-hidden="true">@</span>
+                    <span>Open contact form</span>
+                  </a>
+                </div>
               </div>
             </article>
 
@@ -1361,16 +1375,16 @@
 
               <div class="review-comments-callout">
                 <div class="review-section-head review-section-head-stack">
-                  <strong>Public review comments</strong>
-                  <small>Expand to read published feedback</small>
+                  <strong>Published reviews</strong>
+                  <small>Read public reviews and visible owner replies</small>
                 </div>
-                <button class="btn btn-secondary review-comments-trigger" type="button" data-public-review-toggle aria-controls="homepage-public-reviews">View public reviews</button>
+                <button class="btn btn-secondary review-comments-trigger" type="button" data-public-review-toggle aria-controls="homepage-public-reviews">Read public reviews</button>
               </div>
 
               <details class="review-comments-panel" id="homepage-public-reviews">
                 <summary>
                   <span class="feedback-disclosure-copy">
-                    <strong>Review list</strong>
+                    <strong>Review archive</strong>
                     <small>Click to expand or collapse</small>
                   </span>
                 </summary>
