@@ -14,6 +14,7 @@ const SUPABASE_SITE_STATE_TABLE = "portfolio_site_state";
 const SUPABASE_SITE_UPDATE_STATE_ID = "public_site_update";
 const SUPABASE_REVIEW_PROMPT_STATE_ID = "public_review_prompt";
 const WEB3FORMS_ENDPOINT = "https://api.web3forms.com/submit";
+const WEB3FORMS_ACCESS_KEY = "d419d102-cb71-4958-b6e7-06fb6001803b";
 const GOOGLE_ANALYTICS_ID = "G-00H12CYMW0";
 const CLARITY_PROJECT_ID = "vz7zebyj7z";
 const REQUEST_CV_PAGE = "request-cv.html";
@@ -1662,9 +1663,21 @@ const LANGUAGE_TEXT = {
     "Industrial robotics exposure through KEBA Group and drag&bot.": "Einblick in die Industrierobotik durch KEBA Group und drag&bot.",
     "KEBA Group profile": "KEBA Group Profil",
     "KEBA Group industrial robotics experience": "Industrierobotik-Erfahrung bei KEBA Group",
+    "KEBA experience overview": "KEBA-Erfahrungsueberblick",
+    "A clearer view of the working student role and the parallel thesis path": "Ein klarerer Blick auf die Werkstudentenrolle und den parallelen Thesis-Weg",
+    "This page now groups the KEBA story into a readable flow: overall context first, then responsibilities, then thesis-linked robotics work, and finally the industrial exposure around it.": "Diese Seite ordnet die KEBA-Story nun in einen gut lesbaren Ablauf: zuerst der Gesamtkontext, dann die Aufgaben, danach die thesisnahe Robotikarbeit und schliesslich die industrielle Einbettung.",
     "KEBA overview": "KEBA-Überblick",
     "This page brings together the full KEBA-related profile: working student responsibilities, the parallel master's thesis in industrial robotics, technical training, project presentations, and exhibition participation that together show an industrially grounded robotics direction.": "Diese Seite bündelt das vollständige KEBA-bezogene Profil: Werkstudententätigkeit, die parallele Masterarbeit in Industrierobotik, technisches Training, Projektpräsentationen und Messebeteiligung, die gemeinsam eine industriell fundierte Robotik-Ausrichtung zeigen.",
     "If you are hiring for robotics or automation, this page is designed to work as one KEBA-focused review page. It combines the working student role, the parallel thesis, KEBA and drag&bot training, technical presentations, and KEBA exhibition participation in one place.": "Wenn Sie für Robotik oder Automatisierung einstellen, ist diese Seite als KEBA-fokussierte Übersichtsseite gedacht. Sie bündelt die Werkstudentenrolle, die parallele Thesis, KEBA- und drag&bot-Trainings, technische Präsentationen und KEBA-Messebeteiligung an einem Ort.",
+    "Role and growth": "Rolle und Entwicklung",
+    "What the working student experience added beyond coursework": "Was die Werkstudentenerfahrung ueber das Studium hinaus hinzugefuegt hat",
+    "The value of this role is that it sits close to real engineering routines, so the portfolio signal is not only academic robotics work but industrial judgment and communication around deployment-facing systems.": "Der Wert dieser Rolle liegt in der Naehe zu echten Engineering-Abläufen. Das Portfoliosignal ist daher nicht nur akademische Robotikarbeit, sondern auch industrielles Urteilsvermoegen und Kommunikation rund um einsatznahe Systeme.",
+    "Thesis-linked robotics work": "Thesis-verknuepfte Robotikarbeit",
+    "The deeper robotics track that ran in parallel with the role": "Die vertiefte Robotikspur, die parallel zur Rolle lief",
+    "Industrial exposure": "Industrielle Einbindung",
+    "Training, presentations, and public-facing KEBA participation": "Training, Praesentationen und oeffentliche KEBA-Praesenz",
+    "Related pages for the full KEBA context": "Verwandte Seiten fuer den gesamten KEBA-Kontext",
+    "Use these pages if you want the thesis breakdown, the full portfolio map, or the journey context around this industrial robotics track.": "Nutzen Sie diese Seiten, wenn Sie die Thesis im Detail, die gesamte Portfolio-Karte oder den Weg hinter dieser Industrierobotik-Ausrichtung sehen moechten.",
     "Company": "Unternehmen",
     "Location": "Standort",
     "Focus": "Fokus",
@@ -1676,17 +1689,30 @@ const LANGUAGE_TEXT = {
     "Industrial robotics thesis at KEBA Group": "Masterarbeit in Industrierobotik bei KEBA Group",
     "The thesis focused on translating robotics logic into industrial machine-operation workflows. It connected planning, execution, and deployment constraints instead of stopping at simulation-only results.": "Die Thesis konzentrierte sich darauf, Robotiklogik in industrielle Maschinenbedienungs-Workflows zu übertragen. Sie verband Planung, Ausführung und Einsatzgrenzen, statt bei reinen Simulationsergebnissen stehenzubleiben.",
     "The thesis focused on translating robotics logic into industrial machine-operation workflows. It connected planning, execution, and deployment constraints rather than stopping at simulation-only results.": "Die Thesis konzentrierte sich darauf, Robotiklogik in industrielle Maschinenbedienungs-Workflows zu übertragen. Sie verband Planung, Ausführung und Einsatzgrenzen, anstatt bei reinen Simulationsergebnissen stehenzubleiben.",
+    "Thesis overview": "Thesis-Ueberblick",
+    "From robot planning logic to industrial execution thinking": "Von Roboter-Planungslogik zu industriellem Ausfuehrungsdenken",
+    "This page now reads as a case study: first the problem and objective, then the technical scope, then the tooling contribution, and finally the industrial value of the work.": "Diese Seite liest sich nun wie eine Fallstudie: zuerst Problem und Ziel, dann der technische Umfang, danach der Tooling-Beitrag und schliesslich der industrielle Mehrwert der Arbeit.",
     "What this experience strengthened": "Was diese Erfahrung gestärkt hat",
     "View thesis details": "Thesis-Details ansehen",
     "Problem space": "Problemstellung",
     "System objective": "Systemziel",
     "The thesis focused on a 6-axis autonomous robot workflow for machine operation. The goal was not only to demonstrate movement, but to make the complete operation flow practical enough for industrial execution logic.": "Die Thesis konzentrierte sich auf einen autonomen 6-Achs-Roboterworkflow für die Maschinenbedienung. Das Ziel war nicht nur, Bewegung zu demonstrieren, sondern den gesamten Ablauf praxisnah genug für industrielle Ausführungslogik zu gestalten.",
+    "The strongest signal here is not only robotics implementation, but the ability to connect planning, gripping, machine interaction, and deployment limits inside one industrial workflow.": "Das staerkste Signal hier ist nicht nur Robotik-Implementierung, sondern die Faehigkeit, Planung, Greiflogik, Maschineninteraktion und Einsatzgrenzen in einem industriellen Workflow zusammenzufuehren.",
+    "Core technical scope": "Kern des technischen Umfangs",
+    "What the thesis had to solve in practice": "Was die Thesis in der Praxis loesen musste",
     "Key work areas": "Zentrale Arbeitsbereiche",
+    "Tooling and delivery": "Tooling und Umsetzung",
+    "Internal tooling, communication, and industrial context": "Internes Tooling, Kommunikation und industrieller Kontext",
     "Joint path planner contribution": "Beitrag zum Gelenkpfadplaner",
     "Engineering challenges addressed": "Bearbeitete Engineering-Herausforderungen",
+    "Why this thesis matters": "Warum diese Thesis wichtig ist",
+    "Technical value and portfolio relevance": "Technischer Mehrwert und Portfolio-Relevanz",
     "Technical value": "Technischer Mehrwert",
     "Presentation and collaboration": "Präsentation und Zusammenarbeit",
     "Supporting industrial exposure": "Begleitende Industrieerfahrung",
+    "Acknowledgement": "Danksagung",
+    "Special thanks to Martin Naumann for his guidance and support during this master's thesis work in the KEBA and drag&bot environment. His supervision, technical input, and practical perspective were valuable in shaping the work from simulation and planning toward industrial execution thinking.": "Besonderer Dank gilt Martin Naumann fuer seine Begleitung und Unterstuetzung waehrend dieser Masterarbeit im KEBA- und drag&bot-Umfeld. Seine Betreuung, technischen Impulse und praktische Perspektive waren wertvoll, um die Arbeit von Simulation und Planung hin zu industriellem Ausfuehrungsdenken weiterzuentwickeln.",
+    "Special thanks to Martin Naumann for his guidance and support during this master's thesis work in the KEBA and drag&amp;bot environment. His supervision, technical input, and practical perspective were valuable in shaping the work from simulation and planning toward industrial execution thinking.": "Besonderer Dank gilt Martin Naumann fuer seine Begleitung und Unterstuetzung waehrend dieser Masterarbeit im KEBA- und drag&bot-Umfeld. Seine Betreuung, technischen Impulse und praktische Perspektive waren wertvoll, um die Arbeit von Simulation und Planung hin zu industriellem Ausfuehrungsdenken weiterzuentwickeln.",
     "Non-Destructive Testing Technician": "ZfP-Techniker",
     "This role built industrial discipline before the robotics-focused phase of my career. It strengthened accuracy, technical reporting habits, and responsibility in engineering-quality environments.": "Diese Rolle hat vor der robotikorientierten Phase meiner Laufbahn industrielle Disziplin aufgebaut. Sie stärkte Genauigkeit, technisches Berichtswesen und Verantwortung in qualitätskritischen Engineering-Umgebungen.",
     "What the role involved": "Aufgaben der Rolle",
@@ -3057,22 +3083,419 @@ function getHomepageReviewPromptCopy(lang) {
   return lang === "de"
     ? {
         kicker: "Portfolio-Feedback",
-        title: "Wie war dieses Portfolio fuer Ihre Einschaetzung?",
-        body: "Wenn diese Portfolio-Seite bei der Bewertung des Profils geholfen hat, koennen Sie in unter einer Minute eine oeffentliche Bewertung oder private Rueckmeldung senden.",
-        primary: "Bewertung starten",
+        intro: "Hallo, ich bin Sooraj.",
+        personaNote: "Danke, dass Sie mein Portfolio pruefen.",
+        title: "Moechten Sie mich schnell erreichen?",
+        body: "Senden Sie eine direkte Kontaktanfrage oder hinterlassen Sie kurzes Portfolio-Feedback.",
+        primary: "Feedback senden",
+        connect: "Sooraj kontaktieren",
         secondary: "Spaeter",
-        note: "Wird nach echter Nutzung oder beim Erreichen des letzten Abschnitts eingeblendet.",
-        close: "Bewertungs-Hinweis schliessen"
+        note: "Ihre Daten bleiben privat. Ich antworte in der Regel per E-Mail.",
+        close: "Bewertungs-Hinweis schliessen",
+        contactTitle: "Direkte Kontaktanfrage",
+        contactBody: "Teilen Sie Ihre Daten unten mit. Die Kontaktanfrage wird direkt per E-Mail an Sooraj Sudhakaran gesendet.",
+        contactNameLabel: "Vollstaendiger Name",
+        contactNamePlaceholder: "Ihr voller Name",
+        contactEmailLabel: "E-Mail",
+        contactEmailPlaceholder: "name@beispiel.de",
+        contactCompanyLabel: "Unternehmen oder Universitaet",
+        contactCompanyPlaceholder: "Unternehmens- oder Hochschulname",
+        contactCountryLabel: "Land",
+        contactCountryPlaceholder: "Land auswaehlen",
+        contactCancel: "Abbrechen",
+        contactSubmit: "Kontaktanfrage senden",
+        contactSubmitting: "Wird gesendet...",
+        contactSuccess: "Kontaktanfrage erfolgreich gesendet.",
+        contactError: "Die Uebermittlung ist fehlgeschlagen. Bitte pruefen Sie Ihre Verbindung und versuchen Sie es erneut.",
+        contactSummaryError: "Bitte fuellen Sie die markierten Felder korrekt aus.",
+        contactRequiredError: "Dieses Feld ist erforderlich.",
+        contactEmailError: "Geben Sie eine gueltige E-Mail-Adresse ein.",
+        contactInvalidError: "Geben Sie einen gueltigen Wert ein.",
+        contactClose: "Kontaktformular schliessen",
+        contactSubject: "Neue Kontaktanfrage ueber den Portfolio-Hinweis",
+        contactRequestTypeLabel: "Anfragetyp",
+        contactRequestTypeValue: "Direkte Kontaktanfrage",
+        contactMailGreeting: "Hallo Sooraj Sudhakaran,",
+        contactMailIntro: "eine Besucherin oder ein Besucher Ihrer Portfolio-Website moechte direkt mit Ihnen Kontakt aufnehmen.",
+        contactMailPageLabel: "Seite",
+        contactMailReplyNote: "Bitte antworten Sie direkt an die oben angegebene E-Mail-Adresse."
       }
     : {
         kicker: "Portfolio feedback",
-        title: "How was this portfolio to review?",
-        body: "If this portfolio page helped you evaluate the profile, you can leave a public review or private feedback in under a minute.",
-        primary: "Start review",
+        intro: "Hi, I'm Sooraj.",
+        personaNote: "Thanks for reviewing my portfolio.",
+        title: "Want a quick way to reach me?",
+        body: "Send a direct contact request or leave short portfolio feedback.",
+        primary: "Leave feedback",
+        connect: "Contact Sooraj",
         secondary: "Maybe later",
-        note: "Shown after real engagement or when you reach the final section.",
-        close: "Dismiss review prompt"
+        note: "Your details stay private. I usually reply by email.",
+        close: "Dismiss review prompt",
+        contactTitle: "Request direct contact",
+        contactBody: "Share your details below and the contact request will be sent directly to Sooraj Sudhakaran by email.",
+        contactNameLabel: "Full name",
+        contactNamePlaceholder: "Your full name",
+        contactEmailLabel: "Email",
+        contactEmailPlaceholder: "your@email.com",
+        contactCompanyLabel: "Company or university",
+        contactCompanyPlaceholder: "Company or university name",
+        contactCountryLabel: "Country",
+        contactCountryPlaceholder: "Select country",
+        contactCancel: "Cancel",
+        contactSubmit: "Send contact request",
+        contactSubmitting: "Sending...",
+        contactSuccess: "Contact request sent successfully.",
+        contactError: "Submission failed. Please check your connection and try again.",
+        contactSummaryError: "Please complete the highlighted fields correctly.",
+        contactRequiredError: "This field is required.",
+        contactEmailError: "Enter a valid email address.",
+        contactInvalidError: "Enter a valid value.",
+        contactClose: "Close contact form",
+        contactSubject: "New contact request from the portfolio prompt",
+        contactRequestTypeLabel: "Request type",
+        contactRequestTypeValue: "Direct contact request",
+        contactMailGreeting: "Hello Sooraj Sudhakaran,",
+        contactMailIntro: "A visitor on your portfolio website wants to contact you directly.",
+        contactMailPageLabel: "Page",
+        contactMailReplyNote: "Please reply directly to the email address above."
       };
+}
+
+function createHomepageContactRequestModal(copy, { onSuccess } = {}) {
+  const modal = document.createElement("div");
+  modal.className = "review-prompt-modal";
+  modal.hidden = true;
+  modal.innerHTML = `
+    <div class="review-prompt-modal-backdrop" data-review-prompt-modal-close></div>
+    <div class="review-prompt-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="review-prompt-contact-title">
+      <button class="review-prompt-modal-close" type="button" data-review-prompt-modal-close aria-label="${escapeHtml(copy.contactClose)}">x</button>
+      <div class="review-prompt-modal-head">
+        <span class="review-prompt-kicker">${escapeHtml(copy.connect)}</span>
+        <h2 id="review-prompt-contact-title">${escapeHtml(copy.contactTitle)}</h2>
+        <p>${escapeHtml(copy.contactBody)}</p>
+      </div>
+      <form class="review-prompt-contact-form" data-review-prompt-contact-form action="${WEB3FORMS_ENDPOINT}" method="POST" novalidate>
+        <input type="hidden" name="access_key" value="${WEB3FORMS_ACCESS_KEY}" />
+        <input type="hidden" name="from_name" value="Sooraj Sudhakaran Portfolio" />
+        <input type="hidden" name="subject" value="${escapeHtml(copy.contactSubject)}" />
+        <input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off" hidden />
+        <div class="feedback-grid review-prompt-contact-grid">
+          <label class="feedback-field">
+            <span>${escapeHtml(copy.contactNameLabel)} <span class="feedback-required-star" aria-hidden="true">*</span></span>
+            <input type="text" name="fullName" autocomplete="name" placeholder="${escapeHtml(copy.contactNamePlaceholder)}" required />
+          </label>
+          <label class="feedback-field">
+            <span>${escapeHtml(copy.contactEmailLabel)} <span class="feedback-required-star" aria-hidden="true">*</span></span>
+            <input type="email" name="email" autocomplete="email" inputmode="email" placeholder="${escapeHtml(copy.contactEmailPlaceholder)}" required />
+          </label>
+          <label class="feedback-field">
+            <span>${escapeHtml(copy.contactCompanyLabel)} <span class="feedback-required-star" aria-hidden="true">*</span></span>
+            <input type="text" name="company" autocomplete="organization" placeholder="${escapeHtml(copy.contactCompanyPlaceholder)}" required />
+          </label>
+          <label class="feedback-field">
+            <span>${escapeHtml(copy.contactCountryLabel)} <span class="feedback-required-star" aria-hidden="true">*</span></span>
+            <select name="country" data-country-select data-country-placeholder="${escapeHtml(copy.contactCountryPlaceholder)}" required></select>
+          </label>
+        </div>
+        <p class="review-prompt-contact-status" data-review-prompt-contact-status hidden></p>
+        <div class="review-prompt-contact-actions">
+          <button class="btn btn-secondary" type="button" data-review-prompt-modal-close>${escapeHtml(copy.contactCancel)}</button>
+          <button class="btn btn-primary" type="submit" data-review-prompt-contact-submit>${escapeHtml(copy.contactSubmit)}</button>
+        </div>
+      </form>
+    </div>
+  `;
+  document.body.append(modal);
+  populateCountrySelects(modal);
+
+  const form = modal.querySelector("[data-review-prompt-contact-form]");
+  const submitButton = modal.querySelector("[data-review-prompt-contact-submit]");
+  const status = modal.querySelector("[data-review-prompt-contact-status]");
+  const fields = Array.from(modal.querySelectorAll("input, select"));
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  let lastFocusedElement = null;
+
+  const setStatus = (message = "", state = "error") => {
+    if (!status) return;
+    status.textContent = message;
+    status.dataset.state = state;
+    status.hidden = !message;
+  };
+
+  const clearStatus = () => {
+    if (!status) return;
+    status.textContent = "";
+    status.hidden = true;
+    delete status.dataset.state;
+  };
+
+  const getValidationTarget = (field) => field.closest(".feedback-field");
+
+  const getValidationMessageElement = (field) => {
+    const target = getValidationTarget(field);
+    if (!target) return null;
+
+    let message = target.querySelector(".feedback-validation-message");
+    if (message) return message;
+
+    message = document.createElement("small");
+    message.className = "feedback-validation-message";
+    message.hidden = true;
+    target.append(message);
+    return message;
+  };
+
+  const getFieldErrorMessage = (field) => {
+    if (field.validity.valueMissing) return copy.contactRequiredError;
+    if (field instanceof HTMLInputElement && field.type === "email") {
+      const value = String(field.value || "").trim();
+      if (field.validity.typeMismatch || (value && !emailPattern.test(value))) {
+        return copy.contactEmailError;
+      }
+    }
+    return copy.contactInvalidError;
+  };
+
+  const clearInvalidState = (field) => {
+    const target = getValidationTarget(field);
+    const message = getValidationMessageElement(field);
+
+    target?.classList.remove("is-invalid", "invalid-bounce");
+    if (message) {
+      message.textContent = "";
+      message.hidden = true;
+    }
+    field.removeAttribute("aria-invalid");
+  };
+
+  const showInvalidState = (field) => {
+    const target = getValidationTarget(field);
+    const message = getValidationMessageElement(field);
+    if (!target) return;
+
+    target.classList.remove("invalid-bounce");
+    void target.offsetWidth;
+    target.classList.add("is-invalid", "invalid-bounce");
+    if (message) {
+      message.textContent = getFieldErrorMessage(field);
+      message.hidden = false;
+    }
+    field.setAttribute("aria-invalid", "true");
+  };
+
+  const normalizeFieldValue = (field) => {
+    if (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement) {
+      field.value = field.value.trim();
+    }
+  };
+
+  const syncFieldValidity = (field) => {
+    normalizeFieldValue(field);
+
+    const value = String(field.value || "").trim();
+    if (field.required && !value) {
+      field.setCustomValidity(copy.contactRequiredError);
+      return;
+    }
+
+    if (field instanceof HTMLInputElement && field.type === "email" && value && !emailPattern.test(value)) {
+      field.setCustomValidity(copy.contactEmailError);
+      return;
+    }
+
+    field.setCustomValidity("");
+  };
+
+  const refreshFieldValidationState = (field, shouldHighlight = false) => {
+    syncFieldValidity(field);
+
+    if (shouldHighlight && !field.checkValidity()) {
+      showInvalidState(field);
+      return;
+    }
+
+    clearInvalidState(field);
+  };
+
+  const getRequiredFields = () =>
+    Array.from(form?.querySelectorAll("[required]") || []).filter((field) => !field.disabled);
+
+  const isFormReady = () =>
+    getRequiredFields().every((field) => {
+      syncFieldValidity(field);
+      return field.checkValidity();
+    });
+
+  const updateSubmitState = () => {
+    if (submitButton) {
+      submitButton.disabled = !isFormReady();
+    }
+  };
+
+  const resetFormState = ({ preserveStatus = false } = {}) => {
+    form?.reset();
+    if (form) {
+      delete form.dataset.showValidation;
+    }
+    populateCountrySelects(modal);
+    if (!preserveStatus) {
+      clearStatus();
+    }
+    fields.forEach((field) => clearInvalidState(field));
+    updateSubmitState();
+  };
+
+  const closeModal = ({ restoreFocus = true } = {}) => {
+    if (modal.hidden) return;
+    modal.hidden = true;
+    document.body.classList.remove("review-prompt-modal-open");
+    clearStatus();
+    if (restoreFocus && lastFocusedElement instanceof HTMLElement) {
+      window.setTimeout(() => lastFocusedElement.focus({ preventScroll: true }), 0);
+    }
+  };
+
+  const openModal = (trigger = document.activeElement) => {
+    lastFocusedElement = trigger instanceof HTMLElement ? trigger : null;
+    resetFormState();
+    modal.hidden = false;
+    document.body.classList.add("review-prompt-modal-open");
+    form?.querySelector('input[name="fullName"]')?.focus();
+  };
+
+  fields.forEach((field) => {
+    field.addEventListener("input", () => {
+      clearStatus();
+      refreshFieldValidationState(field, form?.dataset.showValidation === "true");
+      updateSubmitState();
+    });
+
+    field.addEventListener("blur", () => {
+      clearStatus();
+      refreshFieldValidationState(field, form?.dataset.showValidation === "true");
+      updateSubmitState();
+    });
+  });
+
+  modal.querySelectorAll("[data-review-prompt-modal-close]").forEach((element) => {
+    element.addEventListener("click", () => closeModal());
+  });
+
+  modal.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      event.stopPropagation();
+      closeModal();
+    }
+  });
+
+  form?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    clearStatus();
+    form.dataset.showValidation = "true";
+
+    const requiredFields = getRequiredFields();
+    requiredFields.forEach((field) => refreshFieldValidationState(field, true));
+    updateSubmitState();
+
+    if (!isFormReady()) {
+      setStatus(copy.contactSummaryError, "error");
+      const firstInvalidField = requiredFields.find((field) => !field.checkValidity());
+      firstInvalidField?.focus({ preventScroll: true });
+      return;
+    }
+
+    const formData = new FormData(form);
+    const value = (name) => String(formData.get(name) || "").trim();
+    const fullName = value("fullName");
+    const email = value("email");
+    const company = value("company");
+    const country = value("country");
+    const submittedAt = new Date().toISOString();
+    const lines = [
+      copy.contactMailGreeting,
+      "",
+      copy.contactMailIntro,
+      "",
+      `${copy.contactRequestTypeLabel}: ${copy.contactRequestTypeValue}`,
+      `${copy.contactNameLabel}: ${fullName}`,
+      `${copy.contactEmailLabel}: ${email}`,
+      `${copy.contactCompanyLabel}: ${company}`,
+      `${copy.contactCountryLabel}: ${country}`,
+      `${copy.contactMailPageLabel}: ${window.location.pathname}`,
+      "",
+      copy.contactMailReplyNote
+    ];
+
+    formData.set("subject", copy.contactSubject);
+    formData.set("from_name", "Sooraj Sudhakaran Portfolio");
+    formData.set("replyto", email);
+    formData.set("message", lines.join("\r\n"));
+
+    if (submitButton) {
+      submitButton.disabled = true;
+      submitButton.setAttribute("aria-busy", "true");
+      submitButton.textContent = copy.contactSubmitting;
+    }
+
+    try {
+      const response = await fetch(form.getAttribute("action") || WEB3FORMS_ENDPOINT, {
+        method: "POST",
+        body: formData,
+        headers: {
+          Accept: "application/json"
+        }
+      });
+      const result = await response.json().catch(() => null);
+      if (!response.ok || result?.success === false) {
+        throw new Error(result?.message || "Submission failed");
+      }
+
+      const submissionRecord = {
+        type: "contact",
+        submittedAt
+      };
+      sessionStorage.setItem(STORAGE_FEEDBACK_LAST_SUBMISSION_KEY, JSON.stringify(submissionRecord));
+      persistRecentSubmission(submissionRecord);
+      await recordSharedSubmissionEvent({
+        id: createClientUuid(),
+        type: "contact",
+        country,
+        submittedAt,
+        subject: copy.contactSubject
+      });
+      trackAnalyticsEvent("homepage_review_prompt_contact_submit_success", {
+        page_path: window.location.pathname,
+        has_company: company ? "yes" : "no",
+        has_country: country ? "yes" : "no"
+      });
+
+      resetFormState({ preserveStatus: true });
+      setStatus(copy.contactSuccess, "success");
+      window.setTimeout(() => {
+        closeModal({ restoreFocus: false });
+        onSuccess?.(submissionRecord);
+      }, 900);
+    } catch {
+      trackAnalyticsEvent("homepage_review_prompt_contact_submit_error", {
+        page_path: window.location.pathname
+      });
+      setStatus(copy.contactError, "error");
+    } finally {
+      if (submitButton) {
+        submitButton.removeAttribute("aria-busy");
+        submitButton.textContent = copy.contactSubmit;
+      }
+      updateSubmitState();
+    }
+  });
+
+  updateSubmitState();
+
+  return {
+    openModal,
+    closeModal,
+    isOpen: () => !modal.hidden
+  };
 }
 
 function getHomepageReviewPromptCooldownAnchor(state) {
@@ -7044,20 +7467,31 @@ async function setupHomepageReviewPrompt() {
   prompt.setAttribute("aria-live", "polite");
   prompt.innerHTML = `
     <button class="review-prompt-close" type="button" aria-label="${escapeHtml(copy.close)}">x</button>
-    <span class="review-prompt-kicker">${escapeHtml(copy.kicker)}</span>
+    <div class="review-prompt-persona">
+      <span class="review-prompt-avatar" aria-hidden="true">
+        <img src="assets/images/profile/sooraj-sudhakaran-profile.jpeg" alt="" />
+      </span>
+      <div class="review-prompt-persona-copy">
+        <span class="review-prompt-kicker">${escapeHtml(copy.kicker)}</span>
+        <p class="review-prompt-intro">${escapeHtml(copy.intro)}</p>
+        <p class="review-prompt-persona-note">${escapeHtml(copy.personaNote)}</p>
+      </div>
+    </div>
     <h2 class="review-prompt-title">${escapeHtml(copy.title)}</h2>
     <p class="review-prompt-copy">${escapeHtml(copy.body)}</p>
     <div class="review-prompt-actions">
-      <a class="review-prompt-action review-prompt-action-primary" href="feedback.html?type=feedback#feedback-form">${escapeHtml(copy.primary)}</a>
-      <button class="review-prompt-action review-prompt-action-secondary" type="button">${escapeHtml(copy.secondary)}</button>
+      <button class="review-prompt-action review-prompt-action-primary review-prompt-action-contact" type="button">${escapeHtml(copy.connect)}</button>
+      <a class="review-prompt-action review-prompt-action-feedback" href="feedback.html?type=feedback#feedback-form">${escapeHtml(copy.primary)}</a>
     </div>
+    <button class="review-prompt-action review-prompt-action-secondary" type="button">${escapeHtml(copy.secondary)}</button>
     <p class="review-prompt-note">${escapeHtml(copy.note)}</p>
   `;
   document.body.append(prompt);
 
   const dismissButton = prompt.querySelector(".review-prompt-close");
   const secondaryButton = prompt.querySelector(".review-prompt-action-secondary");
-  const primaryLink = prompt.querySelector(".review-prompt-action-primary");
+  const feedbackLink = prompt.querySelector(".review-prompt-action-feedback");
+  const contactButton = prompt.querySelector(".review-prompt-action-contact");
   const sectionNodes = Array.from(document.querySelectorAll("main section[id], section[id]"));
   const lastSection = sectionNodes.length ? sectionNodes[sectionNodes.length - 1] : null;
   const scrollThreshold = clampNumber(
@@ -7084,7 +7518,19 @@ async function setupHomepageReviewPrompt() {
     });
   };
 
+  const contactModal = createHomepageContactRequestModal(copy, {
+    onSuccess: (submissionRecord) => {
+      recordPromptState({
+        startedAt: submissionRecord.submittedAt
+      });
+      hidePrompt("submitted");
+    }
+  });
+
   const hidePrompt = (reason) => {
+    if (contactModal.isOpen()) {
+      contactModal.closeModal({ restoreFocus: false });
+    }
     if (!isVisible) return;
 
     isVisible = false;
@@ -7148,7 +7594,16 @@ async function setupHomepageReviewPrompt() {
     hidePrompt("dismissed");
   });
 
-  primaryLink?.addEventListener("click", () => {
+  contactButton?.addEventListener("click", () => {
+    const startedAt = new Date().toISOString();
+    recordPromptState({ startedAt });
+    trackAnalyticsEvent("homepage_review_prompt_contact_opened", {
+      page_path: window.location.pathname
+    });
+    contactModal.openModal(contactButton);
+  });
+
+  feedbackLink?.addEventListener("click", () => {
     recordPromptState({ startedAt: new Date().toISOString() });
     trackAnalyticsEvent("homepage_review_prompt_started", {
       page_path: window.location.pathname
@@ -7156,6 +7611,7 @@ async function setupHomepageReviewPrompt() {
   });
 
   document.addEventListener("keydown", (event) => {
+    if (contactModal.isOpen()) return;
     if (event.key === "Escape") {
       hidePrompt("dismissed");
     }
