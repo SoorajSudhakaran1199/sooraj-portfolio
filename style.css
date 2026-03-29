@@ -3243,6 +3243,80 @@ h3 {
   font-size: 0.92rem;
 }
 
+.page-back-button {
+  position: fixed;
+  left: max(1rem, env(safe-area-inset-left));
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  z-index: 45;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.58rem;
+  min-height: 46px;
+  padding: 0.72rem 1rem 0.72rem 0.82rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)),
+    rgba(7, 17, 31, 0.84);
+  color: var(--text);
+  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.page-back-button:hover,
+.page-back-button:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(128, 184, 255, 0.44);
+  box-shadow: 0 22px 40px rgba(0, 0, 0, 0.28);
+}
+
+.page-back-button-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.3rem;
+  height: 1.3rem;
+  border-radius: 999px;
+  background: rgba(128, 184, 255, 0.14);
+}
+
+.page-back-button-icon svg {
+  width: 0.96rem;
+  height: 0.96rem;
+}
+
+.page-back-button-label {
+  white-space: nowrap;
+}
+
+[data-theme="light"] .page-back-button {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.78)),
+    rgba(255, 255, 255, 0.9);
+  color: #0d1b2e;
+  box-shadow: 0 16px 32px rgba(33, 54, 87, 0.12);
+}
+
+[data-theme="light"] .page-back-button:hover,
+[data-theme="light"] .page-back-button:focus-visible {
+  border-color: rgba(31, 111, 235, 0.28);
+  box-shadow: 0 18px 36px rgba(33, 54, 87, 0.16);
+}
+
+[data-theme="light"] .page-back-button-icon {
+  background: rgba(31, 111, 235, 0.1);
+}
+
 .btn-attention {
   position: relative;
   border-color: rgba(89, 226, 188, 0.3);
@@ -11209,6 +11283,10 @@ body.vacuum-detail-page .detail-repo-text {
     --scroll-offset: 96px;
   }
 
+  body.has-page-back-button .page-shell {
+    padding-bottom: 4.9rem;
+  }
+
   .hero {
     padding: 4.35rem 0 2.7rem;
   }
@@ -11332,6 +11410,15 @@ body.vacuum-detail-page .detail-repo-text {
   .mobile-top-quick-actions .btn-mobile-quick-fit {
     justify-content: center;
     margin-left: 0;
+  }
+
+  .page-back-button {
+    left: max(0.95rem, env(safe-area-inset-left));
+    bottom: max(0.95rem, env(safe-area-inset-bottom));
+    min-height: 48px;
+    padding: 0.78rem 1rem 0.78rem 0.86rem;
+    font-size: 0.82rem;
+    letter-spacing: 0.05em;
   }
 
   .nav-actions {

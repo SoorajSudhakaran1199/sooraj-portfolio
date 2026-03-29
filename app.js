@@ -3583,6 +3583,23 @@ function buildOriginUrl(pageName, sectionId) {
   return `${pageName}${sectionId ? `#${sectionId}` : ""}`;
 }
 
+function storeReturnTarget(origin) {
+  if (!origin?.pageName) return;
+
+  try {
+    window.sessionStorage.setItem(
+      STORAGE_RETURN_TARGET_KEY,
+      JSON.stringify({
+        pageName: origin.pageName,
+        sectionId: origin.sectionId,
+        scrollY: Math.max(origin.scrollY || 0, 0)
+      })
+    );
+  } catch (error) {
+    // Ignore storage write issues and allow normal navigation.
+  }
+}
+
 function getStoredDetailOrigin(detailPageName) {
   try {
     const raw = window.sessionStorage.getItem(`${STORAGE_DETAIL_ORIGIN_PREFIX}${detailPageName}`);
@@ -3632,12 +3649,9 @@ function setupDetailOriginTracking() {
   });
 }
 
-function setupSmartDetailBack() {
-  if (!document.body.classList.contains("detail-page")) return;
-  if (document.body.classList.contains("feedback-page")) return;
-  if (document.body.classList.contains("portfolio-map-page")) return;
+function getDetailOriginForPage(detailPageName = getCurrentPageName()) {
+  if (!/^(project|experience)-.+\.html$/.test(detailPageName)) return null;
 
-  const detailPageName = getCurrentPageName();
   const isProjectDetail = /^project-/.test(detailPageName);
   const defaultOrigin = isProjectDetail
     ? {
@@ -3655,7 +3669,17 @@ function setupSmartDetailBack() {
         scrollY: 0
       };
 
-  const origin = getStoredDetailOrigin(detailPageName) || defaultOrigin;
+  return getStoredDetailOrigin(detailPageName) || defaultOrigin;
+}
+
+function setupSmartDetailBack() {
+  if (!document.body.classList.contains("detail-page")) return;
+  if (document.body.classList.contains("feedback-page")) return;
+  if (document.body.classList.contains("portfolio-map-page")) return;
+
+  const origin = getDetailOriginForPage();
+  if (!origin) return;
+
   const lang = resolveInitialLanguage();
   const label = getDetailBackLabel(origin.originType, lang);
   const buttons = document.querySelectorAll(".detail-back, .nav-actions .btn-ghost");
@@ -3664,20 +3688,112 @@ function setupSmartDetailBack() {
     button.setAttribute("href", origin.url);
     button.textContent = label;
     button.addEventListener("click", () => {
-      try {
-        window.sessionStorage.setItem(
-          STORAGE_RETURN_TARGET_KEY,
-          JSON.stringify({
-            pageName: origin.pageName,
-            sectionId: origin.sectionId,
-            scrollY: origin.scrollY
-          })
-        );
-      } catch (error) {
-        // Ignore storage write issues and allow normal navigation.
-      }
+      storeReturnTarget(origin);
     });
   });
+}
+
+function getSafeSameOriginReferrerHref() {
+  if (!document.referrer) return "";
+
+  try {
+    const referrer = new URL(document.referrer);
+    const current = new URL(window.location.href);
+    if (referrer.origin !== current.origin) return "";
+    if (
+      referrer.pathname === current.pathname &&
+      referrer.search === current.search &&
+      referrer.hash === current.hash
+    ) {
+      return "";
+    }
+
+    return `${referrer.pathname}${referrer.search}${referrer.hash}`;
+  } catch (error) {
+    return "";
+  }
+}
+
+function getVisibleBackButtonCopy(lang) {
+  return lang === "de"
+    ? {
+        button: "Zurueck",
+        portfolio: "Zurueck zum Portfolio",
+        contact: "Zurueck zu Kontakt",
+        feedback: "Zurueck zum Feedback-Formular"
+      }
+    : {
+        button: "Back",
+        portfolio: "Back to Portfolio",
+        contact: "Back to Contact",
+        feedback: "Back to Feedback form"
+      };
+}
+
+function getVisibleBackButtonConfig() {
+  const pageName = getCurrentPageName();
+  if (pageName === "index.html") return null;
+
+  const lang = resolveInitialLanguage();
+  const copy = getVisibleBackButtonCopy(lang);
+  const detailOrigin = getDetailOriginForPage(pageName);
+
+  if (detailOrigin) {
+    return {
+      href: detailOrigin.url,
+      label: copy.button,
+      ariaLabel: getDetailBackLabel(detailOrigin.originType, lang),
+      origin: detailOrigin
+    };
+  }
+
+  const referrerHref = getSafeSameOriginReferrerHref();
+  const fallbackTargets = {
+    "journey.html": { href: "index.html#journey-preview", ariaLabel: copy.portfolio },
+    "feedback.html": { href: "index.html#contact", ariaLabel: copy.contact },
+    "request-cv.html": { href: "index.html#contact", ariaLabel: copy.contact },
+    "feedback-thank-you.html": { href: "feedback.html", ariaLabel: copy.feedback },
+    "portfolio-map.html": { href: "index.html", ariaLabel: copy.portfolio }
+  };
+  const fallback = fallbackTargets[pageName] || { href: "index.html", ariaLabel: copy.portfolio };
+
+  return {
+    href: referrerHref || fallback.href,
+    label: copy.button,
+    ariaLabel: fallback.ariaLabel
+  };
+}
+
+function setupVisibleBackButton() {
+  const config = getVisibleBackButtonConfig();
+  if (!config) return;
+  if (document.querySelector("[data-page-back-button]")) return;
+
+  const button = document.createElement("a");
+  button.className = "page-back-button";
+  button.href = config.href;
+  button.setAttribute("data-page-back-button", "");
+  button.setAttribute("aria-label", config.ariaLabel);
+  button.setAttribute("title", config.ariaLabel);
+  button.innerHTML = `
+    <span class="page-back-button-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m15 18-6-6 6-6"></path>
+        <path d="M21 12H9"></path>
+      </svg>
+    </span>
+    <span class="page-back-button-label">${config.label}</span>
+  `;
+
+  if (config.origin) {
+    button.addEventListener("click", () => {
+      storeReturnTarget(config.origin);
+    });
+  }
+
+  document.body.classList.add("has-page-back-button");
+  const shell = document.querySelector(".page-shell");
+  (shell || document.body).append(button);
 }
 
 function setupStoredReturnPosition() {
@@ -7642,6 +7758,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupSectionTargetHighlight();
   setupDetailOriginTracking();
   setupSmartDetailBack();
+  setupVisibleBackButton();
   setupFeedbackForm();
   setupRequestCvForm();
   setupFeedbackThankYouPage();
