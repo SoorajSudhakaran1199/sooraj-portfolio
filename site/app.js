@@ -8,6 +8,7 @@ const STORAGE_FEEDBACK_LAST_SUBMISSION_KEY = "feedback-last-submission";
 const STORAGE_FEEDBACK_LAST_SUBMISSION_PERSISTED_KEY = "feedback-last-submission-persisted";
 const STORAGE_HOMEPAGE_REVIEW_PROMPT_KEY = "homepage-review-prompt-state";
 const STORAGE_PUBLIC_SITE_DEFAULTS_KEY = "public-site-defaults";
+const STORAGE_HELP_BOT_STATE_KEY = "portfolio-help-bot-state";
 const REVIEW_PROMPT_ELIGIBLE_PAGES = new Set(["index.html", "portfolio-map.html", "journey.html"]);
 const SUPABASE_SUBMISSION_EVENTS_TABLE = "portfolio_submission_events";
 const SUPABASE_PUBLIC_REVIEWS_TABLE = "portfolio_public_reviews";
@@ -3961,6 +3962,4302 @@ function setupStoredReturnPosition() {
   window.requestAnimationFrame(() => {
     window.requestAnimationFrame(restore);
   });
+}
+
+function createHelpBotHomeTarget(id) {
+  return { type: "section", page: "index.html", id };
+}
+
+function createHelpBotPageTarget(href, hash = "") {
+  return { type: "page", href, hash };
+}
+
+function createHelpBotExternalTarget(href) {
+  return { type: "external", href };
+}
+
+function createHelpBotCvTarget() {
+  return createHelpBotPageTarget("request-cv.html");
+}
+
+function createHelpBotContactFormTarget() {
+  return createHelpBotPageTarget("feedback.html?type=contact", "feedback-form");
+}
+
+function getPortfolioHelpBotConfig(lang) {
+  if (lang === "de") {
+    return {
+      nudgeBadge: "Sooraj",
+      nudge: "Hallo, ich bin Sooraj. Kann ich Ihnen etwas schneller zeigen?",
+      launcher: "Chat mit Sooraj oeffnen",
+      badge: "AI Assistant von Sooraj",
+      assistantName: "AI Assistant",
+      typingAnnouncement: "Der AI Assistant schreibt gerade.",
+      title: "AI Assistant von Sooraj",
+      lead: "Ich fuehre Sie persoenlich durch Projekte, Erfahrung, Reviews, CV und Kontakt.",
+      endChat: "Chat beenden",
+      continueChat: "Chat fortsetzen",
+      startFresh: "Neu starten",
+      resumeQuestion: "Willkommen zurueck. Moechten Sie dort weitermachen, wo Sie aufgehoert haben, oder einen neuen Chat beginnen?",
+      ended: "Der Chat wurde beendet. Oeffnen Sie den Assistenten jederzeit fuer einen neuen Start.",
+      reset: "Neu starten",
+      close: "Chat schliessen",
+      welcome: "Hallo, ich bin der AI Assistant von Sooraj Sudhakaran. Ich helfe Ihnen dabei, diese Website schneller zu nutzen und die richtigen Bereiche zu finden.",
+      askName: "Bevor ich Sie weiterfuehre: Wie darf ich Sie ansprechen?",
+      askNamePlaceholder: "Geben Sie Ihren Namen ein",
+      askNameSubmit: "Senden",
+      askNameGreeting: (name) => `Hallo ${name}, schoen, dass Sie hier sind.`,
+      askUniversity: (name) => `Prima ${name} 😊 Von welcher Hochschule oder Universitaet kommen Sie?`,
+      askUniversityPlaceholder: "Hochschule oder Universitaet eingeben",
+      askUniversitySubmit: "Weiter",
+      askUniversitySkip: "Ohne Hochschule starten",
+      askUniversityAdd: "Hochschule doch angeben",
+      askUniversityContinue: "Ohne Hochschule fortsetzen",
+      askUniversityConfirmGeneric: (university) => `Nur zur Sicherheit 😊 Meinen Sie ${university}?`,
+      askUniversityConfirmDeggendorf: "Ohh 😄 Meinen Sie die Deggendorf Institute of Technology, Germany?",
+      askUniversityConfirmKtu: "Ohh 😄 Meinen Sie die APJ Abdul Kalam Technological University?",
+      askUniversityConfirmYes: "Ja, genau",
+      askUniversityConfirmRetype: "Nein, neu eingeben",
+      askUniversitySameMatch: (name) => `Wow ${name} 😄✨ Das ist ein direkter Match mit meinem aktuellen Master-in-Mechatronics-Weg in Deutschland. Mein Boss ist ebenfalls mit dieser Deggendorf-Richtung verbunden, deshalb fuehlt sich diese Verbindung gleich besonders nah an.`,
+      askUniversityKtuMatch: (name) => `Wow ${name} 😄✨ Das passt direkt zu meinem Bachelor-in-Mechanical-Engineering-Weg in Indien. Der Bachelor meines Bosses war ebenfalls aus diesem selben Hochschulumfeld. Dadurch wird dieser Austausch gleich noch interessanter.`,
+      askUniversitySaved: (name, university) => `Sehr schoen ${name} 😊 Danke fuer ${university}. Ich behalte das im Hinterkopf und fuehre Sie passend weiter.`,
+      askUniversitySkipped: (name) => `Ohh ${name} 😅 Damit verpassen Sie gerade den kleinen Match mit einem Hochschulweg, den ich gut kenne. Aber kein Problem 😊 Wir koennen direkt weitermachen oder Ihre Hochschule doch noch hinzufuegen.`,
+      askUniversityRetype: "Kein Problem 😊 Schreiben Sie Ihre Hochschule einfach noch einmal.",
+      askNameContinuePrompt: (name) => `Soll ich mit ${name} weitermachen oder wollen Sie den Namen lieber noch einmal neu starten?`,
+      askNameContinueYes: "Ja, weiter",
+      askNameContinueRestart: "Nein, neu starten",
+      askNameRestarting: "Lassen Sie uns ganz entspannt neu starten. Keine Sorge 😊",
+      feedbackPrompt: (name = "") => name
+        ? `Bevor Sie gehen, ${name}: Moechten Sie noch kurzes Feedback hinterlassen?`
+        : "Bevor Sie gehen: Moechten Sie noch kurzes Feedback hinterlassen?",
+      feedbackPublicOption: "Oeffentliche Bewertung",
+      feedbackPrivateOption: "Privates Feedback",
+      feedbackSkipOption: "Ohne Bewertung beenden",
+      feedbackSkipConfirmPromptStudent: (name = "") => name
+        ? `Ohh ${name} 😅 Wenn ich Sie heute nicht gut genug begleitet habe, werde ich am Ende noch von meinem Boss gefragt, warum ich Sie nicht besser unterstuetzt habe.\nWenn Sie moechten, koennen Sie mir mit einer kurzen Bewertung helfen. Ich sammle alles direkt hier im Chat, ohne das lange Feedback-Formular.\nSind Sie sicher, dass Sie ohne Bewertung gehen moechten?`
+        : `Ohh 😅 Wenn ich Sie heute nicht gut genug begleitet habe, werde ich am Ende noch von meinem Boss gefragt, warum ich Sie nicht besser unterstuetzt habe.\nWenn Sie moechten, koennen Sie mir mit einer kurzen Bewertung helfen. Ich sammle alles direkt hier im Chat, ohne das lange Feedback-Formular.\nSind Sie sicher, dass Sie ohne Bewertung gehen moechten?`,
+      feedbackSkipConfirmLeave: "Ja, trotzdem beenden",
+      feedbackSkipConfirmReview: "Nein, ich schreibe eine Bewertung",
+      feedbackIntro: (mode) => mode === "public"
+        ? "Gerne. Ich sammle jetzt die Pflichtangaben fuer eine oeffentliche Bewertung direkt aus diesem Chat."
+        : "Gerne. Ich sammle jetzt die Pflichtangaben fuer ein privates Feedback direkt aus diesem Chat.",
+      feedbackUsingName: (name) => `Ich verwende Ihren Namen als ${name}.`,
+      feedbackNamePrompt: "Welchen Namen soll ich fuer dieses Feedback verwenden?",
+      feedbackNamePlaceholder: "Ihren Namen eingeben",
+      feedbackCompanyPrompt: "Von welchem Unternehmen, welcher Organisation oder Hochschule kommen Sie?",
+      feedbackCompanyPlaceholder: "Unternehmen, Organisation oder Hochschule",
+      feedbackEmailPrompt: "Welche E-Mail-Adresse soll ich mit diesem Feedback speichern?",
+      feedbackEmailPlaceholder: "E-Mail-Adresse eingeben",
+      feedbackCountryPrompt: "Aus welchem Land schreiben Sie?",
+      feedbackCountryPlaceholder: "Land eingeben",
+      feedbackRatingPrompt: "Wie bewerten Sie die Website insgesamt?",
+      feedbackCommentPrompt: (mode) => mode === "public"
+        ? "Schreiben Sie jetzt bitte Ihren Bewertungstext. Dieser Text kann nach Freigabe oeffentlich erscheinen."
+        : "Schreiben Sie jetzt bitte Ihr privates Feedback. Dieser Text bleibt privat.",
+      feedbackCommentPlaceholder: (mode) => mode === "public"
+        ? "Ihre oeffentliche Bewertung"
+        : "Ihr privates Feedback",
+      feedbackContinue: "Weiter",
+      feedbackSubmitPublic: "Bewertung senden",
+      feedbackSubmitPrivate: "Feedback senden",
+      feedbackRetry: "Erneut senden",
+      feedbackEdit: "Text anpassen",
+      feedbackOpenPage: "Feedback-Seite oeffnen",
+      feedbackInvalidName: "Bitte geben Sie einen Namen ein.",
+      feedbackInvalidCompany: "Bitte geben Sie Unternehmen, Organisation oder Hochschule an.",
+      feedbackInvalidEmail: "Bitte geben Sie eine gueltige E-Mail-Adresse ein.",
+      feedbackInvalidCountry: "Bitte geben Sie ein Land ein.",
+      feedbackInvalidComments: "Bitte schreiben Sie einen etwas laengeren Kommentar.",
+      feedbackFailure: "Die Uebermittlung hat gerade nicht funktioniert. Sie koennen es erneut versuchen, Ihren Text anpassen oder die Feedback-Seite direkt oeffnen.",
+      feedbackSuccess: "Vielen Dank fuer Ihr Feedback. Bis bald.",
+      feedbackSkipFarewell: "Vielen Dank. Bis bald.",
+      roleQuestion: "Als welcher Besuchertyp sind Sie heute hier?",
+      optionPrompt: "Wobei soll ich Ihnen als Naechstes helfen?",
+      roles: {
+        recruiter: {
+          label: "Recruiter",
+          intro: "Ich priorisiere jetzt die staerksten Einstiegsseiten fuer Rollen-Fit, industrielle Erfahrung, Thesis, Reviews und schnellen Kontakt.",
+          prompt: "Was moechten Sie zuerst pruefen?",
+          topics: [
+            {
+              id: "fit",
+              label: "Rollen-Fit",
+              response: "Starten Sie mit dem Rollen-Fit-Bereich. Dort sehen Sie am schnellsten, wo das Portfolio fuer Robotik, Automatisierung, Simulation, Regelung und softwareorientierte Engineering-Rollen am staerksten ist.",
+              actions: [
+                { label: "Where I Fit", target: createHelpBotHomeTarget("where-i-fit") },
+                { label: "CV anfragen", target: createHelpBotPageTarget("request-cv.html") },
+                { label: "Kontakt", target: createHelpBotHomeTarget("contact") }
+              ]
+            },
+            {
+              id: "projects",
+              label: "Top-Projekte",
+              response: "Fuer einen schnellen technischen Scan eignen sich besonders der ROS-Vakuumroboter, der Service-Roboter und die Portfolio-Map als Uebersicht ueber alle relevanten Seiten.",
+              actions: [
+                { label: "Autonomer Vakuumroboter", target: createHelpBotPageTarget("project-autonomous-vacuum-robot.html") },
+                { label: "Service-Roboter", target: createHelpBotPageTarget("project-service-robot.html") },
+                { label: "Portfolio-Map", target: createHelpBotPageTarget("portfolio-map.html") }
+              ]
+            },
+            {
+              id: "experience",
+              label: "Industrie-Erfahrung",
+              response: "Der staerkste berufliche Nachweis ist die KEBA-Linie: Master-Thesis plus Werkstudentenrolle in Deutschland. Diese Kombination zeigt industriellen Kontext und technische Umsetzung.",
+              actions: [
+                { label: "KEBA Master-Thesis", target: createHelpBotPageTarget("experience-masters-thesis-keba.html") },
+                { label: "KEBA Werkstudent", target: createHelpBotPageTarget("experience-working-student-keba.html") },
+                { label: "Werdegang", target: createHelpBotPageTarget("journey.html") }
+              ]
+            },
+            {
+              id: "reviews",
+              label: "Reviews und Glaubwuerdigkeit",
+              response: "Sie koennen die hervorgehobenen Reviews direkt auf der Startseite lesen oder die komplette Feedback-Seite fuer oeffentliche Reviews und Kontaktwege oeffnen.",
+              actions: [
+                { label: "Reviews auf der Startseite", target: createHelpBotHomeTarget("reviews") },
+                { label: "Feedback-Seite", target: createHelpBotPageTarget("feedback.html") },
+                { label: "Kontakt", target: createHelpBotHomeTarget("contact") }
+              ]
+            },
+            {
+              id: "contact",
+              label: "CV und Kontakt",
+              response: "Wenn das Profil bereits passt, ist der schnellste naechste Schritt die CV-Anfrage oder direkter Kontakt ueber die Kontaktsektion.",
+              actions: [
+                { label: "CV anfragen", target: createHelpBotCvTarget() },
+                { label: "Kontaktformular", target: createHelpBotContactFormTarget() },
+                { label: "Kontaktbereich", target: createHelpBotHomeTarget("contact") }
+              ]
+            }
+          ]
+        },
+        hiringManager: {
+          label: "Hiring Manager",
+          intro: "Ich fokussiere jetzt auf industrielle Belege, Umsetzungsnaehe, technische Tiefe und direkte Kontaktwege.",
+          prompt: "Welchen Nachweis moechten Sie zuerst sehen?",
+          topics: [
+            {
+              id: "industrial",
+              label: "Industrie-Robotik",
+              response: "Am aussagekraeftigsten sind die KEBA-Seiten. Sie zeigen den industriellen Kontext, Planungslogik und die Arbeit in Deutschland am deutlichsten.",
+              actions: [
+                { label: "KEBA Master-Thesis", target: createHelpBotPageTarget("experience-masters-thesis-keba.html") },
+                { label: "KEBA Werkstudent", target: createHelpBotPageTarget("experience-working-student-keba.html") },
+                { label: "Erfahrungsbereich", target: createHelpBotHomeTarget("experience") }
+              ]
+            },
+            {
+              id: "delivery",
+              label: "Umsetzungsnaehe",
+              response: "Wenn Sie sehen wollen, wie Theorie in praktische Umsetzung uebergeht, sind Thesis, Projektseiten und die Portfolio-Map die schnellsten Einstiege.",
+              actions: [
+                { label: "Portfolio-Map", target: createHelpBotPageTarget("portfolio-map.html") },
+                { label: "Vakuumroboter", target: createHelpBotPageTarget("project-autonomous-vacuum-robot.html") },
+                { label: "Topologie-Bag-Sealer", target: createHelpBotPageTarget("project-topology-bag-sealer.html") }
+              ]
+            },
+            {
+              id: "proof",
+              label: "Projekt-Nachweise",
+              response: "Fuer die technische Arbeitsprobe sind vor allem Robotik- und mechatronische Projektseiten sinnvoll. Sie decken Robotiksoftware, Steuerung und Systemdenken ab.",
+              actions: [
+                { label: "Service-Roboter", target: createHelpBotPageTarget("project-service-robot.html") },
+                { label: "Aktive Fahrwerksregelung", target: createHelpBotPageTarget("project-active-suspension.html") },
+                { label: "Projektbereich", target: createHelpBotHomeTarget("projects") }
+              ]
+            },
+            {
+              id: "reviews",
+              label: "Reviews",
+              response: "Die Reviews geben Ihnen eine schnelle Aussenperspektive. Oeffnen Sie die Review-Sektion oder die Feedback-Seite fuer den gesamten Review-Kontext.",
+              actions: [
+                { label: "Reviews", target: createHelpBotHomeTarget("reviews") },
+                { label: "Feedback-Seite", target: createHelpBotPageTarget("feedback.html") },
+                { label: "Kontakt", target: createHelpBotHomeTarget("contact") }
+              ]
+            },
+            {
+              id: "contact",
+              label: "Kontakt",
+              response: "Wenn Sie bereits einen guten Eindruck haben, fuehren CV-Anfrage, Kontaktbereich und LinkedIn am schnellsten weiter.",
+              actions: [
+                { label: "CV anfragen", target: createHelpBotCvTarget() },
+                { label: "Kontaktformular", target: createHelpBotContactFormTarget() },
+                { label: "Kontaktbereich", target: createHelpBotHomeTarget("contact") }
+              ]
+            }
+          ]
+        },
+        student: {
+          label: "Student",
+          intro: "Ich fuehre Sie jetzt eher durch Studium, Werdegang, Thesis, Zertifikate und ausgewaehlte Projekte.",
+          prompt: "Was moechten Sie zuerst sehen?",
+          topics: [
+            {
+              id: "journey",
+              label: "Studium und Werdegang",
+              response: "Die Journey-Seite zeigt den Weg von Indien nach Deutschland und verbindet Ausbildung, Uebergaenge und technische Richtung sichtbar.",
+              actions: [
+                { label: "Journey", target: createHelpBotPageTarget("journey.html") },
+                { label: "Bildung", target: createHelpBotHomeTarget("education") },
+                { label: "About", target: createHelpBotHomeTarget("about") }
+              ]
+            },
+            {
+              id: "thesis",
+              label: "Master-Thesis",
+              response: "Die KEBA-Thesis ist die beste Seite, wenn Sie sehen wollen, wie akademische Arbeit in einen industriellen Robotik-Kontext uebergeht.",
+              actions: [
+                { label: "KEBA Master-Thesis", target: createHelpBotPageTarget("experience-masters-thesis-keba.html") },
+                { label: "Erfahrung", target: createHelpBotHomeTarget("experience") },
+                { label: "Reviews", target: createHelpBotHomeTarget("reviews") }
+              ]
+            },
+            {
+              id: "projects",
+              label: "Projekte",
+              response: "Fuer einen kompakten Projektueberblick eignen sich der Vakuumroboter, der Service-Roboter und die Portfolio-Map.",
+              actions: [
+                { label: "Vakuumroboter", target: createHelpBotPageTarget("project-autonomous-vacuum-robot.html") },
+                { label: "Service-Roboter", target: createHelpBotPageTarget("project-service-robot.html") },
+                { label: "Portfolio-Map", target: createHelpBotPageTarget("portfolio-map.html") }
+              ]
+            },
+            {
+              id: "certificates",
+              label: "Zertifikate",
+              response: "Im Zertifikate-Bereich finden Sie die kompakteste Sammlung zusaetzlicher Nachweise neben Studium und Projekten.",
+              actions: [
+                { label: "Zertifikate", target: createHelpBotHomeTarget("certificates") },
+                { label: "Bildung", target: createHelpBotHomeTarget("education") },
+                { label: "Journey", target: createHelpBotPageTarget("journey.html") }
+              ]
+            },
+            {
+              id: "reviews",
+              label: "Reviews",
+              response: "Wenn Sie sehen moechten, wie andere die Website und das Profil wahrnehmen, lesen Sie die hervorgehobenen Reviews oder die komplette Feedback-Seite.",
+              actions: [
+                { label: "Reviews", target: createHelpBotHomeTarget("reviews") },
+                { label: "Feedback-Seite", target: createHelpBotPageTarget("feedback.html") },
+                { label: "Kontakt", target: createHelpBotHomeTarget("contact") }
+              ]
+            },
+            {
+              id: "contact",
+              label: "Kontakt",
+              response: "Fuer direkte Fragen fuehren Kontaktbereich und Feedback-Seite am schnellsten weiter.",
+              actions: [
+                { label: "Kontaktformular", target: createHelpBotContactFormTarget() },
+                { label: "Kontaktbereich", target: createHelpBotHomeTarget("contact") },
+                { label: "CV anfragen", target: createHelpBotCvTarget() }
+              ]
+            }
+          ]
+        },
+        collaborator: {
+          label: "Kollaborationspartner",
+          intro: "Ich fokussiere jetzt auf technischen Stack, Projektlogik, GitHub, Portfolio-Map und Kontaktwege.",
+          prompt: "Womit soll ich Sie zuerst weiterleiten?",
+          topics: [
+            {
+              id: "stack",
+              label: "Technischer Stack",
+              response: "Beginnen Sie mit dem Skills-Bereich und pruefen Sie danach die Projektseiten, damit Werkzeuge und Anwendung direkt zusammen sichtbar werden.",
+              actions: [
+                { label: "Skills", target: createHelpBotHomeTarget("skills") },
+                { label: "Projektbereich", target: createHelpBotHomeTarget("projects") },
+                { label: "GitHub", target: createHelpBotExternalTarget("https://github.com/SoorajSudhakaran1199") }
+              ]
+            },
+            {
+              id: "projects",
+              label: "Projekt-Logik",
+              response: "Fuer den technischen Ablauf und das Systemdenken eignen sich Portfolio-Map, Vakuumroboter und Service-Roboter als bester Einstieg.",
+              actions: [
+                { label: "Portfolio-Map", target: createHelpBotPageTarget("portfolio-map.html") },
+                { label: "Vakuumroboter", target: createHelpBotPageTarget("project-autonomous-vacuum-robot.html") },
+                { label: "Service-Roboter", target: createHelpBotPageTarget("project-service-robot.html") }
+              ]
+            },
+            {
+              id: "github",
+              label: "GitHub und Map",
+              response: "Wenn Sie das Profil schnell strukturiert sichten wollen, kombinieren Sie GitHub mit der Portfolio-Map fuer einen schnelleren Ueberblick.",
+              actions: [
+                { label: "GitHub", target: createHelpBotExternalTarget("https://github.com/SoorajSudhakaran1199") },
+                { label: "Portfolio-Map", target: createHelpBotPageTarget("portfolio-map.html") },
+                { label: "Journey", target: createHelpBotPageTarget("journey.html") }
+              ]
+            },
+            {
+              id: "journey",
+              label: "Werdegang",
+              response: "Die Journey-Seite verbindet Hintergrund, Standortwechsel nach Deutschland und technische Entwicklung in einer zusammenhaengenden Geschichte.",
+              actions: [
+                { label: "Journey", target: createHelpBotPageTarget("journey.html") },
+                { label: "About", target: createHelpBotHomeTarget("about") },
+                { label: "Erfahrung", target: createHelpBotHomeTarget("experience") }
+              ]
+            },
+            {
+              id: "reviews",
+              label: "Reviews",
+              response: "Reviews helfen, die Aussenwahrnehmung schnell einzuordnen. Sie koennen die Startseiten-Reviews oder die Feedback-Seite oeffnen.",
+              actions: [
+                { label: "Reviews", target: createHelpBotHomeTarget("reviews") },
+                { label: "Feedback-Seite", target: createHelpBotPageTarget("feedback.html") },
+                { label: "Kontakt", target: createHelpBotHomeTarget("contact") }
+              ]
+            },
+            {
+              id: "contact",
+              label: "Kontakt",
+              response: "Fuer Zusammenarbeit oder technische Rueckfragen fuehren Kontaktbereich, Feedback-Seite und LinkedIn am schnellsten weiter.",
+              actions: [
+                { label: "Kontaktformular", target: createHelpBotContactFormTarget() },
+                { label: "Kontaktbereich", target: createHelpBotHomeTarget("contact") },
+                { label: "CV anfragen", target: createHelpBotCvTarget() }
+              ]
+            }
+          ]
+        },
+        visitor: {
+          label: "Besucher",
+          intro: "Ich gebe Ihnen jetzt einen schnellen Einstieg ueber Ueberblick, Projekte, Werdegang, Reviews und Kontakt.",
+          prompt: "Womit moechten Sie beginnen?",
+          topics: [
+            {
+              id: "overview",
+              label: "Ueberblick",
+              response: "Beginnen Sie mit About, Experience und Where I Fit. Damit erhalten Sie den schnellsten Gesamteindruck von Profil, Richtung und Rolle.",
+              actions: [
+                { label: "About", target: createHelpBotHomeTarget("about") },
+                { label: "Erfahrung", target: createHelpBotHomeTarget("experience") },
+                { label: "Where I Fit", target: createHelpBotHomeTarget("where-i-fit") }
+              ]
+            },
+            {
+              id: "projects",
+              label: "Ausgewaehlte Projekte",
+              response: "Wenn Sie direkt in die Arbeit einsteigen wollen, fuehren Projektbereich, Vakuumroboter und Portfolio-Map am schnellsten weiter.",
+              actions: [
+                { label: "Projektbereich", target: createHelpBotHomeTarget("projects") },
+                { label: "Vakuumroboter", target: createHelpBotPageTarget("project-autonomous-vacuum-robot.html") },
+                { label: "Portfolio-Map", target: createHelpBotPageTarget("portfolio-map.html") }
+              ]
+            },
+            {
+              id: "journey",
+              label: "Journey",
+              response: "Die Journey-Seite zeigt den persoenlichen und technischen Weg kompakt und ist gut geeignet, wenn Sie den Hintergrund hinter dem Portfolio verstehen wollen.",
+              actions: [
+                { label: "Journey", target: createHelpBotPageTarget("journey.html") },
+                { label: "Bildung", target: createHelpBotHomeTarget("education") },
+                { label: "Erfahrung", target: createHelpBotHomeTarget("experience") }
+              ]
+            },
+            {
+              id: "reviews",
+              label: "Reviews",
+              response: "Lesen Sie die hervorgehobenen Reviews direkt auf der Startseite oder oeffnen Sie die Feedback-Seite fuer den ganzen Review- und Kontaktkontext.",
+              actions: [
+                { label: "Reviews", target: createHelpBotHomeTarget("reviews") },
+                { label: "Feedback-Seite", target: createHelpBotPageTarget("feedback.html") },
+                { label: "Kontakt", target: createHelpBotHomeTarget("contact") }
+              ]
+            },
+            {
+              id: "contact",
+              label: "Kontakt",
+              response: "Wenn Sie direkt eine Frage stellen moechten, fuehren Kontaktbereich und Feedback-Seite am schnellsten weiter.",
+              actions: [
+                { label: "Kontaktformular", target: createHelpBotContactFormTarget() },
+                { label: "Kontaktbereich", target: createHelpBotHomeTarget("contact") },
+                { label: "CV anfragen", target: createHelpBotCvTarget() }
+              ]
+            }
+          ]
+        }
+      }
+    };
+  }
+
+  return {
+    nudgeBadge: "Sooraj",
+    nudge: "Hi, I'm Sooraj. Want help finding something faster?",
+    launcher: "Open chat with Sooraj",
+    badge: "AI Assistant of Sooraj",
+    assistantName: "AI Assistant",
+    typingAnnouncement: "The AI Assistant is typing.",
+    title: "AI Assistant of Sooraj",
+    lead: "I can personally guide you through my projects, experience, reviews, CV, and contact paths.",
+    endChat: "End chat",
+    continueChat: "Continue chat",
+    startFresh: "Start fresh",
+    resumeQuestion: "Welcome back. Would you like to continue where you left off or start a new chat?",
+    ended: "The chat has ended. Open the assistant any time to start again.",
+    reset: "Start over",
+    close: "Close chat",
+    welcome: "Hi, I am the AI Assistant of Sooraj Sudhakaran. I can help guide you through the website and quickly take you to the right sections.",
+    askName: "Before I guide you further, what should I call you?",
+    askNamePlaceholder: "Type your name",
+    askNameSubmit: "Send",
+    askNameGreeting: (name) => `Hi ${name}, nice to meet you.`,
+    askUniversity: (name) => `Nice to meet you, ${name} 😊 Which university are you from?`,
+    askUniversityPlaceholder: "Type your university",
+    askUniversitySubmit: "Continue",
+    askUniversitySkip: "Start without university",
+    askUniversityAdd: "Add university",
+    askUniversityContinue: "Continue without university",
+    askUniversityConfirmGeneric: (university) => `Just to confirm 😊 are you from ${university}?`,
+    askUniversityConfirmDeggendorf: "Ohh 😄 are you from Deggendorf Institute of Technology, Germany?",
+    askUniversityConfirmKtu: "Ohh 😄 are you from APJ Abdul Kalam Technological University?",
+    askUniversityConfirmYes: "Yes, that's right",
+    askUniversityConfirmRetype: "No, type again",
+    askUniversitySameMatch: (name) => `Wow ${name} 😄✨ That is a direct match with my current Master's in Mechatronics path in Germany. My boss is also connected to that Deggendorf path, so this connection feels especially close.`,
+    askUniversityKtuMatch: (name) => `Wow ${name} 😄✨ That links directly to my Bachelor's in Mechanical Engineering path in India. My boss's Bachelor's was also from that same university network, so this exchange becomes even more interesting.`,
+    askUniversitySaved: (name, university) => `Nice ${name} 😊 Thanks for sharing ${university}. I’ll keep that in mind while I guide you.`,
+    askUniversitySkipped: (name) => `Ohh ${name} 😅 you just missed the little chance to match with a university path I know well. That is okay though 😊 We can continue, or you can still add your university now.`,
+    askUniversityRetype: "No problem 😊 Please type your university once more.",
+    askNameContinuePrompt: (name) => `Shall I continue with ${name}, or would you like to restart and correct the name first?`,
+    askNameContinueYes: "Yes, continue",
+    askNameContinueRestart: "No, start again",
+    askNameRestarting: "Let’s start again. Don’t worry 😊",
+    feedbackPrompt: (name = "") => name
+      ? `Before you go, ${name}, would you like to leave feedback?`
+      : "Before you go, would you like to leave feedback?",
+    feedbackPublicOption: "Public review",
+    feedbackPrivateOption: "Private feedback",
+    feedbackSkipOption: "End without review",
+    feedbackSkipConfirmPromptStudent: (name = "") => name
+      ? `Ohh ${name} 😅 If I did not guide you properly today, I might end up getting questioned by my boss for not helping you better.\nIf you want, you can keep me safe with a short review. I will collect everything right here in the chat, so you do not need to open the large feedback form.\nAre you sure you want to leave without a review?`
+      : `Ohh 😅 If I did not guide you properly today, I might end up getting questioned by my boss for not helping you better.\nIf you want, you can keep me safe with a short review. I will collect everything right here in the chat, so you do not need to open the large feedback form.\nAre you sure you want to leave without a review?`,
+    feedbackSkipConfirmLeave: "Yes, leave anyway",
+    feedbackSkipConfirmReview: "No, I’ll add a review",
+    feedbackIntro: (mode) => mode === "public"
+      ? "Great. I’ll collect the required details for a public review directly inside this chat."
+      : "Great. I’ll collect the required details for private feedback directly inside this chat.",
+    feedbackUsingName: (name) => `I’ll use your name as ${name}.`,
+    feedbackNamePrompt: "What name should I use for this feedback?",
+    feedbackNamePlaceholder: "Type your name",
+    feedbackCompanyPrompt: "Which company, organisation, or university should I mention?",
+    feedbackCompanyPlaceholder: "Company, organisation, or university",
+    feedbackEmailPrompt: "Which email address should I attach to this feedback?",
+    feedbackEmailPlaceholder: "Type your email address",
+    feedbackCountryPrompt: "Which country are you writing from?",
+    feedbackCountryPlaceholder: "Type your country",
+    feedbackRatingPrompt: "How would you rate the website overall?",
+    feedbackCommentPrompt: (mode) => mode === "public"
+      ? "Please write your review comment now. This text can appear publicly after approval."
+      : "Please write your private feedback now. This stays private.",
+    feedbackCommentPlaceholder: (mode) => mode === "public"
+      ? "Type your public review"
+      : "Type your private feedback",
+    feedbackContinue: "Continue",
+    feedbackSubmitPublic: "Submit review",
+    feedbackSubmitPrivate: "Send feedback",
+    feedbackRetry: "Try again",
+    feedbackEdit: "Edit text",
+    feedbackOpenPage: "Open feedback page",
+    feedbackInvalidName: "Please enter your name.",
+    feedbackInvalidCompany: "Please enter your company, organisation, or university.",
+    feedbackInvalidEmail: "Please enter a valid email address.",
+    feedbackInvalidCountry: "Please enter your country.",
+    feedbackInvalidComments: "Please write a slightly longer comment.",
+    feedbackFailure: "The submission did not go through just now. You can try again, adjust your text, or open the feedback page directly.",
+    feedbackSuccess: "Thank you for your feedback. See you again.",
+    feedbackSkipFarewell: "Thank you. See you again.",
+    roleQuestion: "Who are you visiting as today?",
+    optionPrompt: "What should I help you with next?",
+    roles: {
+      recruiter: {
+        label: "Recruiter",
+        intro: "I’ll prioritise the strongest hiring paths now: role fit, industrial experience, thesis work, reviews, and fast contact options.",
+        prompt: "What would you like to evaluate first?",
+        topics: [
+          {
+            id: "fit",
+            label: "Best role fit",
+            response: "Start with the role-fit section. It gives the fastest summary of where the portfolio is strongest for robotics, automation, simulation, controls, and software-facing engineering roles.",
+            actions: [
+              { label: "Check Where I Fit", target: createHelpBotHomeTarget("where-i-fit") },
+              { label: "Request CV", target: createHelpBotPageTarget("request-cv.html") },
+              { label: "Go to contact", target: createHelpBotHomeTarget("contact") }
+            ]
+          },
+          {
+            id: "projects",
+            label: "Top projects",
+            response: "For a quick technical scan, start with the ROS autonomous vacuum robot, the service robot, and the portfolio map for a faster overview of the portfolio structure.",
+            actions: [
+              { label: "Autonomous vacuum robot", target: createHelpBotPageTarget("project-autonomous-vacuum-robot.html") },
+              { label: "Service robot", target: createHelpBotPageTarget("project-service-robot.html") },
+              { label: "Portfolio map", target: createHelpBotPageTarget("portfolio-map.html") }
+            ]
+          },
+          {
+            id: "experience",
+            label: "Industrial experience",
+            response: "The strongest professional proof is the KEBA path: master's thesis plus working-student experience in Germany. Together they show industrial context and technical execution.",
+            actions: [
+              { label: "KEBA master's thesis", target: createHelpBotPageTarget("experience-masters-thesis-keba.html") },
+              { label: "KEBA working student role", target: createHelpBotPageTarget("experience-working-student-keba.html") },
+              { label: "Journey page", target: createHelpBotPageTarget("journey.html") }
+            ]
+          },
+          {
+            id: "reviews",
+            label: "Reviews and credibility",
+            response: "You can read featured reviews directly on the homepage or open the full feedback page for public reviews and direct contact paths.",
+            actions: [
+              { label: "Open reviews section", target: createHelpBotHomeTarget("reviews") },
+              { label: "Open feedback page", target: createHelpBotPageTarget("feedback.html") },
+              { label: "Go to contact", target: createHelpBotHomeTarget("contact") }
+            ]
+          },
+          {
+            id: "contact",
+            label: "CV and contact",
+            response: "If the profile already looks relevant, the fastest next step is the CV request page or direct contact through the contact section.",
+            actions: [
+              { label: "Request CV", target: createHelpBotCvTarget() },
+              { label: "Open contact form", target: createHelpBotContactFormTarget() },
+              { label: "Open contact section", target: createHelpBotHomeTarget("contact") }
+            ]
+          }
+        ]
+      },
+      hiringManager: {
+        label: "Hiring manager",
+        intro: "I’ll focus on industrial proof, delivery-ready work, technical depth, and direct hiring paths.",
+        prompt: "Which proof would you like to review first?",
+        topics: [
+          {
+            id: "industrial",
+            label: "Industrial robotics proof",
+            response: "The clearest industrial proof is on the KEBA pages. They show the industrial environment, planning logic, and applied robotics work most directly.",
+            actions: [
+              { label: "KEBA master's thesis", target: createHelpBotPageTarget("experience-masters-thesis-keba.html") },
+              { label: "KEBA working student role", target: createHelpBotPageTarget("experience-working-student-keba.html") },
+              { label: "Experience section", target: createHelpBotHomeTarget("experience") }
+            ]
+          },
+          {
+            id: "delivery",
+            label: "Delivery-ready work",
+            response: "If you want to see how study, engineering logic, and practical implementation connect, start with the thesis, project pages, and the portfolio map.",
+            actions: [
+              { label: "Portfolio map", target: createHelpBotPageTarget("portfolio-map.html") },
+              { label: "Autonomous vacuum robot", target: createHelpBotPageTarget("project-autonomous-vacuum-robot.html") },
+              { label: "Topology bag sealer", target: createHelpBotPageTarget("project-topology-bag-sealer.html") }
+            ]
+          },
+          {
+            id: "proof",
+            label: "Project evidence",
+            response: "For technical working proof, the robotics and mechatronics project pages are the best scan. They cover robotics software, controls thinking, and systems engineering.",
+            actions: [
+              { label: "Service robot", target: createHelpBotPageTarget("project-service-robot.html") },
+              { label: "Active suspension", target: createHelpBotPageTarget("project-active-suspension.html") },
+              { label: "Projects section", target: createHelpBotHomeTarget("projects") }
+            ]
+          },
+          {
+            id: "reviews",
+            label: "Reviews and references",
+            response: "Reviews give a fast outside-in perspective. Open the reviews section or the feedback page for the full review context.",
+            actions: [
+              { label: "Open reviews", target: createHelpBotHomeTarget("reviews") },
+              { label: "Open feedback page", target: createHelpBotPageTarget("feedback.html") },
+              { label: "Open contact", target: createHelpBotHomeTarget("contact") }
+            ]
+          },
+          {
+            id: "contact",
+            label: "Contact paths",
+            response: "If you already have a strong signal, the quickest next step is CV request, direct contact, or LinkedIn.",
+            actions: [
+              { label: "Request CV", target: createHelpBotCvTarget() },
+              { label: "Open contact form", target: createHelpBotContactFormTarget() },
+              { label: "Open contact section", target: createHelpBotHomeTarget("contact") }
+            ]
+          }
+        ]
+      },
+      student: {
+        label: "Student",
+        intro: "I’ll guide you through the study path, journey, thesis, certificates, and selected projects.",
+        prompt: "What would you like to see first?",
+        topics: [
+          {
+            id: "journey",
+            label: "Study and journey",
+            response: "The journey page is the best place to understand the path from India to Germany and how the academic route connects to the technical direction.",
+            actions: [
+              { label: "Open journey page", target: createHelpBotPageTarget("journey.html") },
+              { label: "Open education section", target: createHelpBotHomeTarget("education") },
+              { label: "Open about section", target: createHelpBotHomeTarget("about") }
+            ]
+          },
+          {
+            id: "thesis",
+            label: "Master's thesis",
+            response: "The KEBA thesis page is the strongest example of academic work moving into an industrial robotics setting.",
+            actions: [
+              { label: "Open KEBA thesis page", target: createHelpBotPageTarget("experience-masters-thesis-keba.html") },
+              { label: "Open experience section", target: createHelpBotHomeTarget("experience") },
+              { label: "Read reviews", target: createHelpBotHomeTarget("reviews") }
+            ]
+          },
+          {
+            id: "projects",
+            label: "Projects",
+            response: "For a compact project view, the autonomous vacuum robot, service robot, and portfolio map are the best starting points.",
+            actions: [
+              { label: "Autonomous vacuum robot", target: createHelpBotPageTarget("project-autonomous-vacuum-robot.html") },
+              { label: "Service robot", target: createHelpBotPageTarget("project-service-robot.html") },
+              { label: "Portfolio map", target: createHelpBotPageTarget("portfolio-map.html") }
+            ]
+          },
+          {
+            id: "certificates",
+            label: "Certificates",
+            response: "The certificates section is the fastest place to review additional proof alongside education and projects.",
+            actions: [
+              { label: "Open certificates", target: createHelpBotHomeTarget("certificates") },
+              { label: "Open education", target: createHelpBotHomeTarget("education") },
+              { label: "Open journey", target: createHelpBotPageTarget("journey.html") }
+            ]
+          },
+          {
+            id: "reviews",
+            label: "Reviews",
+            response: "If you want to see how others respond to the site and profile, open the featured reviews or the full feedback page.",
+            actions: [
+              { label: "Open reviews", target: createHelpBotHomeTarget("reviews") },
+              { label: "Open feedback page", target: createHelpBotPageTarget("feedback.html") },
+              { label: "Open contact", target: createHelpBotHomeTarget("contact") }
+            ]
+          },
+          {
+            id: "contact",
+            label: "Contact",
+            response: "For direct questions, the contact section and feedback page are the fastest routes.",
+            actions: [
+              { label: "Open contact form", target: createHelpBotContactFormTarget() },
+              { label: "Open contact section", target: createHelpBotHomeTarget("contact") },
+              { label: "Request CV", target: createHelpBotCvTarget() }
+            ]
+          }
+        ]
+      },
+      collaborator: {
+        label: "Collaborator",
+        intro: "I’ll focus on the technical stack, project logic, GitHub, the portfolio map, and contact paths.",
+        prompt: "Where should I route you first?",
+        topics: [
+          {
+            id: "stack",
+            label: "Technical stack",
+            response: "Start with the skills section and then cross-check it with the project pages so tools and applied work are visible together.",
+            actions: [
+              { label: "Open skills section", target: createHelpBotHomeTarget("skills") },
+              { label: "Open projects section", target: createHelpBotHomeTarget("projects") },
+              { label: "Open GitHub", target: createHelpBotExternalTarget("https://github.com/SoorajSudhakaran1199") }
+            ]
+          },
+          {
+            id: "projects",
+            label: "Project walkthrough",
+            response: "For systems thinking and implementation flow, the portfolio map, autonomous vacuum robot, and service robot are the strongest entry points.",
+            actions: [
+              { label: "Open portfolio map", target: createHelpBotPageTarget("portfolio-map.html") },
+              { label: "Autonomous vacuum robot", target: createHelpBotPageTarget("project-autonomous-vacuum-robot.html") },
+              { label: "Service robot", target: createHelpBotPageTarget("project-service-robot.html") }
+            ]
+          },
+          {
+            id: "github",
+            label: "GitHub and map",
+            response: "If you want a faster structural scan, combine GitHub with the portfolio map for both code-facing and website-facing overview.",
+            actions: [
+              { label: "Open GitHub", target: createHelpBotExternalTarget("https://github.com/SoorajSudhakaran1199") },
+              { label: "Open portfolio map", target: createHelpBotPageTarget("portfolio-map.html") },
+              { label: "Open journey page", target: createHelpBotPageTarget("journey.html") }
+            ]
+          },
+          {
+            id: "journey",
+            label: "Journey and context",
+            response: "The journey page connects background, the move to Germany, and the technical direction in one place.",
+            actions: [
+              { label: "Open journey page", target: createHelpBotPageTarget("journey.html") },
+              { label: "Open about section", target: createHelpBotHomeTarget("about") },
+              { label: "Open experience section", target: createHelpBotHomeTarget("experience") }
+            ]
+          },
+          {
+            id: "reviews",
+            label: "Reviews",
+            response: "Reviews are useful for a quick outside-in impression. You can open the homepage reviews or the feedback page.",
+            actions: [
+              { label: "Open reviews", target: createHelpBotHomeTarget("reviews") },
+              { label: "Open feedback page", target: createHelpBotPageTarget("feedback.html") },
+              { label: "Open contact", target: createHelpBotHomeTarget("contact") }
+            ]
+          },
+          {
+            id: "contact",
+            label: "Contact",
+            response: "For collaboration or technical discussion, the contact section, feedback page, and LinkedIn are the fastest next steps.",
+            actions: [
+              { label: "Open contact form", target: createHelpBotContactFormTarget() },
+              { label: "Open contact section", target: createHelpBotHomeTarget("contact") },
+              { label: "Request CV", target: createHelpBotCvTarget() }
+            ]
+          }
+        ]
+      },
+      visitor: {
+        label: "General visitor",
+        intro: "I’ll give you a fast path through the overview, projects, journey, reviews, and contact pages.",
+        prompt: "Where would you like to start?",
+        topics: [
+          {
+            id: "overview",
+            label: "Start with overview",
+            response: "Start with About, Experience, and Where I Fit. That gives the quickest overall picture of the profile, direction, and strongest role areas.",
+            actions: [
+              { label: "Open about section", target: createHelpBotHomeTarget("about") },
+              { label: "Open experience section", target: createHelpBotHomeTarget("experience") },
+              { label: "Open Where I Fit", target: createHelpBotHomeTarget("where-i-fit") }
+            ]
+          },
+          {
+            id: "projects",
+            label: "Featured projects",
+            response: "If you want to jump straight into the work, go to the projects section, the autonomous vacuum robot page, or the portfolio map.",
+            actions: [
+              { label: "Open projects section", target: createHelpBotHomeTarget("projects") },
+              { label: "Autonomous vacuum robot", target: createHelpBotPageTarget("project-autonomous-vacuum-robot.html") },
+              { label: "Open portfolio map", target: createHelpBotPageTarget("portfolio-map.html") }
+            ]
+          },
+          {
+            id: "journey",
+            label: "Journey",
+            response: "The journey page is the best place if you want the story behind the portfolio, not only the project list.",
+            actions: [
+              { label: "Open journey page", target: createHelpBotPageTarget("journey.html") },
+              { label: "Open education section", target: createHelpBotHomeTarget("education") },
+              { label: "Open experience section", target: createHelpBotHomeTarget("experience") }
+            ]
+          },
+          {
+            id: "reviews",
+            label: "Reviews",
+            response: "You can read the featured reviews directly on the homepage or open the feedback page for the full review and contact context.",
+            actions: [
+              { label: "Open reviews", target: createHelpBotHomeTarget("reviews") },
+              { label: "Open feedback page", target: createHelpBotPageTarget("feedback.html") },
+              { label: "Open contact", target: createHelpBotHomeTarget("contact") }
+            ]
+          },
+          {
+            id: "contact",
+            label: "Contact",
+            response: "If you already know what you need, the contact section and feedback page are the fastest routes.",
+            actions: [
+              { label: "Open contact section", target: createHelpBotHomeTarget("contact") },
+              { label: "Open feedback page", target: createHelpBotPageTarget("feedback.html") },
+              { label: "Open LinkedIn", target: createHelpBotExternalTarget("https://www.linkedin.com/in/sooraj-sudhakaran1999") }
+            ]
+          }
+        ]
+      }
+    }
+  };
+}
+
+function getPortfolioHelpBotArtMarkup(className = "") {
+  const normalizedClass = className ? ` ${className}` : "";
+  return `<img src="assets/images/help-bot-chatbot.svg" alt="" aria-hidden="true" class="help-bot-art${normalizedClass}" />`;
+}
+
+function getPortfolioHelpBotDeeperCopy(lang, roleId, topicId) {
+  const deepPrompts = lang === "de"
+    ? {
+        explainMore: "Mehr erklaeren",
+        otherTopics: "Andere Themen",
+        prompt: "Moechten Sie einen tieferen Ueberblick zu diesem Bereich?",
+        fallback: "Ich kann Ihnen dazu einen tieferen Ueberblick geben und Sie danach direkt zur passenden Seite weiterfuehren."
+      }
+    : {
+        explainMore: "Explain more",
+        otherTopics: "Other topics",
+        prompt: "Would you like a deeper overview of this section?",
+        fallback: "I can give you a deeper overview of this area and then route you directly to the most relevant page."
+      };
+
+  const details = {
+    en: {
+      recruiter: {
+        fit: "This section is a recruiter-facing summary layer. It groups the portfolio into likely role matches such as robotics software, industrial automation, simulation, controls, and systems-oriented engineering.\nIt is useful when you want a fast decision on relevance before opening detail pages. The goal is not only to list skills, but to show where the profile is strongest in hiring terms.",
+        projects: "This path is about technical proof. The project selection combines robotics software, embedded and mechatronic thinking, and practical engineering implementation across different difficulty levels.\nIt helps you quickly judge how I handle autonomy, simulation, system integration, and engineering execution instead of only reading a profile summary.",
+        experience: "This section is the strongest professional evidence line in the portfolio. It connects master's thesis work and industrial working-student experience in Germany, which gives stronger hiring credibility than isolated academic projects.\nIt is the right place if you want to evaluate readiness for industrial robotics and structured engineering environments.",
+        reviews: "This section adds outside-in credibility. It shows how other people responded to the work, the portfolio, and the professional impression created by the profile.\nIt works best as a supporting layer after you have seen projects or experience, because it reinforces trust and professionalism.",
+        contact: "This path is for moving from evaluation to action. It keeps CV request, direct contact, and LinkedIn close together so a recruiter does not have to search for the next hiring step.\nIt is intentionally simple and conversion-oriented."
+      },
+      hiringManager: {
+        industrial: "This section is aimed at proof of industrial relevance. The KEBA work shows planning context, robotics execution, and engineering work in a real company setting rather than only in coursework.\nIf you are evaluating practical readiness, this is one of the strongest parts of the portfolio.",
+        delivery: "This path focuses on whether the work looks deliverable, not only technically interesting. It links portfolio map, thesis, and projects to show how I move from concept and simulation into structured implementation.\nThat makes it useful for managers checking execution potential.",
+        proof: "This section is about technical evidence. It uses selected projects to show systems thinking, motion and control logic, robotics integration, and the ability to explain engineering work clearly.\nIt helps answer whether the portfolio has enough substance beyond a standard resume.",
+        reviews: "This review path helps you see outside perception after you have looked at technical or professional proof. It is useful as a validation layer for trust, communication, and credibility.\nIt should support a hiring decision, not replace the technical evidence.",
+        contact: "This path is for moving into real hiring action. It keeps the CV request and direct contact steps immediately available once the profile looks relevant.\nIt is designed to reduce friction at the decision point."
+      },
+      student: {
+        journey: "This section is about the overall path behind the portfolio. It connects the move from India to Germany, academic development, engineering direction, and how robotics became the stronger focus over time.\nIt is useful if you want context, motivation, and study progression rather than only a project list.",
+        thesis: "This section is about the master's thesis as a bridge between higher study and industrial robotics. It shows that the academic track did not stay theoretical but moved into company-facing technical work.\nIt is one of the strongest pages for understanding advanced study with practical relevance.",
+        projects: "This section gives a broader view of technical learning through implementation. The selected projects show how robotics, mechatronics, and engineering logic were applied in different formats rather than only described in text.\nIt helps students see how academic foundations can translate into real project work.",
+        certificates: "This section works as a supporting layer around the main degree and project pages. It adds smaller but useful signals of continued learning, tooling exposure, and structured self-development.\nIt is best read together with education and project sections.",
+        reviews: "This path shows how the website and profile are perceived by others. For students, it is useful as a credibility and presentation layer after looking at study and project pages.\nIt shows how the overall portfolio comes across to visitors.",
+        contact: "This path keeps the next human step simple. If a student wants to ask a question, connect, or discuss the journey, this section provides the fastest route.\nIt is meant to reduce friction between interest and outreach."
+      },
+      collaborator: {
+        stack: "This section is about tools and engineering foundations. It should be read as a capability map, showing which technologies and working modes appear most often across the portfolio.\nIt becomes more meaningful when paired with project pages that show those tools in action.",
+        projects: "This path is about how technical work is structured. It is useful for collaborators who want to understand system logic, implementation style, and how different projects connect to robotics and mechatronics thinking.\nIt gives a better picture than tools alone.",
+        github: "This path combines the public code-facing identity with the portfolio structure. It helps collaborators see both the external presentation and the code-centered profile.\nThat makes it useful for technical screening before a deeper conversation.",
+        journey: "This section adds the human and professional context behind the technical work. It connects background, education, relocation, and the direction toward robotics work in Germany.\nIt is useful when collaboration depends on understanding the overall path, not only current projects.",
+        reviews: "This review path acts as a trust layer. It can help collaborators understand how the profile is perceived in terms of professionalism, clarity, and presentation.\nIt is supportive context rather than the core technical evidence.",
+        contact: "This path is the direct collaboration route. It keeps communication simple once there is enough interest from the technical or portfolio side.\nIt is intended to make outreach easy and immediate."
+      },
+      visitor: {
+        overview: "This section is the fastest way to understand the whole portfolio without reading every page. It combines profile direction, relevant experience, and role-fit thinking into one starting layer.\nIt is ideal for first-time visitors who want orientation before going deeper.",
+        projects: "This section is the work-facing side of the portfolio. It shows selected engineering projects so a visitor can understand the technical range more quickly than through biography alone.\nIt is the best place to move from impression to proof.",
+        journey: "This section explains the story behind the portfolio. It gives context to the technical work by showing the academic path, the move to Germany, and the progression into robotics.\nIt is useful if you want the narrative behind the profile.",
+        reviews: "This section provides outside feedback from visitors and reviewers. It adds a sense of trust and reception after you have seen the portfolio content itself.\nIt helps answer how the profile is perceived by others.",
+        contact: "This section is the direct communication path. It is for visitors who already know they want to ask something, reach out, or continue the conversation.\nIt keeps the final next step simple."
+      }
+    },
+    de: {
+      recruiter: {
+        fit: "Dieser Bereich ist eine recruiter-orientierte Zusammenfassung. Er ordnet das Portfolio nach moeglichen Rollen wie Robotiksoftware, Industrieautomatisierung, Simulation, Regelung und systemnahem Engineering.\nEr ist sinnvoll, wenn Sie zuerst schnell pruefen moechten, wie gut das Profil generell zu einer Stelle passt, bevor Sie Detailseiten oeffnen.",
+        projects: "Dieser Pfad zeigt vor allem technische Belege. Die Projektwahl verbindet Robotiksoftware, mechatronisches Denken und praktische Engineering-Umsetzung ueber unterschiedliche Schwierigkeitsgrade hinweg.\nSo koennen Sie schneller bewerten, wie ich mit Autonomie, Simulation, Integration und technischer Umsetzung umgehe.",
+        experience: "Dieser Bereich ist die staerkste berufliche Nachweislinie im Portfolio. Er verbindet die Master-Thesis mit der Werkstudentenrolle in Deutschland und ist dadurch als Hiring-Signal staerker als einzelne Studienprojekte.\nWenn Sie industrielle Robotik-Erfahrung pruefen wollen, ist dies ein sehr relevanter Einstieg.",
+        reviews: "Dieser Bereich fuegt eine Aussenperspektive hinzu. Er zeigt, wie andere auf die Arbeit, das Portfolio und den professionellen Eindruck reagieren.\nAm besten wirkt er als zusaetzliche Vertrauensebene nach Projekten oder Erfahrung.",
+        contact: "Dieser Pfad ist fuer den Uebergang von Bewertung zu Handlung gedacht. CV-Anfrage, direkter Kontakt und LinkedIn bleiben bewusst nah beieinander, damit Recruiter schnell weitergehen koennen.\nDer Bereich ist klar und conversion-orientiert gehalten."
+      },
+      hiringManager: {
+        industrial: "Dieser Bereich fokussiert den Nachweis industrieller Relevanz. Die KEBA-Seiten zeigen Planungskontext, Robotikarbeit und technische Umsetzung in einer realen Unternehmensumgebung statt nur im Studienrahmen.\nWenn Sie praktische Einsatzfaehigkeit beurteilen wollen, ist das einer der staerksten Portfolio-Teile.",
+        delivery: "Dieser Pfad fragt eher nach Umsetzungsnaehe als nur nach interessanter Technik. Portfolio-Map, Thesis und Projekte zeigen gemeinsam, wie ich von Konzept und Simulation in eine strukturierte Umsetzung gehe.\nDas ist besonders fuer Hiring Manager nuetzlich.",
+        proof: "Dieser Bereich sammelt technische Belege. Ausgewaehlte Projekte zeigen Systemdenken, Bewegungs- und Regelungslogik, Robotik-Integration und die Faehigkeit, technische Arbeit klar zu erklaeren.\nSo laesst sich besser einschaetzen, ob das Portfolio ueber einen Standard-Lebenslauf hinaus Substanz hat.",
+        reviews: "Der Review-Pfad zeigt die Aussenwahrnehmung, nachdem Sie technische oder berufliche Nachweise gesehen haben. Er ist als Vertrauens- und Kommunikationsschicht sinnvoll.\nEr soll die fachlichen Belege unterstuetzen, nicht ersetzen.",
+        contact: "Dieser Pfad fuehrt in den naechsten Hiring-Schritt. Sobald das Profil relevant wirkt, liegen CV-Anfrage und direkter Kontakt sofort bereit.\nDas reduziert Reibung am Entscheidungspunkt."
+      },
+      student: {
+        journey: "Dieser Bereich zeigt den Gesamtweg hinter dem Portfolio. Er verbindet den Wechsel von Indien nach Deutschland, die akademische Entwicklung und die technische Richtung hin zur Robotik.\nEr ist sinnvoll, wenn Sie Motivation, Kontext und Studienweg verstehen moechten und nicht nur Projekte sehen wollen.",
+        thesis: "Dieser Bereich zeigt die Master-Thesis als Bruecke zwischen weiterfuehrendem Studium und industrieller Robotik. Er macht sichtbar, dass der akademische Weg nicht theoretisch geblieben ist, sondern in reale technische Arbeit uebergegangen ist.\nDas ist eine der staerksten Seiten fuer fortgeschrittenes Studium mit Praxisbezug.",
+        projects: "Dieser Bereich zeigt Lernen durch Umsetzung. Die Projekte machen sichtbar, wie Robotik, Mechatronik und technisches Denken praktisch angewendet wurden, statt nur beschrieben zu werden.\nFuer Studierende ist das hilfreich, um den Uebergang von Studium zu Projektarbeit zu sehen.",
+        certificates: "Dieser Bereich ist eine unterstuetzende Ebene neben Studium und Projekten. Er zeigt kleinere, aber nuetzliche Signale fuer kontinuierliches Lernen, Tool-Erfahrung und strukturierte Weiterentwicklung.\nAm meisten Wert hat er zusammen mit Bildung und Projekten.",
+        reviews: "Dieser Pfad zeigt, wie die Website und das Profil auf andere wirken. Fuer Studierende ist das vor allem als Glaubwuerdigkeits- und Praesentationsschicht interessant, nachdem Studium und Projekte gesehen wurden.\nEr zeigt den Gesamteindruck des Portfolios.",
+        contact: "Dieser Pfad macht den menschlichen naechsten Schritt leicht. Wer Fragen stellen, sich vernetzen oder den Weg besprechen will, kommt hier am schnellsten weiter.\nDer Bereich senkt die Huerde zwischen Interesse und Kontakt."
+      },
+      collaborator: {
+        stack: "Dieser Bereich zeigt Werkzeuge und technische Grundlagen. Er sollte als Faehigkeitskarte gelesen werden, also welche Technologien und Arbeitsweisen im Portfolio am haeufigsten auftauchen.\nBesonders aussagekraeftig wird er zusammen mit den Projektseiten, wo die Tools in Anwendung sichtbar werden.",
+        projects: "Dieser Pfad zeigt, wie technische Arbeit strukturiert ist. Er ist sinnvoll fuer Kollaborationspartner, die Systemlogik, Umsetzungsstil und die Verbindung zwischen Robotik und mechatronischem Denken verstehen wollen.\nDas gibt meist mehr Aussagekraft als eine reine Tool-Liste.",
+        github: "Dieser Pfad kombiniert die code-orientierte Oeffentlichkeit mit der Struktur des Portfolios. So sehen Kollaborationspartner sowohl die technische Aussenwirkung als auch die inhaltliche Website-Struktur.\nDas hilft bei einer schnellen technischen Einordnung.",
+        journey: "Dieser Bereich fuegt den menschlichen und professionellen Kontext hinter der Technik hinzu. Er verbindet Hintergrund, Ausbildung, den Wechsel nach Deutschland und die Entwicklung hin zur Robotikarbeit.\nDas ist hilfreich, wenn Zusammenarbeit auch von Gesamtverstaendnis lebt.",
+        reviews: "Dieser Review-Pfad ist eher eine Vertrauensebene. Er hilft einzuordnen, wie Profil, Professionalitaet und Praesentation auf andere wirken.\nEr ist unterstuetzender Kontext und nicht der Kern des technischen Nachweises.",
+        contact: "Dieser Pfad ist die direkte Kollaborationsroute. Sobald von technischer oder Portfolio-Seite genug Interesse da ist, fuehrt er schnell in eine echte Kommunikation.\nEr soll Zusammenarbeit moeglichst einfach machen."
+      },
+      visitor: {
+        overview: "Dieser Bereich ist der schnellste Weg, das gesamte Portfolio zu verstehen, ohne jede Seite einzeln zu lesen. Profilrichtung, relevante Erfahrung und Rollen-Fit werden hier zusammengefuehrt.\nDas ist ideal fuer Erstbesucher, die zuerst Orientierung wollen.",
+        projects: "Dieser Bereich ist die arbeitsbezogene Seite des Portfolios. Er zeigt ausgewaehlte Engineering-Projekte, damit Besucher die technische Breite schneller erfassen koennen als nur ueber eine Biografie.\nHier geht es vom Eindruck zum Beleg.",
+        journey: "Dieser Bereich erklaert die Geschichte hinter dem Portfolio. Er gibt dem technischen Inhalt Kontext durch Studienweg, den Wechsel nach Deutschland und die Entwicklung hin zur Robotik.\nEr ist sinnvoll, wenn Sie die Erzaehlung hinter dem Profil sehen wollen.",
+        reviews: "Dieser Bereich zeigt Rueckmeldungen von Besuchern und Reviewern. Er fuegt nach dem Portfolio-Inhalt eine weitere Vertrauens- und Eindrucksebene hinzu.\nSo laesst sich besser einschaetzen, wie das Profil auf andere wirkt.",
+        contact: "Dieser Bereich ist der direkte Kommunikationspfad. Er ist fuer Besucher gedacht, die bereits wissen, dass sie fragen, schreiben oder die Unterhaltung fortsetzen moechten.\nDer naechste Schritt bleibt bewusst einfach."
+      }
+    }
+  };
+
+  const languageMap = details[lang === "de" ? "de" : "en"] || details.en;
+  return {
+    ...deepPrompts,
+    detail: languageMap?.[roleId]?.[topicId] || deepPrompts.fallback
+  };
+}
+
+function getPortfolioHelpBotResumeMessage(lang, roleId, pageName, lastNavTarget = null) {
+  const topicMap = {
+    student: {
+      journey: lang === "de" ? "Journey" : "the journey",
+      thesis: lang === "de" ? "die Master-Thesis" : "the master's thesis",
+      projects: lang === "de" ? "die Projekte" : "the projects",
+      certificates: lang === "de" ? "die Zertifikate" : "the certificates",
+      reviews: lang === "de" ? "die Reviews" : "the reviews",
+      contact: lang === "de" ? "den Kontaktbereich" : "the contact section"
+    },
+    recruiter: {
+      fit: lang === "de" ? "den Rollen-Fit" : "role fit",
+      projects: lang === "de" ? "die Projekte" : "the projects",
+      experience: lang === "de" ? "die Erfahrung" : "the experience section",
+      reviews: lang === "de" ? "die Reviews" : "the reviews",
+      contact: lang === "de" ? "den Kontaktweg" : "the contact path"
+    },
+    hiringManager: {
+      industrial: lang === "de" ? "die Industrie-Robotik-Nachweise" : "the industrial robotics proof",
+      delivery: lang === "de" ? "die Umsetzungsnaehe" : "the delivery-ready work",
+      proof: lang === "de" ? "die Projekt-Nachweise" : "the project evidence",
+      reviews: lang === "de" ? "die Reviews" : "the reviews",
+      contact: lang === "de" ? "den Kontaktweg" : "the contact path"
+    },
+    collaborator: {
+      stack: lang === "de" ? "den technischen Stack" : "the technical stack",
+      projects: lang === "de" ? "die Projektlogik" : "the project walkthrough",
+      github: "GitHub",
+      journey: lang === "de" ? "den Werdegang" : "the journey context",
+      reviews: lang === "de" ? "die Reviews" : "the reviews",
+      contact: lang === "de" ? "den Kontaktweg" : "the contact path"
+    },
+    visitor: {
+      overview: lang === "de" ? "den Ueberblick" : "the overview",
+      projects: lang === "de" ? "die Projekte" : "the projects",
+      journey: "Journey",
+      reviews: lang === "de" ? "die Reviews" : "the reviews",
+      contact: lang === "de" ? "den Kontaktbereich" : "the contact section"
+    }
+  };
+
+  const fromHash = lastNavTarget?.id ? String(lastNavTarget.id).trim() : "";
+  const roleTopicLabel = topicMap?.[roleId]?.[fromHash] || "";
+
+  if (lang === "de") {
+    if (/^project-/.test(pageName)) {
+      return roleTopicLabel
+        ? `Willkommen zurueck. Ich hoffe, das Projekt war hilfreich. Sie kamen zuletzt ueber ${roleTopicLabel}. Moechten Sie dort weitermachen oder lieber einen neuen Chat starten?`
+        : "Willkommen zurueck. Ich hoffe, das Projekt war hilfreich. Moechten Sie dort weitermachen, wo Sie aufgehoert haben, oder lieber einen neuen Chat starten?";
+    }
+
+    if (/^experience-/.test(pageName)) {
+      return roleTopicLabel
+        ? `Willkommen zurueck. Ich hoffe, diese Erfahrungsseite war hilfreich. Sie kamen zuletzt ueber ${roleTopicLabel}. Moechten Sie dort weitermachen oder einen neuen Chat beginnen?`
+        : "Willkommen zurueck. Ich hoffe, diese Erfahrungsseite war hilfreich. Moechten Sie dort weitermachen, wo Sie aufgehoert haben, oder einen neuen Chat beginnen?";
+    }
+
+    return roleTopicLabel
+      ? `Willkommen zurueck. Ich hoffe, der letzte Bereich war hilfreich. Sie kamen zuletzt ueber ${roleTopicLabel}. Moechten Sie den Chat fortsetzen oder neu beginnen?`
+      : "Willkommen zurueck. Ich hoffe, der letzte Bereich war hilfreich. Moechten Sie den Chat fortsetzen oder neu beginnen?";
+  }
+
+  if (/^project-/.test(pageName)) {
+    return roleTopicLabel
+      ? `Welcome back. I hope that project was useful. You last came here through ${roleTopicLabel}. Would you like to continue from there or start a new chat?`
+      : "Welcome back. I hope that project was useful. Would you like to continue where you left off or start a new chat?";
+  }
+
+  if (/^experience-/.test(pageName)) {
+    return roleTopicLabel
+      ? `Welcome back. I hope that experience page was useful. You last came here through ${roleTopicLabel}. Would you like to continue from there or start a new chat?`
+      : "Welcome back. I hope that experience page was useful. Would you like to continue where you left off or start a new chat?";
+  }
+
+  return roleTopicLabel
+    ? `Welcome back. I hope the last section was useful. You last came here through ${roleTopicLabel}. Would you like to continue from there or start a new chat?`
+    : "Welcome back. I hope the last section was useful. Would you like to continue where you left off or start a new chat?";
+}
+
+function resolveHelpBotTargetHref(target) {
+  if (!target || typeof target !== "object") return "index.html";
+  if (target.type === "external") return target.href || "index.html";
+  if (target.type === "page") {
+    return `${target.href || "index.html"}${target.hash ? `#${target.hash}` : ""}`;
+  }
+  if (target.type === "section") {
+    const page = target.page || getCurrentPageName();
+    return `${page === getCurrentPageName() ? "" : page}${target.id ? `#${target.id}` : ""}` || "index.html";
+  }
+  return "index.html";
+}
+
+function navigateHelpBotTarget(target, closePanel = () => {}) {
+  const href = resolveHelpBotTargetHref(target);
+  if (target?.type === "external") {
+    closePanel();
+    window.open(href, "_blank", "noopener,noreferrer");
+    return;
+  }
+
+  const destination = new URL(href, window.location.href);
+  const current = new URL(window.location.href);
+  const isSamePage = destination.pathname === current.pathname && destination.search === current.search;
+
+  if (isSamePage && destination.hash) {
+    const id = destination.hash.replace(/^#/, "");
+    const element = document.getElementById(id);
+    if (element) {
+      closePanel();
+      const targetTop = element.getBoundingClientRect().top + window.scrollY - getScrollOffset();
+      window.history.replaceState(null, "", `#${id}`);
+      window.scrollTo({
+        top: Math.max(targetTop, 0),
+        behavior: "smooth"
+      });
+      return;
+    }
+  }
+
+  closePanel();
+  window.location.assign(href);
+}
+
+function setupPortfolioHelpBot() {
+  if (document.querySelector("[data-help-bot-root]")) return;
+
+  const HELP_BOT_NUDGE_INITIAL_DELAY_MS = 1200;
+  const HELP_BOT_NUDGE_AUTO_HIDE_MS = 5200;
+  const HELP_BOT_NUDGE_RESHOW_MS = 28000;
+  const HELP_BOT_NUDGE_MAX_RESHOWS = 1;
+  const HELP_BOT_STATE_VERSION = 7;
+  const HELP_BOT_STATE_TTL_MS = 1000 * 60 * 60 * 24 * 7;
+  const HELP_BOT_STATE_MAX_MESSAGES = 28;
+  const HELP_BOT_FOCUSABLE_SELECTOR = [
+    "a[href]",
+    "button:not([disabled])",
+    "textarea:not([disabled])",
+    "input:not([disabled])",
+    "select:not([disabled])",
+    "[tabindex]:not([tabindex='-1'])"
+  ].join(",");
+  const PANEL_TITLE_ID = "help-bot-panel-title";
+  const PANEL_LEAD_ID = "help-bot-panel-lead";
+
+  const root = document.createElement("div");
+  root.className = "help-bot";
+  root.dataset.helpBotRoot = "true";
+  root.innerHTML = `
+    <button class="help-bot-backdrop" type="button" aria-label="Close"></button>
+    <section class="help-bot-panel" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="${PANEL_TITLE_ID}" aria-describedby="${PANEL_LEAD_ID}" tabindex="-1">
+      <div class="help-bot-panel-head">
+        <div class="help-bot-panel-brand">
+          <span class="help-bot-panel-mark">${getPortfolioHelpBotArtMarkup("help-bot-art-panel")}</span>
+          <div class="help-bot-panel-copy">
+            <span class="help-bot-panel-badge"></span>
+            <strong class="help-bot-panel-title" id="${PANEL_TITLE_ID}"></strong>
+            <p class="help-bot-panel-lead" id="${PANEL_LEAD_ID}"></p>
+          </div>
+        </div>
+        <div class="help-bot-panel-actions">
+          <button class="help-bot-head-btn" type="button" data-help-bot-reset></button>
+          <button class="help-bot-head-btn help-bot-head-btn-close" type="button" data-help-bot-close>&times;</button>
+        </div>
+      </div>
+      <div class="help-bot-messages"></div>
+      <div class="help-bot-composer" hidden>
+        <form class="help-bot-composer-form" data-help-bot-composer-form>
+          <input class="help-bot-composer-input" type="text" name="helpBotComposer" maxlength="40" autocomplete="given-name" />
+          <textarea class="help-bot-composer-textarea" name="helpBotComposerLong" rows="4" maxlength="1200" hidden></textarea>
+          <button class="help-bot-composer-submit" type="submit"></button>
+        </form>
+        <p class="help-bot-composer-note" data-help-bot-composer-note hidden></p>
+      </div>
+    </section>
+    <div class="sr-only help-bot-live-region" data-help-bot-live aria-live="polite" aria-atomic="false"></div>
+    <div class="help-bot-dock">
+      <div class="help-bot-nudge" aria-live="polite">
+        <div class="help-bot-nudge-body">
+          <span class="help-bot-nudge-badge"></span>
+          <p class="help-bot-nudge-text"></p>
+        </div>
+        <button class="help-bot-nudge-close" type="button" data-help-bot-nudge-close aria-label="Close">&times;</button>
+      </div>
+      <button class="help-bot-launcher" type="button" aria-expanded="false">
+        <span class="help-bot-launcher-orbit"></span>
+        <span class="help-bot-launcher-core">
+          <span class="help-bot-launcher-mark">${getPortfolioHelpBotArtMarkup("help-bot-art-launcher")}</span>
+        </span>
+      </button>
+    </div>
+  `;
+
+  document.body.append(root);
+
+  const backdrop = root.querySelector(".help-bot-backdrop");
+  const panel = root.querySelector(".help-bot-panel");
+  const launcher = root.querySelector(".help-bot-launcher");
+  const nudge = root.querySelector(".help-bot-nudge");
+  const nudgeBadge = root.querySelector(".help-bot-nudge-badge");
+  const nudgeText = root.querySelector(".help-bot-nudge-text");
+  const nudgeCloseButton = root.querySelector("[data-help-bot-nudge-close]");
+  const badge = root.querySelector(".help-bot-panel-badge");
+  const title = root.querySelector(".help-bot-panel-title");
+  const lead = root.querySelector(".help-bot-panel-lead");
+  const resetButton = root.querySelector("[data-help-bot-reset]");
+  const closeButton = root.querySelector("[data-help-bot-close]");
+  const messages = root.querySelector(".help-bot-messages");
+  const composer = root.querySelector(".help-bot-composer");
+  const composerForm = root.querySelector("[data-help-bot-composer-form]");
+  const composerInput = root.querySelector(".help-bot-composer-input");
+  const composerTextarea = root.querySelector(".help-bot-composer-textarea");
+  const composerSubmit = root.querySelector(".help-bot-composer-submit");
+  const composerNote = root.querySelector("[data-help-bot-composer-note]");
+  const liveRegion = root.querySelector("[data-help-bot-live]");
+
+  let currentLang = resolveInitialLanguage();
+  let config = getPortfolioHelpBotConfig(currentLang);
+  let currentRoleId = "";
+  let hasConversationBooted = false;
+  let nudgeHideTimer = 0;
+  let nudgeReshowTimer = 0;
+  let nudgeReshowCount = 0;
+  let hasDismissedNudge = false;
+  let activeTypingIndicator = null;
+  let responseToken = 0;
+  let lastFocusedElement = null;
+  const currentPageName = getCurrentPageName();
+
+  const normalizeVisitorName = (value) => String(value || "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 40);
+
+  const normalizeUniversityName = (value) => String(value || "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 90);
+
+  const normalizeFeedbackName = (value) => String(value || "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 80);
+
+  const normalizeFeedbackCompany = (value) => String(value || "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 120);
+
+  const normalizeFeedbackEmail = (value) => String(value || "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 160);
+
+  const normalizeFeedbackCountry = (value) => String(value || "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 80);
+
+  const normalizeFeedbackComments = (value) => String(value || "")
+    .replace(/\r\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim()
+    .slice(0, 1200);
+
+  const isValidFeedbackEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
+  const HELP_BOT_FEEDBACK_FIELDS = ["name", "company", "email", "country", "comments"];
+  const HELP_BOT_PENDING_INPUT_KINDS = ["visitor-name", "student-university", "chat-feedback"];
+
+  const roleNeedsNamePrompt = (roleId) => roleId === "student" || roleId === "visitor";
+  const roleUsesVisitorName = (roleId) => roleId === "student" || roleId === "visitor";
+
+  const normalizeUniversityKey = (value) => normalizeUniversityName(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+
+  const isDeggendorfUniversity = (value) => {
+    const key = normalizeUniversityKey(value);
+    if (!key) return false;
+    return key === "thd"
+      || key === "dit"
+      || key === "deg"
+      || key.includes("deggendorf")
+      || key.includes("deggendorf institute of technology")
+      || key.includes("technical university of deggendorf")
+      || key.includes("th deggendorf");
+  };
+
+  const isKtuUniversity = (value) => {
+    const key = normalizeUniversityKey(value);
+    if (!key) return false;
+    return key === "ktu"
+      || key.includes("abdul kalam")
+      || key.includes("kalam technical")
+      || key.includes("kalam technological")
+      || key.includes("apj")
+      || key.includes("kerala technical")
+      || key.includes("kerala technological")
+      || key.includes("sree buddha")
+      || key === "sbc"
+      || key === "sbce"
+      || key.includes("sree buddha college")
+      || key.includes("sree buddha college of engineering");
+  };
+
+  const normalizeHelpBotUniversityCandidate = (raw) => {
+    const source = raw && typeof raw === "object" ? raw : {};
+    const typed = normalizeUniversityName(source.typed);
+    const canonical = normalizeUniversityName(source.canonical);
+    const matchType = ["generic", "deggendorf", "ktu"].includes(String(source.matchType || "").trim())
+      ? String(source.matchType || "").trim()
+      : "";
+    if (!typed || !canonical || !matchType) return null;
+    return { typed, canonical, matchType };
+  };
+
+  const inferUniversityCandidate = (value) => {
+    const typed = normalizeUniversityName(value);
+    if (!typed) return null;
+    if (isDeggendorfUniversity(typed)) {
+      return {
+        typed,
+        canonical: currentLang === "de"
+          ? "Deggendorf Institute of Technology, Germany"
+          : "Deggendorf Institute of Technology, Germany",
+        matchType: "deggendorf"
+      };
+    }
+    if (isKtuUniversity(typed)) {
+      return {
+        typed,
+        canonical: "APJ Abdul Kalam Technological University",
+        matchType: "ktu"
+      };
+    }
+    return {
+      typed,
+      canonical: typed,
+      matchType: "generic"
+    };
+  };
+
+  const getUniversityConfirmPrompt = (candidate) => {
+    if (!candidate) return "";
+    if (candidate.matchType === "deggendorf") return config.askUniversityConfirmDeggendorf;
+    if (candidate.matchType === "ktu") return config.askUniversityConfirmKtu;
+    return config.askUniversityConfirmGeneric(candidate.canonical);
+  };
+
+  const getUniversityConfirmOptions = () => withEndChatOption([
+    {
+      kind: "student-university-confirm",
+      id: "yes",
+      label: config.askUniversityConfirmYes
+    },
+    {
+      kind: "student-university-confirm",
+      id: "retype",
+      label: config.askUniversityConfirmRetype
+    },
+    {
+      kind: "student-university-confirm",
+      id: "skip",
+      label: config.askUniversityContinue
+    }
+  ]);
+
+  const getStudentNameContinueOptions = () => withEndChatOption([
+    {
+      kind: "student-name-confirm",
+      id: "continue",
+      label: config.askNameContinueYes
+    },
+    {
+      kind: "student-name-confirm",
+      id: "restart",
+      label: config.askNameContinueRestart
+    }
+  ]);
+
+  const getVisitorName = () => normalizeVisitorName(helpBotState.visitorName);
+  const getStudentUniversity = () => normalizeUniversityName(helpBotState.studentUniversity);
+
+  const normalizeHelpBotFeedbackDraft = (raw) => {
+    const source = raw && typeof raw === "object" ? raw : {};
+    const mode = ["public", "private"].includes(String(source.mode || "").trim())
+      ? String(source.mode || "").trim()
+      : "";
+    const field = HELP_BOT_FEEDBACK_FIELDS.includes(String(source.field || "").trim())
+      ? String(source.field || "").trim()
+      : "";
+    const rating = ["1", "2", "3", "4", "5"].includes(String(source.rating || "").trim())
+      ? String(source.rating || "").trim()
+      : "";
+
+    return {
+      mode,
+      field: mode ? field : "",
+      name: mode ? normalizeFeedbackName(source.name) : "",
+      company: mode ? normalizeFeedbackCompany(source.company) : "",
+      email: mode ? normalizeFeedbackEmail(source.email) : "",
+      country: mode ? normalizeFeedbackCountry(source.country) : "",
+      rating: mode ? rating : "",
+      comments: mode ? normalizeFeedbackComments(source.comments) : ""
+    };
+  };
+
+  const getChatFeedbackDraft = () => normalizeHelpBotFeedbackDraft(helpBotState.chatFeedbackDraft);
+
+  const personalizeForNamedVisitor = (text, roleId = currentRoleId) => {
+    const name = getVisitorName();
+    if (!name || !roleUsesVisitorName(roleId)) return text;
+    const message = String(text || "").trim();
+    if (!message) return message;
+    return `${name}, ${message}`;
+  };
+
+  const getComposerMode = () => {
+    if (helpBotState.pendingInputKind === "chat-feedback") {
+      const draft = getChatFeedbackDraft();
+      const mode = draft.mode || "private";
+      switch (draft.field) {
+        case "company":
+          return {
+            placeholder: config.feedbackCompanyPlaceholder,
+            submit: config.feedbackContinue,
+            maxLength: 120,
+            inputKind: "input",
+            inputType: "text",
+            autocomplete: "organization"
+          };
+        case "email":
+          return {
+            placeholder: config.feedbackEmailPlaceholder,
+            submit: config.feedbackContinue,
+            maxLength: 160,
+            inputKind: "input",
+            inputType: "email",
+            autocomplete: "email"
+          };
+        case "country":
+          return {
+            placeholder: config.feedbackCountryPlaceholder,
+            submit: config.feedbackContinue,
+            maxLength: 80,
+            inputKind: "input",
+            inputType: "text",
+            autocomplete: "country-name"
+          };
+        case "comments":
+          return {
+            placeholder: config.feedbackCommentPlaceholder(mode),
+            submit: mode === "public" ? config.feedbackSubmitPublic : config.feedbackSubmitPrivate,
+            maxLength: 1200,
+            inputKind: "textarea",
+            inputType: "text",
+            autocomplete: "off"
+          };
+        case "name":
+        default:
+          return {
+            placeholder: config.feedbackNamePlaceholder,
+            submit: config.feedbackContinue,
+            maxLength: 80,
+            inputKind: "input",
+            inputType: "text",
+            autocomplete: "name"
+          };
+      }
+    }
+
+    if (helpBotState.pendingInputKind === "student-university") {
+      return {
+        placeholder: config.askUniversityPlaceholder,
+        submit: config.askUniversitySubmit,
+        maxLength: 90,
+        inputKind: "input",
+        inputType: "text",
+        autocomplete: "organization"
+      };
+    }
+    return {
+      placeholder: config.askNamePlaceholder,
+      submit: config.askNameSubmit,
+      maxLength: 40,
+      inputKind: "input",
+      inputType: "text",
+      autocomplete: "given-name"
+    };
+  };
+
+  const normalizeHelpBotOption = (option) => {
+    if (!option || typeof option !== "object") return null;
+    const label = String(option.label || "").trim();
+    const kind = String(option.kind || "").trim();
+    const id = String(option.id || "").trim();
+    if (!label || !kind || !id) return null;
+    const badge = String(option.badge || "").trim();
+    return { label, kind, id, ...(badge ? { badge } : {}) };
+  };
+
+  const normalizeHelpBotAction = (action) => {
+    if (!action || typeof action !== "object") return null;
+    const label = String(action.label || "").trim();
+    const target = action.target && typeof action.target === "object" ? action.target : null;
+    if (!label || !target) return null;
+    const badge = String(action.badge || "").trim();
+    return { label, target, ...(badge ? { badge } : {}) };
+  };
+
+  const normalizeHelpBotCard = (card) => {
+    if (!card || typeof card !== "object") return null;
+    const title = String(card.title || "").trim();
+    const text = String(card.text || "").trim();
+    if (!title || !text) return null;
+    const badge = String(card.badge || "").trim();
+    return { title, text, ...(badge ? { badge } : {}) };
+  };
+
+  const normalizeHelpBotMessage = (message) => {
+    if (!message || typeof message !== "object") return null;
+    const sender = message.sender === "user" ? "user" : "bot";
+    const text = String(message.text || "").trim();
+    if (!text) return null;
+    return {
+      sender,
+      text,
+      actions: Array.isArray(message.actions) ? message.actions.map(normalizeHelpBotAction).filter(Boolean) : [],
+      inlineOptions: Array.isArray(message.inlineOptions) ? message.inlineOptions.map(normalizeHelpBotOption).filter(Boolean) : [],
+      cards: Array.isArray(message.cards) ? message.cards.map(normalizeHelpBotCard).filter(Boolean) : []
+    };
+  };
+
+  const normalizeHelpBotState = (raw) => {
+    const source = raw && typeof raw === "object" ? raw : {};
+    const version = Number(source.version || 0);
+    const updatedAt = Number(source.updatedAt || 0);
+    if (version !== HELP_BOT_STATE_VERSION || !updatedAt || Date.now() - updatedAt > HELP_BOT_STATE_TTL_MS) {
+      return {
+        version: HELP_BOT_STATE_VERSION,
+        updatedAt: Date.now(),
+        messages: [],
+        currentRoleId: "",
+        visitorName: "",
+        studentUniversity: "",
+        studentUniversityCandidate: null,
+        chatFeedbackDraft: normalizeHelpBotFeedbackDraft(null),
+        pendingInputKind: "",
+      pendingTopicId: "",
+      hasConversationBooted: false,
+        lastPageName: currentPageName,
+        pendingResumePrompt: false,
+        lastNavTarget: null,
+        topicTrail: []
+      };
+    }
+    const messagesList = Array.isArray(source.messages)
+      ? source.messages.map(normalizeHelpBotMessage).filter(Boolean).slice(-HELP_BOT_STATE_MAX_MESSAGES)
+      : [];
+    return {
+      version: HELP_BOT_STATE_VERSION,
+      updatedAt,
+      messages: messagesList,
+      currentRoleId: String(source.currentRoleId || "").trim(),
+      visitorName: normalizeVisitorName(source.visitorName),
+      studentUniversity: normalizeUniversityName(source.studentUniversity),
+      studentUniversityCandidate: normalizeHelpBotUniversityCandidate(source.studentUniversityCandidate),
+      chatFeedbackDraft: normalizeHelpBotFeedbackDraft(source.chatFeedbackDraft),
+      pendingInputKind: HELP_BOT_PENDING_INPUT_KINDS.includes(String(source.pendingInputKind || "").trim())
+        ? String(source.pendingInputKind || "").trim()
+        : "",
+      pendingTopicId: String(source.pendingTopicId || "").trim(),
+      hasConversationBooted: Boolean(source.hasConversationBooted) && messagesList.length > 0,
+      lastPageName: String(source.lastPageName || "").trim() || currentPageName,
+      pendingResumePrompt: Boolean(source.pendingResumePrompt) && messagesList.length > 0,
+      lastNavTarget: source.lastNavTarget && typeof source.lastNavTarget === "object" ? source.lastNavTarget : null,
+      topicTrail: Array.isArray(source.topicTrail)
+        ? source.topicTrail
+          .map((entry) => {
+            if (!entry || typeof entry !== "object") return null;
+            const roleId = String(entry.roleId || "").trim();
+            const topicId = String(entry.topicId || "").trim();
+            const label = String(entry.label || "").trim();
+            return roleId && topicId && label ? { roleId, topicId, label } : null;
+          })
+          .filter(Boolean)
+          .slice(-12)
+        : []
+    };
+  };
+
+  let helpBotState = normalizeHelpBotState(loadStoredJson(localStorage, STORAGE_HELP_BOT_STATE_KEY));
+  if (helpBotState.messages.length && helpBotState.lastPageName !== currentPageName) {
+    helpBotState.pendingResumePrompt = true;
+  }
+  helpBotState.lastPageName = currentPageName;
+  currentRoleId = helpBotState.currentRoleId;
+  hasConversationBooted = helpBotState.hasConversationBooted;
+
+  const persistHelpBotState = () => {
+    helpBotState.version = HELP_BOT_STATE_VERSION;
+    helpBotState.updatedAt = Date.now();
+    helpBotState.currentRoleId = currentRoleId;
+    helpBotState.visitorName = normalizeVisitorName(helpBotState.visitorName);
+    helpBotState.studentUniversity = normalizeUniversityName(helpBotState.studentUniversity);
+    helpBotState.studentUniversityCandidate = normalizeHelpBotUniversityCandidate(helpBotState.studentUniversityCandidate);
+    helpBotState.chatFeedbackDraft = normalizeHelpBotFeedbackDraft(helpBotState.chatFeedbackDraft);
+    helpBotState.pendingInputKind = HELP_BOT_PENDING_INPUT_KINDS.includes(helpBotState.pendingInputKind)
+      ? helpBotState.pendingInputKind
+      : "";
+    helpBotState.pendingTopicId = String(helpBotState.pendingTopicId || "").trim();
+    helpBotState.messages = helpBotState.messages.slice(-HELP_BOT_STATE_MAX_MESSAGES);
+    helpBotState.topicTrail = Array.isArray(helpBotState.topicTrail) ? helpBotState.topicTrail.slice(-12) : [];
+    helpBotState.hasConversationBooted = hasConversationBooted && helpBotState.messages.length > 0;
+    helpBotState.lastPageName = currentPageName;
+    saveStoredJson(localStorage, STORAGE_HELP_BOT_STATE_KEY, helpBotState);
+  };
+
+  const clearHelpBotState = () => {
+    helpBotState = normalizeHelpBotState(null);
+    currentRoleId = "";
+    hasConversationBooted = false;
+    try {
+      localStorage.removeItem(STORAGE_HELP_BOT_STATE_KEY);
+    } catch {
+      // Ignore storage failures without breaking the assistant UI.
+    }
+  };
+
+  persistHelpBotState();
+
+  const clearNudgeTimers = () => {
+    window.clearTimeout(nudgeHideTimer);
+    window.clearTimeout(nudgeReshowTimer);
+    nudgeHideTimer = 0;
+    nudgeReshowTimer = 0;
+  };
+
+  const hideNudge = ({ scheduleNext = true } = {}) => {
+    root.classList.remove("is-nudge-visible");
+    window.clearTimeout(nudgeHideTimer);
+    nudgeHideTimer = 0;
+    if (scheduleNext && !root.classList.contains("is-open") && !hasDismissedNudge && nudgeReshowCount < HELP_BOT_NUDGE_MAX_RESHOWS) {
+      nudgeReshowTimer = window.setTimeout(() => {
+        if (root.classList.contains("is-open") || hasDismissedNudge || nudgeReshowCount >= HELP_BOT_NUDGE_MAX_RESHOWS) return;
+        nudgeReshowCount += 1;
+        root.classList.add("is-nudge-visible");
+        nudgeHideTimer = window.setTimeout(() => {
+          hideNudge({ scheduleNext: true });
+        }, HELP_BOT_NUDGE_AUTO_HIDE_MS);
+      }, HELP_BOT_NUDGE_RESHOW_MS);
+    }
+  };
+
+  const showNudge = ({ delay = 0 } = {}) => {
+    if (hasDismissedNudge) return;
+    window.clearTimeout(nudgeReshowTimer);
+    nudgeReshowTimer = window.setTimeout(() => {
+      if (root.classList.contains("is-open")) return;
+      root.classList.add("is-nudge-visible");
+      window.clearTimeout(nudgeHideTimer);
+      nudgeHideTimer = window.setTimeout(() => {
+        hideNudge({ scheduleNext: true });
+      }, HELP_BOT_NUDGE_AUTO_HIDE_MS);
+    }, delay);
+  };
+
+  const withEndChatOption = (items = []) => {
+    const normalizedItems = Array.isArray(items) ? items.filter(Boolean) : [];
+    return normalizedItems.some((item) => item.kind === "end-chat")
+      ? normalizedItems
+      : [...normalizedItems, { kind: "end-chat", id: "end-chat", label: config.endChat }];
+  };
+
+  const getRoleOptions = () => withEndChatOption(
+    dedupeHelpBotOptions([
+      ...Object.entries(config.roles).map(([id, role]) => ({
+        kind: "role",
+        id,
+        label: role.label
+      })),
+      getTourStartOption()
+    ])
+  );
+
+  const dedupeHelpBotOptions = (items = []) => {
+    const seen = new Set();
+    return (Array.isArray(items) ? items : []).filter((item) => {
+      if (!item || !item.kind || !item.id || !item.label) return false;
+      const key = `${item.kind}:${item.id}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  };
+
+  const findRoleTopic = (roleId, topicId) => {
+    const role = config.roles[roleId];
+    return role?.topics.find((entry) => entry.id === topicId) || null;
+  };
+
+  const createTopicOption = (roleId, topicId) => {
+    const topic = findRoleTopic(roleId, topicId);
+    return topic ? { kind: "topic", id: topic.id, label: topic.label } : null;
+  };
+
+  const createBadgedAction = (label, target, badge = "") => ({
+    label,
+    target,
+    ...(badge ? { badge } : {})
+  });
+
+  const createBadgedOption = (kind, id, label, badge = "") => ({
+    kind,
+    id,
+    label,
+    ...(badge ? { badge } : {})
+  });
+
+  const getTourStartOption = () => (
+    currentLang === "de"
+      ? createBadgedOption("tour-start", "tour-start", "Portfolio-Schnelltour", "4 Schritte")
+      : createBadgedOption("tour-start", "tour-start", "Fast portfolio tour", "4 steps")
+  );
+
+  const getReviewPathStartOption = () => (
+    currentLang === "de"
+      ? createBadgedOption("review-path-start", "review-path-start", "Review-Ansichten", "Vertrauen")
+      : createBadgedOption("review-path-start", "review-path-start", "Review paths", "Trust")
+  );
+
+  const getTopicTrail = () => (Array.isArray(helpBotState.topicTrail) ? helpBotState.topicTrail : []);
+
+  const recordTopicTrail = (roleId, topic) => {
+    if (!roleId || !topic?.id || !topic?.label) return;
+    const nextEntry = { roleId, topicId: topic.id, label: topic.label };
+    const nextTrail = getTopicTrail()
+      .filter((entry) => !(entry.roleId === roleId && entry.topicId === topic.id))
+      .concat(nextEntry)
+      .slice(-12);
+    helpBotState.topicTrail = nextTrail;
+    persistHelpBotState();
+  };
+
+  const getRoleMilestoneSummary = (roleId = currentRoleId) => {
+    const roleTrail = getTopicTrail().filter((entry) => entry.roleId === roleId);
+    if (roleTrail.length < 2) return null;
+    const lastTwo = roleTrail.slice(-2);
+    if (currentLang === "de") {
+      return {
+        text: `Sie haben bereits ${lastTwo[0].label} und ${lastTwo[1].label} angesehen.`,
+        badge: "Fortschritt"
+      };
+    }
+    return {
+      text: `You have already reviewed ${lastTwo[0].label} and ${lastTwo[1].label}.`,
+      badge: "Progress"
+    };
+  };
+
+  const getTopicConfidenceLine = (roleId, topicId) => {
+    const map = {
+      en: {
+        recruiter: {
+          fit: "This is one of the strongest early screening sections.",
+          projects: "This is one of the strongest proof layers for technical screening.",
+          experience: "This is one of the strongest hiring signals in the portfolio.",
+          reviews: "This is a trust layer, best after projects or experience.",
+          contact: "This is the highest-conversion path once the profile looks relevant."
+        },
+        hiringManager: {
+          industrial: "This is one of the strongest management-facing proof sections.",
+          delivery: "This is useful when you want implementation evidence, not only interest.",
+          proof: "This is one of the strongest technical substantiation layers.",
+          reviews: "This is a supporting trust layer after technical proof.",
+          contact: "This is the most direct next action path."
+        },
+        student: {
+          journey: "This is the strongest context section for the study path.",
+          thesis: "This is one of the strongest academic-to-industry bridge pages.",
+          projects: "This is the clearest practical learning section.",
+          certificates: "This is a supporting proof layer around the core study path.",
+          reviews: "This is more about outside perception than technical depth.",
+          contact: "This is the easiest human next step."
+        },
+        collaborator: {
+          stack: "This is the fastest capability map.",
+          projects: "This is the best systems-thinking checkpoint.",
+          github: "This is the fastest code-facing identity path.",
+          journey: "This is stronger for context than for technical proof.",
+          reviews: "This is a support layer for trust and presentation.",
+          contact: "This is the easiest collaboration handoff."
+        },
+        visitor: {
+          overview: "This is the fastest orientation layer.",
+          projects: "This is the strongest proof-first path.",
+          journey: "This is the strongest story-first path.",
+          reviews: "This is a trust and reception layer.",
+          contact: "This is the direct continuation path."
+        }
+      },
+      de: {
+        recruiter: {
+          fit: "Das ist einer der staerksten Bereiche fuer ein erstes Screening.",
+          projects: "Das ist eine der staerksten technischen Nachweis-Ebenen.",
+          experience: "Das ist eines der staerksten Hiring-Signale im Portfolio.",
+          reviews: "Das ist eher eine Vertrauensebene nach Projekten oder Erfahrung.",
+          contact: "Das ist der direkteste Conversion-Pfad, wenn das Profil passt."
+        },
+        hiringManager: {
+          industrial: "Das ist einer der staerksten management-orientierten Nachweisbereiche.",
+          delivery: "Das ist hilfreich, wenn Sie Umsetzungsnaehe statt nur Interesse sehen wollen.",
+          proof: "Das ist eine der staerksten Ebenen fuer technische Substanz.",
+          reviews: "Das ist eine unterstuetzende Vertrauensebene nach dem technischen Nachweis.",
+          contact: "Das ist der direkteste naechste Handlungspfad."
+        },
+        student: {
+          journey: "Das ist der staerkste Kontextbereich fuer den Studienweg.",
+          thesis: "Das ist eine der staerksten Brueckenseiten zwischen Studium und Industrie.",
+          projects: "Das ist der klarste Bereich fuer praktisches Lernen durch Umsetzung.",
+          certificates: "Das ist eine unterstuetzende Nachweis-Ebene um den Kern des Studienwegs.",
+          reviews: "Das zeigt eher Aussenwahrnehmung als technische Tiefe.",
+          contact: "Das ist der einfachste menschliche naechste Schritt."
+        },
+        collaborator: {
+          stack: "Das ist die schnellste Faehigkeitskarte.",
+          projects: "Das ist der beste Checkpoint fuer Systemdenken.",
+          github: "Das ist der schnellste code-orientierte Einstieg.",
+          journey: "Das ist staerker fuer Kontext als fuer technischen Nachweis.",
+          reviews: "Das ist eine unterstuetzende Ebene fuer Vertrauen und Praesentation.",
+          contact: "Das ist die einfachste Kollaborations-Uebergabe."
+        },
+        visitor: {
+          overview: "Das ist die schnellste Orientierungsebene.",
+          projects: "Das ist der staerkste beweisorientierte Einstieg.",
+          journey: "Das ist der staerkste story-orientierte Einstieg.",
+          reviews: "Das ist eine Vertrauens- und Eindrucksebene.",
+          contact: "Das ist der direkte Fortsetzungspfad."
+        }
+      }
+    };
+
+    const languageMap = map[currentLang === "de" ? "de" : "en"];
+    return languageMap?.[roleId]?.[topicId] || "";
+  };
+
+  const getTransitionLead = (kind, roleId = currentRoleId) => {
+    const byLang = currentLang === "de"
+      ? {
+          role: roleId === "recruiter" || roleId === "hiringManager"
+            ? "Ich richte das jetzt auf eine schnellere Bewertung aus."
+            : "Ich richte das jetzt auf Ihren Besuchstyp aus.",
+          topic: "Lassen Sie mich den naechsten sinnvollen Einstieg eingrenzen.",
+          continue: "Gut, ich knuepfe an den letzten sinnvollen Punkt an.",
+          quick: "Hier ist der kompakteste Bewertungsweg.",
+          tour: "Ich fuehre Sie jetzt in einer kurzen Tour durch die staerksten Stationen.",
+          review: "Ich kann die Reviews nach dem hilfreichsten Blick sortieren."
+        }
+      : {
+          role: roleId === "recruiter" || roleId === "hiringManager"
+            ? "I’ll tighten this into a faster evaluation path."
+            : "I’ll tailor this around your visitor path.",
+          topic: "Let me narrow this down to the strongest next checkpoint.",
+          continue: "I’ll pick up from the strongest next point.",
+          quick: "Here is the most compact evaluation route.",
+          tour: "I’ll guide you through the strongest four-stop tour.",
+          review: "I can sort the reviews by the most useful view."
+        };
+    return byLang[kind] || "";
+  };
+
+  const prependLead = (lead, text) => (lead ? `${lead}\n${text}` : text);
+
+  const getRoleSummaryCards = (roleId = currentRoleId) => {
+    if (roleId === "recruiter") {
+      return currentLang === "de"
+        ? [
+            { badge: "Hiring", title: "Industrielle Robotik", text: "KEBA Thesis + Werkstudent in Deutschland." },
+            { badge: "Proof", title: "Technische Projekte", text: "ROS, Robotik, Systemintegration, Controls." },
+            { badge: "Trust", title: "Reviews", text: "Oeffentliche Rueckmeldungen und sichtbare Owner-Replys." },
+            { badge: "Action", title: "CV / Kontakt", text: "Direkte Hiring-Pfade ohne Umwege." }
+          ]
+        : [
+            { badge: "Hiring", title: "Industrial robotics", text: "KEBA thesis plus working-student proof in Germany." },
+            { badge: "Proof", title: "Technical projects", text: "ROS, robotics, systems integration, and controls." },
+            { badge: "Trust", title: "Reviews", text: "Public feedback and visible owner replies." },
+            { badge: "Action", title: "CV / contact", text: "Direct hiring paths without friction." }
+          ];
+    }
+    if (roleId === "hiringManager") {
+      return currentLang === "de"
+        ? [
+            { badge: "Proof", title: "Industrie-Umfeld", text: "KEBA liefert den klarsten realen Einsatzkontext." },
+            { badge: "Delivery", title: "Umsetzung", text: "Portfolio-Map und Projektseiten zeigen Delivery-Logik." },
+            { badge: "Depth", title: "Technische Substanz", text: "Robotik, Regelung, Simulation und Integration." },
+            { badge: "Action", title: "Naechster Schritt", text: "CV, Kontakt und direkte Bewertungspfad." }
+          ]
+        : [
+            { badge: "Proof", title: "Industrial context", text: "KEBA gives the clearest real-world environment." },
+            { badge: "Delivery", title: "Implementation", text: "The portfolio map and projects show delivery logic." },
+            { badge: "Depth", title: "Technical substance", text: "Robotics, controls, simulation, and integration." },
+            { badge: "Action", title: "Next step", text: "CV, contact, and fast evaluation paths." }
+          ];
+    }
+    return [];
+  };
+
+  const getTourSteps = () => (
+    currentLang === "de"
+      ? [
+          {
+            id: "overview",
+            badge: "Schritt 1",
+            label: "Profil-Ueberblick",
+            text: "Starten Sie mit About, Experience und Where I Fit fuer den schnellsten Gesamtblick.",
+            action: createBadgedAction("Zum Ueberblick", createHelpBotHomeTarget("about"), "Start")
+          },
+          {
+            id: "project",
+            badge: "Schritt 2",
+            label: "Top-Projekt",
+            text: "Der autonome Vakuumroboter ist einer der staerksten technischen Einstiege.",
+            action: createBadgedAction("Zum Vakuumroboter", createHelpBotPageTarget("project-autonomous-vacuum-robot.html"), "Proof")
+          },
+          {
+            id: "proof",
+            badge: "Schritt 3",
+            label: "Industrie-Beleg",
+            text: "Die KEBA-Thesis verbindet akademische Tiefe mit industriellem Robotik-Kontext.",
+            action: createBadgedAction("Zur KEBA Thesis", createHelpBotPageTarget("experience-masters-thesis-keba.html"), "Industrial")
+          },
+          {
+            id: "contact",
+            badge: "Schritt 4",
+            label: "Kontakt oder CV",
+            text: "Wenn der Eindruck passt, fuehren CV-Anfrage und Kontakt direkt weiter.",
+            action: createBadgedAction("Zu CV und Kontakt", createHelpBotPageTarget("request-cv.html"), "Action")
+          }
+        ]
+      : [
+          {
+            id: "overview",
+            badge: "Step 1",
+            label: "Profile overview",
+            text: "Start with About, Experience, and Where I Fit for the fastest overall picture.",
+            action: createBadgedAction("Open overview", createHelpBotHomeTarget("about"), "Start")
+          },
+          {
+            id: "project",
+            badge: "Step 2",
+            label: "Top project",
+            text: "The autonomous vacuum robot is one of the strongest technical entry points.",
+            action: createBadgedAction("Open vacuum robot", createHelpBotPageTarget("project-autonomous-vacuum-robot.html"), "Proof")
+          },
+          {
+            id: "proof",
+            badge: "Step 3",
+            label: "Industrial proof",
+            text: "The KEBA thesis bridges academic depth with industrial robotics context.",
+            action: createBadgedAction("Open KEBA thesis", createHelpBotPageTarget("experience-masters-thesis-keba.html"), "Industrial")
+          },
+          {
+            id: "contact",
+            badge: "Step 4",
+            label: "Contact or CV",
+            text: "If the signal looks right, CV request and contact are the cleanest next move.",
+            action: createBadgedAction("Open CV and contact", createHelpBotPageTarget("request-cv.html"), "Action")
+          }
+        ]
+  );
+
+  const getTourStepOptions = (currentStepId = "") => {
+    const steps = getTourSteps();
+    const currentIndex = steps.findIndex((step) => step.id === currentStepId);
+    const nextStep = currentIndex >= 0 ? steps[currentIndex + 1] : steps[0];
+    return withEndChatOption(dedupeHelpBotOptions([
+      ...(nextStep ? [createBadgedOption("tour-step", nextStep.id, nextStep.label, nextStep.badge)] : []),
+      currentRoleId
+        ? createBadgedOption("topic-other", "topic-other", currentLang === "de" ? "Andere Themen" : "Other topics", currentLang === "de" ? "Chat" : "Chat")
+        : createBadgedOption("start-over", "start-over", currentLang === "de" ? "Besuchertyp waehlen" : "Choose visitor type", currentLang === "de" ? "Rolle" : "Role")
+    ]));
+  };
+
+  const getReviewPathOptions = () => withEndChatOption(dedupeHelpBotOptions([
+    createBadgedOption("review-path", "featured", currentLang === "de" ? "Hervorgehobene Reviews" : "Featured reviews", currentLang === "de" ? "Startseite" : "Homepage"),
+    createBadgedOption("review-path", "all", currentLang === "de" ? "Alle oeffentlichen Reviews" : "All public reviews", currentLang === "de" ? "Archiv" : "Archive"),
+    createBadgedOption("review-path", "replies", currentLang === "de" ? "Reviews mit Owner-Reply" : "Reviews with owner replies", currentLang === "de" ? "Antworten" : "Replies"),
+    createBadgedOption("review-path", "contact", currentLang === "de" ? "Kontakt statt Reviews" : "Contact instead", currentLang === "de" ? "Aktion" : "Action")
+  ]));
+
+  const getReviewPathResponse = (pathId) => {
+    const responses = currentLang === "de"
+      ? {
+          featured: {
+            label: "Hervorgehobene Reviews",
+            text: "Die hervorgehobenen Reviews sind die schnellste Vertrauensebene auf der Startseite. Dort sehen Sie die vom Admin ausgewaehlten staerksten Rueckmeldungen zuerst.",
+            actions: [
+              createBadgedAction("Zu Featured Reviews", createHelpBotHomeTarget("reviews"), "Startseite"),
+              createBadgedAction("Zu Kontakt", createHelpBotHomeTarget("contact"), "Action")
+            ]
+          },
+          all: {
+            label: "Alle oeffentlichen Reviews",
+            text: "Wenn Sie ein breiteres Bild wollen, oeffnen Sie das komplette Review-Archiv. Dort sehen Sie die gesamte oeffentliche Rueckmeldungsbasis statt nur der hervorgehobenen Auswahl.",
+            actions: [
+              createBadgedAction("Zu allen Reviews", createHelpBotHomeTarget("homepage-public-reviews"), "Archiv"),
+              createBadgedAction("Feedback-Seite", createHelpBotPageTarget("feedback.html"), "Detail")
+            ]
+          },
+          replies: {
+            label: "Reviews mit Owner-Reply",
+            text: "Reviews mit sichtbaren Owner-Replys sind sinnvoll, wenn Sie Ton, Professionalitaet und Reaktionsstil schneller einschaetzen wollen.",
+            actions: [
+              createBadgedAction("Feedback-Seite oeffnen", createHelpBotPageTarget("feedback.html"), "Replies"),
+              createBadgedAction("Zu Featured Reviews", createHelpBotHomeTarget("reviews"), "Startseite")
+            ]
+          },
+          contact: {
+            label: "Kontakt statt Reviews",
+            text: "Wenn Sie bereits genug Vertrauen haben, ist der direkte Kontaktweg meist sinnvoller als weitere Reviews.",
+            actions: [
+              createBadgedAction("Zu Kontakt", createHelpBotHomeTarget("contact"), "Action"),
+              createBadgedAction("CV anfragen", createHelpBotPageTarget("request-cv.html"), "CV")
+            ]
+          }
+        }
+      : {
+          featured: {
+            label: "Featured reviews",
+            text: "Featured reviews are the fastest trust layer on the homepage. They surface the strongest admin-picked feedback first.",
+            actions: [
+              createBadgedAction("Open featured reviews", createHelpBotHomeTarget("reviews"), "Homepage"),
+              createBadgedAction("Go to contact", createHelpBotHomeTarget("contact"), "Action")
+            ]
+          },
+          all: {
+            label: "All public reviews",
+            text: "If you want a broader read, open the full public review archive. That gives you the wider signal instead of only the featured selection.",
+            actions: [
+              createBadgedAction("Open all reviews", createHelpBotHomeTarget("homepage-public-reviews"), "Archive"),
+              createBadgedAction("Open feedback page", createHelpBotPageTarget("feedback.html"), "Detail")
+            ]
+          },
+          replies: {
+            label: "Reviews with owner replies",
+            text: "Reviews with visible owner replies are useful when you want to assess tone, professionalism, and response quality more quickly.",
+            actions: [
+              createBadgedAction("Open feedback page", createHelpBotPageTarget("feedback.html"), "Replies"),
+              createBadgedAction("Open featured reviews", createHelpBotHomeTarget("reviews"), "Homepage")
+            ]
+          },
+          contact: {
+            label: "Contact instead",
+            text: "If the trust signal already feels strong, direct contact is often more useful than reading more reviews.",
+            actions: [
+              createBadgedAction("Open contact form", createHelpBotContactFormTarget(), "Action"),
+              createBadgedAction("Request CV", createHelpBotCvTarget(), "CV")
+            ]
+          }
+        };
+
+    return responses[pathId] || responses.featured;
+  };
+
+  const getPageAwareOpening = () => {
+    if (/^project-/.test(currentPageName)) {
+      return currentLang === "de"
+        ? {
+            text: "Sie befinden sich bereits auf einer Projektseite. Ich kann diesen Projektbeleg einordnen, aehnliche Robotikarbeit zeigen oder Sie direkt zum naechsten starken Nachweis fuehren."
+          }
+        : {
+            text: "You are already on a project page. I can frame this project, show similar robotics work, or route you to the next strongest proof."
+          };
+    }
+    if (/^experience-/.test(currentPageName)) {
+      return currentLang === "de"
+        ? {
+            text: "Sie befinden sich bereits auf einer Erfahrungsseite. Ich kann diesen Karrierebeleg mit Projekten, Reviews oder dem direkten Kontakt verbinden."
+          }
+        : {
+            text: "You are already on an experience page. I can connect this career proof to projects, reviews, or a direct contact path."
+          };
+    }
+    if (currentPageName === "feedback.html") {
+      return currentLang === "de"
+        ? {
+            text: "Sie sind bereits im Review- und Feedback-Bereich. Ich kann Vertrauenssignale, Featured Reviews oder den direkten Kontakt sortieren.",
+            inlineOptions: withEndChatOption([getReviewPathStartOption(), getTourStartOption()])
+          }
+        : {
+            text: "You are already in the review and feedback area. I can sort trust signals, featured reviews, or direct contact from here.",
+            inlineOptions: withEndChatOption([getReviewPathStartOption(), getTourStartOption()])
+          };
+    }
+    if (currentPageName === "journey.html") {
+      return currentLang === "de"
+        ? {
+            text: "Sie sind auf der Journey-Seite. Ich kann jetzt den Weg mit Projekten, Thesis, Erfahrung oder Kontakt verbinden."
+          }
+        : {
+            text: "You are on the journey page. I can now connect that story to projects, the thesis, experience, or contact."
+          };
+    }
+    return currentLang === "de"
+      ? {
+          text: "Wenn Sie moechten, kann ich Sie auch in einer kompakten Vier-Schritte-Tour durch das Portfolio fuehren.",
+          inlineOptions: withEndChatOption([getTourStartOption()])
+        }
+      : {
+          text: "If you prefer, I can also guide you through the portfolio in a compact four-step tour.",
+          inlineOptions: withEndChatOption([getTourStartOption()])
+        };
+  };
+
+  const getQuickPathOption = (roleId = currentRoleId) => {
+    if (roleId !== "recruiter" && roleId !== "hiringManager") return null;
+    if (currentLang === "de") {
+      return {
+        kind: "quick-path",
+        id: "quick",
+        label: roleId === "recruiter" ? "60-Sekunden-Hiring-Check" : "60-Sekunden-Proof-Check"
+      };
+    }
+    return {
+      kind: "quick-path",
+      id: "quick",
+      label: roleId === "recruiter" ? "60-second hiring view" : "60-second proof scan"
+    };
+  };
+
+  const getQuickPathCopy = (roleId = currentRoleId) => {
+    if (currentLang === "de") {
+      if (roleId === "hiringManager") {
+        return {
+          response: "Hier ist der schnellste Management-Scan.\n1. Die KEBA-Linie zeigt industrielle Relevanz.\n2. Ausgewaehlte Projekte zeigen Umsetzung und technische Tiefe.\n3. Reviews staerken den externen Eindruck.\n4. Wenn es passt, liegen CV und Kontakt direkt bereit.",
+          detail: "Dieser Schnellpfad ist fuer eine erste Management-Entscheidung gedacht. Er verbindet industrielle Nachweise, technische Umsetzungsbeispiele, Reviews und direkten Kontakt in einer kompakten Reihenfolge.\nDamit laesst sich das Portfolio schneller einschaetzen, ohne jede Seite einzeln suchen zu muessen.",
+          actions: [
+            { label: "KEBA Master-Thesis", target: createHelpBotPageTarget("experience-masters-thesis-keba.html") },
+            { label: "Projektbereich", target: createHelpBotHomeTarget("projects") },
+            { label: "Reviews", target: createHelpBotHomeTarget("reviews") },
+            { label: "CV anfragen", target: createHelpBotPageTarget("request-cv.html") }
+          ]
+        };
+      }
+      return {
+        response: "Hier ist der schnellste Recruiter-Scan.\n1. Rollen-Fit zeigt die staerksten Match-Bereiche.\n2. Die KEBA-Linie zeigt industrielle Robotik-Erfahrung in Deutschland.\n3. Reviews liefern zusaetzliche Glaubwuerdigkeit.\n4. Wenn der Eindruck passt, fuehren CV und Kontakt direkt weiter.",
+        detail: "Dieser Schnellpfad ist fuer eine erste Hiring-Entscheidung gedacht. Er reduziert die wichtigsten Einstiege auf Rollen-Fit, industrielle Nachweise, Vertrauensebene und direkten Kontakt.\nSo koennen Recruiter das Profil in kurzer Zeit strukturiert bewerten und danach gezielt vertiefen.",
+        actions: [
+          { label: "Where I Fit", target: createHelpBotHomeTarget("where-i-fit") },
+          { label: "KEBA Master-Thesis", target: createHelpBotPageTarget("experience-masters-thesis-keba.html") },
+          { label: "Reviews", target: createHelpBotHomeTarget("reviews") },
+          { label: "CV anfragen", target: createHelpBotPageTarget("request-cv.html") }
+        ]
+      };
+    }
+
+    if (roleId === "hiringManager") {
+      return {
+        response: "Here is the fastest management scan.\n1. The KEBA path shows industrial relevance.\n2. Selected projects show technical delivery and implementation depth.\n3. Reviews add outside-in credibility.\n4. If the signal looks right, CV and contact are ready immediately.",
+        detail: "This quick path is designed for an early management decision. It combines industrial proof, delivery-oriented project evidence, reviews, and direct contact into one short evaluation flow.\nThat reduces the time needed to judge whether the portfolio is worth deeper review.",
+        actions: [
+          { label: "KEBA master's thesis", target: createHelpBotPageTarget("experience-masters-thesis-keba.html") },
+          { label: "Open projects section", target: createHelpBotHomeTarget("projects") },
+          { label: "Open reviews", target: createHelpBotHomeTarget("reviews") },
+          { label: "Request CV", target: createHelpBotPageTarget("request-cv.html") }
+        ]
+      };
+    }
+
+    return {
+      response: "Here is the fastest recruiter scan.\n1. Role fit surfaces the strongest match areas.\n2. The KEBA path shows industrial robotics proof in Germany.\n3. Reviews add external credibility.\n4. If the profile looks relevant, CV and contact are one step away.",
+      detail: "This quick path is designed for an early hiring decision. It compresses role fit, industrial proof, trust signals, and direct contact into one recruiter-friendly flow.\nThat makes the portfolio faster to evaluate before you move into detail pages.",
+      actions: [
+        { label: "Check Where I Fit", target: createHelpBotHomeTarget("where-i-fit") },
+        { label: "KEBA master's thesis", target: createHelpBotPageTarget("experience-masters-thesis-keba.html") },
+        { label: "Open reviews", target: createHelpBotHomeTarget("reviews") },
+        { label: "Request CV", target: createHelpBotPageTarget("request-cv.html") }
+      ]
+    };
+  };
+
+  const getTopicDeeperCopy = (roleId, topicId) => {
+    if (topicId === "quick") {
+      const base = getQuickPathCopy(roleId);
+      return currentLang === "de"
+        ? {
+            explainMore: "Mehr erklaeren",
+            otherTopics: "Andere Themen",
+            prompt: "Soll ich diesen Schnellpfad kurz vertiefen oder gleich spezifischer weiterleiten?",
+            detail: base.detail
+          }
+        : {
+            explainMore: "Explain more",
+            otherTopics: "Other topics",
+            prompt: "Would you like a deeper version of this quick path or should I route you more specifically?",
+            detail: base.detail
+          };
+    }
+    return getPortfolioHelpBotDeeperCopy(currentLang, roleId, topicId);
+  };
+
+  const getRoleFitStartOption = () => (
+    currentLang === "de"
+      ? { kind: "role-fit-start", id: "role-fit-start", label: "Rolle abgleichen" }
+      : { kind: "role-fit-start", id: "role-fit-start", label: "Match a specific role" }
+  );
+
+  const getRoleFitChoiceOptions = () => withEndChatOption(dedupeHelpBotOptions([
+    {
+      kind: "role-fit",
+      id: "robotics",
+      label: currentLang === "de" ? "Robotikingenieur" : "Robotics engineer"
+    },
+    {
+      kind: "role-fit",
+      id: "automation",
+      label: currentLang === "de" ? "Automatisierungsingenieur" : "Automation engineer"
+    },
+    {
+      kind: "role-fit",
+      id: "simulation",
+      label: currentLang === "de" ? "Simulationsingenieur" : "Simulation engineer"
+    },
+    {
+      kind: "role-fit",
+      id: "controls",
+      label: currentLang === "de" ? "Controls / Software" : "Controls / software"
+    },
+    {
+      kind: "role-fit",
+      id: "mechatronics",
+      label: currentLang === "de" ? "Mechatronikingenieur" : "Mechatronics engineer"
+    },
+    {
+      kind: "topic-other",
+      id: "topic-other",
+      label: getTopicDeeperCopy(currentRoleId, helpBotState.pendingTopicId).otherTopics
+    }
+  ]));
+
+  const getRoleFitQuestionText = () => {
+    if (currentLang === "de") {
+      return currentRoleId === "hiringManager"
+        ? "Welche Zielrolle soll ich gegen dieses Portfolio abgleichen?"
+        : "Welche Rolle soll ich gegen dieses Portfolio abgleichen?";
+    }
+    return currentRoleId === "hiringManager"
+      ? "Which target role should I evaluate this portfolio against?"
+      : "Which role should I match against this portfolio?";
+  };
+
+  const getRoleFitResponse = (fitId) => {
+    const copy = {
+      en: {
+        robotics: {
+          label: "Robotics engineer",
+          text: "For a robotics engineer path, the strongest proof is the KEBA thesis, the autonomous vacuum robot, and the service robot.\nTogether they show robotics software, systems thinking, and applied implementation in a practical setting.",
+          actions: [
+            { label: "KEBA master's thesis", target: createHelpBotPageTarget("experience-masters-thesis-keba.html") },
+            { label: "Autonomous vacuum robot", target: createHelpBotPageTarget("project-autonomous-vacuum-robot.html") },
+            { label: "Service robot", target: createHelpBotPageTarget("project-service-robot.html") },
+            { label: "Request CV", target: createHelpBotPageTarget("request-cv.html") }
+          ]
+        },
+        automation: {
+          label: "Automation engineer",
+          text: "For an automation engineer path, the strongest signal is the KEBA industrial line plus systems-oriented project work.\nThat combination shows structured engineering, industrial context, and practical mechatronic execution.",
+          actions: [
+            { label: "KEBA working student role", target: createHelpBotPageTarget("experience-working-student-keba.html") },
+            { label: "KEBA master's thesis", target: createHelpBotPageTarget("experience-masters-thesis-keba.html") },
+            { label: "Where I Fit", target: createHelpBotHomeTarget("where-i-fit") },
+            { label: "Open contact", target: createHelpBotHomeTarget("contact") }
+          ]
+        },
+        simulation: {
+          label: "Simulation engineer",
+          text: "For a simulation-oriented role, the portfolio is strongest where modelling, controls thinking, and system behaviour are visible.\nThe active suspension work, the project set, and the portfolio map are the fastest proof points.",
+          actions: [
+            { label: "Active suspension", target: createHelpBotPageTarget("project-active-suspension.html") },
+            { label: "Portfolio map", target: createHelpBotPageTarget("portfolio-map.html") },
+            { label: "Projects section", target: createHelpBotHomeTarget("projects") },
+            { label: "Request CV", target: createHelpBotPageTarget("request-cv.html") }
+          ]
+        },
+        controls: {
+          label: "Controls / software",
+          text: "For controls or software-facing engineering, the strongest proof is in robotics implementation, control logic, and systems integration.\nThe service robot, active suspension, and selected robotics projects are the right next pages.",
+          actions: [
+            { label: "Service robot", target: createHelpBotPageTarget("project-service-robot.html") },
+            { label: "Active suspension", target: createHelpBotPageTarget("project-active-suspension.html") },
+            { label: "Open skills section", target: createHelpBotHomeTarget("skills") },
+            { label: "Open contact", target: createHelpBotHomeTarget("contact") }
+          ]
+        },
+        mechatronics: {
+          label: "Mechatronics engineer",
+          text: "For a mechatronics engineer path, the portfolio is strongest where hardware-thinking, system integration, and applied engineering come together.\nThe topology bag sealer, active suspension, and KEBA experience create the clearest combined signal.",
+          actions: [
+            { label: "Topology bag sealer", target: createHelpBotPageTarget("project-topology-bag-sealer.html") },
+            { label: "Active suspension", target: createHelpBotPageTarget("project-active-suspension.html") },
+            { label: "KEBA experience", target: createHelpBotHomeTarget("experience") },
+            { label: "Request CV", target: createHelpBotPageTarget("request-cv.html") }
+          ]
+        }
+      },
+      de: {
+        robotics: {
+          label: "Robotikingenieur",
+          text: "Fuer eine Robotikingenieur-Rolle sind die staerksten Belege die KEBA-Thesis, der autonome Vakuumroboter und der Service-Roboter.\nGemeinsam zeigen sie Robotiksoftware, Systemdenken und praktische Umsetzung in einem anwendungsnahen Kontext.",
+          actions: [
+            { label: "KEBA Master-Thesis", target: createHelpBotPageTarget("experience-masters-thesis-keba.html") },
+            { label: "Autonomer Vakuumroboter", target: createHelpBotPageTarget("project-autonomous-vacuum-robot.html") },
+            { label: "Service-Roboter", target: createHelpBotPageTarget("project-service-robot.html") },
+            { label: "CV anfragen", target: createHelpBotPageTarget("request-cv.html") }
+          ]
+        },
+        automation: {
+          label: "Automatisierungsingenieur",
+          text: "Fuer eine Automatisierungsrolle ist das staerkste Signal die industrielle KEBA-Linie zusammen mit systemorientierter Projektarbeit.\nDiese Kombination zeigt strukturiertes Engineering, industriellen Kontext und praktische mechatronische Umsetzung.",
+          actions: [
+            { label: "KEBA Werkstudent", target: createHelpBotPageTarget("experience-working-student-keba.html") },
+            { label: "KEBA Master-Thesis", target: createHelpBotPageTarget("experience-masters-thesis-keba.html") },
+            { label: "Where I Fit", target: createHelpBotHomeTarget("where-i-fit") },
+            { label: "Kontakt", target: createHelpBotHomeTarget("contact") }
+          ]
+        },
+        simulation: {
+          label: "Simulationsingenieur",
+          text: "Fuer eine simulationsnahe Rolle ist das Portfolio dort am staerksten, wo Modellierung, Regelungsdenken und Systemverhalten sichtbar werden.\nDie aktive Fahrwerksregelung, die Projekte und die Portfolio-Map sind dafuer die schnellsten Belege.",
+          actions: [
+            { label: "Aktive Fahrwerksregelung", target: createHelpBotPageTarget("project-active-suspension.html") },
+            { label: "Portfolio-Map", target: createHelpBotPageTarget("portfolio-map.html") },
+            { label: "Projektbereich", target: createHelpBotHomeTarget("projects") },
+            { label: "CV anfragen", target: createHelpBotPageTarget("request-cv.html") }
+          ]
+        },
+        controls: {
+          label: "Controls / Software",
+          text: "Fuer Controls- oder softwareorientiertes Engineering liegen die staerksten Belege in Robotik-Umsetzung, Regelungslogik und Systemintegration.\nDer Service-Roboter, die aktive Fahrwerksregelung und die Robotikprojekte sind die richtigen naechsten Seiten.",
+          actions: [
+            { label: "Service-Roboter", target: createHelpBotPageTarget("project-service-robot.html") },
+            { label: "Aktive Fahrwerksregelung", target: createHelpBotPageTarget("project-active-suspension.html") },
+            { label: "Skills", target: createHelpBotHomeTarget("skills") },
+            { label: "Kontakt", target: createHelpBotHomeTarget("contact") }
+          ]
+        },
+        mechatronics: {
+          label: "Mechatronikingenieur",
+          text: "Fuer eine Mechatronikrolle ist das Portfolio dort am staerksten, wo Hardware-Denken, Systemintegration und angewandtes Engineering zusammenkommen.\nDer Topology-Bag-Sealer, die aktive Fahrwerksregelung und die KEBA-Erfahrung liefern zusammen das klarste Signal.",
+          actions: [
+            { label: "Topology-Bag-Sealer", target: createHelpBotPageTarget("project-topology-bag-sealer.html") },
+            { label: "Aktive Fahrwerksregelung", target: createHelpBotPageTarget("project-active-suspension.html") },
+            { label: "KEBA Erfahrung", target: createHelpBotHomeTarget("experience") },
+            { label: "CV anfragen", target: createHelpBotPageTarget("request-cv.html") }
+          ]
+        }
+      }
+    };
+
+    const languageMap = copy[currentLang === "de" ? "de" : "en"];
+    return languageMap[fitId] || languageMap.robotics;
+  };
+
+  const getSuggestedTopicIds = (roleId, topicId) => {
+    const map = {
+      recruiter: {
+        quick: ["fit", "experience", "reviews"],
+        fit: ["projects", "experience", "reviews"],
+        projects: ["experience", "fit", "reviews"],
+        experience: ["projects", "reviews", "contact"],
+        reviews: ["fit", "projects", "contact"],
+        contact: ["fit", "projects", "reviews"]
+      },
+      hiringManager: {
+        quick: ["industrial", "proof", "reviews"],
+        industrial: ["delivery", "proof", "contact"],
+        delivery: ["proof", "industrial", "contact"],
+        proof: ["industrial", "reviews", "contact"],
+        reviews: ["proof", "contact", "industrial"],
+        contact: ["industrial", "proof", "reviews"]
+      },
+      student: {
+        journey: ["thesis", "projects", "certificates"],
+        thesis: ["journey", "projects", "reviews"],
+        projects: ["thesis", "journey", "certificates"],
+        certificates: ["journey", "projects", "contact"],
+        reviews: ["projects", "journey", "contact"],
+        contact: ["journey", "projects", "reviews"]
+      },
+      collaborator: {
+        stack: ["projects", "github", "contact"],
+        projects: ["stack", "github", "reviews"],
+        github: ["projects", "stack", "contact"],
+        journey: ["projects", "reviews", "contact"],
+        reviews: ["projects", "contact", "journey"],
+        contact: ["projects", "github", "reviews"]
+      },
+      visitor: {
+        overview: ["projects", "journey", "reviews"],
+        projects: ["overview", "journey", "contact"],
+        journey: ["projects", "reviews", "contact"],
+        reviews: ["projects", "contact", "overview"],
+        contact: ["projects", "reviews", "overview"]
+      }
+    };
+
+    return map?.[roleId]?.[topicId] || [];
+  };
+
+  const getSuggestedTopicOptions = (roleId, topicId) => dedupeHelpBotOptions(
+    getSuggestedTopicIds(roleId, topicId)
+      .map((suggestedId) => createTopicOption(roleId, suggestedId))
+      .map((option, index) => option ? { ...option, badge: index === 0 ? (currentLang === "de" ? "Empfohlen" : "Recommended") : (currentLang === "de" ? "Weiter" : "Next") } : null)
+      .filter(Boolean)
+  );
+
+  const getTopicOptions = (role) => {
+    const topicOptions = Array.isArray(role?.topics)
+      ? role.topics.map((topic) => ({
+          kind: "topic",
+          id: topic.id,
+          label: topic.label
+        }))
+      : [];
+    const quickPath = getQuickPathOption(currentRoleId);
+    return withEndChatOption(dedupeHelpBotOptions([
+      getTourStartOption(),
+      ...(quickPath ? [quickPath] : []),
+      ...topicOptions
+    ]));
+  };
+
+  const getResumeChoiceOptions = () => ([
+    { kind: "continue-chat", id: "continue", label: config.continueChat },
+    { kind: "start-over", id: "start-over", label: config.startFresh },
+    { kind: "end-chat", id: "end-chat", label: config.endChat }
+  ]);
+
+  const getTopicPromptOptions = () => {
+    const topicId = helpBotState.pendingTopicId;
+    const copy = getTopicDeeperCopy(currentRoleId, topicId);
+    const includeRoleFit = (currentRoleId === "recruiter" || currentRoleId === "hiringManager")
+      && (topicId === "fit" || topicId === "quick");
+    const includeReviewPaths = topicId === "reviews";
+    return withEndChatOption(dedupeHelpBotOptions([
+      createBadgedOption("topic-more", "topic-more", copy.explainMore, currentLang === "de" ? "Mehr" : "More"),
+      ...(includeRoleFit ? [{ ...getRoleFitStartOption(), badge: currentLang === "de" ? "Smart" : "Smart" }] : []),
+      ...(includeReviewPaths ? [getReviewPathStartOption()] : []),
+      ...getSuggestedTopicOptions(currentRoleId, topicId).slice(0, 2),
+      createBadgedOption("topic-other", "topic-other", copy.otherTopics, currentLang === "de" ? "Wechseln" : "Switch")
+    ]));
+  };
+
+  const getTopicContinueOptions = (roleId, topicId) => {
+    const includeRoleFit = (roleId === "recruiter" || roleId === "hiringManager") && topicId === "fit";
+    const includeReviewPaths = topicId === "reviews";
+    return withEndChatOption(dedupeHelpBotOptions([
+      ...(includeRoleFit ? [{ ...getRoleFitStartOption(), badge: "Smart" }] : []),
+      ...(includeReviewPaths ? [getReviewPathStartOption()] : []),
+      ...getSuggestedTopicOptions(roleId, topicId).slice(0, 2),
+      createBadgedOption("topic-other", "topic-other", getTopicDeeperCopy(roleId, topicId).otherTopics, currentLang === "de" ? "Wechseln" : "Switch"),
+      getTourStartOption()
+    ]));
+  };
+
+  const getRecommendedNextTopicLabel = (roleId, topicId) => {
+    const nextOption = getSuggestedTopicOptions(roleId, topicId)[0];
+    return nextOption?.label || "";
+  };
+
+  const getTopicDecisionPromptText = () => (
+    roleUsesVisitorName(currentRoleId)
+      ? personalizeForNamedVisitor(currentLang === "de"
+        ? "Moechten Sie mehr Details zu diesem Bereich sehen?"
+        : "Would you like to see more details about this section?")
+      : currentLang === "de"
+      ? "Moechten Sie mehr Details zu diesem Bereich sehen?"
+      : "Would you like to see more details about this section?"
+  );
+
+  const getTopicDecisionOptions = () => withEndChatOption([
+    {
+      kind: "topic-detail-open",
+      id: "topic-detail-open",
+      label: currentLang === "de" ? "Ja, Details oeffnen" : "Yes, open details"
+    },
+    {
+      kind: "topic-detail-skip",
+      id: "topic-detail-skip",
+      label: currentLang === "de" ? "Nein, im Chat bleiben" : "No, continue here"
+    }
+  ]);
+
+  const getPendingTopic = () => {
+    const role = config.roles[currentRoleId];
+    return role?.topics.find((entry) => entry.id === helpBotState.pendingTopicId) || null;
+  };
+
+  const getTopicPrimaryAction = (topic) => {
+    if (!topic?.actions?.length) return null;
+    return normalizeHelpBotAction(topic.actions[0]);
+  };
+
+  const getResumeFollowUp = () => {
+    const milestone = getRoleMilestoneSummary(currentRoleId);
+    if (/^project-/.test(currentPageName)) {
+      if (currentRoleId === "student") {
+        return {
+          text: `${currentLang === "de"
+            ? "Wie wirkt dieses Projekt auf Sie? Ich kann Sie zum Lernpfad, zur Master-Thesis oder zu den Zertifikaten weiterfuehren."
+            : "How does this project look to you? I can route you to the learning path, the master's thesis, or the certificates next."}${milestone ? `\n${milestone.text}` : ""}`,
+          actions: [
+            createBadgedAction(currentLang === "de" ? "Journey" : "Journey", createHelpBotPageTarget("journey.html"), currentLang === "de" ? "Empfohlen" : "Recommended"),
+            createBadgedAction(currentLang === "de" ? "Master-Thesis" : "Master's thesis", createHelpBotPageTarget("experience-masters-thesis-keba.html"), currentLang === "de" ? "Weiter" : "Next"),
+            createBadgedAction(currentLang === "de" ? "Zertifikate" : "Certificates", createHelpBotHomeTarget("certificates"), currentLang === "de" ? "Proof" : "Proof"),
+            createBadgedAction(currentLang === "de" ? "Kontaktformular" : "Contact form", createHelpBotContactFormTarget(), currentLang === "de" ? "Aktion" : "Action")
+          ],
+          inlineOptions: withEndChatOption(dedupeHelpBotOptions([
+            { ...createTopicOption("student", "thesis"), badge: currentLang === "de" ? "Empfohlen" : "Recommended" },
+            createTopicOption("student", "journey"),
+            createTopicOption("student", "certificates"),
+            getTourStartOption()
+          ])),
+          cards: getRoleSummaryCards(currentRoleId)
+        };
+      }
+
+      if (currentRoleId === "recruiter" || currentRoleId === "hiringManager") {
+        return {
+          text: `${currentLang === "de"
+            ? "Ist dieses Projekt interessant fuer Ihre Anforderung? Ich kann Sie zu weiteren Robotik-Nachweisen, zum Rollen-Fit oder direkt zu meinem Kontaktweg weiterfuehren."
+            : "Does this project look relevant for your requirement? I can route you to more robotics proof, role fit, or directly to my contact path."}${milestone ? `\n${milestone.text}` : ""}\n${currentLang === "de" ? "Wenn Sie bereits genug Signal haben, sind CV oder Kontakt jetzt der sauberste Abschluss." : "If the signal already looks strong, CV or contact is the cleanest close from here."}`,
+          actions: [
+            createBadgedAction(currentLang === "de" ? "Weitere Projekte" : "More projects", createHelpBotHomeTarget("projects"), currentLang === "de" ? "Proof" : "Proof"),
+            createBadgedAction(currentLang === "de" ? "Where I Fit" : "Where I Fit", createHelpBotHomeTarget("where-i-fit"), currentLang === "de" ? "Smart" : "Smart"),
+            createBadgedAction(currentLang === "de" ? "CV anfragen" : "Request CV", createHelpBotCvTarget(), "CV"),
+            createBadgedAction(currentLang === "de" ? "Kontaktformular" : "Contact form", createHelpBotContactFormTarget(), currentLang === "de" ? "Direkt" : "Direct")
+          ],
+          inlineOptions: withEndChatOption(dedupeHelpBotOptions([
+            { ...getRoleFitStartOption(), badge: currentLang === "de" ? "Smart" : "Smart" },
+            { ...createTopicOption(currentRoleId, currentRoleId === "recruiter" ? "experience" : "industrial"), badge: currentLang === "de" ? "Empfohlen" : "Recommended" },
+            createTopicOption(currentRoleId, "reviews"),
+            getTourStartOption()
+          ])),
+          cards: getRoleSummaryCards(currentRoleId)
+        };
+      }
+
+      return {
+        text: currentLang === "de"
+          ? "Moechten Sie weitere technische Beispiele sehen oder direkt zu GitHub, Journey oder Kontakt weitergehen?"
+          : "Would you like to see more technical examples or jump to GitHub, the journey page, or contact next?",
+        actions: [
+          createBadgedAction(currentLang === "de" ? "Weitere Projekte" : "More projects", createHelpBotHomeTarget("projects"), currentLang === "de" ? "Empfohlen" : "Recommended"),
+          createBadgedAction("GitHub", createHelpBotExternalTarget("https://github.com/SoorajSudhakaran1199"), "Code"),
+          createBadgedAction(currentLang === "de" ? "Journey" : "Journey", createHelpBotPageTarget("journey.html"), currentLang === "de" ? "Kontext" : "Context"),
+          createBadgedAction(currentLang === "de" ? "Kontaktformular" : "Contact form", createHelpBotContactFormTarget(), currentLang === "de" ? "Aktion" : "Action")
+        ],
+        inlineOptions: withEndChatOption(dedupeHelpBotOptions([
+          { ...createTopicOption(currentRoleId, "projects"), badge: currentLang === "de" ? "Empfohlen" : "Recommended" },
+          createTopicOption(currentRoleId, "journey"),
+          createTopicOption(currentRoleId, "contact"),
+          getTourStartOption()
+        ]))
+      };
+    }
+
+    if (/^experience-/.test(currentPageName)) {
+      return {
+        text: currentLang === "de"
+          ? "Moechten Sie eine weitere Erfahrungsseite pruefen, Reviews lesen oder direkt Kontakt aufnehmen?"
+          : "Would you like to review another experience page, read reviews, or move directly to contact?",
+        actions: [
+          { label: currentLang === "de" ? "Erfahrung" : "Experience", target: createHelpBotHomeTarget("experience") },
+          { label: currentLang === "de" ? "Reviews" : "Reviews", target: createHelpBotHomeTarget("reviews") },
+          { label: currentLang === "de" ? "Journey" : "Journey", target: createHelpBotPageTarget("journey.html") },
+          { label: currentLang === "de" ? "Kontaktformular" : "Contact form", target: createHelpBotContactFormTarget() }
+        ],
+        inlineOptions: withEndChatOption(dedupeHelpBotOptions([
+          createTopicOption(currentRoleId, currentRoleId === "recruiter" ? "projects" : currentRoleId === "hiringManager" ? "proof" : "journey"),
+          createTopicOption(currentRoleId, "reviews"),
+          createTopicOption(currentRoleId, "contact")
+        ]))
+      };
+    }
+
+    if (currentPageName === "journey.html") {
+      return {
+        text: currentLang === "de"
+          ? "Hilft Ihnen dieser Werdegang bereits weiter? Ich kann jetzt zu Projekten, Erfahrung, Reviews oder direktem Kontakt fuehren."
+          : "Is this journey page giving you the context you needed? I can route you next to projects, experience, reviews, or direct contact.",
+        actions: [
+          { label: currentLang === "de" ? "Projekte" : "Projects", target: createHelpBotHomeTarget("projects") },
+          { label: currentLang === "de" ? "Erfahrung" : "Experience", target: createHelpBotHomeTarget("experience") },
+          { label: currentLang === "de" ? "Reviews" : "Reviews", target: createHelpBotHomeTarget("reviews") },
+          { label: currentLang === "de" ? "Kontaktformular" : "Contact form", target: createHelpBotContactFormTarget() }
+        ],
+        inlineOptions: withEndChatOption(dedupeHelpBotOptions([
+          createTopicOption(currentRoleId, "projects"),
+          createTopicOption(currentRoleId, "reviews"),
+          createTopicOption(currentRoleId, "contact")
+        ]))
+      };
+    }
+
+    if (currentPageName === "feedback.html") {
+      return {
+        text: `${currentLang === "de"
+          ? "Nachdem Sie die Reviews gesehen haben, soll ich Ihnen die staerksten Projekte zeigen oder direkt zum Kontaktweg fuehren?"
+          : "Now that you've seen the reviews, would you like me to surface the strongest projects next or take you straight to contact?"}${milestone ? `\n${milestone.text}` : ""}`,
+        actions: [
+          createBadgedAction(currentLang === "de" ? "Projekte" : "Projects", createHelpBotHomeTarget("projects"), currentLang === "de" ? "Empfohlen" : "Recommended"),
+          createBadgedAction(currentLang === "de" ? "Where I Fit" : "Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Smart"),
+          createBadgedAction(currentLang === "de" ? "CV anfragen" : "Request CV", createHelpBotCvTarget(), "CV"),
+          createBadgedAction(currentLang === "de" ? "Kontaktformular" : "Contact form", createHelpBotContactFormTarget(), currentLang === "de" ? "Direkt" : "Direct")
+        ],
+        inlineOptions: withEndChatOption(dedupeHelpBotOptions([
+          getReviewPathStartOption(),
+          { ...createTopicOption(currentRoleId, "projects"), badge: currentLang === "de" ? "Empfohlen" : "Recommended" },
+          createTopicOption(currentRoleId, "contact"),
+          ...(currentRoleId === "recruiter" || currentRoleId === "hiringManager" ? [{ ...getRoleFitStartOption(), badge: "Smart" }] : []),
+          getTourStartOption()
+        ]))
+      };
+    }
+
+    if (currentRoleId === "student") {
+      return {
+        text: currentLang === "de"
+          ? "Soll ich Sie als Naechstes durch Journey, Thesis, Zertifikate oder den Kontaktbereich fuehren?"
+          : "Shall I guide you next through the journey, thesis, certificates, or the contact section?",
+        actions: [
+          { label: currentLang === "de" ? "Journey" : "Journey", target: createHelpBotPageTarget("journey.html") },
+          { label: currentLang === "de" ? "Master-Thesis" : "Master's thesis", target: createHelpBotPageTarget("experience-masters-thesis-keba.html") },
+          { label: currentLang === "de" ? "Zertifikate" : "Certificates", target: createHelpBotHomeTarget("certificates") },
+          { label: currentLang === "de" ? "Kontaktformular" : "Contact form", target: createHelpBotContactFormTarget() }
+        ],
+        inlineOptions: withEndChatOption(dedupeHelpBotOptions([
+          createTopicOption("student", "journey"),
+          createTopicOption("student", "thesis"),
+          createTopicOption("student", "certificates")
+        ]))
+      };
+    }
+
+    if (currentRoleId === "recruiter" || currentRoleId === "hiringManager") {
+      return {
+        text: `${currentLang === "de"
+          ? "Moechten Sie weiter Projekte, Erfahrung, Reviews oder direkt meinen Kontaktweg pruefen?"
+          : "Would you like to keep reviewing projects, experience, reviews, or take the direct path to contact me?"}${milestone ? `\n${milestone.text}` : ""}\n${currentLang === "de" ? "Wenn Sie bereits ein gutes Bild haben, sind CV oder Kontakt jetzt der professionelle Abschluss." : "If you already have a good signal, CV or contact is the professional close from here."}`,
+        actions: [
+          createBadgedAction(currentLang === "de" ? "Projekte" : "Projects", createHelpBotHomeTarget("projects"), currentLang === "de" ? "Proof" : "Proof"),
+          createBadgedAction(currentLang === "de" ? "Erfahrung" : "Experience", createHelpBotHomeTarget("experience"), currentLang === "de" ? "Empfohlen" : "Recommended"),
+          createBadgedAction(currentLang === "de" ? "Reviews" : "Reviews", createHelpBotHomeTarget("reviews"), currentLang === "de" ? "Trust" : "Trust"),
+          createBadgedAction(currentLang === "de" ? "CV anfragen" : "Request CV", createHelpBotCvTarget(), "CV"),
+          createBadgedAction(currentLang === "de" ? "Kontaktformular" : "Contact form", createHelpBotContactFormTarget(), currentLang === "de" ? "Direkt" : "Direct")
+        ],
+        inlineOptions: withEndChatOption(dedupeHelpBotOptions([
+          { ...getQuickPathOption(currentRoleId), badge: currentLang === "de" ? "Schnell" : "Fast" },
+          { ...getRoleFitStartOption(), badge: "Smart" },
+          { ...createTopicOption(currentRoleId, currentRoleId === "recruiter" ? "experience" : "proof"), badge: currentLang === "de" ? "Empfohlen" : "Recommended" },
+          createTopicOption(currentRoleId, "reviews"),
+          getTourStartOption()
+        ])),
+        cards: getRoleSummaryCards(currentRoleId)
+      };
+    }
+
+    return {
+      text: currentLang === "de"
+        ? "Moechten Sie weiterfuehrend Projekte, Journey, Reviews oder den Kontaktbereich oeffnen?"
+        : "Would you like to continue with projects, the journey page, reviews, or the contact section?",
+      actions: [
+        { label: currentLang === "de" ? "Projekte" : "Projects", target: createHelpBotHomeTarget("projects") },
+        { label: currentLang === "de" ? "Journey" : "Journey", target: createHelpBotPageTarget("journey.html") },
+        { label: currentLang === "de" ? "Reviews" : "Reviews", target: createHelpBotHomeTarget("reviews") },
+        { label: currentLang === "de" ? "Kontaktformular" : "Contact form", target: createHelpBotContactFormTarget() }
+      ],
+      inlineOptions: withEndChatOption(dedupeHelpBotOptions([
+        createTopicOption(currentRoleId, "projects"),
+        createTopicOption(currentRoleId, "reviews"),
+        createTopicOption(currentRoleId, "contact")
+      ]))
+    };
+  };
+
+  const setOpen = (shouldOpen) => {
+    const wasOpen = root.classList.contains("is-open");
+    if (shouldOpen === wasOpen) return;
+    root.classList.toggle("is-open", shouldOpen);
+    document.body.classList.toggle("help-bot-open", shouldOpen);
+    launcher?.setAttribute("aria-expanded", shouldOpen ? "true" : "false");
+    launcher?.setAttribute("aria-label", config.launcher);
+    panel?.setAttribute("aria-hidden", shouldOpen ? "false" : "true");
+    if (shouldOpen) {
+      lastFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : launcher;
+      clearNudgeTimers();
+      root.classList.remove("is-nudge-visible");
+      if (!hasConversationBooted) {
+        resetConversation();
+      } else {
+        currentRoleId = helpBotState.currentRoleId;
+        renderStoredConversation();
+        if (helpBotState.pendingResumePrompt) {
+          appendMessage({
+            sender: "bot",
+            text: getPortfolioHelpBotResumeMessage(
+              currentLang,
+              currentRoleId,
+              currentPageName,
+              helpBotState.lastNavTarget
+            ),
+            inlineOptions: getResumeChoiceOptions()
+          });
+          helpBotState.pendingResumePrompt = false;
+          persistHelpBotState();
+        }
+      }
+      trackAnalyticsEvent("help_bot_opened", {
+        page_path: window.location.pathname,
+        lang: currentLang
+      });
+      window.requestAnimationFrame(() => {
+        if (composer && !composer.hidden) {
+          const activeField = composerTextarea && !composerTextarea.hidden ? composerTextarea : composerInput;
+          activeField?.focus({ preventScroll: true });
+          return;
+        }
+        (closeButton || panel).focus({ preventScroll: true });
+      });
+    } else {
+      clearNudgeTimers();
+      showNudge({ delay: HELP_BOT_NUDGE_RESHOW_MS });
+      if (lastFocusedElement && document.contains(lastFocusedElement)) {
+        window.requestAnimationFrame(() => {
+          lastFocusedElement.focus({ preventScroll: true });
+        });
+      }
+    }
+  };
+
+  const setStaticCopy = () => {
+    const composerMode = getComposerMode();
+    const composerField = composerMode.inputKind === "textarea" ? composerTextarea : composerInput;
+    const inactiveField = composerMode.inputKind === "textarea" ? composerInput : composerTextarea;
+    if (nudgeBadge) nudgeBadge.textContent = config.nudgeBadge;
+    badge.textContent = config.badge;
+    title.textContent = config.title;
+    lead.textContent = config.lead;
+    resetButton.textContent = config.reset;
+    backdrop.setAttribute("aria-label", config.close);
+    closeButton.setAttribute("aria-label", config.close);
+    nudgeText.textContent = config.nudge;
+    nudgeCloseButton.setAttribute("aria-label", config.close);
+    launcher.setAttribute("aria-label", config.launcher);
+    if (composerInput && composerTextarea && composerField) {
+      composerInput.hidden = composerMode.inputKind === "textarea";
+      composerTextarea.hidden = composerMode.inputKind !== "textarea";
+      composerInput.type = composerMode.inputType || "text";
+      composerInput.autocomplete = composerMode.autocomplete || "off";
+      composerTextarea.autocomplete = "off";
+      composerField.placeholder = composerMode.placeholder;
+      composerField.setAttribute("aria-label", composerMode.placeholder);
+      composerField.maxLength = composerMode.maxLength;
+      inactiveField.value = "";
+      inactiveField.removeAttribute("aria-invalid");
+    }
+    if (composerSubmit) {
+      composerSubmit.textContent = composerMode.submit;
+      composerSubmit.setAttribute("aria-label", composerMode.submit);
+    }
+  };
+
+  const getActiveComposerField = () => (composerTextarea && !composerTextarea.hidden ? composerTextarea : composerInput);
+
+  const clearComposerNote = () => {
+    if (!composerNote) return;
+    composerNote.textContent = "";
+    composerNote.hidden = true;
+    delete composerNote.dataset.state;
+    composerInput?.removeAttribute("aria-invalid");
+    composerTextarea?.removeAttribute("aria-invalid");
+  };
+
+  const setComposerNote = (message = "", state = "error") => {
+    if (!composerNote) return;
+    composerNote.textContent = message;
+    composerNote.hidden = !message;
+    composerNote.dataset.state = state;
+    const activeField = getActiveComposerField();
+    if (message) {
+      activeField?.setAttribute("aria-invalid", state === "error" ? "true" : "false");
+    } else {
+      activeField?.removeAttribute("aria-invalid");
+    }
+  };
+
+  const focusComposerInput = () => {
+    if (!composer || composer.hidden) return;
+    window.requestAnimationFrame(() => {
+      const activeField = getActiveComposerField();
+      activeField?.focus({ preventScroll: true });
+      if (activeField instanceof HTMLInputElement || activeField instanceof HTMLTextAreaElement) {
+        activeField.select();
+      }
+    });
+  };
+
+  const hideComposer = ({ clearValue = true } = {}) => {
+    if (!composer) return;
+    composer.hidden = true;
+    root.classList.remove("is-composer-visible");
+    if (clearValue) {
+      if (composerInput) composerInput.value = "";
+      if (composerTextarea) composerTextarea.value = "";
+    }
+    clearComposerNote();
+  };
+
+  const showComposer = () => {
+    if (!composer) return;
+    composer.hidden = false;
+    root.classList.add("is-composer-visible");
+    clearComposerNote();
+    if (helpBotState.pendingInputKind === "chat-feedback") {
+      const draft = getChatFeedbackDraft();
+      const activeField = getActiveComposerField();
+      const draftValue = draft?.field && typeof draft[draft.field] === "string" ? draft[draft.field] : "";
+      if (activeField) {
+        activeField.value = draftValue || "";
+      }
+    }
+    focusComposerInput();
+  };
+
+  const syncComposerState = () => {
+    if (helpBotState.pendingInputKind === "visitor-name"
+      || helpBotState.pendingInputKind === "student-university"
+      || helpBotState.pendingInputKind === "chat-feedback") {
+      showComposer();
+      return;
+    }
+    hideComposer();
+  };
+
+  const renderStoredConversation = () => {
+    clearTypingIndicator();
+    if (liveRegion) liveRegion.textContent = "";
+    messages.innerHTML = "";
+    helpBotState.messages.forEach((message) => {
+      appendMessage({
+        sender: message.sender,
+        text: message.text,
+        actions: message.actions,
+        inlineOptions: message.inlineOptions,
+        cards: message.cards,
+        persist: false
+      });
+    });
+    syncComposerState();
+    setOptions([], "");
+  };
+
+  const scrollMessagesToEnd = () => {
+    messages.scrollTo({
+      top: messages.scrollHeight,
+      behavior: "smooth"
+    });
+  };
+
+  const createBotMessageFrame = () => {
+    const item = document.createElement("div");
+    item.className = "help-bot-message is-bot";
+
+    const avatar = document.createElement("span");
+    avatar.className = "help-bot-message-avatar";
+    avatar.innerHTML = getPortfolioHelpBotArtMarkup("help-bot-art-avatar");
+
+    const stack = document.createElement("div");
+    stack.className = "help-bot-message-stack";
+
+    const name = document.createElement("span");
+    name.className = "help-bot-message-name";
+    name.textContent = config.assistantName;
+
+    const bubble = document.createElement("div");
+    bubble.className = "help-bot-bubble";
+
+    stack.append(name, bubble);
+    item.append(avatar, stack);
+
+    return { item, bubble };
+  };
+
+  const clearTypingIndicator = () => {
+    activeTypingIndicator?.remove();
+    activeTypingIndicator = null;
+  };
+
+  const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
+
+  const showTypingIndicator = () => {
+    clearTypingIndicator();
+    if (liveRegion) liveRegion.textContent = config.typingAnnouncement;
+    const { item, bubble } = createBotMessageFrame();
+    bubble.classList.add("is-typing");
+    bubble.setAttribute("aria-hidden", "true");
+    bubble.innerHTML = `
+      <span class="help-bot-typing" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+      </span>
+    `;
+    messages.append(item);
+    activeTypingIndicator = item;
+    window.requestAnimationFrame(scrollMessagesToEnd);
+  };
+
+  const queueBotReply = async ({ text = "", actions = [], delay = 520, token = responseToken, inlineOptions = [], cards = [] } = {}) => {
+    showTypingIndicator();
+    await wait(delay);
+    if (token !== responseToken) return;
+    clearTypingIndicator();
+    appendMessage({ sender: "bot", text, actions, inlineOptions, cards });
+  };
+
+  const appendMessage = ({ sender = "bot", text = "", actions = [], inlineOptions = [], cards = [], persist = true }) => {
+    const item = document.createElement("div");
+    item.className = `help-bot-message is-${sender}`;
+
+    const bubble = document.createElement("div");
+    bubble.className = "help-bot-bubble";
+
+    text.split("\n").filter(Boolean).forEach((line) => {
+      const paragraph = document.createElement("p");
+      paragraph.textContent = line;
+      bubble.append(paragraph);
+    });
+
+    if (actions.length) {
+      const actionRow = document.createElement("div");
+      actionRow.className = "help-bot-message-actions";
+
+      actions.forEach((action) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "help-bot-message-link";
+        if (action.badge) {
+          const badgeEl = document.createElement("span");
+          badgeEl.className = "help-bot-button-badge";
+          badgeEl.textContent = action.badge;
+          button.append(badgeEl);
+        }
+        const labelEl = document.createElement("span");
+        labelEl.className = "help-bot-button-label";
+        labelEl.textContent = action.label;
+        button.append(labelEl);
+        button.dataset.helpBotNav = "true";
+        button.dataset.helpBotTarget = encodeURIComponent(JSON.stringify(action.target));
+        actionRow.append(button);
+      });
+
+      bubble.append(actionRow);
+    }
+
+    if (cards.length) {
+      const cardGrid = document.createElement("div");
+      cardGrid.className = "help-bot-cards";
+
+      cards.forEach((card) => {
+        const article = document.createElement("article");
+        article.className = "help-bot-card";
+        if (card.badge) {
+          const badgeEl = document.createElement("span");
+          badgeEl.className = "help-bot-card-badge";
+          badgeEl.textContent = card.badge;
+          article.append(badgeEl);
+        }
+        const titleEl = document.createElement("strong");
+        titleEl.className = "help-bot-card-title";
+        titleEl.textContent = card.title;
+        const textEl = document.createElement("p");
+        textEl.className = "help-bot-card-text";
+        textEl.textContent = card.text;
+        article.append(titleEl, textEl);
+        cardGrid.append(article);
+      });
+
+      bubble.append(cardGrid);
+    }
+
+    if (inlineOptions.length) {
+      const optionRow = document.createElement("div");
+      optionRow.className = "help-bot-message-options";
+
+      inlineOptions.forEach((option) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "help-bot-message-option";
+        if (option.badge) {
+          const badgeEl = document.createElement("span");
+          badgeEl.className = "help-bot-button-badge";
+          badgeEl.textContent = option.badge;
+          button.append(badgeEl);
+        }
+        const labelEl = document.createElement("span");
+        labelEl.className = "help-bot-button-label";
+        labelEl.textContent = option.label;
+        button.append(labelEl);
+        button.dataset.helpBotOptionKind = option.kind;
+        button.dataset.helpBotOptionId = option.id;
+        optionRow.append(button);
+      });
+
+      bubble.append(optionRow);
+    }
+
+    if (sender === "bot") {
+      const frame = createBotMessageFrame();
+      frame.bubble.replaceWith(bubble);
+      frame.item.querySelector(".help-bot-message-stack")?.replaceChildren(
+        frame.item.querySelector(".help-bot-message-name"),
+        bubble
+      );
+      messages.append(frame.item);
+    } else {
+      item.append(bubble);
+      messages.append(item);
+    }
+    if (sender === "bot" && liveRegion && persist) {
+      liveRegion.textContent = String(text || "").trim();
+    }
+    if (persist) {
+      helpBotState.messages.push({
+        sender,
+        text: String(text || "").trim(),
+        actions: actions.map(normalizeHelpBotAction).filter(Boolean),
+        inlineOptions: inlineOptions.map(normalizeHelpBotOption).filter(Boolean),
+        cards: cards.map(normalizeHelpBotCard).filter(Boolean)
+      });
+      persistHelpBotState();
+    }
+    window.requestAnimationFrame(scrollMessagesToEnd);
+  };
+
+  const setOptions = (items = [], prompt = config.optionPrompt) => {
+    void items;
+    void prompt;
+  };
+
+  const clearChatFeedbackDraft = () => {
+    helpBotState.chatFeedbackDraft = normalizeHelpBotFeedbackDraft(null);
+    if (helpBotState.pendingInputKind === "chat-feedback") {
+      helpBotState.pendingInputKind = "";
+    }
+  };
+
+  const getFeedbackPromptName = () => {
+    const visitorName = getVisitorName();
+    return roleUsesVisitorName(currentRoleId) && visitorName ? visitorName : "";
+  };
+
+  const getFeedbackChoiceOptions = () => dedupeHelpBotOptions([
+    createBadgedOption("feedback-choice", "public", config.feedbackPublicOption, currentLang === "de" ? "Oeffentlich" : "Public"),
+    createBadgedOption("feedback-choice", "private", config.feedbackPrivateOption, currentLang === "de" ? "Privat" : "Private"),
+    createBadgedOption("feedback-choice", "skip", config.feedbackSkipOption, currentLang === "de" ? "Schliessen" : "Close")
+  ]);
+
+  const getFeedbackSkipConfirmOptions = () => dedupeHelpBotOptions([
+    createBadgedOption("feedback-skip-confirm", "leave", config.feedbackSkipConfirmLeave, currentLang === "de" ? "Beenden" : "Leave"),
+    createBadgedOption("feedback-skip-confirm", "review", config.feedbackSkipConfirmReview, currentLang === "de" ? "Bewertung" : "Review")
+  ]);
+
+  const getFeedbackRatingOptions = () => dedupeHelpBotOptions([
+    createBadgedOption("feedback-rating", "5", "5 / 5", currentLang === "de" ? "Top" : "Top"),
+    createBadgedOption("feedback-rating", "4", "4 / 5", currentLang === "de" ? "Stark" : "Strong"),
+    createBadgedOption("feedback-rating", "3", "3 / 5", currentLang === "de" ? "Solide" : "Solid"),
+    createBadgedOption("feedback-rating", "2", "2 / 5", currentLang === "de" ? "Niedrig" : "Low"),
+    createBadgedOption("feedback-rating", "1", "1 / 5", currentLang === "de" ? "Schwach" : "Weak"),
+    createBadgedOption("feedback-choice", "skip", config.feedbackSkipOption, currentLang === "de" ? "Schliessen" : "Close")
+  ]);
+
+  const getChatFeedbackFieldPrompt = (field, mode) => {
+    switch (field) {
+      case "company":
+        return config.feedbackCompanyPrompt;
+      case "email":
+        return config.feedbackEmailPrompt;
+      case "country":
+        return config.feedbackCountryPrompt;
+      case "comments":
+        return config.feedbackCommentPrompt(mode);
+      case "name":
+      default:
+        return config.feedbackNamePrompt;
+    }
+  };
+
+  const buildChatFeedbackDerivedSubject = (message = "", fallback = "") => {
+    const normalizedMessage = String(message || "").replace(/\s+/g, " ").trim();
+    if (normalizedMessage) {
+      return normalizedMessage.length > 72
+        ? `${normalizedMessage.slice(0, 69).trimEnd()}...`
+        : normalizedMessage;
+    }
+    return String(fallback || "").trim();
+  };
+
+  const promptChatFeedbackField = async (field, token = responseToken) => {
+    const draft = getChatFeedbackDraft();
+    if (!draft.mode || !HELP_BOT_FEEDBACK_FIELDS.includes(field)) return;
+    helpBotState.pendingInputKind = "chat-feedback";
+    helpBotState.chatFeedbackDraft = { ...draft, field };
+    persistHelpBotState();
+    setStaticCopy();
+    await queueBotReply({
+      text: getChatFeedbackFieldPrompt(field, draft.mode),
+      delay: 420,
+      token
+    });
+    if (token !== responseToken) return;
+    showComposer();
+  };
+
+  const promptChatFeedbackRating = async (token = responseToken) => {
+    const draft = getChatFeedbackDraft();
+    if (!draft.mode) return;
+    helpBotState.pendingInputKind = "";
+    helpBotState.chatFeedbackDraft = { ...draft, field: "" };
+    persistHelpBotState();
+    setStaticCopy();
+    hideComposer();
+    await queueBotReply({
+      text: config.feedbackRatingPrompt,
+      delay: 420,
+      token,
+      inlineOptions: getFeedbackRatingOptions()
+    });
+  };
+
+  const beginEndChatFlow = async () => {
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    clearChatFeedbackDraft();
+    persistHelpBotState();
+    hideComposer();
+    setOptions([], "");
+    await queueBotReply({
+      text: config.feedbackPrompt(getFeedbackPromptName()),
+      delay: 360,
+      token,
+      inlineOptions: getFeedbackChoiceOptions()
+    });
+  };
+
+  const finishChatWithFarewell = async (text) => {
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    clearChatFeedbackDraft();
+    persistHelpBotState();
+    hideComposer();
+    await queueBotReply({
+      text,
+      delay: 320,
+      token
+    });
+    if (token !== responseToken) return;
+    await wait(950);
+    if (token !== responseToken) return;
+    endConversation({ showExitNudge: false });
+  };
+
+  const submitChatFeedback = async () => {
+    const draft = getChatFeedbackDraft();
+    if (!draft.mode || !draft.name || !draft.company || !draft.email || !draft.country || !draft.rating || !draft.comments) {
+      return false;
+    }
+
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    hideComposer({ clearValue: false });
+    clearComposerNote();
+    showTypingIndicator();
+
+    const lang = currentLang === "de" ? "de" : "en";
+    const template = FEEDBACK_MAIL_TEMPLATES[lang] || FEEDBACK_MAIL_TEMPLATES.en;
+    const submittedAt = new Date().toISOString();
+    const submissionId = createClientUuid();
+    const reviewVisibility = draft.mode === "public" ? "public" : "private";
+    const reviewVisibilityLabel = draft.mode === "public"
+      ? (lang === "de" ? "Oeffentlich" : "Public")
+      : (lang === "de" ? "Privat" : "Private");
+    const baseSubject = template.subjects?.feedback || "Feedback on your portfolio website";
+    const derivedSubject = buildChatFeedbackDerivedSubject(
+      draft.comments,
+      lang === "de" ? "AI Assistant Chat Feedback" : "AI Assistant chat feedback"
+    );
+    const finalSubject = derivedSubject ? `${baseSubject}: ${derivedSubject}` : baseSubject;
+    const sourceLabel = lang === "de" ? "Quelle" : "Source";
+    const sourceValue = lang === "de" ? "AI Assistant Chat" : "AI Assistant chat";
+    const sectionValue = lang === "de"
+      ? `${currentPageName} ueber den AI Assistant`
+      : `${currentPageName} via AI Assistant`;
+
+    const lines = [
+      template.greeting,
+      "",
+      template.intros?.feedback || "",
+      "",
+      `${template.labels.messageType}: ${lang === "de" ? "Feedback" : "Feedback"}`,
+      `${sourceLabel}: ${sourceValue}`,
+      `${template.labels.name}: ${draft.name}`,
+      `${template.labels.email}: ${draft.email}`,
+      `${template.labels.country}: ${draft.country}`,
+      `${template.labels.company}: ${draft.company}`,
+      `${template.labels.section}: ${sectionValue}`,
+      `${template.labels.rating}: ${draft.rating}`,
+      `${template.labels.reviewVisibility}: ${reviewVisibilityLabel}`,
+      "",
+      `${template.labels.comments}:`,
+      draft.comments,
+      "",
+      template.closing,
+      draft.name
+    ];
+
+    const requestBody = new FormData();
+    requestBody.set("access_key", WEB3FORMS_ACCESS_KEY);
+    requestBody.set("subject", finalSubject);
+    requestBody.set("from_name", "Sooraj Sudhakaran Portfolio");
+    requestBody.set("replyto", draft.email);
+    requestBody.set("message", lines.join("\r\n"));
+    requestBody.set("botcheck", "");
+
+    try {
+      const response = await fetch(WEB3FORMS_ENDPOINT, {
+        method: "POST",
+        body: requestBody,
+        headers: {
+          Accept: "application/json"
+        }
+      });
+      const result = await response.json().catch(() => null);
+      if (!response.ok || result?.success === false) {
+        throw new Error(result?.message || "Submission failed");
+      }
+
+      let publicReviewPublished = false;
+      await recordSharedSubmissionEvent({
+        id: submissionId,
+        type: "feedback",
+        country: draft.country,
+        submittedAt,
+        subject: derivedSubject,
+        rating: draft.rating
+      });
+
+      if (draft.mode === "public") {
+        try {
+          await recordSharedPublicReview({
+            id: submissionId,
+            reviewerName: draft.name,
+            company: draft.company,
+            country: draft.country,
+            rating: draft.rating,
+            reviewTitle: derivedSubject,
+            reviewText: draft.comments,
+            submittedAt
+          });
+          publicReviewPublished = true;
+        } catch {
+          publicReviewPublished = false;
+        }
+      }
+
+      const submissionRecord = {
+        type: "feedback",
+        submittedAt,
+        reviewVisibility,
+        publicReviewRequested: draft.mode === "public",
+        publicReviewPublished
+      };
+
+      sessionStorage.setItem(STORAGE_FEEDBACK_LAST_SUBMISSION_KEY, JSON.stringify(submissionRecord));
+      persistRecentSubmission(submissionRecord);
+      trackAnalyticsEvent("help_bot_feedback_submit_success", {
+        page_path: window.location.pathname,
+        lang: currentLang,
+        review_visibility: reviewVisibility,
+        role: currentRoleId || "unassigned"
+      });
+
+      clearTypingIndicator();
+      clearChatFeedbackDraft();
+      persistHelpBotState();
+      await queueBotReply({
+        text: config.feedbackSuccess,
+        delay: 320,
+        token
+      });
+      if (token !== responseToken) return true;
+      await wait(950);
+      if (token !== responseToken) return true;
+      endConversation({ showExitNudge: false });
+      return true;
+    } catch {
+      clearTypingIndicator();
+      helpBotState.pendingInputKind = "";
+      helpBotState.chatFeedbackDraft = { ...draft, field: "comments" };
+      persistHelpBotState();
+      trackAnalyticsEvent("help_bot_feedback_submit_error", {
+        page_path: window.location.pathname,
+        lang: currentLang,
+        review_visibility: reviewVisibility,
+        role: currentRoleId || "unassigned"
+      });
+      await queueBotReply({
+        text: config.feedbackFailure,
+        delay: 320,
+        token,
+        actions: [
+          createBadgedAction(config.feedbackOpenPage, createHelpBotPageTarget("feedback.html", "feedback-form"), currentLang === "de" ? "Seite" : "Page")
+        ],
+        inlineOptions: dedupeHelpBotOptions([
+          createBadgedOption("feedback-retry", "feedback-retry", config.feedbackRetry, currentLang === "de" ? "Erneut" : "Retry"),
+          createBadgedOption("feedback-edit", "feedback-edit", config.feedbackEdit, currentLang === "de" ? "Text" : "Edit"),
+          createBadgedOption("feedback-choice", "skip", config.feedbackSkipOption, currentLang === "de" ? "Schliessen" : "Close")
+        ])
+      });
+      return false;
+    }
+  };
+
+  const selectFeedbackChoice = async (choiceId) => {
+    const label = choiceId === "public"
+      ? config.feedbackPublicOption
+      : choiceId === "private"
+        ? config.feedbackPrivateOption
+        : config.feedbackSkipOption;
+    appendMessage({ sender: "user", text: label });
+
+    if (choiceId === "skip") {
+      if (currentRoleId === "student") {
+        responseToken += 1;
+        const token = responseToken;
+        clearTypingIndicator();
+        hideComposer();
+        await queueBotReply({
+          text: config.feedbackSkipConfirmPromptStudent(getVisitorName()),
+          delay: 420,
+          token,
+          inlineOptions: getFeedbackSkipConfirmOptions()
+        });
+        return;
+      }
+      await finishChatWithFarewell(config.feedbackSkipFarewell);
+      return;
+    }
+
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    const visitorName = getVisitorName();
+    const shouldReuseVisitorName = roleUsesVisitorName(currentRoleId) && visitorName;
+    helpBotState.chatFeedbackDraft = normalizeHelpBotFeedbackDraft({
+      mode: choiceId,
+      name: shouldReuseVisitorName ? visitorName : "",
+      field: shouldReuseVisitorName ? "company" : "name"
+    });
+    helpBotState.pendingInputKind = "";
+    persistHelpBotState();
+    hideComposer();
+    setOptions([], "");
+    await queueBotReply({
+      text: shouldReuseVisitorName
+        ? `${config.feedbackIntro(choiceId)}\n${config.feedbackUsingName(visitorName)}`
+        : config.feedbackIntro(choiceId),
+      delay: 420,
+      token
+    });
+    if (token !== responseToken) return;
+    await promptChatFeedbackField(shouldReuseVisitorName ? "company" : "name", token);
+  };
+
+  const selectFeedbackSkipConfirm = async (decisionId) => {
+    if (decisionId === "review") {
+      appendMessage({ sender: "user", text: config.feedbackSkipConfirmReview });
+      await selectFeedbackChoice("public");
+      return;
+    }
+
+    appendMessage({ sender: "user", text: config.feedbackSkipConfirmLeave });
+    await finishChatWithFarewell(config.feedbackSkipFarewell);
+  };
+
+  const selectFeedbackRating = async (rating) => {
+    const normalizedRating = ["1", "2", "3", "4", "5"].includes(String(rating || "").trim())
+      ? String(rating || "").trim()
+      : "";
+    if (!normalizedRating) return;
+
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    helpBotState.chatFeedbackDraft = {
+      ...getChatFeedbackDraft(),
+      rating: normalizedRating,
+      field: "comments"
+    };
+    helpBotState.pendingInputKind = "";
+    persistHelpBotState();
+    appendMessage({ sender: "user", text: `${normalizedRating} / 5` });
+    setOptions([], "");
+    await promptChatFeedbackField("comments", token);
+  };
+
+  const retryChatFeedbackSubmit = async () => {
+    appendMessage({ sender: "user", text: config.feedbackRetry });
+    await submitChatFeedback();
+  };
+
+  const editChatFeedbackComments = async () => {
+    appendMessage({ sender: "user", text: config.feedbackEdit });
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    await promptChatFeedbackField("comments", token);
+  };
+
+  const promptForVisitorName = async (roleId, token = responseToken) => {
+    const role = config.roles[roleId];
+    if (!role) return;
+    helpBotState.pendingInputKind = "visitor-name";
+    helpBotState.pendingTopicId = "";
+    persistHelpBotState();
+    await queueBotReply({
+      text: config.askName,
+      delay: 420,
+      token,
+      inlineOptions: withEndChatOption([])
+    });
+    if (token !== responseToken) return;
+    showComposer();
+  };
+
+  const promptForStudentUniversity = async (token = responseToken) => {
+    const visitorName = getVisitorName();
+    helpBotState.pendingInputKind = "student-university";
+    helpBotState.studentUniversityCandidate = null;
+    persistHelpBotState();
+    setStaticCopy();
+    await queueBotReply({
+      text: config.askUniversity(visitorName),
+      delay: 420,
+      token,
+      inlineOptions: withEndChatOption([
+        {
+          kind: "student-university-skip",
+          id: "student-university-skip",
+          label: config.askUniversitySkip
+        }
+      ])
+    });
+    if (token !== responseToken) return;
+    showComposer();
+  };
+
+  const continueRoleFlow = async (roleId, token = responseToken, { greetName = "" } = {}) => {
+    const role = config.roles[roleId];
+    if (!role) return;
+
+    if (greetName) {
+      await queueBotReply({
+        text: config.askNameGreeting(greetName),
+        delay: 420,
+        token
+      });
+      if (token !== responseToken) return;
+    }
+
+    await queueBotReply({
+      text: personalizeForNamedVisitor(prependLead(getTransitionLead("role", roleId), role.intro), roleId),
+      delay: 560,
+      token
+    });
+    if (token !== responseToken) return;
+
+    await queueBotReply({
+      text: personalizeForNamedVisitor(role.prompt, roleId),
+      delay: 420,
+      token,
+      inlineOptions: getTopicOptions(role),
+      cards: getRoleSummaryCards(roleId)
+    });
+    if (token !== responseToken) return;
+
+    setOptions([], "");
+  };
+
+  const continueStudentAfterUniversity = async ({ skipped = false } = {}) => {
+    const visitorName = getVisitorName();
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    helpBotState.pendingInputKind = "";
+    helpBotState.studentUniversityCandidate = null;
+    persistHelpBotState();
+    hideComposer();
+
+    if (skipped) {
+      await queueBotReply({
+        text: config.askUniversitySkipped(visitorName),
+        delay: 380,
+        token,
+        inlineOptions: withEndChatOption([
+          {
+            kind: "student-university-add",
+            id: "student-university-add",
+            label: config.askUniversityAdd
+          },
+          {
+            kind: "student-university-continue",
+            id: "student-university-continue",
+            label: config.askUniversityContinue
+          }
+        ])
+      });
+      return;
+    }
+
+    await continueRoleFlow("student", token);
+  };
+
+  const promptStudentNameContinue = async (token = responseToken) => {
+    const visitorName = getVisitorName();
+    await queueBotReply({
+      text: config.askNameContinuePrompt(visitorName),
+      delay: 360,
+      token,
+      inlineOptions: getStudentNameContinueOptions()
+    });
+  };
+
+  const handleStudentNameContinue = async (decisionId) => {
+    if (decisionId === "restart") {
+      appendMessage({ sender: "user", text: config.askNameContinueRestart });
+      responseToken += 1;
+      const token = responseToken;
+      clearTypingIndicator();
+      await queueBotReply({
+        text: config.askNameRestarting,
+        delay: 320,
+        token
+      });
+      if (token !== responseToken) return;
+      await wait(720);
+      if (token !== responseToken) return;
+      resetConversation();
+      return;
+    }
+
+    appendMessage({ sender: "user", text: config.askNameContinueYes });
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    await continueRoleFlow("student", token);
+  };
+
+  const confirmStudentUniversity = async (decisionId) => {
+    const candidate = normalizeHelpBotUniversityCandidate(helpBotState.studentUniversityCandidate);
+    if (!candidate) return;
+
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    setOptions([], "");
+
+    if (decisionId === "skip") {
+      appendMessage({ sender: "user", text: config.askUniversityContinue });
+      helpBotState.studentUniversityCandidate = null;
+      persistHelpBotState();
+      await continueStudentAfterUniversity({ skipped: true });
+      return;
+    }
+
+    if (decisionId === "retype") {
+      appendMessage({ sender: "user", text: config.askUniversityConfirmRetype });
+      helpBotState.studentUniversityCandidate = null;
+      helpBotState.pendingInputKind = "student-university";
+      persistHelpBotState();
+      await queueBotReply({
+        text: config.askUniversityRetype,
+        delay: 340,
+        token
+      });
+      if (token !== responseToken) return;
+      setStaticCopy();
+      showComposer();
+      return;
+    }
+
+    appendMessage({ sender: "user", text: config.askUniversityConfirmYes });
+    helpBotState.studentUniversity = candidate.canonical;
+    helpBotState.studentUniversityCandidate = null;
+    helpBotState.pendingInputKind = "";
+    persistHelpBotState();
+    await queueBotReply({
+      text: candidate.matchType === "deggendorf"
+        ? config.askUniversitySameMatch(getVisitorName())
+        : candidate.matchType === "ktu"
+          ? config.askUniversityKtuMatch(getVisitorName())
+          : config.askUniversitySaved(getVisitorName(), candidate.canonical),
+      delay: 420,
+      token
+    });
+    if (token !== responseToken) return;
+    await promptStudentNameContinue(token);
+  };
+
+  const resetConversation = async () => {
+    responseToken += 1;
+    const token = responseToken;
+    hasConversationBooted = true;
+    currentLang = resolveInitialLanguage();
+    config = getPortfolioHelpBotConfig(currentLang);
+    currentRoleId = "";
+    helpBotState.visitorName = "";
+    helpBotState.studentUniversity = "";
+    helpBotState.studentUniversityCandidate = null;
+    clearChatFeedbackDraft();
+    helpBotState.pendingInputKind = "";
+    helpBotState.pendingTopicId = "";
+    setStaticCopy();
+    clearTypingIndicator();
+    hideComposer();
+    messages.innerHTML = "";
+    helpBotState.messages = [];
+    helpBotState.topicTrail = [];
+    helpBotState.pendingResumePrompt = false;
+    helpBotState.lastNavTarget = null;
+    persistHelpBotState();
+    setOptions([], "");
+    await queueBotReply({ text: config.welcome, delay: 420, token });
+    if (token !== responseToken) return;
+    const pageOpening = getPageAwareOpening();
+    if (pageOpening?.text) {
+      await queueBotReply({
+        text: prependLead(getTransitionLead("tour"), pageOpening.text),
+        delay: 420,
+        token,
+        inlineOptions: pageOpening.inlineOptions || []
+      });
+    }
+    if (token !== responseToken) return;
+    await queueBotReply({
+      text: config.roleQuestion,
+      delay: 520,
+      token,
+      inlineOptions: getRoleOptions()
+    });
+    if (token !== responseToken) return;
+    setOptions([], "");
+  };
+
+  const selectRole = async (roleId) => {
+    const role = config.roles[roleId];
+    if (!role) return;
+
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    currentRoleId = roleId;
+    clearChatFeedbackDraft();
+    helpBotState.studentUniversityCandidate = null;
+    helpBotState.pendingInputKind = "";
+    helpBotState.pendingTopicId = "";
+    persistHelpBotState();
+    appendMessage({ sender: "user", text: role.label });
+    setOptions([], "");
+    if (roleNeedsNamePrompt(roleId) && !helpBotState.visitorName) {
+      await promptForVisitorName(roleId, token);
+      if (token !== responseToken) return;
+    } else if (roleId === "student" && !getStudentUniversity()) {
+      await queueBotReply({
+        text: config.askNameGreeting(getVisitorName()),
+        delay: 420,
+        token
+      });
+      if (token !== responseToken) return;
+      await promptForStudentUniversity(token);
+      if (token !== responseToken) return;
+    } else {
+      await continueRoleFlow(roleId, token);
+      if (token !== responseToken) return;
+    }
+
+    trackAnalyticsEvent("help_bot_role_selected", {
+      page_path: window.location.pathname,
+      lang: currentLang,
+      role: roleId
+    });
+  };
+
+  const openQuickPath = async () => {
+    if (currentRoleId !== "recruiter" && currentRoleId !== "hiringManager") return;
+
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    helpBotState.pendingTopicId = "quick";
+    persistHelpBotState();
+    appendMessage({ sender: "user", text: getQuickPathOption(currentRoleId)?.label || "" });
+    setOptions([], "");
+    const quickCopy = getQuickPathCopy(currentRoleId);
+    await queueBotReply({
+      text: prependLead(getTransitionLead("quick", currentRoleId), quickCopy.response),
+      actions: quickCopy.actions.map((action, index) => ({
+        ...action,
+        badge: action.badge || (index === 0 ? (currentLang === "de" ? "Schnellster Start" : "Fastest start") : "")
+      })),
+      delay: 540,
+      token,
+      cards: getRoleSummaryCards(currentRoleId)
+    });
+    if (token !== responseToken) return;
+    const deepCopy = getTopicDeeperCopy(currentRoleId, "quick");
+    await queueBotReply({
+      text: deepCopy.prompt,
+      delay: 420,
+      token,
+      inlineOptions: getTopicPromptOptions()
+    });
+    if (token !== responseToken) return;
+    setOptions([], "");
+
+    trackAnalyticsEvent("help_bot_quick_path_selected", {
+      page_path: window.location.pathname,
+      lang: currentLang,
+      role: currentRoleId
+    });
+  };
+
+  const selectTopic = async (topicId) => {
+    const role = config.roles[currentRoleId];
+    const topic = role?.topics.find((entry) => entry.id === topicId);
+    if (!topic) return;
+
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    helpBotState.pendingTopicId = topic.id;
+    recordTopicTrail(currentRoleId, topic);
+    persistHelpBotState();
+    appendMessage({ sender: "user", text: topic.label });
+    setOptions([], "");
+    const confidence = getTopicConfidenceLine(currentRoleId, topic.id);
+    const milestone = getRoleMilestoneSummary(currentRoleId);
+    const composedTopicText = [
+      prependLead(getTransitionLead("topic", currentRoleId), topic.response),
+      confidence,
+      milestone?.text || ""
+    ].filter(Boolean).join("\n");
+    await queueBotReply({
+      text: roleUsesVisitorName(currentRoleId) ? personalizeForNamedVisitor(composedTopicText) : composedTopicText,
+      delay: 520,
+      token
+    });
+    if (token !== responseToken) return;
+    await queueBotReply({
+      text: getTopicDecisionPromptText(),
+      delay: 380,
+      token,
+      inlineOptions: getTopicDecisionOptions()
+    });
+    if (token !== responseToken) return;
+    setOptions([], "");
+
+    trackAnalyticsEvent("help_bot_topic_selected", {
+      page_path: window.location.pathname,
+      lang: currentLang,
+      role: currentRoleId,
+      topic: topicId
+    });
+  };
+
+  const explainTopicMore = async () => {
+    const role = config.roles[currentRoleId];
+    const topic = helpBotState.pendingTopicId === "quick"
+      ? {
+          id: "quick",
+          label: getQuickPathOption(currentRoleId)?.label || "",
+          actions: getQuickPathCopy(currentRoleId).actions
+        }
+      : role?.topics.find((entry) => entry.id === helpBotState.pendingTopicId);
+    if (!topic) return;
+
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    const deepCopy = getTopicDeeperCopy(currentRoleId, topic.id);
+    appendMessage({ sender: "user", text: deepCopy.explainMore });
+    setOptions([], "");
+    await queueBotReply({
+      text: `${deepCopy.detail}\n${currentLang === "de" ? "Wenn Sie die komplette Seite oeffnen moechten, waehlen Sie unten den passenden Detailweg. Danach kann ich den naechsten sinnvollen Bereich direkt weiterfuehren." : "If you would like the full page, use one of the detail paths below. After that, I can keep routing you to the strongest next area."}`,
+      actions: topic.actions.map((action, index) => ({
+        ...action,
+        badge: action.badge || (index === 0 ? (currentLang === "de" ? "Empfohlen" : "Recommended") : "")
+      })),
+      delay: 560,
+      token,
+      inlineOptions: withEndChatOption(dedupeHelpBotOptions([
+        ...((currentRoleId === "recruiter" || currentRoleId === "hiringManager") && (topic.id === "fit" || topic.id === "quick")
+          ? [{ ...getRoleFitStartOption(), badge: currentLang === "de" ? "Smart" : "Smart" }]
+          : []),
+        ...(topic.id === "reviews" ? [getReviewPathStartOption()] : []),
+        ...getSuggestedTopicOptions(currentRoleId, topic.id),
+        getTourStartOption(),
+        createBadgedOption("topic-other", "topic-other", deepCopy.otherTopics, currentLang === "de" ? "Wechseln" : "Switch")
+      ]))
+    });
+  };
+
+  const openPendingTopicDetails = () => {
+    const topic = getPendingTopic();
+    const primaryAction = getTopicPrimaryAction(topic);
+    if (!topic || !primaryAction?.target) return;
+
+    appendMessage({
+      sender: "user",
+      text: currentLang === "de" ? "Ja, Details oeffnen" : "Yes, open details"
+    });
+    helpBotState.lastNavTarget = primaryAction.target;
+    persistHelpBotState();
+    trackAnalyticsEvent("help_bot_topic_detail_opened", {
+      page_path: window.location.pathname,
+      lang: currentLang,
+      role: currentRoleId,
+      topic: topic.id
+    });
+    navigateHelpBotTarget(primaryAction.target, () => setOpen(false));
+  };
+
+  const continueAfterTopicOverview = async () => {
+    const topic = getPendingTopic();
+    if (!topic) return;
+    const recommendedNextLabel = getRecommendedNextTopicLabel(currentRoleId, topic.id);
+
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    appendMessage({
+      sender: "user",
+      text: currentLang === "de" ? "Nein, im Chat bleiben" : "No, continue here"
+    });
+    setOptions([], "");
+    await queueBotReply({
+      text: roleUsesVisitorName(currentRoleId)
+        ? personalizeForNamedVisitor(currentLang === "de"
+          ? `In Ordnung. Ich bleibe im Chat und fuehre Sie weiter durch die Website.${recommendedNextLabel ? `\nEmpfohlener naechster Bereich: ${recommendedNextLabel}.` : ""}`
+          : `Alright. I’ll stay in the chat and guide you through the website from here.${recommendedNextLabel ? `\nRecommended next section: ${recommendedNextLabel}.` : ""}`)
+        : currentLang === "de"
+          ? `In Ordnung. Ich bleibe im Chat und fuehre Sie weiter durch die Website.${recommendedNextLabel ? `\nEmpfohlener naechster Bereich: ${recommendedNextLabel}.` : ""}`
+          : `Alright. I’ll stay in the chat and guide you through the website from here.${recommendedNextLabel ? `\nRecommended next section: ${recommendedNextLabel}.` : ""}`,
+      delay: 380,
+      token,
+      actions: topic.actions.map((action, index) => ({
+        ...action,
+        badge: action.badge || (index === 0 ? (currentLang === "de" ? "Details" : "Details") : "")
+      })),
+      inlineOptions: getTopicContinueOptions(currentRoleId, topic.id)
+    });
+  };
+
+  const showOtherTopics = async () => {
+    const role = config.roles[currentRoleId];
+    if (!role) return;
+
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    const deepCopy = getTopicDeeperCopy(currentRoleId, helpBotState.pendingTopicId);
+    appendMessage({ sender: "user", text: deepCopy.otherTopics });
+    setOptions([], "");
+    await queueBotReply({
+      text: prependLead(getTransitionLead("continue", currentRoleId), currentLang === "de"
+        ? "Gerne. Waehlen Sie den naechsten Bereich, den ich erklaeren soll."
+        : "Sure. Choose the next area you want me to explain."),
+      delay: 420,
+      token,
+      inlineOptions: getTopicOptions(role)
+    });
+  };
+
+  const continueConversation = async () => {
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    appendMessage({ sender: "user", text: config.continueChat });
+    setOptions([], "");
+    const followUp = getResumeFollowUp();
+    await queueBotReply({
+      text: roleUsesVisitorName(currentRoleId)
+        ? personalizeForNamedVisitor(prependLead(getTransitionLead("continue", currentRoleId), followUp.text))
+        : prependLead(getTransitionLead("continue", currentRoleId), followUp.text),
+      actions: followUp.actions,
+      delay: 540,
+      token,
+      cards: followUp.cards || [],
+      inlineOptions: followUp.inlineOptions || withEndChatOption([])
+    });
+  };
+
+  const startRoleFitFlow = async () => {
+    if (currentRoleId !== "recruiter" && currentRoleId !== "hiringManager") return;
+
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    appendMessage({ sender: "user", text: getRoleFitStartOption().label });
+    setOptions([], "");
+    await queueBotReply({
+      text: prependLead(getTransitionLead("role", currentRoleId), getRoleFitQuestionText()),
+      delay: 420,
+      token,
+      inlineOptions: getRoleFitChoiceOptions()
+    });
+  };
+
+  const selectRoleFit = async (fitId) => {
+    if (!fitId) return;
+
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    const fitCopy = getRoleFitResponse(fitId);
+    appendMessage({ sender: "user", text: fitCopy.label });
+    setOptions([], "");
+    await queueBotReply({
+      text: `${fitCopy.text}\n${currentLang === "de" ? "Wenn diese Rolle gut passt, fuehren CV, Kontakt oder ein weiterer Nachweis als naechster Schritt am besten weiter." : "If this role looks relevant, the cleanest next step is CV, contact, or one more proof page."}`,
+      actions: fitCopy.actions,
+      delay: 520,
+      token,
+      inlineOptions: withEndChatOption(dedupeHelpBotOptions([
+        createTopicOption(currentRoleId, currentRoleId === "recruiter" ? "projects" : "proof"),
+        createTopicOption(currentRoleId, "reviews"),
+        createTopicOption(currentRoleId, "contact"),
+        getQuickPathOption(currentRoleId),
+        getTourStartOption()
+      ]))
+    });
+
+    trackAnalyticsEvent("help_bot_role_fit_selected", {
+      page_path: window.location.pathname,
+      lang: currentLang,
+      role: currentRoleId,
+      fit: fitId
+    });
+  };
+
+  const startPortfolioTour = async () => {
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    appendMessage({ sender: "user", text: getTourStartOption().label });
+    setOptions([], "");
+    const steps = getTourSteps();
+    await queueBotReply({
+      text: `${getTransitionLead("tour", currentRoleId)}\n${currentLang === "de" ? "Die Schnelltour zeigt Profil-Ueberblick, Top-Projekt, industriellen Nachweis und den direkten Kontaktweg." : "The fast tour shows profile overview, top project, industrial proof, and the direct contact path."}`,
+      delay: 460,
+      token,
+      cards: steps.map((step) => ({ badge: step.badge, title: step.label, text: step.text })),
+      inlineOptions: getTourStepOptions("")
+    });
+
+    trackAnalyticsEvent("help_bot_tour_started", {
+      page_path: window.location.pathname,
+      lang: currentLang,
+      role: currentRoleId || "unassigned"
+    });
+  };
+
+  const selectTourStep = async (stepId) => {
+    const step = getTourSteps().find((entry) => entry.id === stepId);
+    if (!step) return;
+
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    appendMessage({ sender: "user", text: step.label });
+    setOptions([], "");
+    await queueBotReply({
+      text: `${step.text}\n${currentLang === "de" ? "Wenn Sie moechten, fuehre ich danach direkt zum naechsten Tour-Schritt oder in ein tieferes Thema." : "If you want, I can take you straight to the next tour stop or into a deeper topic after this."}`,
+      actions: [step.action],
+      delay: 480,
+      token,
+      inlineOptions: getTourStepOptions(step.id)
+    });
+
+    trackAnalyticsEvent("help_bot_tour_step_selected", {
+      page_path: window.location.pathname,
+      lang: currentLang,
+      step: stepId
+    });
+  };
+
+  const startReviewPathFlow = async () => {
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    appendMessage({ sender: "user", text: getReviewPathStartOption().label });
+    setOptions([], "");
+    await queueBotReply({
+      text: `${getTransitionLead("review", currentRoleId)}\n${currentLang === "de" ? "Welche Review-Ansicht hilft Ihnen gerade am meisten?" : "Which review view would help you most right now?"}`,
+      delay: 420,
+      token,
+      inlineOptions: getReviewPathOptions()
+    });
+
+    trackAnalyticsEvent("help_bot_review_paths_opened", {
+      page_path: window.location.pathname,
+      lang: currentLang,
+      role: currentRoleId || "unassigned"
+    });
+  };
+
+  const selectReviewPath = async (pathId) => {
+    const reviewCopy = getReviewPathResponse(pathId);
+    if (!reviewCopy) return;
+
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    appendMessage({ sender: "user", text: reviewCopy.label });
+    setOptions([], "");
+    await queueBotReply({
+      text: reviewCopy.text,
+      actions: reviewCopy.actions,
+      delay: 440,
+      token,
+      inlineOptions: withEndChatOption(dedupeHelpBotOptions([
+        getReviewPathStartOption(),
+        getTourStartOption(),
+        createTopicOption(currentRoleId, "projects"),
+        createTopicOption(currentRoleId, "contact")
+      ]))
+    });
+
+    trackAnalyticsEvent("help_bot_review_path_selected", {
+      page_path: window.location.pathname,
+      lang: currentLang,
+      path: pathId,
+      role: currentRoleId || "unassigned"
+    });
+  };
+
+  const endConversation = ({ showExitNudge = true } = {}) => {
+    responseToken += 1;
+    clearTypingIndicator();
+    hideComposer();
+    clearHelpBotState();
+    if (liveRegion) liveRegion.textContent = "";
+    messages.innerHTML = "";
+    setOptions([], "");
+    setOpen(false);
+    nudgeText.textContent = showExitNudge ? config.ended : config.nudge;
+    if (showExitNudge) {
+      showNudge({ delay: 900 });
+    }
+  };
+
+  root.addEventListener("click", (event) => {
+    const optionButton = event.target.closest("[data-help-bot-option-kind]");
+    if (optionButton) {
+      const kind = optionButton.getAttribute("data-help-bot-option-kind");
+      const id = optionButton.getAttribute("data-help-bot-option-id") || "";
+      if (kind === "role") {
+        selectRole(id);
+      } else if (kind === "tour-start") {
+        startPortfolioTour();
+      } else if (kind === "tour-step") {
+        selectTourStep(id);
+      } else if (kind === "quick-path") {
+        openQuickPath();
+      } else if (kind === "topic") {
+        selectTopic(id);
+      } else if (kind === "topic-detail-open") {
+        openPendingTopicDetails();
+      } else if (kind === "topic-detail-skip") {
+        continueAfterTopicOverview();
+      } else if (kind === "topic-more") {
+        explainTopicMore();
+      } else if (kind === "topic-other") {
+        showOtherTopics();
+      } else if (kind === "review-path-start") {
+        startReviewPathFlow();
+      } else if (kind === "review-path") {
+        selectReviewPath(id);
+      } else if (kind === "feedback-choice") {
+        selectFeedbackChoice(id);
+      } else if (kind === "feedback-skip-confirm") {
+        selectFeedbackSkipConfirm(id);
+      } else if (kind === "feedback-rating") {
+        selectFeedbackRating(id);
+      } else if (kind === "feedback-retry") {
+        retryChatFeedbackSubmit();
+      } else if (kind === "feedback-edit") {
+        editChatFeedbackComments();
+      } else if (kind === "role-fit-start") {
+        startRoleFitFlow();
+      } else if (kind === "role-fit") {
+        selectRoleFit(id);
+      } else if (kind === "student-university-skip") {
+        appendMessage({ sender: "user", text: config.askUniversitySkip });
+        continueStudentAfterUniversity({ skipped: true });
+      } else if (kind === "student-university-confirm") {
+        confirmStudentUniversity(id);
+      } else if (kind === "student-name-confirm") {
+        handleStudentNameContinue(id);
+      } else if (kind === "student-university-add") {
+        appendMessage({ sender: "user", text: config.askUniversityAdd });
+        helpBotState.pendingInputKind = "student-university";
+        helpBotState.studentUniversityCandidate = null;
+        persistHelpBotState();
+        setStaticCopy();
+        showComposer();
+      } else if (kind === "student-university-continue") {
+        appendMessage({ sender: "user", text: config.askUniversityContinue });
+        continueRoleFlow("student");
+      } else if (kind === "continue-chat") {
+        continueConversation();
+      } else if (kind === "start-over") {
+        appendMessage({ sender: "user", text: config.startFresh });
+        resetConversation();
+      } else if (kind === "end-chat") {
+        appendMessage({ sender: "user", text: config.endChat });
+        beginEndChatFlow();
+      }
+      return;
+    }
+
+    const navButton = event.target.closest("[data-help-bot-nav]");
+    if (navButton) {
+      const targetRaw = navButton.getAttribute("data-help-bot-target") || "";
+      try {
+        const target = JSON.parse(decodeURIComponent(targetRaw));
+        helpBotState.lastNavTarget = target;
+        persistHelpBotState();
+        trackAnalyticsEvent("help_bot_navigation", {
+          page_path: window.location.pathname,
+          lang: currentLang,
+          role: currentRoleId || "unassigned"
+        });
+        navigateHelpBotTarget(target, () => setOpen(false));
+      } catch {
+        // Ignore malformed action payloads without breaking the UI.
+      }
+      return;
+    }
+
+    if (event.target.closest(".help-bot-launcher")) {
+      setOpen(!root.classList.contains("is-open"));
+      return;
+    }
+
+    if (event.target.closest("[data-help-bot-nudge-close]")) {
+      hasDismissedNudge = true;
+      clearNudgeTimers();
+      hideNudge({ scheduleNext: false });
+      return;
+    }
+
+    if (event.target.closest("[data-help-bot-close]") || event.target.closest(".help-bot-backdrop")) {
+      setOpen(false);
+      return;
+    }
+
+    if (event.target.closest("[data-help-bot-reset]")) {
+      resetConversation();
+    }
+  });
+
+  composerForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const activeComposerField = getActiveComposerField();
+    const composerValue = activeComposerField?.value || "";
+    clearComposerNote();
+
+    if (helpBotState.pendingInputKind === "visitor-name") {
+      const visitorName = normalizeVisitorName(composerValue);
+      if (!visitorName) {
+        setComposerNote(config.feedbackInvalidName);
+        focusComposerInput();
+        return;
+      }
+
+      responseToken += 1;
+      const token = responseToken;
+      clearTypingIndicator();
+      helpBotState.visitorName = visitorName;
+      helpBotState.pendingInputKind = "";
+      persistHelpBotState();
+      appendMessage({ sender: "user", text: visitorName });
+      hideComposer();
+      if (currentRoleId === "student") {
+        await queueBotReply({
+          text: config.askNameGreeting(visitorName),
+          delay: 420,
+          token
+        });
+        if (token !== responseToken) return;
+        await promptForStudentUniversity(token);
+        return;
+      }
+      await continueRoleFlow(currentRoleId, token, { greetName: visitorName });
+      return;
+    }
+
+    if (helpBotState.pendingInputKind === "chat-feedback") {
+      const draft = getChatFeedbackDraft();
+      let normalizedValue = "";
+      let errorMessage = "";
+
+      if (draft.field === "name") {
+        normalizedValue = normalizeFeedbackName(composerValue);
+        if (!normalizedValue) errorMessage = config.feedbackInvalidName;
+      } else if (draft.field === "company") {
+        normalizedValue = normalizeFeedbackCompany(composerValue);
+        if (!normalizedValue) errorMessage = config.feedbackInvalidCompany;
+      } else if (draft.field === "email") {
+        normalizedValue = normalizeFeedbackEmail(composerValue);
+        if (!isValidFeedbackEmail(normalizedValue)) errorMessage = config.feedbackInvalidEmail;
+      } else if (draft.field === "country") {
+        normalizedValue = normalizeFeedbackCountry(composerValue);
+        if (!normalizedValue) errorMessage = config.feedbackInvalidCountry;
+      } else if (draft.field === "comments") {
+        normalizedValue = normalizeFeedbackComments(composerValue);
+        if (normalizedValue.length < 12) errorMessage = config.feedbackInvalidComments;
+      }
+
+      if (errorMessage) {
+        setComposerNote(errorMessage);
+        focusComposerInput();
+        return;
+      }
+
+      if (!draft.field) return;
+
+      responseToken += 1;
+      const token = responseToken;
+      clearTypingIndicator();
+      helpBotState.chatFeedbackDraft = {
+        ...draft,
+        [draft.field]: normalizedValue
+      };
+      helpBotState.pendingInputKind = "";
+      persistHelpBotState();
+      appendMessage({ sender: "user", text: normalizedValue });
+      hideComposer();
+
+      if (draft.field === "name") {
+        await promptChatFeedbackField("company", token);
+        return;
+      }
+      if (draft.field === "company") {
+        await promptChatFeedbackField("email", token);
+        return;
+      }
+      if (draft.field === "email") {
+        await promptChatFeedbackField("country", token);
+        return;
+      }
+      if (draft.field === "country") {
+        await promptChatFeedbackRating(token);
+        return;
+      }
+      if (draft.field === "comments") {
+        helpBotState.chatFeedbackDraft = {
+          ...getChatFeedbackDraft(),
+          comments: normalizedValue
+        };
+        persistHelpBotState();
+        await submitChatFeedback();
+        return;
+      }
+      return;
+    }
+
+    if (helpBotState.pendingInputKind !== "student-university") return;
+
+    const universityName = normalizeUniversityName(composerValue);
+    if (!universityName) {
+      focusComposerInput();
+      return;
+    }
+
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    const candidate = inferUniversityCandidate(universityName);
+    helpBotState.studentUniversityCandidate = candidate;
+    helpBotState.pendingInputKind = "";
+    persistHelpBotState();
+    appendMessage({ sender: "user", text: universityName });
+    hideComposer();
+    await queueBotReply({
+      text: getUniversityConfirmPrompt(candidate),
+      delay: 420,
+      token,
+      inlineOptions: getUniversityConfirmOptions()
+    });
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (!root.classList.contains("is-open")) return;
+    if (event.key === "Escape") {
+      setOpen(false);
+      return;
+    }
+    if (event.key === "Tab") {
+      const focusableElements = Array.from(panel.querySelectorAll(HELP_BOT_FOCUSABLE_SELECTOR))
+        .filter((element) => !element.hasAttribute("disabled")
+          && element.getAttribute("aria-hidden") !== "true"
+          && element.getClientRects().length > 0);
+      if (!focusableElements.length) {
+        event.preventDefault();
+        panel.focus({ preventScroll: true });
+        return;
+      }
+      const first = focusableElements[0];
+      const last = focusableElements[focusableElements.length - 1];
+      const activeElement = document.activeElement;
+      if (event.shiftKey && activeElement === first) {
+        event.preventDefault();
+        last.focus({ preventScroll: true });
+      } else if (!event.shiftKey && activeElement === last) {
+        event.preventDefault();
+        first.focus({ preventScroll: true });
+      }
+    }
+  });
+
+  const langObserver = new MutationObserver(() => {
+    const nextLang = resolveInitialLanguage();
+    if (nextLang === currentLang) return;
+    if (root.classList.contains("is-open")) {
+      resetConversation();
+      return;
+    }
+    currentLang = nextLang;
+    config = getPortfolioHelpBotConfig(currentLang);
+    clearHelpBotState();
+    responseToken += 1;
+    clearTypingIndicator();
+    if (liveRegion) liveRegion.textContent = "";
+    messages.innerHTML = "";
+    setOptions([], "");
+    setStaticCopy();
+  });
+
+  langObserver.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["lang"]
+  });
+
+  setStaticCopy();
+  showNudge({ delay: HELP_BOT_NUDGE_INITIAL_DELAY_MS });
 }
 
 function resolveMotionProfile() {
@@ -8094,6 +12391,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupDetailOriginTracking();
   setupSmartDetailBack();
   setupVisibleBackButton();
+  setupPortfolioHelpBot();
   setupFeedbackForm();
   setupRequestCvForm();
   setupFeedbackThankYouPage();

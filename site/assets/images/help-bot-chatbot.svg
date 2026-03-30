@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" width="640" height="640" fill="none">
+  <defs>
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="8" dy="8" stdDeviation="3" flood-color="#C7CAD6" flood-opacity="0.65"/>
+    </filter>
+    <linearGradient id="bodyGrad" x1="320" y1="240" x2="320" y2="500" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F7F7FA"/>
+      <stop offset="1" stop-color="#D2D6E3"/>
+    </linearGradient>
+    <linearGradient id="helmetGrad" x1="320" y1="95" x2="320" y2="274" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#D3D7E2"/>
+    </linearGradient>
+  </defs>
+
+  <!-- ground shadow -->
+  <ellipse cx="341" cy="530" rx="80" ry="11" fill="#D4D6DF"/>
+
+  <!-- robot -->
+  <g>
+    <!-- torso shadow -->
+    <ellipse cx="336" cy="346" rx="80" ry="18" fill="#D8DAE2" opacity="0.85"/>
+
+    <!-- left arm back -->
+    <g transform="rotate(-36 228 323)">
+      <ellipse cx="220" cy="323" rx="27" ry="67" fill="#D8DCE7"/>
+    </g>
+
+    <!-- helmet outer ring -->
+    <circle cx="337" cy="202" r="108" fill="#FFFFFF" stroke="#133E6F" stroke-width="6"/>
+
+    <!-- neck ring -->
+    <ellipse cx="338" cy="282" rx="94" ry="11" fill="#EEF0F5" stroke="#E0E4EC" stroke-width="4"/>
+
+    <!-- helmet glass -->
+    <circle cx="337" cy="202" r="95" fill="url(#helmetGrad)"/>
+    <path d="M255 133c24-18 56-27 92-26 9 0 18 .6 27 1.8 0 0 3 25-18 25-29 0-55 1-82 14-17 8-30-2-19-15Z" fill="#FFFFFF" opacity="0.45"/>
+    <path d="M257 151c22-7 45-10 72-10 16 0 32 1 47 4" stroke="#CBD0DB" stroke-width="12" stroke-linecap="round" opacity="0.45"/>
+
+    <!-- visor -->
+    <rect x="266" y="193" width="142" height="52" rx="26" fill="#143F6F"/>
+    <circle cx="301" cy="219" r="10" fill="#C6F2FB"/>
+    <circle cx="366" cy="219" r="10" fill="#C6F2FB"/>
+
+    <!-- ear pads -->
+    <g filter="url(#softShadow)">
+      <rect x="221" y="185" width="18" height="58" rx="8" fill="#143F6F"/>
+      <rect x="421" y="185" width="18" height="58" rx="8" fill="#143F6F"/>
+    </g>
+
+    <!-- microphone -->
+    <path d="M438 243c-7 18-28 23-53 22" stroke="#143F6F" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="356" cy="263" r="15" fill="#69C6D8"/>
+
+    <!-- body -->
+    <path d="M278 280c-6 18-19 149 58 213 75-60 63-197 58-213-14 9-101 9-116 0Z" fill="url(#bodyGrad)"/>
+
+    <!-- body side accents -->
+    <path d="M245 317c-4 14-4 29 0 43" stroke="#143F6F" stroke-width="4" stroke-linecap="round"/>
+    <path d="M421 327c9 2 17 10 19 19 1 6 1 11-1 16" stroke="#143F6F" stroke-width="4" stroke-linecap="round"/>
+
+    <!-- chest panel -->
+    <rect x="307" y="344" width="52" height="115" rx="2" fill="#143F6F"/>
+
+    <!-- right arm front -->
+    <g transform="rotate(35 389 362)">
+      <ellipse cx="389" cy="362" rx="27" ry="63" fill="#D8DCE7"/>
+    </g>
+  </g>
+</svg>
