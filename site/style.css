@@ -13155,6 +13155,14 @@ body.help-bot-open {
   animation: none;
 }
 
+.help-bot.is-open.is-inline-nudge-visible .help-bot-nudge {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+  animation: none;
+}
+
 .help-bot-nudge-body {
   min-width: 0;
 }

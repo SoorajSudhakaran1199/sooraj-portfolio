@@ -4019,8 +4019,8 @@ function createHelpBotContactFormTarget() {
 function getPortfolioHelpBotConfig(lang) {
   if (lang === "de") {
     return {
-      nudgeBadge: "Sooraj",
-      nudge: "Hallo, ich bin Sooraj. Kann ich Ihnen etwas schneller zeigen?",
+      nudgeBadge: "AI Assistant",
+      nudge: "Hallo, ich bin der AI Assistant von Sooraj. Kann ich Ihnen etwas schneller zeigen?",
       launcher: "Chat mit Sooraj oeffnen",
       badge: "AI Assistant von Sooraj",
       assistantName: "AI Assistant",
@@ -4038,7 +4038,7 @@ function getPortfolioHelpBotConfig(lang) {
       askName: "Bevor ich Sie weiterfuehre: Wie darf ich Sie ansprechen?",
       askNamePlaceholder: "Geben Sie Ihren Namen ein",
       askNameSubmit: "Senden",
-      askNameGreeting: (name) => `Hallo ${name}, schoen, dass Sie hier sind.`,
+      askNameGreeting: (name) => `Willkommen ${name} 😊 Ich freue mich, Sie heute durch die Website zu begleiten.`,
       askUniversity: (name) => `Prima ${name} 😊 Von welcher Hochschule oder Universitaet kommen Sie?`,
       askUniversityPlaceholder: "Hochschule oder Universitaet eingeben",
       askUniversitySubmit: "Weiter",
@@ -4052,13 +4052,32 @@ function getPortfolioHelpBotConfig(lang) {
       askUniversityConfirmRetype: "Nein, neu eingeben",
       askUniversitySameMatch: (name) => `Wow ${name} 😄✨ Das ist ein direkter Match mit dem aktuellen Master-in-Mechatronics-Weg meines Bosses in Deutschland. Dadurch fuehlt sich diese Verbindung gleich besonders nah und spannend an.`,
       askUniversityKtuMatch: (name) => `Wow ${name} 😄✨ Das passt direkt zum Bachelor-in-Mechanical-Engineering-Weg meines Bosses in Indien. Dadurch wird dieser Austausch gleich noch interessanter und naeher.`,
-      askUniversitySaved: (name, university) => `Sehr schoen ${name} 😊 Danke fuer ${university}. Ich behalte das im Hinterkopf und fuehre Sie passend weiter.`,
+      askUniversitySaved: (name) => `Sehr schoen ${name} 😊 Danke fuer Ihre Hochschulangabe. Ich behalte das im Hinterkopf und fuehre Sie passend weiter.`,
       askUniversitySkipped: (name) => `Ohh ${name} 😅 Damit verpassen Sie gerade den kleinen Match mit einem Hochschulweg, den ich gut kenne. Aber kein Problem 😊 Wir koennen direkt weitermachen oder Ihre Hochschule doch noch hinzufuegen.`,
       askUniversityRetype: "Kein Problem 😊 Schreiben Sie Ihre Hochschule einfach noch einmal.",
       askNameContinuePrompt: (name) => `Soll ich mit ${name} weitermachen oder wollen Sie den Namen lieber noch einmal neu starten?`,
       askNameContinueYes: "Ja, weiter",
       askNameContinueRestart: "Nein, neu starten",
       askNameRestarting: "Lassen Sie uns ganz entspannt neu starten. Keine Sorge 😊",
+      askNameBossPrompt: (name) => `${name} klingt fast wie der Name meines Bosses 😄 Darf ich Sie wirklich ${name} nennen?`,
+      askNameBossYes: "Ja, nennen Sie mich so",
+      askNameBossRetype: "Nein, Namen neu eingeben",
+      askNameBossRetypePrompt: "Alles klar 😊 Dann geben Sie Ihren Namen bitte noch einmal ein.",
+      searchWebsiteLabel: "🔍 Website durchsuchen",
+      searchWebsitePrompt: "Geben Sie ein Stichwort, eine Rolle, ein Tool oder ein Thema ein. Ich suche dann die passende Stelle auf der Website fuer Sie.",
+      searchWebsitePlaceholder: "Zum Beispiel ROS, Thesis, KEBA, Journey, CV ...",
+      searchWebsiteSubmit: "Suchen",
+      searchWebsiteSearching: "Ich suche gerade die passende Stelle auf der Website ...",
+      searchWebsiteDeepSearching: "Ich starte gerade eine tiefere Suche ueber die Website ...",
+      searchWebsiteFound: (label) => `Ich habe einen guten Treffer gefunden: ${label}. Moechten Sie diesen Bereich jetzt oeffnen?`,
+      searchWebsiteFoundMultiple: "Ich habe mehrere passende Treffer gefunden. Meinen Sie einen dieser Bereiche?",
+      searchWebsiteOpenYes: "Ja, bitte oeffnen",
+      searchWebsiteOpenNo: "Nein, noch einmal suchen",
+      searchWebsiteRetryPrompt: "Suche fehlgeschlagen. Bitte versuchen Sie jetzt genau ein Stichwort. Ich suche noch einmal.",
+      searchWebsiteDeepRetryPrompt: "Suche erneut fehlgeschlagen. Bitte geben Sie jetzt nur ein praezises Stichwort ein. Ich starte direkt eine tiefere Suche.",
+      searchWebsiteNoResult: "Wichtiger Hinweis: Ich konnte dafuer noch keinen klaren Treffer auf der Website finden. Ich informiere Sooraj, dass dieses Suchwort spaeter sauberer auffindbar sein sollte.\nWenn Sie moechten, kann ich Sie jetzt direkt zum Hauptmenue zurueckbringen oder den Kontaktweg oeffnen.",
+      searchWebsiteMainMenu: "Zum Hauptmenue",
+      searchWebsiteContact: "Kontaktweg oeffnen",
       visitorProfileConsent: "Hallo Besucher 😊 Moechten Sie ein paar kurze Angaben wie Ihren Namen, Ihre Position und Ihre Organisation teilen, damit ich Sie passender ansprechen kann?",
       visitorProfileShare: "Ja, ich teile das",
       visitorProfileSkip: "Nein, direkt weiter",
@@ -4080,16 +4099,44 @@ function getPortfolioHelpBotConfig(lang) {
         return `Danke ${name || "Ihnen"} 😊 Ich habe ${details.join(" • ")} im Blick und richte die naechsten Schritte passender fuer Sie aus.`;
       },
       feedbackPrompt: (name = "") => name
-        ? `Bevor Sie gehen, ${name}: Moechten Sie noch kurzes Feedback hinterlassen?`
-        : "Bevor Sie gehen: Moechten Sie noch kurzes Feedback hinterlassen?",
+        ? `Bevor Sie gehen, ${name}: Moechten Sie, dass ich Ihre Bewertung direkt hier im Chat aufnehme?`
+        : "Bevor Sie gehen: Moechten Sie, dass ich Ihre Bewertung direkt hier im Chat aufnehme?",
+      feedbackPromptCollectHere: "Ja, starten Sie die Bewertungsrunde",
       feedbackPublicOption: "Oeffentliche Bewertung",
       feedbackPrivateOption: "Privates Feedback",
+      recruiterContactPrompt: "Moechten Sie zuerst Sooraj kontaktieren oder direkt seinen CV anfragen?",
+      recruiterContactChooseContact: "Sooraj kontaktieren",
+      recruiterContactChooseCv: "CV anfragen",
+      recruiterContactNamePrompt: "Welchen Namen soll ich fuer die Kontaktanfrage verwenden?",
+      recruiterContactNamePlaceholder: "Vollstaendigen Namen eingeben",
+      recruiterContactEmailPrompt: "Welche E-Mail-Adresse soll ich fuer die Kontaktanfrage verwenden?",
+      recruiterContactEmailPlaceholder: "E-Mail-Adresse eingeben",
+      recruiterContactCountryPrompt: "Aus welchem Land schreiben Sie?",
+      recruiterContactCountryPlaceholder: "Land eingeben",
+      recruiterContactMessagePrompt: "Welche Nachricht soll ich an Sooraj senden?",
+      recruiterContactMessagePlaceholder: "Kontaktanfrage eingeben",
+      recruiterContactSubmit: "Kontaktanfrage senden",
+      recruiterCvEmailPrompt: "An welche E-Mail-Adresse soll der CV gesendet werden?",
+      recruiterCvEmailPlaceholder: "E-Mail-Adresse eingeben",
+      recruiterCvSubmit: "CV-Anfrage senden",
+      recruiterInvalidMessage: "Bitte schreiben Sie eine etwas klarere Nachricht.",
+      recruiterContactSuccess: (name = "") => name ? `Vielen Dank, ${name}. Ihre Kontaktanfrage wurde ueber den Chat gesendet.` : "Vielen Dank. Ihre Kontaktanfrage wurde ueber den Chat gesendet.",
+      recruiterCvSuccess: (name = "") => name ? `Vielen Dank, ${name}. Die CV-Anfrage wurde ueber den Chat gesendet.` : "Vielen Dank. Die CV-Anfrage wurde ueber den Chat gesendet.",
+      recruiterContactAskCvAfter: "Moechten Sie fuer Ihre Validierung jetzt auch Soorajs CV anfragen?",
+      recruiterCvAskContactAfter: "Moechten Sie jetzt auch direkt eine Kontaktanfrage an Sooraj senden?",
+      recruiterFollowupYesCv: "Ja, CV anfragen",
+      recruiterFollowupYesContact: "Ja, Kontaktanfrage senden",
+      recruiterFollowupNo: "Nein, hier abschliessen",
+      recruiterUsingSameEmailForCv: "Ich verwende dafuer die E-Mail-Adresse aus Ihrer Kontaktanfrage.",
+      recruiterSubmissionError: "Die Uebermittlung ist gerade fehlgeschlagen. Bitte versuchen Sie es noch einmal.",
       feedbackSkipOption: "Ohne Bewertung beenden",
       feedbackSkipConfirmPromptStudent: (name = "") => name
-        ? `Ohh ${name} 😅 Wenn ich Sie heute nicht gut genug begleitet habe, werde ich am Ende noch von meinem Boss gefragt, warum ich Sie nicht besser unterstuetzt habe.\nWenn Sie moechten, koennen Sie mir mit einer kurzen Bewertung helfen. Ich sammle alles direkt hier im Chat, ohne das lange Feedback-Formular.\nSind Sie sicher, dass Sie ohne Bewertung gehen moechten?`
-        : `Ohh 😅 Wenn ich Sie heute nicht gut genug begleitet habe, werde ich am Ende noch von meinem Boss gefragt, warum ich Sie nicht besser unterstuetzt habe.\nWenn Sie moechten, koennen Sie mir mit einer kurzen Bewertung helfen. Ich sammle alles direkt hier im Chat, ohne das lange Feedback-Formular.\nSind Sie sicher, dass Sie ohne Bewertung gehen moechten?`,
-      feedbackSkipConfirmLeave: "Ja, trotzdem beenden",
-      feedbackSkipConfirmReview: "Nein, ich schreibe eine Bewertung",
+        ? `Ohh ${name} 😅 Ich werde unseren Chat aus Sicherheitsgruenden an Sooraj weitergeben, damit er sieht, dass ich wirklich nach einer Bewertung gefragt habe.\nWenn Sie mich sicher halten wollen, lassen Sie bitte eine kurze Bewertung da. Ich sammle alles direkt hier im Chat, ohne das grosse Feedback-Formular.\nSind Sie sicher, dass Sie ohne Bewertung weitergehen moechten?`
+        : `Ohh 😅 Ich werde unseren Chat aus Sicherheitsgruenden an Sooraj weitergeben, damit er sieht, dass ich wirklich nach einer Bewertung gefragt habe.\nWenn Sie mich sicher halten wollen, lassen Sie bitte eine kurze Bewertung da. Ich sammle alles direkt hier im Chat, ohne das grosse Feedback-Formular.\nSind Sie sicher, dass Sie ohne Bewertung weitergehen moechten?`,
+      feedbackSkipConfirmLeave: "Nein, ohne Bewertung beenden",
+      feedbackSkipConfirmReview: "Ja, ich schreibe eine Bewertung",
+      feedbackStudentReviewModePrompt: "Danke 😊 Soll ich die Bewertung direkt hier im Chat fuer Sie aufnehmen?",
+      feedbackStudentReviewModeChat: "Ja, starten Sie die Bewertungsrunde",
       feedbackIntro: (mode) => mode === "public"
         ? "Gerne. Ich sammle jetzt die Pflichtangaben fuer eine oeffentliche Bewertung direkt aus diesem Chat."
         : "Gerne. Ich sammle jetzt die Pflichtangaben fuer ein privates Feedback direkt aus diesem Chat.",
@@ -4121,8 +4168,9 @@ function getPortfolioHelpBotConfig(lang) {
       feedbackInvalidCountry: "Bitte geben Sie ein Land ein.",
       feedbackInvalidComments: "Bitte schreiben Sie einen etwas laengeren Kommentar.",
       feedbackFailure: "Die Uebermittlung hat gerade nicht funktioniert. Sie koennen es erneut versuchen, Ihren Text anpassen oder die Feedback-Seite direkt oeffnen.",
-      feedbackSuccess: "Vielen Dank fuer Ihr Feedback. Bis bald.",
-      feedbackSkipFarewell: "Vielen Dank. Bis bald.",
+      feedbackSuccess: (name = "") => name ? `Vielen Dank fuer Ihr Feedback, ${name}. Bis bald.` : "Vielen Dank fuer Ihr Feedback. Bis bald.",
+      feedbackSkipFarewell: (name = "") => name ? `Vielen Dank, ${name}. Bis bald.` : "Vielen Dank. Bis bald.",
+      feedbackSkipFarewellStudent: (name = "") => name ? `Vielen Dank, ${name} 😔 Ich habe den Chat jetzt an meinen Boss weitergegeben, damit er sieht, dass ich wirklich nach einer Bewertung gefragt habe. Bis zum naechsten Mal.` : "Vielen Dank 😔 Ich habe den Chat jetzt an meinen Boss weitergegeben, damit er sieht, dass ich wirklich nach einer Bewertung gefragt habe. Bis zum naechsten Mal.",
       roleQuestion: "Damit ich Sie passender begleiten kann: In welchem Kontext besuchen Sie die Website heute?",
       optionPrompt: "Wobei soll ich Ihnen als Naechstes helfen?",
       roles: {
@@ -4436,8 +4484,8 @@ function getPortfolioHelpBotConfig(lang) {
   }
 
   return {
-    nudgeBadge: "Sooraj",
-    nudge: "Hi, I'm Sooraj. Want help finding something faster?",
+    nudgeBadge: "AI Assistant",
+    nudge: "Hi, I am the AI Assistant of Sooraj. Want help finding something faster?",
     launcher: "Open chat with Sooraj",
     badge: "AI Assistant of Sooraj",
     assistantName: "AI Assistant",
@@ -4455,7 +4503,7 @@ function getPortfolioHelpBotConfig(lang) {
     askName: "Before I guide you further, what should I call you?",
     askNamePlaceholder: "Type your name",
     askNameSubmit: "Send",
-    askNameGreeting: (name) => `Hi ${name}, nice to meet you.`,
+    askNameGreeting: (name) => `Welcome ${name} 😊 I am here to help guide you through the website today.`,
     askUniversity: (name) => `Nice to meet you, ${name} 😊 Which university are you from?`,
     askUniversityPlaceholder: "Type your university",
     askUniversitySubmit: "Continue",
@@ -4469,13 +4517,32 @@ function getPortfolioHelpBotConfig(lang) {
     askUniversityConfirmRetype: "No, type again",
     askUniversitySameMatch: (name) => `Wow ${name} 😄✨ That is a direct match with my boss's current Master's in Mechatronics path in Germany. That makes this connection feel especially close and interesting.`,
     askUniversityKtuMatch: (name) => `Wow ${name} 😄✨ That links directly to my boss's Bachelor's in Mechanical Engineering path in India. That makes this exchange feel even more connected and interesting.`,
-    askUniversitySaved: (name, university) => `Nice ${name} 😊 Thanks for sharing ${university}. I’ll keep that in mind while I guide you.`,
+    askUniversitySaved: (name) => `Nice ${name} 😊 Thanks for sharing your university details. I’ll keep that in mind while I guide you.`,
     askUniversitySkipped: (name) => `Ohh ${name} 😅 you just missed the little chance to match with a university path I know well. That is okay though 😊 We can continue, or you can still add your university now.`,
     askUniversityRetype: "No problem 😊 Please type your university once more.",
     askNameContinuePrompt: (name) => `Shall I continue with ${name}, or would you like to restart and correct the name first?`,
     askNameContinueYes: "Yes, continue",
     askNameContinueRestart: "No, start again",
     askNameRestarting: "Let’s start again. Don’t worry 😊",
+    askNameBossPrompt: (name) => `${name} sounds very similar to my boss's name 😄 May I still call you ${name}?`,
+    askNameBossYes: "Yes, call me that",
+    askNameBossRetype: "No, type my name again",
+    askNameBossRetypePrompt: "All right 😊 Please type your name once more.",
+    searchWebsiteLabel: "🔍 Search website",
+    searchWebsitePrompt: "Type any keyword, role, tool, or topic you want. I’ll search the website and route you to the closest matching place.",
+    searchWebsitePlaceholder: "For example ROS, thesis, KEBA, journey, CV ...",
+    searchWebsiteSubmit: "Search",
+    searchWebsiteSearching: "I’m searching the website for the closest match ...",
+    searchWebsiteDeepSearching: "I’m running a deeper search across the website now ...",
+    searchWebsiteFound: (label) => `I found a strong match: ${label}. Would you like me to open that section now?`,
+    searchWebsiteFoundMultiple: "I found multiple relevant matches. Are you asking for one of these sections?",
+    searchWebsiteOpenYes: "Yes, open it",
+    searchWebsiteOpenNo: "No, search once more",
+    searchWebsiteRetryPrompt: "Search failed. Please try exactly one keyword now, and I’ll search again.",
+    searchWebsiteDeepRetryPrompt: "Search failed again. Please enter only one precise keyword now, and I’ll run a deeper search right away.",
+    searchWebsiteNoResult: "Important: I still could not find a clear match for that keyword on the website. I will inform Sooraj that this search term should be surfaced more clearly.\nIf you want, I can take you back to the main menu or open the contact path now.",
+    searchWebsiteMainMenu: "Go to main menu",
+    searchWebsiteContact: "Open contact path",
     visitorProfileConsent: "Hi visitor 😊 Would you be willing to share a few quick details like your name, position, and organisation so I can address you better?",
     visitorProfileShare: "Yes, I’ll share",
     visitorProfileSkip: "No, continue directly",
@@ -4497,16 +4564,44 @@ function getPortfolioHelpBotConfig(lang) {
       return `Thanks ${name || "there"} 😊 I’ll keep ${details.join(" • ")} in mind and tailor the next steps a bit more closely for you.`;
     },
     feedbackPrompt: (name = "") => name
-      ? `Before you go, ${name}, would you like to leave feedback?`
-      : "Before you go, would you like to leave feedback?",
+      ? `Before you go, ${name}, would you like me to take your review here in the chat?`
+      : "Before you go, would you like me to take your review here in the chat?",
+    feedbackPromptCollectHere: "Yes, start the review session",
     feedbackPublicOption: "Public review",
     feedbackPrivateOption: "Private feedback",
+    recruiterContactPrompt: "Would you like to contact Sooraj first, or request his CV first?",
+    recruiterContactChooseContact: "Contact Sooraj",
+    recruiterContactChooseCv: "Request CV",
+    recruiterContactNamePrompt: "What name should I use for the contact request?",
+    recruiterContactNamePlaceholder: "Type your full name",
+    recruiterContactEmailPrompt: "Which email address should I use for the contact request?",
+    recruiterContactEmailPlaceholder: "Type your email address",
+    recruiterContactCountryPrompt: "Which country are you writing from?",
+    recruiterContactCountryPlaceholder: "Type your country",
+    recruiterContactMessagePrompt: "What message should I send to Sooraj?",
+    recruiterContactMessagePlaceholder: "Type your contact message",
+    recruiterContactSubmit: "Send contact request",
+    recruiterCvEmailPrompt: "Which email address should receive the CV?",
+    recruiterCvEmailPlaceholder: "Type your email address",
+    recruiterCvSubmit: "Send CV request",
+    recruiterInvalidMessage: "Please write a slightly clearer message.",
+    recruiterContactSuccess: (name = "") => name ? `Thank you, ${name}. Your contact request was sent through the chat.` : "Thank you. Your contact request was sent through the chat.",
+    recruiterCvSuccess: (name = "") => name ? `Thank you, ${name}. The CV request was sent through the chat.` : "Thank you. The CV request was sent through the chat.",
+    recruiterContactAskCvAfter: "Would you also like to request Sooraj's CV for your validation now?",
+    recruiterCvAskContactAfter: "Would you also like to send a direct contact request to Sooraj now?",
+    recruiterFollowupYesCv: "Yes, request CV",
+    recruiterFollowupYesContact: "Yes, send contact request",
+    recruiterFollowupNo: "No, finish here",
+    recruiterUsingSameEmailForCv: "I’ll use the email address from your contact request for that.",
+    recruiterSubmissionError: "The submission did not go through just now. Please try again.",
     feedbackSkipOption: "End without review",
     feedbackSkipConfirmPromptStudent: (name = "") => name
-      ? `Ohh ${name} 😅 If I did not guide you properly today, I might end up getting questioned by my boss for not helping you better.\nIf you want, you can keep me safe with a short review. I will collect everything right here in the chat, so you do not need to open the large feedback form.\nAre you sure you want to leave without a review?`
-      : `Ohh 😅 If I did not guide you properly today, I might end up getting questioned by my boss for not helping you better.\nIf you want, you can keep me safe with a short review. I will collect everything right here in the chat, so you do not need to open the large feedback form.\nAre you sure you want to leave without a review?`,
-    feedbackSkipConfirmLeave: "Yes, leave anyway",
-    feedbackSkipConfirmReview: "No, I’ll add a review",
+      ? `Ohh ${name} 😅 I will send our chat to Sooraj for safety so he can see that I really did ask for a review.\nIf you want to keep me safe, please leave a short review. I can collect everything right here in the chat, so you do not need to open the large feedback form.\nAre you sure you want to continue without a review?`
+      : `Ohh 😅 I will send our chat to Sooraj for safety so he can see that I really did ask for a review.\nIf you want to keep me safe, please leave a short review. I can collect everything right here in the chat, so you do not need to open the large feedback form.\nAre you sure you want to continue without a review?`,
+      feedbackSkipConfirmLeave: "No, end without review",
+      feedbackSkipConfirmReview: "Yes, I’ll add a review",
+    feedbackStudentReviewModePrompt: "Thank you 😊 Shall I take your review directly here in the chat?",
+    feedbackStudentReviewModeChat: "Yes, start the review session",
     feedbackIntro: (mode) => mode === "public"
       ? "Great. I’ll collect the required details for a public review directly inside this chat."
       : "Great. I’ll collect the required details for private feedback directly inside this chat.",
@@ -4538,8 +4633,9 @@ function getPortfolioHelpBotConfig(lang) {
     feedbackInvalidCountry: "Please enter your country.",
     feedbackInvalidComments: "Please write a slightly longer comment.",
     feedbackFailure: "The submission did not go through just now. You can try again, adjust your text, or open the feedback page directly.",
-    feedbackSuccess: "Thank you for your feedback. See you again.",
-    feedbackSkipFarewell: "Thank you. See you again.",
+    feedbackSuccess: (name = "") => name ? `Thank you for your feedback, ${name}. See you again.` : "Thank you for your feedback. See you again.",
+    feedbackSkipFarewell: (name = "") => name ? `Thank you, ${name}. See you again.` : "Thank you. See you again.",
+    feedbackSkipFarewellStudent: (name = "") => name ? `Thank you, ${name} 😔 I have sent this chat to my boss so he can see that I really did ask for a review. See you next time.` : "Thank you 😔 I have sent this chat to my boss so he can see that I really did ask for a review. See you next time.",
     roleQuestion: "So I can guide you more appropriately, may I ask in what context you are visiting the website today?",
     optionPrompt: "What should I help you with next?",
     roles: {
@@ -4960,7 +5056,7 @@ function getPortfolioHelpBotDeeperCopy(lang, roleId, topicId) {
   };
 }
 
-function getPortfolioHelpBotResumeMessage(lang, roleId, pageName, lastNavTarget = null) {
+function getPortfolioHelpBotResumeMessage(lang, roleId, pageName, lastNavTarget = null, visitorName = "") {
   const topicMap = {
     student: {
       journey: lang === "de" ? "Journey" : "the journey",
@@ -5004,7 +5100,27 @@ function getPortfolioHelpBotResumeMessage(lang, roleId, pageName, lastNavTarget 
   const fromHash = lastNavTarget?.id ? String(lastNavTarget.id).trim() : "";
   const roleTopicLabel = topicMap?.[roleId]?.[fromHash] || "";
 
+  const safeVisitorName = String(visitorName || "").trim();
+
   if (lang === "de") {
+    if (roleId === "student" && safeVisitorName) {
+      if (/^project-/.test(pageName)) {
+        return roleTopicLabel
+          ? `Willkommen zurueck, ${safeVisitorName} 😊 Ich hoffe, das Projekt war hilfreich. Sie kamen zuletzt ueber ${roleTopicLabel}. Soll ich Sie von dort weiterfuehren oder neu starten?`
+          : `Willkommen zurueck, ${safeVisitorName} 😊 Ich bin wieder fuer Sie da. Moechten Sie dort weitermachen, wo Sie aufgehoert haben, oder neu starten?`;
+      }
+
+      if (/^experience-/.test(pageName)) {
+        return roleTopicLabel
+          ? `Willkommen zurueck, ${safeVisitorName} 😊 Ich hoffe, diese Erfahrungsseite war hilfreich. Sie kamen zuletzt ueber ${roleTopicLabel}. Soll ich Sie von dort weiterfuehren oder neu starten?`
+          : `Willkommen zurueck, ${safeVisitorName} 😊 Ich begleite Sie gern weiter. Moechten Sie dort weitermachen, wo Sie aufgehoert haben, oder neu starten?`;
+      }
+
+      return roleTopicLabel
+        ? `Willkommen zurueck, ${safeVisitorName} 😊 Ich helfe Ihnen gern weiter. Sie kamen zuletzt ueber ${roleTopicLabel}. Moechten Sie den Chat fortsetzen oder neu beginnen?`
+        : `Willkommen zurueck, ${safeVisitorName} 😊 Ich helfe Ihnen gern weiter. Moechten Sie den Chat fortsetzen oder neu beginnen?`;
+    }
+
     if (/^project-/.test(pageName)) {
       return roleTopicLabel
         ? `Willkommen zurueck. Ich hoffe, das Projekt war hilfreich. Sie kamen zuletzt ueber ${roleTopicLabel}. Moechten Sie dort weitermachen oder lieber einen neuen Chat starten?`
@@ -5020,6 +5136,24 @@ function getPortfolioHelpBotResumeMessage(lang, roleId, pageName, lastNavTarget 
     return roleTopicLabel
       ? `Willkommen zurueck. Ich hoffe, der letzte Bereich war hilfreich. Sie kamen zuletzt ueber ${roleTopicLabel}. Moechten Sie den Chat fortsetzen oder neu beginnen?`
       : "Willkommen zurueck. Ich hoffe, der letzte Bereich war hilfreich. Moechten Sie den Chat fortsetzen oder neu beginnen?";
+  }
+
+  if (roleId === "student" && safeVisitorName) {
+    if (/^project-/.test(pageName)) {
+      return roleTopicLabel
+        ? `Welcome back, ${safeVisitorName} 😊 I hope that project was useful. You last came here through ${roleTopicLabel}. Shall I continue from there or start fresh?`
+        : `Welcome back, ${safeVisitorName} 😊 I am here to help again. Would you like to continue where you left off or start fresh?`;
+    }
+
+    if (/^experience-/.test(pageName)) {
+      return roleTopicLabel
+        ? `Welcome back, ${safeVisitorName} 😊 I hope that experience page was useful. You last came here through ${roleTopicLabel}. Shall I continue from there or start fresh?`
+        : `Welcome back, ${safeVisitorName} 😊 I am happy to guide you again. Would you like to continue where you left off or start fresh?`;
+    }
+
+    return roleTopicLabel
+      ? `Welcome back, ${safeVisitorName} 😊 I can keep helping you from ${roleTopicLabel}. Would you like to continue or start fresh?`
+      : `Welcome back, ${safeVisitorName} 😊 I can help you again from here. Would you like to continue or start fresh?`;
   }
 
   if (/^project-/.test(pageName)) {
@@ -5238,10 +5372,22 @@ function setupPortfolioHelpBot() {
 
   const isValidFeedbackEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
   const HELP_BOT_FEEDBACK_FIELDS = ["name", "company", "email", "country", "comments"];
-  const HELP_BOT_PENDING_INPUT_KINDS = ["visitor-name", "visitor-position", "visitor-organization", "student-university", "chat-feedback"];
+  const HELP_BOT_PENDING_INPUT_KINDS = ["visitor-name", "visitor-position", "visitor-organization", "student-university", "chat-feedback", "recruiter-request", "website-search"];
+  const HELP_BOT_RECRUITER_REQUEST_FIELDS = ["fullName", "email", "country", "message"];
 
   const roleNeedsNamePrompt = (roleId) => roleId === "student";
   const roleUsesVisitorName = (roleId) => roleId === "student" || roleId === "visitor";
+  const isBossLikeVisitorName = (value) => {
+    const key = normalizeVisitorName(value)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "");
+    if (!key) return false;
+    return key === "sooraj"
+      || key === "srj"
+      || key === "sudhakaran"
+      || key === "soorajsudhakaran"
+      || key === "sudhakaransooraj";
+  };
 
   const normalizeUniversityKey = (value) => normalizeUniversityName(value)
     .toLowerCase()
@@ -5347,6 +5493,19 @@ function setupPortfolioHelpBot() {
     }
   ]);
 
+  const getStudentBossNameOptions = () => withEndChatOption([
+    {
+      kind: "student-name-boss",
+      id: "yes",
+      label: config.askNameBossYes
+    },
+    {
+      kind: "student-name-boss",
+      id: "retype",
+      label: config.askNameBossRetype
+    }
+  ]);
+
   const getVisitorProfileConsentOptions = () => withEndChatOption([
     {
       kind: "visitor-profile",
@@ -5413,6 +5572,29 @@ function setupPortfolioHelpBot() {
 
   const getChatFeedbackDraft = () => normalizeHelpBotFeedbackDraft(helpBotState.chatFeedbackDraft);
 
+  const normalizeHelpBotRecruiterRequestDraft = (raw) => {
+    const source = raw && typeof raw === "object" ? raw : {};
+    const type = ["contact", "cv"].includes(String(source.type || "").trim())
+      ? String(source.type || "").trim()
+      : "";
+    const field = HELP_BOT_RECRUITER_REQUEST_FIELDS.includes(String(source.field || "").trim())
+      ? String(source.field || "").trim()
+      : "";
+    return {
+      type,
+      field: type ? field : "",
+      fullName: type ? normalizeFeedbackName(source.fullName) : "",
+      email: type ? normalizeFeedbackEmail(source.email) : "",
+      country: type ? normalizeFeedbackCountry(source.country) : "",
+      message: type ? normalizeFeedbackComments(source.message).slice(0, 800) : "",
+      company: type ? normalizeFeedbackCompany(source.company) : "",
+      role: type ? normalizeVisitorPosition(source.role) : "",
+      note: type ? normalizeFeedbackComments(source.note).slice(0, 800) : ""
+    };
+  };
+
+  const getRecruiterRequestDraft = () => normalizeHelpBotRecruiterRequestDraft(helpBotState.recruiterRequestDraft);
+
   const personalizeForNamedVisitor = (text, roleId = currentRoleId) => {
     const name = getVisitorName();
     if (!name || !roleUsesVisitorName(roleId)) return text;
@@ -5422,6 +5604,60 @@ function setupPortfolioHelpBot() {
   };
 
   const getComposerMode = () => {
+    if (helpBotState.pendingInputKind === "website-search") {
+      return {
+        placeholder: config.searchWebsitePlaceholder,
+        submit: config.searchWebsiteSubmit,
+        maxLength: 120,
+        inputKind: "input",
+        inputType: "text",
+        autocomplete: "off"
+      };
+    }
+
+    if (helpBotState.pendingInputKind === "recruiter-request") {
+      const draft = getRecruiterRequestDraft();
+      switch (draft.field) {
+        case "email":
+          return {
+            placeholder: draft.type === "cv" ? config.recruiterCvEmailPlaceholder : config.recruiterContactEmailPlaceholder,
+            submit: draft.type === "cv" ? config.recruiterCvSubmit : config.feedbackContinue,
+            maxLength: 160,
+            inputKind: "input",
+            inputType: "email",
+            autocomplete: "email"
+          };
+        case "country":
+          return {
+            placeholder: config.recruiterContactCountryPlaceholder,
+            submit: config.feedbackContinue,
+            maxLength: 80,
+            inputKind: "input",
+            inputType: "text",
+            autocomplete: "country-name"
+          };
+        case "message":
+          return {
+            placeholder: config.recruiterContactMessagePlaceholder,
+            submit: config.recruiterContactSubmit,
+            maxLength: 800,
+            inputKind: "textarea",
+            inputType: "text",
+            autocomplete: "off"
+          };
+        case "fullName":
+        default:
+          return {
+            placeholder: config.recruiterContactNamePlaceholder,
+            submit: config.feedbackContinue,
+            maxLength: 80,
+            inputKind: "input",
+            inputType: "text",
+            autocomplete: "name"
+          };
+      }
+    }
+
     if (helpBotState.pendingInputKind === "chat-feedback") {
       const draft = getChatFeedbackDraft();
       const mode = draft.mode || "private";
@@ -5475,6 +5711,17 @@ function setupPortfolioHelpBot() {
       }
     }
 
+    if (helpBotState.pendingInputKind === "visitor-name") {
+      return {
+        placeholder: config.askNamePlaceholder,
+        submit: config.askNameSubmit,
+        maxLength: 40,
+        inputKind: "input",
+        inputType: "text",
+        autocomplete: "name"
+      };
+    }
+
     if (helpBotState.pendingInputKind === "visitor-position") {
       return {
         placeholder: config.visitorPositionPlaceholder,
@@ -5506,12 +5753,12 @@ function setupPortfolioHelpBot() {
       };
     }
     return {
-      placeholder: currentRoleId === "visitor" ? config.visitorNamePlaceholder : config.askNamePlaceholder,
-      submit: currentRoleId === "visitor" ? config.visitorNameSubmit : config.askNameSubmit,
-      maxLength: 40,
+      placeholder: config.searchWebsitePlaceholder,
+      submit: config.searchWebsiteSubmit,
+      maxLength: 120,
       inputKind: "input",
       inputType: "text",
-      autocomplete: "given-name"
+      autocomplete: "off"
     };
   };
 
@@ -5573,6 +5820,11 @@ function setupPortfolioHelpBot() {
         studentUniversity: "",
         studentUniversityCandidate: null,
         chatFeedbackDraft: normalizeHelpBotFeedbackDraft(null),
+        recruiterRequestDraft: normalizeHelpBotRecruiterRequestDraft(null),
+        websiteSearchQuery: "",
+        websiteSearchAttempts: 0,
+        websiteSearchResult: null,
+        websiteSearchResults: [],
         remoteSessionId: "",
         remoteSessionPersisted: false,
         pendingInputKind: "",
@@ -5582,7 +5834,8 @@ function setupPortfolioHelpBot() {
         lastPageName: currentPageName,
         pendingResumePrompt: false,
         lastNavTarget: null,
-        topicTrail: []
+        topicTrail: [],
+        studentCornerNudgeSeen: false
       };
     }
     const messagesList = Array.isArray(source.messages)
@@ -5599,6 +5852,28 @@ function setupPortfolioHelpBot() {
       studentUniversity: normalizeUniversityName(source.studentUniversity),
       studentUniversityCandidate: normalizeHelpBotUniversityCandidate(source.studentUniversityCandidate),
       chatFeedbackDraft: normalizeHelpBotFeedbackDraft(source.chatFeedbackDraft),
+      recruiterRequestDraft: normalizeHelpBotRecruiterRequestDraft(source.recruiterRequestDraft),
+      websiteSearchQuery: String(source.websiteSearchQuery || "").trim().slice(0, 120),
+      websiteSearchAttempts: Math.max(0, Math.min(3, Number(source.websiteSearchAttempts || 0))),
+      websiteSearchResult: source.websiteSearchResult && typeof source.websiteSearchResult === "object"
+        ? {
+            label: String(source.websiteSearchResult.label || "").trim(),
+            target: source.websiteSearchResult.target && typeof source.websiteSearchResult.target === "object"
+              ? source.websiteSearchResult.target
+              : null
+          }
+        : null,
+      websiteSearchResults: Array.isArray(source.websiteSearchResults)
+        ? source.websiteSearchResults
+          .map((entry) => entry && typeof entry === "object"
+            ? {
+                label: String(entry.label || "").trim(),
+                target: entry.target && typeof entry.target === "object" ? entry.target : null
+              }
+            : null)
+          .filter((entry) => entry?.label && entry?.target)
+          .slice(0, 4)
+        : [],
       remoteSessionId: String(source.remoteSessionId || "").trim(),
       remoteSessionPersisted: Boolean(source.remoteSessionPersisted),
       pendingInputKind: HELP_BOT_PENDING_INPUT_KINDS.includes(String(source.pendingInputKind || "").trim())
@@ -5610,6 +5885,7 @@ function setupPortfolioHelpBot() {
       lastPageName: String(source.lastPageName || "").trim() || currentPageName,
       pendingResumePrompt: Boolean(source.pendingResumePrompt) && messagesList.length > 0,
       lastNavTarget: source.lastNavTarget && typeof source.lastNavTarget === "object" ? source.lastNavTarget : null,
+      studentCornerNudgeSeen: Boolean(source.studentCornerNudgeSeen),
       topicTrail: Array.isArray(source.topicTrail)
         ? source.topicTrail
           .map((entry) => {
@@ -5643,6 +5919,28 @@ function setupPortfolioHelpBot() {
     helpBotState.studentUniversity = normalizeUniversityName(helpBotState.studentUniversity);
     helpBotState.studentUniversityCandidate = normalizeHelpBotUniversityCandidate(helpBotState.studentUniversityCandidate);
     helpBotState.chatFeedbackDraft = normalizeHelpBotFeedbackDraft(helpBotState.chatFeedbackDraft);
+    helpBotState.recruiterRequestDraft = normalizeHelpBotRecruiterRequestDraft(helpBotState.recruiterRequestDraft);
+    helpBotState.websiteSearchQuery = String(helpBotState.websiteSearchQuery || "").trim().slice(0, 120);
+    helpBotState.websiteSearchAttempts = Math.max(0, Math.min(3, Number(helpBotState.websiteSearchAttempts || 0)));
+    helpBotState.websiteSearchResult = helpBotState.websiteSearchResult && typeof helpBotState.websiteSearchResult === "object"
+      ? {
+          label: String(helpBotState.websiteSearchResult.label || "").trim(),
+          target: helpBotState.websiteSearchResult.target && typeof helpBotState.websiteSearchResult.target === "object"
+            ? helpBotState.websiteSearchResult.target
+            : null
+        }
+      : null;
+    helpBotState.websiteSearchResults = Array.isArray(helpBotState.websiteSearchResults)
+      ? helpBotState.websiteSearchResults
+        .map((entry) => entry && typeof entry === "object"
+          ? {
+              label: String(entry.label || "").trim(),
+              target: entry.target && typeof entry.target === "object" ? entry.target : null
+            }
+          : null)
+        .filter((entry) => entry?.label && entry?.target)
+        .slice(0, 4)
+      : [];
     helpBotState.remoteSessionId = String(helpBotState.remoteSessionId || "").trim();
     helpBotState.remoteSessionPersisted = Boolean(helpBotState.remoteSessionPersisted) && Boolean(helpBotState.remoteSessionId);
     helpBotState.pendingInputKind = HELP_BOT_PENDING_INPUT_KINDS.includes(helpBotState.pendingInputKind)
@@ -5652,6 +5950,7 @@ function setupPortfolioHelpBot() {
     helpBotState.pendingTourStepId = String(helpBotState.pendingTourStepId || "").trim();
     helpBotState.messages = helpBotState.messages.slice(-HELP_BOT_STATE_MAX_MESSAGES);
     helpBotState.topicTrail = Array.isArray(helpBotState.topicTrail) ? helpBotState.topicTrail.slice(-12) : [];
+    helpBotState.studentCornerNudgeSeen = Boolean(helpBotState.studentCornerNudgeSeen);
     helpBotState.hasConversationBooted = hasConversationBooted && helpBotState.messages.length > 0;
     helpBotState.lastPageName = currentPageName;
     saveStoredJson(localStorage, STORAGE_HELP_BOT_STATE_KEY, helpBotState);
@@ -5685,7 +5984,7 @@ function setupPortfolioHelpBot() {
 
   const buildHelpBotRemoteSessionSnapshot = ({ endedAt = "" } = {}) => {
     if (getAdminModeState()) return null;
-    if (!currentRoleId) return null;
+    if (!currentRoleId && !hasConversationBooted) return null;
     const normalizedEndedAt = String(endedAt || "").trim();
     const transcript = helpBotState.messages
       .slice(-HELP_BOT_REMOTE_MAX_MESSAGES)
@@ -5780,14 +6079,58 @@ function setupPortfolioHelpBot() {
     nudgeReshowTimer = 0;
   };
 
+  const shouldUseStudentCornerNudge = () => currentPageName !== "index.html"
+    && currentRoleId === "student"
+    && Boolean(getVisitorName())
+    && hasConversationBooted;
+
+  const getStudentCornerNudgeText = () => {
+    const visitorName = getVisitorName();
+    if (!visitorName) return config.nudge;
+    return currentLang === "de"
+      ? `Hi ${visitorName} 😊 Schoen, dass Sie da sind. Ich begleite Sie weiter durch den studentischen Weg, sobald Sie mich wieder oeffnen.`
+      : `Hi ${visitorName} 😊 Glad you're here. I can keep guiding you through the student path whenever you open me again.`;
+  };
+
+  const getStudentInlineNudgeText = () => {
+    const visitorName = getVisitorName();
+    if (!visitorName) return config.nudge;
+    return currentLang === "de"
+      ? `Hi ${visitorName} 😊`
+      : `Hi ${visitorName} 😊`;
+  };
+
+  const setNudgeMessage = (message = "") => {
+    if (nudgeText) nudgeText.textContent = String(message || "").trim() || config.nudge;
+  };
+
+  const syncInlineStudentNudge = () => {
+    if (!root || !nudge) return;
+    const shouldShow = root.classList.contains("is-open")
+      && currentPageName !== "index.html"
+      && currentRoleId === "student"
+      && Boolean(getVisitorName())
+      && hasConversationBooted;
+    root.classList.toggle("is-inline-nudge-visible", shouldShow);
+    if (shouldShow) {
+      setNudgeMessage(getStudentInlineNudgeText());
+      return;
+    }
+    if (!root.classList.contains("is-nudge-visible")) {
+      setNudgeMessage(config.nudge);
+    }
+  };
+
   const hideNudge = ({ scheduleNext = true } = {}) => {
     root.classList.remove("is-nudge-visible");
     window.clearTimeout(nudgeHideTimer);
     nudgeHideTimer = 0;
+    if (shouldUseStudentCornerNudge()) return;
     if (scheduleNext && !root.classList.contains("is-open") && !hasDismissedNudge && nudgeReshowCount < HELP_BOT_NUDGE_MAX_RESHOWS) {
       nudgeReshowTimer = window.setTimeout(() => {
         if (root.classList.contains("is-open") || hasDismissedNudge || nudgeReshowCount >= HELP_BOT_NUDGE_MAX_RESHOWS) return;
         nudgeReshowCount += 1;
+        setNudgeMessage(config.nudge);
         root.classList.add("is-nudge-visible");
         nudgeHideTimer = window.setTimeout(() => {
           hideNudge({ scheduleNext: true });
@@ -5796,11 +6139,21 @@ function setupPortfolioHelpBot() {
     }
   };
 
-  const showNudge = ({ delay = 0 } = {}) => {
-    if (hasDismissedNudge) return;
+  const showNudge = ({ delay = 0, force = false } = {}) => {
+    if (hasDismissedNudge && !force) return;
     window.clearTimeout(nudgeReshowTimer);
     nudgeReshowTimer = window.setTimeout(() => {
       if (root.classList.contains("is-open")) return;
+      if (shouldUseStudentCornerNudge()) {
+        setNudgeMessage(getStudentCornerNudgeText());
+        helpBotState.studentCornerNudgeSeen = true;
+        persistHelpBotState();
+        root.classList.add("is-nudge-visible");
+        window.clearTimeout(nudgeHideTimer);
+        nudgeHideTimer = 0;
+        return;
+      }
+      setNudgeMessage(config.nudge);
       root.classList.add("is-nudge-visible");
       window.clearTimeout(nudgeHideTimer);
       nudgeHideTimer = window.setTimeout(() => {
@@ -5825,7 +6178,12 @@ function setupPortfolioHelpBot() {
         kind: "role",
         id,
         label: role.label
-      }))
+      })),
+      {
+        kind: "website-search-start",
+        id: "search",
+        label: config.searchWebsiteLabel
+      }
     ])
   );
 
@@ -6409,6 +6767,187 @@ function setupPortfolioHelpBot() {
     createBadgedOption("review-path", "replies", currentLang === "de" ? "Reviews mit Owner-Reply" : "Reviews with owner replies", currentLang === "de" ? "Antworten" : "Replies"),
     createBadgedOption("review-path", "contact", currentLang === "de" ? "Kontakt statt Reviews" : "Contact instead", currentLang === "de" ? "Aktion" : "Action")
   ]));
+
+  const getWebsiteSearchIndex = () => ([
+    {
+      label: currentLang === "de" ? "About Sooraj" : "About Sooraj",
+      target: createHelpBotHomeTarget("about"),
+      keywords: ["about", "about sooraj", "sooraj", "profile", "overview", "introduction", "who is sooraj"]
+    },
+    {
+      label: currentLang === "de" ? "Erfahrungsbereich" : "Experience section",
+      target: createHelpBotHomeTarget("experience"),
+      keywords: ["experience", "industrial", "keba", "working student", "thesis", "ndt", "robotics", "automation", "germany"]
+    },
+    {
+      label: currentLang === "de" ? "KEBA Master-Thesis" : "KEBA master's thesis",
+      target: createHelpBotPageTarget("experience-masters-thesis-keba.html"),
+      keywords: ["thesis", "master thesis", "keba thesis", "industrial robotics", "robot programming", "deployment", "6 axis"]
+    },
+    {
+      label: currentLang === "de" ? "KEBA Werkstudent" : "KEBA working student role",
+      target: createHelpBotPageTarget("experience-working-student-keba.html"),
+      keywords: ["working student", "werkstudent", "keba", "industrial robotics", "training", "exhibition"]
+    },
+    {
+      label: currentLang === "de" ? "Journey-Seite" : "Journey page",
+      target: createHelpBotPageTarget("journey.html"),
+      keywords: ["journey", "path", "india", "germany", "transition", "background", "story", "travel"]
+    },
+    {
+      label: currentLang === "de" ? "Projektbereich" : "Projects section",
+      target: createHelpBotHomeTarget("projects"),
+      keywords: ["projects", "project", "robotics projects", "portfolio work", "technical work"]
+    },
+    {
+      label: currentLang === "de" ? "Autonomer Vakuumroboter" : "Autonomous vacuum robot",
+      target: createHelpBotPageTarget("project-autonomous-vacuum-robot.html"),
+      keywords: ["ros", "vacuum", "slam", "autonomous robot", "gazebo", "rviz", "robotics software"]
+    },
+    {
+      label: currentLang === "de" ? "Service-Roboter" : "Service robot",
+      target: createHelpBotPageTarget("project-service-robot.html"),
+      keywords: ["service robot", "robot arm", "robotics", "mechanical design", "systems"]
+    },
+    {
+      label: currentLang === "de" ? "Aktive Fahrwerksregelung" : "Active suspension project",
+      target: createHelpBotPageTarget("project-active-suspension.html"),
+      keywords: ["active suspension", "matlab", "simulink", "simulation", "controls", "dynamics"]
+    },
+    {
+      label: currentLang === "de" ? "Topology-Bag-Sealer" : "Topology bag sealer",
+      target: createHelpBotPageTarget("project-topology-bag-sealer.html"),
+      keywords: ["topology", "solidworks", "fea", "mechanical design", "optimization", "bag sealer"]
+    },
+    {
+      label: currentLang === "de" ? "Portfolio-Map" : "Portfolio map",
+      target: createHelpBotPageTarget("portfolio-map.html"),
+      keywords: ["portfolio map", "site map", "overview", "all pages", "crawlable overview"]
+    },
+    {
+      label: currentLang === "de" ? "Where I Fit" : "Where I Fit",
+      target: createHelpBotHomeTarget("where-i-fit"),
+      keywords: ["where i fit", "role fit", "best fit", "roles", "recruiter"]
+    },
+    {
+      label: currentLang === "de" ? "Review-Bereich" : "Reviews section",
+      target: createHelpBotHomeTarget("reviews"),
+      keywords: ["reviews", "feedback", "credibility", "public review", "trust"]
+    },
+    {
+      label: currentLang === "de" ? "Kontaktbereich" : "Contact section",
+      target: createHelpBotHomeTarget("contact"),
+      keywords: ["contact", "email", "reach out", "message", "hire", "talk"]
+    },
+    {
+      label: currentLang === "de" ? "CV-Anfrage" : "CV request",
+      target: createHelpBotCvTarget(),
+      keywords: ["cv", "resume", "request cv", "request resume"]
+    },
+    {
+      label: currentLang === "de" ? "Zertifikate" : "Certificates section",
+      target: createHelpBotHomeTarget("certificates"),
+      keywords: ["certificates", "certifications", "training", "validation"]
+    },
+    {
+      label: currentLang === "de" ? "Bildungsbereich" : "Education section",
+      target: createHelpBotHomeTarget("education"),
+      keywords: ["education", "study", "university", "degree", "master", "bachelor"]
+    }
+  ]);
+
+  const SEARCH_STOP_WORDS = new Set([
+    "a", "an", "and", "are", "about", "at", "can", "do", "for", "from", "get", "give", "i",
+    "in", "is", "it", "know", "me", "my", "of", "on", "or", "please", "search", "section",
+    "show", "tell", "that", "the", "this", "to", "want", "what", "where", "with", "you", "your"
+  ]);
+
+  const normalizeSearchTokens = (value = "") => String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .split(/\s+/)
+    .filter((token) => token && !SEARCH_STOP_WORDS.has(token));
+
+  const getSearchPhraseParts = (value = "") => ({
+    normalized: String(value || "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim(),
+    tokens: normalizeSearchTokens(value)
+  });
+
+  const hasSearchWordMatch = (token, words = []) => {
+    if (!token || !Array.isArray(words) || !words.length) return false;
+    if (words.includes(token)) return true;
+    if (token.length >= 4) return words.some((word) => word.startsWith(token));
+    return false;
+  };
+
+  const findWebsiteSearchMatches = (query, { deep = false } = {}) => {
+    const normalizedQuery = String(query || "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+    const tokens = normalizeSearchTokens(normalizedQuery)
+      .filter((token) => token.length >= 2);
+    if (!tokens.length) return [];
+    const ranked = getWebsiteSearchIndex()
+      .map((entry) => {
+        const phrases = [entry.label, ...(entry.keywords || [])]
+          .map((value) => getSearchPhraseParts(value))
+          .filter((value) => value.normalized);
+        const phraseTexts = phrases.map((value) => value.normalized);
+        const wordSet = [...new Set(phrases.flatMap((value) => value.tokens))];
+        let score = 0;
+        const exactPhraseMatch = phraseTexts.includes(normalizedQuery);
+        const strongPhraseMatch = normalizedQuery.length >= 4 && phraseTexts.some((value) => value.includes(normalizedQuery));
+        const matchedTokenCount = tokens.reduce((count, token) => count + (hasSearchWordMatch(token, wordSet) ? 1 : 0), 0);
+        const allTokensMatched = matchedTokenCount === tokens.length;
+
+        if (exactPhraseMatch) score += 16;
+        if (strongPhraseMatch) score += 8;
+        if (allTokensMatched && tokens.length > 1) score += 7;
+        score += matchedTokenCount * 3;
+        if (deep) {
+          if (tokens.length > 1 && matchedTokenCount >= Math.max(2, Math.ceil(tokens.length * 0.7))) score += 4;
+          if (normalizedQuery.length >= 4 && phraseTexts.some((value) => value.includes(normalizedQuery) || normalizedQuery.includes(value))) score += 3;
+        }
+        const singleToken = tokens.length === 1;
+        const isQualifiedMatch = exactPhraseMatch
+          || strongPhraseMatch
+          || allTokensMatched
+          || (!singleToken && matchedTokenCount >= Math.max(2, Math.ceil(tokens.length * 0.6)))
+          || (deep && matchedTokenCount >= Math.max(1, Math.ceil(tokens.length * 0.5) + (singleToken ? 0 : 1)));
+
+        if (!isQualifiedMatch) return null;
+        return { entry, score };
+      })
+      .filter((entry) => entry && entry.score > 0)
+      .sort((left, right) => right.score - left.score);
+    return ranked
+      .slice(0, 4)
+      .map((entry) => entry.entry);
+  };
+
+  const getWebsiteSearchResultOptions = () => withEndChatOption([
+    createBadgedOption("website-search-result", "open", config.searchWebsiteOpenYes, currentLang === "de" ? "Treffer" : "Match"),
+    createBadgedOption("website-search-result", "retry", config.searchWebsiteOpenNo, currentLang === "de" ? "Erneut" : "Retry")
+  ]);
+
+  const getWebsiteSearchMatchOptions = () => withEndChatOption(dedupeHelpBotOptions([
+    ...(Array.isArray(helpBotState.websiteSearchResults) ? helpBotState.websiteSearchResults : [])
+      .map((entry, index) => entry?.label && entry?.target
+        ? createBadgedOption("website-search-match", String(index), entry.label, currentLang === "de" ? "Treffer" : "Match")
+        : null)
+      .filter(Boolean),
+    createBadgedOption("website-search-result", "retry", config.searchWebsiteOpenNo, currentLang === "de" ? "Erneut" : "Retry")
+  ]));
+
+  const getWebsiteSearchFallbackOptions = () => withEndChatOption([
+    createBadgedOption("website-search-fallback", "contact", config.searchWebsiteContact, currentLang === "de" ? "Aktion" : "Action"),
+    createBadgedOption("website-search-fallback", "menu", config.searchWebsiteMainMenu, currentLang === "de" ? "Menue" : "Menu")
+  ]);
 
   const getReviewPathResponse = (pathId) => {
     const responses = currentLang === "de"
@@ -7138,6 +7677,7 @@ function setupPortfolioHelpBot() {
     if (shouldOpen === wasOpen) return;
     root.classList.toggle("is-open", shouldOpen);
     document.body.classList.toggle("help-bot-open", shouldOpen);
+    root.classList.remove("is-inline-nudge-visible");
     launcher?.setAttribute("aria-expanded", shouldOpen ? "true" : "false");
     launcher?.setAttribute("aria-label", config.launcher);
     panel?.setAttribute("aria-hidden", shouldOpen ? "false" : "true");
@@ -7145,6 +7685,9 @@ function setupPortfolioHelpBot() {
       lastFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : launcher;
       clearNudgeTimers();
       root.classList.remove("is-nudge-visible");
+      if (currentPageName === "index.html") {
+        setNudgeMessage(config.nudge);
+      }
       if (!hasConversationBooted) {
         resetConversation();
       } else {
@@ -7157,7 +7700,8 @@ function setupPortfolioHelpBot() {
               currentLang,
               currentRoleId,
               currentPageName,
-              helpBotState.lastNavTarget
+              helpBotState.lastNavTarget,
+              getVisitorName()
             ),
             inlineOptions: getResumeChoiceOptions()
           });
@@ -7169,6 +7713,7 @@ function setupPortfolioHelpBot() {
         page_path: window.location.pathname,
         lang: currentLang
       });
+      syncInlineStudentNudge();
       window.requestAnimationFrame(() => {
         if (composer && !composer.hidden) {
           const activeField = composerTextarea && !composerTextarea.hidden ? composerTextarea : composerInput;
@@ -7178,11 +7723,15 @@ function setupPortfolioHelpBot() {
         (closeButton || panel).focus({ preventScroll: true });
       });
     } else {
-      if (currentRoleId && helpBotState.messages.some((message) => message?.sender === "user")) {
+      if (helpBotState.messages.length >= 2 && (currentRoleId || hasConversationBooted)) {
         queueHelpBotRemoteSessionSync({ immediate: true });
       }
       clearNudgeTimers();
-      showNudge({ delay: HELP_BOT_NUDGE_RESHOW_MS });
+      showNudge({
+        delay: shouldUseStudentCornerNudge() ? 0 : HELP_BOT_NUDGE_RESHOW_MS,
+        force: shouldUseStudentCornerNudge()
+      });
+      syncInlineStudentNudge();
       if (lastFocusedElement && document.contains(lastFocusedElement)) {
         window.requestAnimationFrame(() => {
           lastFocusedElement.focus({ preventScroll: true });
@@ -7202,7 +7751,7 @@ function setupPortfolioHelpBot() {
     resetButton.textContent = config.reset;
     backdrop.setAttribute("aria-label", config.close);
     closeButton.setAttribute("aria-label", config.close);
-    nudgeText.textContent = config.nudge;
+    setNudgeMessage(config.nudge);
     nudgeCloseButton.setAttribute("aria-label", config.close);
     launcher.setAttribute("aria-label", config.launcher);
     if (composerInput && composerTextarea && composerField) {
@@ -7221,6 +7770,7 @@ function setupPortfolioHelpBot() {
       composerSubmit.textContent = composerMode.submit;
       composerSubmit.setAttribute("aria-label", composerMode.submit);
     }
+    syncInlineStudentNudge();
   };
 
   const getActiveComposerField = () => (composerTextarea && !composerTextarea.hidden ? composerTextarea : composerInput);
@@ -7420,7 +7970,10 @@ function setupPortfolioHelpBot() {
           "Profile overview",
           "detail page",
           "Next section",
-          "View detail page"
+          "View detail page",
+          "Important",
+          "Search website",
+          "main menu"
         ];
     return Array.from(new Set([...dynamicTerms, ...staticTerms]
       .map((term) => String(term || "").trim())
@@ -7615,6 +8168,13 @@ function setupPortfolioHelpBot() {
         cards: cards.map(normalizeHelpBotCard).filter(Boolean)
       });
       persistHelpBotState();
+      if (hasConversationBooted || sender === "user" || currentRoleId) {
+        queueHelpBotRemoteSessionSync();
+      }
+    }
+    if (root.classList.contains("is-open")) {
+      setStaticCopy();
+      syncComposerState();
     }
     window.requestAnimationFrame(scrollMessagesToEnd);
   };
@@ -7631,20 +8191,46 @@ function setupPortfolioHelpBot() {
     }
   };
 
+  const clearRecruiterRequestDraft = () => {
+    helpBotState.recruiterRequestDraft = normalizeHelpBotRecruiterRequestDraft(null);
+    if (helpBotState.pendingInputKind === "recruiter-request") {
+      helpBotState.pendingInputKind = "";
+    }
+  };
+
   const getFeedbackPromptName = () => {
     const visitorName = getVisitorName();
     return roleUsesVisitorName(currentRoleId) && visitorName ? visitorName : "";
   };
 
   const getFeedbackChoiceOptions = () => dedupeHelpBotOptions([
-    createBadgedOption("feedback-choice", "public", config.feedbackPublicOption, currentLang === "de" ? "Oeffentlich" : "Public"),
-    createBadgedOption("feedback-choice", "private", config.feedbackPrivateOption, currentLang === "de" ? "Privat" : "Private"),
+    createBadgedOption("feedback-choice", "collect", config.feedbackPromptCollectHere, currentLang === "de" ? "Chat" : "Chat"),
     createBadgedOption("feedback-choice", "skip", config.feedbackSkipOption, currentLang === "de" ? "Schliessen" : "Close")
   ]);
 
   const getFeedbackSkipConfirmOptions = () => dedupeHelpBotOptions([
     createBadgedOption("feedback-skip-confirm", "leave", config.feedbackSkipConfirmLeave, currentLang === "de" ? "Beenden" : "Leave"),
     createBadgedOption("feedback-skip-confirm", "review", config.feedbackSkipConfirmReview, currentLang === "de" ? "Bewertung" : "Review")
+  ]);
+
+  const getFeedbackStudentReviewModeOptions = () => dedupeHelpBotOptions([
+    createBadgedOption("feedback-student-review-mode", "chat", config.feedbackStudentReviewModeChat, currentLang === "de" ? "Direkt" : "Chat"),
+    createBadgedOption("feedback-skip-confirm", "leave", config.feedbackSkipConfirmLeave, currentLang === "de" ? "Beenden" : "Leave")
+  ]);
+
+  const getRecruiterContactCvOptions = () => withEndChatOption([
+    createBadgedOption("recruiter-intake-choice", "contact", config.recruiterContactChooseContact, currentLang === "de" ? "Kontakt" : "Contact"),
+    createBadgedOption("recruiter-intake-choice", "cv", config.recruiterContactChooseCv, "CV")
+  ]);
+
+  const getRecruiterFollowupOptions = (nextType) => withEndChatOption([
+    createBadgedOption(
+      "recruiter-intake-followup",
+      nextType,
+      nextType === "cv" ? config.recruiterFollowupYesCv : config.recruiterFollowupYesContact,
+      nextType === "cv" ? "CV" : (currentLang === "de" ? "Kontakt" : "Contact")
+    ),
+    createBadgedOption("recruiter-intake-followup", "finish", config.recruiterFollowupNo, currentLang === "de" ? "Ende" : "Finish")
   ]);
 
   const getFeedbackRatingOptions = () => dedupeHelpBotOptions([
@@ -7719,6 +8305,7 @@ function setupPortfolioHelpBot() {
     const token = responseToken;
     clearTypingIndicator();
     clearChatFeedbackDraft();
+    clearRecruiterRequestDraft();
     persistHelpBotState();
     hideComposer();
     setOptions([], "");
@@ -7735,6 +8322,7 @@ function setupPortfolioHelpBot() {
     const token = responseToken;
     clearTypingIndicator();
     clearChatFeedbackDraft();
+    clearRecruiterRequestDraft();
     persistHelpBotState();
     hideComposer();
     await queueBotReply({
@@ -7746,6 +8334,11 @@ function setupPortfolioHelpBot() {
     await wait(950);
     if (token !== responseToken) return;
     endConversation({ showExitNudge: false });
+  };
+
+  const getNamedFarewellText = (value) => {
+    if (typeof value === "function") return value(getVisitorName());
+    return value;
   };
 
   const submitChatFeedback = async () => {
@@ -7873,7 +8466,7 @@ function setupPortfolioHelpBot() {
       clearChatFeedbackDraft();
       persistHelpBotState();
       await queueBotReply({
-        text: config.feedbackSuccess,
+        text: getNamedFarewellText(config.feedbackSuccess),
         delay: 320,
         token
       });
@@ -7911,12 +8504,34 @@ function setupPortfolioHelpBot() {
   };
 
   const selectFeedbackChoice = async (choiceId) => {
-    const label = choiceId === "public"
-      ? config.feedbackPublicOption
-      : choiceId === "private"
-        ? config.feedbackPrivateOption
-        : config.feedbackSkipOption;
+    const label = choiceId === "collect"
+        ? config.feedbackPromptCollectHere
+        : choiceId === "public"
+          ? config.feedbackPublicOption
+          : choiceId === "private"
+            ? config.feedbackPrivateOption
+            : config.feedbackSkipOption;
     appendMessage({ sender: "user", text: label });
+
+    if (choiceId === "collect") {
+      responseToken += 1;
+      const token = responseToken;
+      clearTypingIndicator();
+      hideComposer();
+      await queueBotReply({
+        text: currentLang === "de"
+          ? "Gerne. Soll ich dafuer eine oeffentliche Bewertung oder ein privates Feedback direkt hier im Chat sammeln?"
+          : "Sure. Should I collect a public review or private feedback for that directly here in the chat?",
+        delay: 360,
+        token,
+        inlineOptions: dedupeHelpBotOptions([
+          createBadgedOption("feedback-choice", "public", config.feedbackPublicOption, currentLang === "de" ? "Oeffentlich" : "Public"),
+          createBadgedOption("feedback-choice", "private", config.feedbackPrivateOption, currentLang === "de" ? "Privat" : "Private"),
+          createBadgedOption("feedback-choice", "skip", config.feedbackSkipOption, currentLang === "de" ? "Schliessen" : "Close")
+        ])
+      });
+      return;
+    }
 
     if (choiceId === "skip") {
       if (currentRoleId === "student") {
@@ -7932,7 +8547,7 @@ function setupPortfolioHelpBot() {
         });
         return;
       }
-      await finishChatWithFarewell(config.feedbackSkipFarewell);
+      await finishChatWithFarewell(getNamedFarewellText(config.feedbackSkipFarewell));
       return;
     }
 
@@ -7964,12 +8579,28 @@ function setupPortfolioHelpBot() {
   const selectFeedbackSkipConfirm = async (decisionId) => {
     if (decisionId === "review") {
       appendMessage({ sender: "user", text: config.feedbackSkipConfirmReview });
-      await selectFeedbackChoice("public");
+      responseToken += 1;
+      const token = responseToken;
+      clearTypingIndicator();
+      await queueBotReply({
+        text: config.feedbackStudentReviewModePrompt,
+        delay: 360,
+        token,
+        inlineOptions: getFeedbackStudentReviewModeOptions()
+      });
       return;
     }
 
     appendMessage({ sender: "user", text: config.feedbackSkipConfirmLeave });
-    await finishChatWithFarewell(config.feedbackSkipFarewell);
+    await finishChatWithFarewell(getNamedFarewellText(currentRoleId === "student" ? config.feedbackSkipFarewellStudent : config.feedbackSkipFarewell));
+  };
+
+  const selectFeedbackStudentReviewMode = async (modeId) => {
+    if (modeId === "chat") {
+      appendMessage({ sender: "user", text: config.feedbackStudentReviewModeChat });
+      await selectFeedbackChoice("public");
+      return;
+    }
   };
 
   const selectFeedbackRating = async (rating) => {
@@ -8012,6 +8643,7 @@ function setupPortfolioHelpBot() {
     helpBotState.pendingInputKind = "visitor-name";
     helpBotState.pendingTopicId = "";
     persistHelpBotState();
+    setStaticCopy();
     await queueBotReply({
       text: config.askName,
       delay: 420,
@@ -8224,6 +8856,43 @@ function setupPortfolioHelpBot() {
     await continueRoleFlow("student", token);
   };
 
+  const handleStudentBossName = async (decisionId) => {
+    const visitorName = getVisitorName();
+    if (!visitorName) return;
+
+    if (decisionId === "retype") {
+      appendMessage({ sender: "user", text: config.askNameBossRetype });
+      responseToken += 1;
+      const token = responseToken;
+      clearTypingIndicator();
+      helpBotState.visitorName = "";
+      helpBotState.pendingInputKind = "visitor-name";
+      persistHelpBotState();
+      hideComposer();
+      await queueBotReply({
+        text: config.askNameBossRetypePrompt,
+        delay: 320,
+        token,
+        inlineOptions: withEndChatOption([])
+      });
+      if (token !== responseToken) return;
+      showComposer();
+      return;
+    }
+
+    appendMessage({ sender: "user", text: config.askNameBossYes });
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    await queueBotReply({
+      text: config.askNameGreeting(visitorName),
+      delay: 380,
+      token
+    });
+    if (token !== responseToken) return;
+    await promptForStudentUniversity(token);
+  };
+
   const confirmStudentUniversity = async (decisionId) => {
     const candidate = normalizeHelpBotUniversityCandidate(helpBotState.studentUniversityCandidate);
     if (!candidate) return;
@@ -8268,7 +8937,7 @@ function setupPortfolioHelpBot() {
   };
 
   const resetConversation = async () => {
-    if (helpBotState.messages.some((message) => message?.sender === "user")) {
+    if (helpBotState.messages.length >= 2 && (currentRoleId || hasConversationBooted)) {
       queueHelpBotRemoteSessionSync({ immediate: true, endedAt: new Date().toISOString() });
     }
     responseToken += 1;
@@ -8284,7 +8953,12 @@ function setupPortfolioHelpBot() {
     helpBotState.studentUniversityCandidate = null;
     helpBotState.remoteSessionId = "";
     helpBotState.remoteSessionPersisted = false;
+    helpBotState.websiteSearchQuery = "";
+    helpBotState.websiteSearchAttempts = 0;
+    helpBotState.websiteSearchResult = null;
+    helpBotState.websiteSearchResults = [];
     clearChatFeedbackDraft();
+    clearRecruiterRequestDraft();
     helpBotState.pendingInputKind = "";
     helpBotState.pendingTopicId = "";
     helpBotState.pendingTourStepId = "";
@@ -8396,6 +9070,439 @@ function setupPortfolioHelpBot() {
     });
   };
 
+  const getNextRecruiterRequestField = (draft) => {
+    if (!draft.type) return "";
+    if (draft.type === "contact") {
+      if (!draft.fullName) return "fullName";
+      if (!draft.email) return "email";
+      if (!draft.country) return "country";
+      if (!draft.message) return "message";
+      return "";
+    }
+    if (!draft.email) return "email";
+    return "";
+  };
+
+  const promptRecruiterRequestField = async (field, token = responseToken) => {
+    const draft = getRecruiterRequestDraft();
+    if (!draft.type || !field) return;
+    helpBotState.pendingInputKind = "recruiter-request";
+    helpBotState.recruiterRequestDraft = { ...draft, field };
+    persistHelpBotState();
+    setStaticCopy();
+    let text = config.recruiterContactNamePrompt;
+    if (field === "email") {
+      text = draft.type === "cv" ? config.recruiterCvEmailPrompt : config.recruiterContactEmailPrompt;
+    } else if (field === "country") {
+      text = config.recruiterContactCountryPrompt;
+    } else if (field === "message") {
+      text = config.recruiterContactMessagePrompt;
+    }
+    await queueBotReply({
+      text,
+      delay: 360,
+      token,
+      inlineOptions: withEndChatOption([])
+    });
+    if (token !== responseToken) return;
+    showComposer();
+  };
+
+  const beginRecruiterRequestFlow = async (type, seed = {}, token = responseToken) => {
+    const nextDraft = normalizeHelpBotRecruiterRequestDraft({
+      type,
+      fullName: seed.fullName || "",
+      email: seed.email || "",
+      country: seed.country || "",
+      message: seed.message || "",
+      company: seed.company || "",
+      role: seed.role || (currentRoleId === "recruiter" ? "Recruiter" : ""),
+      note: seed.note || ""
+    });
+    helpBotState.recruiterRequestDraft = nextDraft;
+    persistHelpBotState();
+    hideComposer();
+    const nextField = getNextRecruiterRequestField(nextDraft);
+    if (!nextField) return;
+    await promptRecruiterRequestField(nextField, token);
+  };
+
+  const submitRecruiterContactRequest = async () => {
+    const draft = getRecruiterRequestDraft();
+    if (!draft.fullName || !draft.email || !draft.country || !draft.message) return false;
+
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    hideComposer({ clearValue: false });
+    showTypingIndicator();
+
+    const lang = currentLang === "de" ? "de" : "en";
+    const template = FEEDBACK_MAIL_TEMPLATES[lang] || FEEDBACK_MAIL_TEMPLATES.en;
+    const submittedAt = new Date().toISOString();
+    const submissionId = createClientUuid();
+    const lines = [
+      template.greeting,
+      "",
+      template.intros?.contact || "",
+      "",
+      `${lang === "de" ? "Quelle" : "Source"}: ${lang === "de" ? "AI Assistant Chat" : "AI Assistant chat"}`,
+      `${template.labels.name}: ${draft.fullName}`,
+      `${template.labels.email}: ${draft.email}`,
+      `${template.labels.country}: ${draft.country}`,
+      `${template.labels.role}: ${draft.role || "Recruiter"}`,
+      "",
+      `${lang === "de" ? "Nachricht" : "Message"}:`,
+      draft.message,
+      "",
+      template.closing,
+      draft.fullName
+    ];
+
+    const requestBody = new FormData();
+    requestBody.set("access_key", WEB3FORMS_ACCESS_KEY);
+    requestBody.set("subject", template.subjects?.contact || "Contact request from your portfolio website");
+    requestBody.set("from_name", "Sooraj Sudhakaran Portfolio");
+    requestBody.set("replyto", draft.email);
+    requestBody.set("message", lines.join("\r\n"));
+    requestBody.set("botcheck", "");
+
+    try {
+      const response = await fetch(WEB3FORMS_ENDPOINT, {
+        method: "POST",
+        body: requestBody,
+        headers: { Accept: "application/json" }
+      });
+      const result = await response.json().catch(() => null);
+      if (!response.ok || result?.success === false) throw new Error(result?.message || "Submission failed");
+
+      await recordSharedSubmissionEvent({
+        id: submissionId,
+        type: "contact",
+        country: draft.country,
+        submittedAt,
+        subject: lang === "de" ? "Kontaktanfrage" : "Contact request"
+      });
+      sessionStorage.setItem(STORAGE_FEEDBACK_LAST_SUBMISSION_KEY, JSON.stringify({ type: "contact", submittedAt }));
+      persistRecentSubmission({ type: "contact", submittedAt });
+      clearTypingIndicator();
+      helpBotState.recruiterRequestDraft = normalizeHelpBotRecruiterRequestDraft({
+        type: "cv",
+        fullName: draft.fullName,
+        email: draft.email,
+        country: draft.country,
+        company: draft.company,
+        role: draft.role || "Recruiter"
+      });
+      helpBotState.pendingInputKind = "";
+      persistHelpBotState();
+      await queueBotReply({
+        text: config.recruiterContactSuccess(draft.fullName),
+        delay: 320,
+        token
+      });
+      if (token !== responseToken) return true;
+      await queueBotReply({
+        text: `${config.recruiterUsingSameEmailForCv}\n${config.recruiterContactAskCvAfter}`,
+        delay: 360,
+        token,
+        inlineOptions: getRecruiterFollowupOptions("cv")
+      });
+      return true;
+    } catch {
+      clearTypingIndicator();
+      helpBotState.pendingInputKind = "";
+      persistHelpBotState();
+      await queueBotReply({
+        text: config.recruiterSubmissionError,
+        delay: 320,
+        token,
+        inlineOptions: withEndChatOption([])
+      });
+      return false;
+    }
+  };
+
+  const submitRecruiterCvRequest = async () => {
+    const draft = getRecruiterRequestDraft();
+    if (!draft.email) return false;
+
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    hideComposer({ clearValue: false });
+    showTypingIndicator();
+
+    const lang = currentLang === "de" ? "de" : "en";
+    const submittedAt = new Date().toISOString();
+    const subject = lang === "de" ? "Neue CV-Anfrage ueber die Portfolio-Website" : "New CV request from the portfolio website";
+    const lines = [
+      lang === "de" ? "Hallo Sooraj Sudhakaran," : "Hello Sooraj Sudhakaran,",
+      "",
+      lang === "de"
+        ? "eine Besucherin oder ein Besucher Ihres AI Assistant Chats hat Ihren CV angefragt."
+        : "A visitor requested your CV through the AI Assistant chat.",
+      "",
+      `${lang === "de" ? "Anfragetyp" : "Request type"}: ${lang === "de" ? "CV-Anfrage" : "CV request"}`,
+      `${lang === "de" ? "E-Mail" : "Email"}: ${draft.email}`
+    ];
+    if (draft.fullName) lines.push(`${lang === "de" ? "Name" : "Name"}: ${draft.fullName}`);
+    if (draft.country) lines.push(`${lang === "de" ? "Land" : "Country"}: ${draft.country}`);
+    if (draft.role) lines.push(`${lang === "de" ? "Rolle" : "Role"}: ${draft.role}`);
+    lines.push("", lang === "de"
+      ? "Der angeforderte CV soll an die oben genannte E-Mail-Adresse gesendet werden."
+      : "The requested CV should be sent to the email address above.");
+
+    const requestBody = new FormData();
+    requestBody.set("access_key", WEB3FORMS_ACCESS_KEY);
+    requestBody.set("subject", subject);
+    requestBody.set("from_name", "Sooraj Sudhakaran Portfolio");
+    requestBody.set("replyto", draft.email);
+    requestBody.set("message", lines.join("\r\n"));
+    requestBody.set("botcheck", "");
+
+    try {
+      const response = await fetch(WEB3FORMS_ENDPOINT, {
+        method: "POST",
+        body: requestBody,
+        headers: { Accept: "application/json" }
+      });
+      const result = await response.json().catch(() => null);
+      if (!response.ok || result?.success === false) throw new Error(result?.message || "Submission failed");
+
+      await recordSharedSubmissionEvent({
+        id: createClientUuid(),
+        type: "cv",
+        country: draft.country,
+        submittedAt,
+        subject: lang === "de" ? "CV-Anfrage" : "CV request"
+      });
+      sessionStorage.setItem(STORAGE_FEEDBACK_LAST_SUBMISSION_KEY, JSON.stringify({ type: "cv", submittedAt }));
+      persistRecentSubmission({ type: "cv", submittedAt });
+      clearTypingIndicator();
+      helpBotState.recruiterRequestDraft = normalizeHelpBotRecruiterRequestDraft({
+        type: "contact",
+        fullName: draft.fullName,
+        email: draft.email,
+        country: draft.country,
+        role: draft.role || "Recruiter"
+      });
+      helpBotState.pendingInputKind = "";
+      persistHelpBotState();
+      await queueBotReply({
+        text: config.recruiterCvSuccess(draft.fullName),
+        delay: 320,
+        token
+      });
+      if (token !== responseToken) return true;
+      await queueBotReply({
+        text: config.recruiterCvAskContactAfter,
+        delay: 360,
+        token,
+        inlineOptions: getRecruiterFollowupOptions("contact")
+      });
+      return true;
+    } catch {
+      clearTypingIndicator();
+      helpBotState.pendingInputKind = "";
+      persistHelpBotState();
+      await queueBotReply({
+        text: config.recruiterSubmissionError,
+        delay: 320,
+        token,
+        inlineOptions: withEndChatOption([])
+      });
+      return false;
+    }
+  };
+
+  const startRecruiterContactCvFlow = async (token = responseToken) => {
+    clearRecruiterRequestDraft();
+    persistHelpBotState();
+    hideComposer();
+    await queueBotReply({
+      text: config.recruiterContactPrompt,
+      delay: 360,
+      token,
+      inlineOptions: getRecruiterContactCvOptions()
+    });
+  };
+
+  const handleRecruiterIntakeChoice = async (choiceId) => {
+    appendMessage({ sender: "user", text: choiceId === "cv" ? config.recruiterContactChooseCv : config.recruiterContactChooseContact });
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    await beginRecruiterRequestFlow(choiceId === "cv" ? "cv" : "contact", {}, token);
+  };
+
+  const handleRecruiterIntakeFollowup = async (choiceId) => {
+    if (choiceId === "finish") {
+      appendMessage({ sender: "user", text: config.recruiterFollowupNo });
+      await finishChatWithFarewell(getNamedFarewellText(config.feedbackSkipFarewell));
+      return;
+    }
+    appendMessage({ sender: "user", text: choiceId === "cv" ? config.recruiterFollowupYesCv : config.recruiterFollowupYesContact });
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    const seed = getRecruiterRequestDraft();
+    if (choiceId === "cv" && seed.email) {
+      await queueBotReply({
+        text: config.recruiterUsingSameEmailForCv,
+        delay: 280,
+        token
+      });
+      if (token !== responseToken) return;
+      await submitRecruiterCvRequest();
+      return;
+    }
+    await beginRecruiterRequestFlow(choiceId === "cv" ? "cv" : "contact", seed, token);
+  };
+
+  const startWebsiteSearchFlow = async (token = responseToken, { retry = false } = {}) => {
+    helpBotState.pendingInputKind = "website-search";
+    helpBotState.websiteSearchResult = null;
+    helpBotState.websiteSearchResults = [];
+    persistHelpBotState();
+    hideComposer();
+    await queueBotReply({
+      text: retry
+        ? (helpBotState.websiteSearchAttempts >= 2 ? config.searchWebsiteDeepRetryPrompt : config.searchWebsiteRetryPrompt)
+        : config.searchWebsitePrompt,
+      delay: 320,
+      token,
+      inlineOptions: withEndChatOption([])
+    });
+    if (token !== responseToken) return;
+    showComposer();
+  };
+
+  const runWebsiteSearch = async (query) => {
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    hideComposer({ clearValue: false });
+    const previousAttempts = Number(helpBotState.websiteSearchAttempts || 0);
+    const nextAttempts = previousAttempts + 1;
+    helpBotState.pendingInputKind = "";
+    helpBotState.websiteSearchQuery = String(query || "").trim();
+    helpBotState.websiteSearchAttempts = nextAttempts;
+    persistHelpBotState();
+    appendMessage({ sender: "user", text: query });
+
+    showTypingIndicator();
+    await wait(nextAttempts >= 2 ? 1250 : 850);
+    if (token !== responseToken) return;
+    clearTypingIndicator();
+
+    const matches = findWebsiteSearchMatches(query, { deep: nextAttempts >= 2 });
+    if (matches.length) {
+      helpBotState.websiteSearchResults = matches.map((entry) => ({ label: entry.label, target: entry.target }));
+      helpBotState.websiteSearchResult = matches[0] ? { label: matches[0].label, target: matches[0].target } : null;
+      persistHelpBotState();
+      if (matches.length > 1) {
+        await queueBotReply({
+          text: nextAttempts >= 2
+            ? `${config.searchWebsiteDeepSearching}\n${config.searchWebsiteFoundMultiple}`
+            : config.searchWebsiteFoundMultiple,
+          delay: 260,
+          token,
+          inlineOptions: getWebsiteSearchMatchOptions()
+        });
+        return;
+      }
+      await queueBotReply({
+        text: nextAttempts >= 2
+          ? `${config.searchWebsiteDeepSearching}\n${config.searchWebsiteFound(matches[0].label)}`
+          : config.searchWebsiteFound(matches[0].label),
+        delay: 260,
+        token,
+        inlineOptions: getWebsiteSearchResultOptions()
+      });
+      return;
+    }
+
+    helpBotState.websiteSearchResult = null;
+    helpBotState.websiteSearchResults = [];
+    persistHelpBotState();
+    if (nextAttempts >= 3) {
+      await queueBotReply({
+        text: config.searchWebsiteNoResult,
+        delay: 260,
+        token,
+        inlineOptions: getWebsiteSearchFallbackOptions()
+      });
+      return;
+    }
+
+    await startWebsiteSearchFlow(token, { retry: true });
+  };
+
+  const handleWebsiteSearchResult = async (decisionId) => {
+    const result = helpBotState.websiteSearchResult;
+    if (!result?.target) return;
+    appendMessage({ sender: "user", text: decisionId === "open" ? config.searchWebsiteOpenYes : config.searchWebsiteOpenNo });
+    if (decisionId === "open") {
+      helpBotState.lastNavTarget = result.target;
+      persistHelpBotState();
+      navigateHelpBotTarget(result.target, () => setOpen(false));
+      return;
+    }
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    helpBotState.websiteSearchAttempts = Math.min(3, Number(helpBotState.websiteSearchAttempts || 0) + 1);
+    persistHelpBotState();
+    if (helpBotState.websiteSearchAttempts >= 3) {
+      await queueBotReply({
+        text: config.searchWebsiteNoResult,
+        delay: 260,
+        token,
+        inlineOptions: getWebsiteSearchFallbackOptions()
+      });
+      return;
+    }
+    await startWebsiteSearchFlow(token, { retry: true });
+  };
+
+  const handleWebsiteSearchMatch = async (matchId) => {
+    const matches = Array.isArray(helpBotState.websiteSearchResults) ? helpBotState.websiteSearchResults : [];
+    const result = matches[Number(matchId)];
+    if (!result?.target) return;
+    appendMessage({ sender: "user", text: result.label });
+    helpBotState.websiteSearchResult = result;
+    helpBotState.lastNavTarget = result.target;
+    persistHelpBotState();
+    navigateHelpBotTarget(result.target, () => setOpen(false));
+  };
+
+  const handleWebsiteSearchFallback = async (choiceId) => {
+    appendMessage({ sender: "user", text: choiceId === "contact" ? config.searchWebsiteContact : config.searchWebsiteMainMenu });
+    if (choiceId === "contact") {
+      responseToken += 1;
+      const token = responseToken;
+      clearTypingIndicator();
+      await beginRecruiterRequestFlow("contact", {
+        fullName: getVisitorName(),
+        role: currentRoleId === "recruiter" ? "Recruiter" : ""
+      }, token);
+      return;
+    }
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    await queueBotReply({
+      text: currentLang === "de"
+        ? "Gerne. Ich bringe Sie direkt zur Hauptauswahl zurueck. Dort kann ich gezielter weiterhelfen."
+        : "Sure. I’ll take you straight back to the main menu. I can guide you more clearly from there.",
+      delay: 280,
+      token
+    });
+    if (token !== responseToken) return;
+    resetConversation();
+  };
+
   const selectTopic = async (topicId) => {
     const role = config.roles[currentRoleId];
     const topic = role?.topics.find((entry) => entry.id === topicId);
@@ -8409,6 +9516,10 @@ function setupPortfolioHelpBot() {
     persistHelpBotState();
     appendMessage({ sender: "user", text: topic.label });
     setOptions([], "");
+    if (currentRoleId === "recruiter" && topic.id === "contact") {
+      await startRecruiterContactCvFlow(token);
+      return;
+    }
     const confidence = getTopicConfidenceLine(currentRoleId, topic.id);
     const milestone = getRoleMilestoneSummary(currentRoleId);
     const composedTopicText = [
@@ -8727,7 +9838,7 @@ function setupPortfolioHelpBot() {
     responseToken += 1;
     clearTypingIndicator();
     hideComposer();
-    if (helpBotState.messages.some((message) => message?.sender === "user")) {
+    if (helpBotState.messages.length >= 2 && (currentRoleId || hasConversationBooted)) {
       queueHelpBotRemoteSessionSync({ immediate: true, endedAt: new Date().toISOString() });
     }
     clearHelpBotState();
@@ -8735,7 +9846,7 @@ function setupPortfolioHelpBot() {
     messages.innerHTML = "";
     setOptions([], "");
     setOpen(false);
-    nudgeText.textContent = showExitNudge ? config.ended : config.nudge;
+    setNudgeMessage(showExitNudge ? config.ended : config.nudge);
     if (showExitNudge) {
       showNudge({ delay: 900 });
     }
@@ -8748,6 +9859,12 @@ function setupPortfolioHelpBot() {
       const id = optionButton.getAttribute("data-help-bot-option-id") || "";
       if (kind === "role") {
         selectRole(id);
+      } else if (kind === "website-search-start") {
+        appendMessage({ sender: "user", text: config.searchWebsiteLabel });
+        responseToken += 1;
+        const token = responseToken;
+        clearTypingIndicator();
+        startWebsiteSearchFlow(token);
       } else if (kind === "tour-start") {
         startPortfolioTour();
       } else if (kind === "tour-step") {
@@ -8785,6 +9902,18 @@ function setupPortfolioHelpBot() {
         selectFeedbackChoice(id);
       } else if (kind === "feedback-skip-confirm") {
         selectFeedbackSkipConfirm(id);
+      } else if (kind === "feedback-student-review-mode") {
+        selectFeedbackStudentReviewMode(id);
+      } else if (kind === "recruiter-intake-choice") {
+        handleRecruiterIntakeChoice(id);
+      } else if (kind === "recruiter-intake-followup") {
+        handleRecruiterIntakeFollowup(id);
+      } else if (kind === "website-search-result") {
+        handleWebsiteSearchResult(id);
+      } else if (kind === "website-search-match") {
+        handleWebsiteSearchMatch(id);
+      } else if (kind === "website-search-fallback") {
+        handleWebsiteSearchFallback(id);
       } else if (kind === "visitor-profile") {
         handleVisitorProfileChoice(id);
       } else if (kind === "visitor-field-skip") {
@@ -8803,6 +9932,8 @@ function setupPortfolioHelpBot() {
         confirmStudentUniversity(id);
       } else if (kind === "student-name-confirm") {
         handleStudentNameContinue(id);
+      } else if (kind === "student-name-boss") {
+        handleStudentBossName(id);
       } else if (kind === "continue-chat") {
         continueConversation();
       } else if (kind === "start-over") {
@@ -8876,9 +10007,19 @@ function setupPortfolioHelpBot() {
       helpBotState.visitorName = visitorName;
       helpBotState.pendingInputKind = "";
       persistHelpBotState();
+      syncInlineStudentNudge();
       appendMessage({ sender: "user", text: visitorName });
       hideComposer();
       if (currentRoleId === "student") {
+        if (isBossLikeVisitorName(visitorName)) {
+          await queueBotReply({
+            text: config.askNameBossPrompt(visitorName),
+            delay: 360,
+            token,
+            inlineOptions: getStudentBossNameOptions()
+          });
+          return;
+        }
         await queueBotReply({
           text: config.askNameGreeting(visitorName),
           delay: 420,
@@ -8912,6 +10053,69 @@ function setupPortfolioHelpBot() {
       appendMessage({ sender: "user", text: visitorPosition });
       hideComposer();
       await promptVisitorProfileField("organization", token);
+      return;
+    }
+
+    if (helpBotState.pendingInputKind === "recruiter-request") {
+      const draft = getRecruiterRequestDraft();
+      if (!draft.type || !draft.field) return;
+
+      let normalizedValue = "";
+      let errorMessage = "";
+      if (draft.field === "fullName") {
+        normalizedValue = normalizeFeedbackName(composerValue);
+        if (!normalizedValue) errorMessage = config.feedbackInvalidName;
+      } else if (draft.field === "email") {
+        normalizedValue = normalizeFeedbackEmail(composerValue);
+        if (!normalizedValue || !isValidFeedbackEmail(normalizedValue)) errorMessage = config.feedbackInvalidEmail;
+      } else if (draft.field === "country") {
+        normalizedValue = normalizeFeedbackCountry(composerValue);
+        if (!normalizedValue) errorMessage = config.feedbackInvalidCountry;
+      } else if (draft.field === "message") {
+        normalizedValue = normalizeFeedbackComments(composerValue).slice(0, 800);
+        if (!normalizedValue || normalizedValue.length < 12) errorMessage = config.recruiterInvalidMessage;
+      }
+
+      if (errorMessage) {
+        setComposerNote(errorMessage);
+        focusComposerInput();
+        return;
+      }
+
+      responseToken += 1;
+      const token = responseToken;
+      clearTypingIndicator();
+      helpBotState.recruiterRequestDraft = {
+        ...draft,
+        [draft.field]: normalizedValue
+      };
+      helpBotState.pendingInputKind = "";
+      persistHelpBotState();
+      appendMessage({ sender: "user", text: normalizedValue });
+      hideComposer();
+
+      const nextField = getNextRecruiterRequestField(getRecruiterRequestDraft());
+      if (nextField) {
+        await promptRecruiterRequestField(nextField, token);
+        return;
+      }
+
+      if (draft.type === "contact") {
+        await submitRecruiterContactRequest();
+        return;
+      }
+
+      await submitRecruiterCvRequest();
+      return;
+    }
+
+    if (helpBotState.pendingInputKind === "website-search") {
+      const query = String(composerValue || "").replace(/\s+/g, " ").trim().slice(0, 120);
+      if (!query) {
+        focusComposerInput();
+        return;
+      }
+      await runWebsiteSearch(query);
       return;
     }
 
