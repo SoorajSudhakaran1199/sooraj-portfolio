@@ -4018,8 +4018,8 @@ function getPortfolioHelpBotConfig(lang) {
       askUniversityConfirmKtu: "Ohh 😄 Meinen Sie die APJ Abdul Kalam Technological University?",
       askUniversityConfirmYes: "Ja, genau",
       askUniversityConfirmRetype: "Nein, neu eingeben",
-      askUniversitySameMatch: (name) => `Wow ${name} 😄✨ Das ist ein direkter Match mit meinem aktuellen Master-in-Mechatronics-Weg in Deutschland. Mein Boss ist ebenfalls mit dieser Deggendorf-Richtung verbunden, deshalb fuehlt sich diese Verbindung gleich besonders nah an.`,
-      askUniversityKtuMatch: (name) => `Wow ${name} 😄✨ Das passt direkt zu meinem Bachelor-in-Mechanical-Engineering-Weg in Indien. Der Bachelor meines Bosses war ebenfalls aus diesem selben Hochschulumfeld. Dadurch wird dieser Austausch gleich noch interessanter.`,
+      askUniversitySameMatch: (name) => `Wow ${name} 😄✨ Das ist ein direkter Match mit dem aktuellen Master-in-Mechatronics-Weg meines Bosses in Deutschland. Dadurch fuehlt sich diese Verbindung gleich besonders nah und spannend an.`,
+      askUniversityKtuMatch: (name) => `Wow ${name} 😄✨ Das passt direkt zum Bachelor-in-Mechanical-Engineering-Weg meines Bosses in Indien. Dadurch wird dieser Austausch gleich noch interessanter und naeher.`,
       askUniversitySaved: (name, university) => `Sehr schoen ${name} 😊 Danke fuer ${university}. Ich behalte das im Hinterkopf und fuehre Sie passend weiter.`,
       askUniversitySkipped: (name) => `Ohh ${name} 😅 Damit verpassen Sie gerade den kleinen Match mit einem Hochschulweg, den ich gut kenne. Aber kein Problem 😊 Wir koennen direkt weitermachen oder Ihre Hochschule doch noch hinzufuegen.`,
       askUniversityRetype: "Kein Problem 😊 Schreiben Sie Ihre Hochschule einfach noch einmal.",
@@ -4027,6 +4027,26 @@ function getPortfolioHelpBotConfig(lang) {
       askNameContinueYes: "Ja, weiter",
       askNameContinueRestart: "Nein, neu starten",
       askNameRestarting: "Lassen Sie uns ganz entspannt neu starten. Keine Sorge 😊",
+      visitorProfileConsent: "Hallo Besucher 😊 Moechten Sie ein paar kurze Angaben wie Ihren Namen, Ihre Position und Ihre Organisation teilen, damit ich Sie passender ansprechen kann?",
+      visitorProfileShare: "Ja, ich teile das",
+      visitorProfileSkip: "Nein, direkt weiter",
+      visitorNamePrompt: "Wie darf ich Sie ansprechen?",
+      visitorNamePlaceholder: "Namen eingeben",
+      visitorNameSubmit: "Weiter",
+      visitorNameSkip: "Ohne Namen weiter",
+      visitorPositionPrompt: "Welche Position oder Rolle haben Sie aktuell?",
+      visitorPositionPlaceholder: "Position eingeben",
+      visitorPositionSubmit: "Weiter",
+      visitorPositionSkip: "Ohne Position weiter",
+      visitorOrganizationPrompt: "Zu welcher Organisation oder welchem Unternehmen gehoeren Sie?",
+      visitorOrganizationPlaceholder: "Organisation eingeben",
+      visitorOrganizationSubmit: "Fertig",
+      visitorOrganizationSkip: "Ohne Organisation weiter",
+      visitorProfileThanks: (name, position, organisation) => {
+        const details = [name, position, organisation].filter(Boolean);
+        if (!details.length) return "Kein Problem 😊 Ich fuehre Sie trotzdem passend weiter.";
+        return `Danke ${name || "Ihnen"} 😊 Ich habe ${details.join(" • ")} im Blick und richte die naechsten Schritte passender fuer Sie aus.`;
+      },
       feedbackPrompt: (name = "") => name
         ? `Bevor Sie gehen, ${name}: Moechten Sie noch kurzes Feedback hinterlassen?`
         : "Bevor Sie gehen: Moechten Sie noch kurzes Feedback hinterlassen?",
@@ -4071,7 +4091,7 @@ function getPortfolioHelpBotConfig(lang) {
       feedbackFailure: "Die Uebermittlung hat gerade nicht funktioniert. Sie koennen es erneut versuchen, Ihren Text anpassen oder die Feedback-Seite direkt oeffnen.",
       feedbackSuccess: "Vielen Dank fuer Ihr Feedback. Bis bald.",
       feedbackSkipFarewell: "Vielen Dank. Bis bald.",
-      roleQuestion: "Als welcher Besuchertyp sind Sie heute hier?",
+      roleQuestion: "Damit ich Sie passender begleiten kann: In welchem Kontext besuchen Sie die Website heute?",
       optionPrompt: "Wobei soll ich Ihnen als Naechstes helfen?",
       roles: {
         recruiter: {
@@ -4415,8 +4435,8 @@ function getPortfolioHelpBotConfig(lang) {
     askUniversityConfirmKtu: "Ohh 😄 are you from APJ Abdul Kalam Technological University?",
     askUniversityConfirmYes: "Yes, that's right",
     askUniversityConfirmRetype: "No, type again",
-    askUniversitySameMatch: (name) => `Wow ${name} 😄✨ That is a direct match with my current Master's in Mechatronics path in Germany. My boss is also connected to that Deggendorf path, so this connection feels especially close.`,
-    askUniversityKtuMatch: (name) => `Wow ${name} 😄✨ That links directly to my Bachelor's in Mechanical Engineering path in India. My boss's Bachelor's was also from that same university network, so this exchange becomes even more interesting.`,
+    askUniversitySameMatch: (name) => `Wow ${name} 😄✨ That is a direct match with my boss's current Master's in Mechatronics path in Germany. That makes this connection feel especially close and interesting.`,
+    askUniversityKtuMatch: (name) => `Wow ${name} 😄✨ That links directly to my boss's Bachelor's in Mechanical Engineering path in India. That makes this exchange feel even more connected and interesting.`,
     askUniversitySaved: (name, university) => `Nice ${name} 😊 Thanks for sharing ${university}. I’ll keep that in mind while I guide you.`,
     askUniversitySkipped: (name) => `Ohh ${name} 😅 you just missed the little chance to match with a university path I know well. That is okay though 😊 We can continue, or you can still add your university now.`,
     askUniversityRetype: "No problem 😊 Please type your university once more.",
@@ -4424,6 +4444,26 @@ function getPortfolioHelpBotConfig(lang) {
     askNameContinueYes: "Yes, continue",
     askNameContinueRestart: "No, start again",
     askNameRestarting: "Let’s start again. Don’t worry 😊",
+    visitorProfileConsent: "Hi visitor 😊 Would you be willing to share a few quick details like your name, position, and organisation so I can address you better?",
+    visitorProfileShare: "Yes, I’ll share",
+    visitorProfileSkip: "No, continue directly",
+    visitorNamePrompt: "What should I call you?",
+    visitorNamePlaceholder: "Type your name",
+    visitorNameSubmit: "Continue",
+    visitorNameSkip: "Continue without name",
+    visitorPositionPrompt: "What is your current position or role?",
+    visitorPositionPlaceholder: "Type your position",
+    visitorPositionSubmit: "Continue",
+    visitorPositionSkip: "Continue without position",
+    visitorOrganizationPrompt: "Which organisation or company are you from?",
+    visitorOrganizationPlaceholder: "Type your organisation",
+    visitorOrganizationSubmit: "Finish",
+    visitorOrganizationSkip: "Continue without organisation",
+    visitorProfileThanks: (name, position, organisation) => {
+      const details = [name, position, organisation].filter(Boolean);
+      if (!details.length) return "No problem 😊 I’ll still guide you properly from here.";
+      return `Thanks ${name || "there"} 😊 I’ll keep ${details.join(" • ")} in mind and tailor the next steps a bit more closely for you.`;
+    },
     feedbackPrompt: (name = "") => name
       ? `Before you go, ${name}, would you like to leave feedback?`
       : "Before you go, would you like to leave feedback?",
@@ -4468,7 +4508,7 @@ function getPortfolioHelpBotConfig(lang) {
     feedbackFailure: "The submission did not go through just now. You can try again, adjust your text, or open the feedback page directly.",
     feedbackSuccess: "Thank you for your feedback. See you again.",
     feedbackSkipFarewell: "Thank you. See you again.",
-    roleQuestion: "Who are you visiting as today?",
+    roleQuestion: "So I can guide you more appropriately, may I ask in what context you are visiting the website today?",
     optionPrompt: "What should I help you with next?",
     roles: {
       recruiter: {
@@ -5018,7 +5058,7 @@ function setupPortfolioHelpBot() {
   const HELP_BOT_NUDGE_AUTO_HIDE_MS = 5200;
   const HELP_BOT_NUDGE_RESHOW_MS = 28000;
   const HELP_BOT_NUDGE_MAX_RESHOWS = 1;
-  const HELP_BOT_STATE_VERSION = 7;
+  const HELP_BOT_STATE_VERSION = 8;
   const HELP_BOT_STATE_TTL_MS = 1000 * 60 * 60 * 24 * 7;
   const HELP_BOT_STATE_MAX_MESSAGES = 28;
   const HELP_BOT_FOCUSABLE_SELECTOR = [
@@ -5126,6 +5166,16 @@ function setupPortfolioHelpBot() {
     .trim()
     .slice(0, 90);
 
+  const normalizeVisitorPosition = (value) => String(value || "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 80);
+
+  const normalizeVisitorOrganization = (value) => String(value || "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 120);
+
   const normalizeFeedbackName = (value) => String(value || "")
     .replace(/\s+/g, " ")
     .trim()
@@ -5154,9 +5204,9 @@ function setupPortfolioHelpBot() {
 
   const isValidFeedbackEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
   const HELP_BOT_FEEDBACK_FIELDS = ["name", "company", "email", "country", "comments"];
-  const HELP_BOT_PENDING_INPUT_KINDS = ["visitor-name", "student-university", "chat-feedback"];
+  const HELP_BOT_PENDING_INPUT_KINDS = ["visitor-name", "visitor-position", "visitor-organization", "student-university", "chat-feedback"];
 
-  const roleNeedsNamePrompt = (roleId) => roleId === "student" || roleId === "visitor";
+  const roleNeedsNamePrompt = (roleId) => roleId === "student";
   const roleUsesVisitorName = (roleId) => roleId === "student" || roleId === "visitor";
 
   const normalizeUniversityKey = (value) => normalizeUniversityName(value)
@@ -5247,11 +5297,6 @@ function setupPortfolioHelpBot() {
       kind: "student-university-confirm",
       id: "retype",
       label: config.askUniversityConfirmRetype
-    },
-    {
-      kind: "student-university-confirm",
-      id: "skip",
-      label: config.askUniversityContinue
     }
   ]);
 
@@ -5268,8 +5313,45 @@ function setupPortfolioHelpBot() {
     }
   ]);
 
+  const getVisitorProfileConsentOptions = () => withEndChatOption([
+    {
+      kind: "visitor-profile",
+      id: "share",
+      label: config.visitorProfileShare
+    },
+    {
+      kind: "visitor-profile",
+      id: "skip",
+      label: config.visitorProfileSkip
+    }
+  ]);
+
+  const getVisitorFieldSkipOption = (field) => {
+    if (field === "name") {
+      return {
+        kind: "visitor-field-skip",
+        id: "name",
+        label: config.visitorNameSkip
+      };
+    }
+    if (field === "position") {
+      return {
+        kind: "visitor-field-skip",
+        id: "position",
+        label: config.visitorPositionSkip
+      };
+    }
+    return {
+      kind: "visitor-field-skip",
+      id: "organization",
+      label: config.visitorOrganizationSkip
+    };
+  };
+
   const getVisitorName = () => normalizeVisitorName(helpBotState.visitorName);
   const getStudentUniversity = () => normalizeUniversityName(helpBotState.studentUniversity);
+  const getVisitorPosition = () => normalizeVisitorPosition(helpBotState.visitorPosition);
+  const getVisitorOrganization = () => normalizeVisitorOrganization(helpBotState.visitorOrganization);
 
   const normalizeHelpBotFeedbackDraft = (raw) => {
     const source = raw && typeof raw === "object" ? raw : {};
@@ -5359,6 +5441,26 @@ function setupPortfolioHelpBot() {
       }
     }
 
+    if (helpBotState.pendingInputKind === "visitor-position") {
+      return {
+        placeholder: config.visitorPositionPlaceholder,
+        submit: config.visitorPositionSubmit,
+        maxLength: 80,
+        inputKind: "input",
+        inputType: "text",
+        autocomplete: "organization-title"
+      };
+    }
+    if (helpBotState.pendingInputKind === "visitor-organization") {
+      return {
+        placeholder: config.visitorOrganizationPlaceholder,
+        submit: config.visitorOrganizationSubmit,
+        maxLength: 120,
+        inputKind: "input",
+        inputType: "text",
+        autocomplete: "organization"
+      };
+    }
     if (helpBotState.pendingInputKind === "student-university") {
       return {
         placeholder: config.askUniversityPlaceholder,
@@ -5370,8 +5472,8 @@ function setupPortfolioHelpBot() {
       };
     }
     return {
-      placeholder: config.askNamePlaceholder,
-      submit: config.askNameSubmit,
+      placeholder: currentRoleId === "visitor" ? config.visitorNamePlaceholder : config.askNamePlaceholder,
+      submit: currentRoleId === "visitor" ? config.visitorNameSubmit : config.askNameSubmit,
       maxLength: 40,
       inputKind: "input",
       inputType: "text",
@@ -5432,12 +5534,15 @@ function setupPortfolioHelpBot() {
         messages: [],
         currentRoleId: "",
         visitorName: "",
+        visitorPosition: "",
+        visitorOrganization: "",
         studentUniversity: "",
         studentUniversityCandidate: null,
         chatFeedbackDraft: normalizeHelpBotFeedbackDraft(null),
         pendingInputKind: "",
-      pendingTopicId: "",
-      hasConversationBooted: false,
+        pendingTopicId: "",
+        pendingTourStepId: "",
+        hasConversationBooted: false,
         lastPageName: currentPageName,
         pendingResumePrompt: false,
         lastNavTarget: null,
@@ -5453,6 +5558,8 @@ function setupPortfolioHelpBot() {
       messages: messagesList,
       currentRoleId: String(source.currentRoleId || "").trim(),
       visitorName: normalizeVisitorName(source.visitorName),
+      visitorPosition: normalizeVisitorPosition(source.visitorPosition),
+      visitorOrganization: normalizeVisitorOrganization(source.visitorOrganization),
       studentUniversity: normalizeUniversityName(source.studentUniversity),
       studentUniversityCandidate: normalizeHelpBotUniversityCandidate(source.studentUniversityCandidate),
       chatFeedbackDraft: normalizeHelpBotFeedbackDraft(source.chatFeedbackDraft),
@@ -5460,6 +5567,7 @@ function setupPortfolioHelpBot() {
         ? String(source.pendingInputKind || "").trim()
         : "",
       pendingTopicId: String(source.pendingTopicId || "").trim(),
+      pendingTourStepId: String(source.pendingTourStepId || "").trim(),
       hasConversationBooted: Boolean(source.hasConversationBooted) && messagesList.length > 0,
       lastPageName: String(source.lastPageName || "").trim() || currentPageName,
       pendingResumePrompt: Boolean(source.pendingResumePrompt) && messagesList.length > 0,
@@ -5492,6 +5600,8 @@ function setupPortfolioHelpBot() {
     helpBotState.updatedAt = Date.now();
     helpBotState.currentRoleId = currentRoleId;
     helpBotState.visitorName = normalizeVisitorName(helpBotState.visitorName);
+    helpBotState.visitorPosition = normalizeVisitorPosition(helpBotState.visitorPosition);
+    helpBotState.visitorOrganization = normalizeVisitorOrganization(helpBotState.visitorOrganization);
     helpBotState.studentUniversity = normalizeUniversityName(helpBotState.studentUniversity);
     helpBotState.studentUniversityCandidate = normalizeHelpBotUniversityCandidate(helpBotState.studentUniversityCandidate);
     helpBotState.chatFeedbackDraft = normalizeHelpBotFeedbackDraft(helpBotState.chatFeedbackDraft);
@@ -5499,6 +5609,7 @@ function setupPortfolioHelpBot() {
       ? helpBotState.pendingInputKind
       : "";
     helpBotState.pendingTopicId = String(helpBotState.pendingTopicId || "").trim();
+    helpBotState.pendingTourStepId = String(helpBotState.pendingTourStepId || "").trim();
     helpBotState.messages = helpBotState.messages.slice(-HELP_BOT_STATE_MAX_MESSAGES);
     helpBotState.topicTrail = Array.isArray(helpBotState.topicTrail) ? helpBotState.topicTrail.slice(-12) : [];
     helpBotState.hasConversationBooted = hasConversationBooted && helpBotState.messages.length > 0;
@@ -5555,21 +5666,23 @@ function setupPortfolioHelpBot() {
     }, delay);
   };
 
-  const withEndChatOption = (items = []) => {
+  const withEndChatOption = (items = [], endChatOverrides = {}) => {
     const normalizedItems = Array.isArray(items) ? items.filter(Boolean) : [];
     return normalizedItems.some((item) => item.kind === "end-chat")
       ? normalizedItems
-      : [...normalizedItems, { kind: "end-chat", id: "end-chat", label: config.endChat }];
+      : [...normalizedItems, { kind: "end-chat", id: "end-chat", label: config.endChat, ...endChatOverrides }];
   };
 
   const getRoleOptions = () => withEndChatOption(
     dedupeHelpBotOptions([
-      ...Object.entries(config.roles).map(([id, role]) => ({
+      ...["recruiter", "student", "visitor"]
+        .map((id) => (config.roles[id] ? [id, config.roles[id]] : null))
+        .filter(Boolean)
+        .map(([id, role]) => ({
         kind: "role",
         id,
         label: role.label
-      })),
-      getTourStartOption()
+      }))
     ])
   );
 
@@ -5606,12 +5719,6 @@ function setupPortfolioHelpBot() {
     label,
     ...(badge ? { badge } : {})
   });
-
-  const getTourStartOption = () => (
-    currentLang === "de"
-      ? createBadgedOption("tour-start", "tour-start", "Portfolio-Schnelltour", "4 Schritte")
-      : createBadgedOption("tour-start", "tour-start", "Fast portfolio tour", "4 steps")
-  );
 
   const getReviewPathStartOption = () => (
     currentLang === "de"
@@ -5743,7 +5850,7 @@ function setupPortfolioHelpBot() {
           topic: "Lassen Sie mich den naechsten sinnvollen Einstieg eingrenzen.",
           continue: "Gut, ich knuepfe an den letzten sinnvollen Punkt an.",
           quick: "Hier ist der kompakteste Bewertungsweg.",
-          tour: "Ich fuehre Sie jetzt in einer kurzen Tour durch die staerksten Stationen.",
+          tour: "Ich fuehre Sie jetzt Schritt fuer Schritt durch die wichtigsten Bereiche der gesamten Website.",
           review: "Ich kann die Reviews nach dem hilfreichsten Blick sortieren."
         }
       : {
@@ -5753,7 +5860,7 @@ function setupPortfolioHelpBot() {
           topic: "Let me narrow this down to the strongest next checkpoint.",
           continue: "I’ll pick up from the strongest next point.",
           quick: "Here is the most compact evaluation route.",
-          tour: "I’ll guide you through the strongest four-stop tour.",
+          tour: "I’ll guide you step by step through the key sections of the full website.",
           review: "I can sort the reviews by the most useful view."
         };
     return byLang[kind] || "";
@@ -5802,29 +5909,73 @@ function setupPortfolioHelpBot() {
             id: "overview",
             badge: "Schritt 1",
             label: "Profil-Ueberblick",
-            text: "Starten Sie mit About, Experience und Where I Fit fuer den schnellsten Gesamtblick.",
+            text: "Diese Station gibt zuerst den schnellsten Gesamtblick auf Soorajs Profil, Richtung und Robotik-Schwerpunkt. Sie verbindet About, Where I Fit und die wichtigsten Signale auf der Startseite.",
+            detail: "Der Ueberblick ist die schnellste Einstiegsebene fuer das ganze Portfolio. Hier sehen Besucher zuerst, wie sich Sooraj zwischen Robotik, Mechatronik, Automatisierung und industrieller Arbeit positioniert.\nEr ist bewusst als Orientierungsbereich gedacht, bevor man tiefer in Erfahrung, Journey oder Projekte geht.",
+            deepDetail: "Inhaltlich verbindet dieser Bereich Profiltext, Rollen-Fit, kurze Kernbotschaften und die wichtigsten Navigationspfade der Website. Dadurch koennen Recruiter, Studierende und allgemeine Besucher schnell erkennen, welche Seiten danach den groessten Mehrwert liefern.\nWenn man diesen Bereich gut liest, versteht man bereits den roten Faden des gesamten Portfolios.",
             action: createBadgedAction("Zum Ueberblick", createHelpBotHomeTarget("about"), "Start")
           },
           {
-            id: "project",
+            id: "experience",
             badge: "Schritt 2",
-            label: "Top-Projekt",
-            text: "Der autonome Vakuumroboter ist einer der staerksten technischen Einstiege.",
-            action: createBadgedAction("Zum Vakuumroboter", createHelpBotPageTarget("project-autonomous-vacuum-robot.html"), "Proof")
+            label: "Erfahrung",
+            text: "Dieser Bereich fasst Soorajs drei wichtigsten Erfahrungsstationen zusammen: KEBA Master-Thesis, KEBA Werkstudent und die fruehere NDT-Techniker-Erfahrung bei United Engineering. Er zeigt, wie sich der Weg von technischer Grundlage zu industrieller Robotik entwickelt hat.",
+            detail: "Die Erfahrungssektion ist eine der wichtigsten professionellen Ebenen der Website. Sie verbindet fruehere technische Industrieerfahrung mit der spaeteren Robotik- und Automatisierungsrichtung in Deutschland.\nGerade die KEBA-Linie macht sichtbar, dass Sooraj nicht nur Studienprojekte zeigt, sondern auch in einem industriellen Umfeld gearbeitet hat.",
+            deepDetail: "Im Zusammenspiel zeigen die Stationen verschiedene Blickwinkel: fruehe technische Praxis, industrielle Verantwortung und der Uebergang in anspruchsvollere Robotikarbeit. Dadurch wirkt der Bereich fuer Recruiter und Hiring-Entscheidungen deutlich staerker als eine isolierte Liste von Jobs.\nEr ist gleichzeitig der beste Einstieg, wenn man berufliche Reife, Umfeld und Entwicklung logisch verstehen will.",
+            action: createBadgedAction("Zur Erfahrungssektion", createHelpBotHomeTarget("experience"), "Proof")
           },
           {
-            id: "proof",
+            id: "journey",
             badge: "Schritt 3",
-            label: "Industrie-Beleg",
-            text: "Die KEBA-Thesis verbindet akademische Tiefe mit industriellem Robotik-Kontext.",
-            action: createBadgedAction("Zur KEBA Thesis", createHelpBotPageTarget("experience-masters-thesis-keba.html"), "Industrial")
+            label: "Journey",
+            text: "Die Journey-Seite erzaehlt den Weg von Indien nach Deutschland und verbindet Ausbildung, persoenliche Entwicklung und den Einstieg in Robotik. Sie ist die beste Story-Seite des gesamten Portfolios.",
+            detail: "Journey gibt dem Portfolio Kontext. Statt nur Stationen aufzulisten, zeigt dieser Bereich, wie sich Studium, Standortwechsel, Karriereentscheidung und Robotikinteresse ueber die Zeit entwickelt haben.\nDas macht ihn besonders wertvoll fuer Besucher, die nicht nur technische Nachweise, sondern auch Motivation und Richtung verstehen wollen.",
+            deepDetail: "Die Seite verbindet akademische Entwicklung, kulturellen Wechsel, neue Arbeitsumfelder und den Uebergang in eine staerkere industrielle Robotik-Ausrichtung. Dadurch wird klar, dass hinter den Projekten und Erfahrungen ein konsistenter Weg steht.\nSie ist deshalb nicht nur eine Erzaehlung, sondern auch ein strategischer Kontextbereich fuer das ganze Portfolio.",
+            action: createBadgedAction("Journey oeffnen", createHelpBotPageTarget("journey.html"), "Story")
+          },
+          {
+            id: "projects",
+            badge: "Schritt 4",
+            label: "Projekte",
+            text: "Dieser Bereich zeigt die eigentliche Arbeitsprobe. Hier sieht man Robotik-, Mechatronik- und Systemprojekte wie den autonomen Vakuumroboter, den Service-Roboter und weitere technische Arbeiten.",
+            detail: "Die Projektsektion ist die staerkste technische Beweisschicht des Portfolios. Sie zeigt, wie Sooraj mit Robotiksoftware, Systemintegration, Simulation, Controls und praktischer Umsetzung umgeht.\nDadurch laesst sich viel besser einschaetzen, wie theoretisches Wissen in reale Arbeit uebersetzt wird.",
+            deepDetail: "Zusammen decken die Projekte unterschiedliche Tiefen ab: autonome Robotik, serviceorientierte Systeme, mechatronische Loesungen, Regelung und integratives Engineering. Das ist wichtig, weil der Bereich nicht nur ein einzelnes Highlight zeigt, sondern eine breitere technische Spannweite.\nFuer viele Besucher ist dies die zentrale Seite, um Substanz statt nur Zusammenfassung zu sehen.",
+            action: createBadgedAction("Projektbereich oeffnen", createHelpBotHomeTarget("projects"), "Work")
+          },
+          {
+            id: "education",
+            badge: "Schritt 5",
+            label: "Bildung",
+            text: "Hier sieht man die akademische Grundlage hinter dem Portfolio. Der Bildungsbereich verbindet Bachelor, Master und die technische Basis, auf der die spaetere Robotikarbeit aufbaut.",
+            detail: "Die Bildungssektion zeigt den formalen Studienweg und die Schwerpunkte, die Sooraj spaeter in Projekten und Erfahrung weitergefuehrt hat. Sie ist besonders hilfreich, wenn jemand zuerst die akademische Grundlage verstehen moechte.\nZusammen mit Journey und Thesis ergibt sie ein klares Bild von der Lern- und Entwicklungsrichtung.",
+            deepDetail: "Gerade im Zusammenspiel mit der Deutschland-Station wird sichtbar, wie der Bildungsweg nicht isoliert geblieben ist, sondern direkt in industrielle Robotik und angewandte Projektarbeit uebergegangen ist. Dadurch ist dieser Bereich mehr als nur eine Liste von Abschluessen.\nEr zeigt, wie die akademische Basis systematisch in reale technische Richtung erweitert wurde.",
+            action: createBadgedAction("Bildung oeffnen", createHelpBotHomeTarget("education"), "Study")
+          },
+          {
+            id: "certificates",
+            badge: "Schritt 6",
+            label: "Zertifikate",
+            text: "Der Zertifikate-Bereich ist eine unterstuetzende Nachweisschicht neben Studium und Projekten. Er zeigt zusaetzliche Lernsignale, Tool-Exposure und strukturierte Weiterentwicklung.",
+            detail: "Zertifikate sind im Portfolio nicht als Hauptbeweis gedacht, sondern als ergaenzende Schicht. Sie unterstuetzen den Eindruck, dass neben Studium und Arbeit auch kontinuierliches Lernen stattgefunden hat.\nAm meisten Wert haben sie deshalb zusammen mit den groesseren Bereichen wie Projekten, Bildung und Journey.",
+            deepDetail: "Dieser Bereich ist besonders dann hilfreich, wenn Besucher nach kleineren, aber verifizierbaren Lernstationen suchen. Er zeigt, dass die Entwicklung nicht nur aus grossen Projekten und Rollen bestand, sondern auch aus bewusstem skill-bezogenem Aufbau.\nDadurch staerkt er den Gesamteindruck von Disziplin und Lernbereitschaft.",
+            action: createBadgedAction("Zertifikate oeffnen", createHelpBotHomeTarget("certificates"), "Proof")
+          },
+          {
+            id: "reviews",
+            badge: "Schritt 7",
+            label: "Reviews",
+            text: "Die Review-Sektion zeigt, wie andere das Portfolio und den professionellen Eindruck wahrnehmen. Sie fuegt eine Vertrauens- und Aussenperspektive zu den eigentlichen Inhalten hinzu.",
+            detail: "Reviews sind besonders wertvoll, nachdem man Ueberblick, Erfahrung oder Projekte gesehen hat. Dann funktionieren sie als Vertrauensschicht und bestaetigen, wie die Website und das Profil bei anderen ankommen.\nSie ersetzen keine technischen Belege, verstaerken aber Glaubwuerdigkeit und Professionalitaet.",
+            deepDetail: "Durch hervorgehobene Reviews, Archivansicht und sichtbare Owner-Replys wird nicht nur der Kommentar selbst sichtbar, sondern auch, wie mit Rueckmeldungen umgegangen wird. Das macht die Sektion interessanter als eine einfache Testimonials-Leiste.\nFuer Recruiter und allgemeine Besucher ist das oft die staerkste soziale Validierung auf der Website.",
+            action: createBadgedAction("Reviews oeffnen", createHelpBotHomeTarget("reviews"), "Trust")
           },
           {
             id: "contact",
-            badge: "Schritt 4",
-            label: "Kontakt oder CV",
-            text: "Wenn der Eindruck passt, fuehren CV-Anfrage und Kontakt direkt weiter.",
-            action: createBadgedAction("Zu CV und Kontakt", createHelpBotPageTarget("request-cv.html"), "Action")
+            badge: "Schritt 8",
+            label: "Kontakt",
+            text: "Die letzte Station macht aus Interesse eine echte naechste Handlung. Hier fuehren Kontaktformular, Request-CV-Pfad und direkte Kontaktwege sauber zusammen.",
+            detail: "Die Kontaktsektion ist bewusst einfach gehalten, damit Besucher nach dem Lesen nicht erst nach dem naechsten Schritt suchen muessen. Gerade nach Projekten, Reviews oder Erfahrung ist das der logische Abschluss.\nSie ist deshalb weniger Informationsbereich und mehr handlungsorientierter Uebergang.",
+            deepDetail: "Mit Kontaktformular, CV-Anfrage und weiteren direkten Wegen ist diese Station auf niedrige Reibung optimiert. Das ist wichtig, weil ein starkes Portfolio ohne klaren Abschluss oft unnoetig Wirkung verliert.\nHier wird die Website von einer reinen Darstellung in eine konkrete Anschlussmoeglichkeit verwandelt.",
+            action: createBadgedAction("Kontakt oeffnen", createHelpBotContactFormTarget(), "Action")
           }
         ]
       : [
@@ -5832,43 +5983,281 @@ function setupPortfolioHelpBot() {
             id: "overview",
             badge: "Step 1",
             label: "Profile overview",
-            text: "Start with About, Experience, and Where I Fit for the fastest overall picture.",
+            text: "This stop gives the fastest overall picture of Sooraj's profile, direction, and robotics focus. It connects the About area, role fit, and the main homepage signals.",
+            detail: "The overview section is the fastest orientation layer in the entire website. It shows Sooraj's current profile in Germany, his mechatronics and robotics direction, and the clearest entry points for visitors who want to evaluate fit, industrial relevance, or project depth.\nInstead of making people search manually, this section quickly frames what the website is about and where the strongest proof sits.",
+            deepDetail: "At a deeper level, this section brings together the homepage introduction, the current snapshot, the role-fit framing, and the strongest navigation paths into one decision layer. A recruiter can quickly understand the robotics and automation positioning, a student can see the education-to-industry path, and a general visitor can understand how the website is structured before opening deeper pages.\nIt is not only an introduction. It is the place where the portfolio establishes location, direction, professional intent, and the logic for the rest of the site.",
             action: createBadgedAction("Open overview", createHelpBotHomeTarget("about"), "Start")
           },
           {
-            id: "project",
+            id: "experience",
             badge: "Step 2",
-            label: "Top project",
-            text: "The autonomous vacuum robot is one of the strongest technical entry points.",
-            action: createBadgedAction("Open vacuum robot", createHelpBotPageTarget("project-autonomous-vacuum-robot.html"), "Proof")
+            label: "Experience",
+            text: "This section brings together Sooraj's three strongest experience layers: the KEBA master's thesis, the KEBA working-student role, and the earlier NDT technician experience at United Engineering. It shows how his path moved from technical foundation into industrial robotics.",
+            detail: "The experience section is one of the strongest proof layers on the website because it connects three different forms of engineering maturity. It starts with NDT and industrial discipline, moves into the KEBA working-student environment in Stuttgart, and then reaches the industrial robotics thesis with planning, controller logic, simulation, and deployment-facing work.\nThat gives the visitor a much clearer picture than a simple list of job titles.",
+            deepDetail: "Inside this section, you can see what Sooraj actually did and what he learned in each stage. The NDT role built reporting discipline, inspection accuracy, standards awareness, and process responsibility. The KEBA working-student role added industrial robotics exposure, controller and HMI familiarity, simulation and validation support, technical presentations, and exhibition participation. The KEBA thesis then pushed that into deeper robotics engineering with a 6-axis workflow, machine interaction, collision-aware logic, path planning support, controller-side thinking, and industrial execution constraints.\nTaken together, the section explains not only where he worked, but how his work evolved from industrial discipline into practical robotics engineering in Germany.",
+            action: createBadgedAction("Open experience section", createHelpBotHomeTarget("experience"), "Proof")
           },
           {
-            id: "proof",
+            id: "journey",
             badge: "Step 3",
-            label: "Industrial proof",
-            text: "The KEBA thesis bridges academic depth with industrial robotics context.",
-            action: createBadgedAction("Open KEBA thesis", createHelpBotPageTarget("experience-masters-thesis-keba.html"), "Industrial")
+            label: "Journey",
+            text: "The journey page tells the path from India to Germany and connects study, personal growth, and the move into robotics. It is the strongest story-driven page in the whole portfolio.",
+            detail: "Journey gives the website the human and strategic context behind the technical sections. It explains how Sooraj moved from India to Germany, how the academic path developed, and how that transition supported the shift toward robotics, automation, and industrial work.\nIt is especially useful for visitors who want to understand motivation, growth, and direction instead of seeing only isolated project or job entries.",
+            deepDetail: "At a deeper level, the Journey page shows how different parts of the portfolio connect into one continuous path: bachelor studies in India, the move into a master's in Germany, the adaptation to a new environment, and the transition into KEBA-related industrial robotics work. It helps explain why the later projects, thesis work, and portfolio direction are coherent rather than random.\nThis is also where the website shows personal development, international transition, and career intent in a more readable way than the homepage alone.",
+            action: createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story")
+          },
+          {
+            id: "projects",
+            badge: "Step 4",
+            label: "Projects",
+            text: "This is the actual work sample section. It shows robotics, mechatronics, and systems projects like the autonomous vacuum robot, service robot, and other technical builds.",
+            detail: "The projects section is the strongest technical work-sample layer in the portfolio. It includes robotics and mechatronics projects such as the ROS-based autonomous vacuum robot, the automated service robot, and other simulation or systems-oriented builds.\nThis section helps visitors judge how Sooraj turns engineering theory into implementation through software, control logic, simulation, sensors, and system behavior.",
+            deepDetail: "The projects section shows different kinds of technical work rather than repeating the same pattern. The autonomous vacuum robot highlights ROS, Gazebo, RViz, localization, obstacle handling, and path planning. The service robot highlights Arduino-based implementation, line tracking, sensor integration, and practical mechatronic thinking. Other projects extend the range into simulation and modeling, such as active suspension analysis in MATLAB and Simulink.\nBecause of that spread, this section shows both robotics software capability and broader engineering execution across autonomy, control, and system-level problem solving.",
+            action: createBadgedAction("Open projects section", createHelpBotHomeTarget("projects"), "Work")
+          },
+          {
+            id: "education",
+            badge: "Step 5",
+            label: "Education",
+            text: "This section shows the academic foundation behind the portfolio. It connects the bachelor's, the master's, and the study base behind the later robotics direction.",
+            detail: "The education section explains the formal study path behind the technical work shown elsewhere in the website. It connects the bachelor's foundation in mechanical engineering in India with the master's path in mechatronics in Germany.\nThat makes it easier to understand how the robotics direction was built on a real academic base rather than appearing suddenly only in projects.",
+            deepDetail: "At a deeper level, this section shows how the study path created the foundation for later industrial and robotics-focused work. The bachelor's layer built mechanical engineering fundamentals, while the master's path in Germany moved that base toward mechatronics, robotics, and closer industry relevance. When visitors read this together with the journey and KEBA thesis work, they can see how the academic route directly supported later hands-on implementation, industrial exposure, and stronger robotics specialization.\nSo this section is not only about degrees. It explains how the knowledge base was formed and then extended into practical engineering direction.",
+            action: createBadgedAction("Open education section", createHelpBotHomeTarget("education"), "Study")
+          },
+          {
+            id: "certificates",
+            badge: "Step 6",
+            label: "Certificates",
+            text: "The certificates section is a supporting proof layer next to study and projects. It shows extra learning signals, tool exposure, and structured self-development.",
+            detail: "The certificates section works as a supporting proof layer around the main study, project, and experience content. It shows that learning continued through shorter structured milestones as well, including robotics and KEBA-related training signals.\nThis helps reinforce that the development path was consistent, not limited only to one thesis or one job.",
+            deepDetail: "At a deeper level, this section shows how Sooraj kept building capability through targeted learning and validation beyond the bigger headline items. It includes certificate-based evidence around robotics topics, KEBA validation, training exposure, and professional participation. On its own, this section is not the strongest proof layer. But together with projects, education, and KEBA experience, it helps confirm a pattern of continuous skill-building, curiosity, and professional follow-through.\nThat makes the website feel more complete and disciplined instead of relying only on one or two major portfolio highlights.",
+            action: createBadgedAction("Open certificates", createHelpBotHomeTarget("certificates"), "Proof")
+          },
+          {
+            id: "reviews",
+            badge: "Step 7",
+            label: "Reviews",
+            text: "The reviews section shows how other people perceive the portfolio and the professional impression around it. It adds an outside trust layer to the technical content.",
+            detail: "The reviews section gives outside validation around the technical content and the overall professionalism of the website. It works best after someone has already seen the overview, experience, or projects, because then the reviews reinforce an impression that has already started to form.\nIt is a trust layer rather than a technical proof layer.",
+            deepDetail: "This section is stronger than a simple testimonial strip because it includes featured reviews, the archive view, visible owner replies, and moderation-aware public presentation. That means visitors do not only see praise. They also see how communication and follow-up are handled around the portfolio. For recruiters and general visitors, this becomes the social proof layer that supports credibility after the more technical sections have already done the main work.\nIn practice, it helps the site feel more trustworthy, more active, and more professionally maintained.",
+            action: createBadgedAction("Open reviews", createHelpBotHomeTarget("reviews"), "Trust")
           },
           {
             id: "contact",
-            badge: "Step 4",
-            label: "Contact or CV",
-            text: "If the signal looks right, CV request and contact are the cleanest next move.",
-            action: createBadgedAction("Open CV and contact", createHelpBotPageTarget("request-cv.html"), "Action")
+            badge: "Step 8",
+            label: "Contact",
+            text: "The final stop turns interest into a real next step. It brings together the contact form, CV request path, and the main contact routes in one clean ending section.",
+            detail: "The contact section is the action layer of the website. After someone has gone through projects, experience, journey, or reviews, this is where they can move from interest into a real next step through the contact form, CV request route, or direct follow-up path.\nIts job is to keep that transition clear and low-friction.",
+            deepDetail: "This section is intentionally built to remove hesitation at the end of the portfolio journey. Instead of making visitors search again, it gives a clear route for contacting Sooraj, requesting the CV, or continuing a hiring or networking conversation. That makes it especially important after the stronger proof sections, because a good portfolio loses impact if the closing action is weak or hidden.\nSo this final section is less about explaining background and more about converting attention into an actual professional next step.",
+            action: createBadgedAction("Open contact", createHelpBotContactFormTarget(), "Action")
           }
         ]
   );
 
-  const getTourStepOptions = (currentStepId = "") => {
+  const getTourStep = (stepId = "") => getTourSteps().find((step) => step.id === stepId) || null;
+
+  const getTourNextStep = (currentStepId = "") => {
     const steps = getTourSteps();
     const currentIndex = steps.findIndex((step) => step.id === currentStepId);
-    const nextStep = currentIndex >= 0 ? steps[currentIndex + 1] : steps[0];
+    return currentIndex >= 0 ? steps[currentIndex + 1] || null : steps[0] || null;
+  };
+
+  const getTourStartOption = () => (
+    currentLang === "de"
+      ? createBadgedOption("tour-start", "tour-start", "Portfolio-Tour", "Gefuehrt")
+      : createBadgedOption("tour-start", "tour-start", "Portfolio tour", "Guided")
+  );
+
+  const getTourSummaryOptions = (stepId = "") => {
+    const step = getTourStep(stepId);
+    const nextStep = getTourNextStep(stepId);
     return withEndChatOption(dedupeHelpBotOptions([
-      ...(nextStep ? [createBadgedOption("tour-step", nextStep.id, nextStep.label, nextStep.badge)] : []),
-      currentRoleId
-        ? createBadgedOption("topic-other", "topic-other", currentLang === "de" ? "Andere Themen" : "Other topics", currentLang === "de" ? "Chat" : "Chat")
-        : createBadgedOption("start-over", "start-over", currentLang === "de" ? "Besuchertyp waehlen" : "Choose visitor type", currentLang === "de" ? "Rolle" : "Role")
+      ...(nextStep ? [createBadgedOption("tour-step", nextStep.id, currentLang === "de" ? "Naechster Bereich" : "Next section", nextStep.badge)] : []),
+      ...(step?.action ? [createBadgedOption("tour-open-page", step.id, currentLang === "de" ? "Detailseite ansehen" : "View detail page", currentLang === "de" ? "Direkt" : "Direct")] : []),
+      createBadgedOption("tour-more", "tour-more", currentLang === "de" ? "Mehr erklaeren" : "Explain more", currentLang === "de" ? "Mehr" : "More"),
+      createBadgedOption("tour-other-topic", "tour-other-topic", currentLang === "de" ? "Andere Themen" : "Other topic", currentLang === "de" ? "Chat" : "Chat"),
+      createBadgedOption("tour-back-start", "tour-back-start", currentLang === "de" ? "Zurueck zum Start" : "Back to start", currentLang === "de" ? "Reset" : "Reset")
     ]));
+  };
+
+  const getTourDetailChoiceOptions = (stepId = "") => {
+    const step = getTourStep(stepId);
+    const nextStep = getTourNextStep(stepId);
+    return withEndChatOption(dedupeHelpBotOptions([
+      ...(step?.action ? [createBadgedOption("tour-open-page", step.id, currentLang === "de" ? "Detailseite ansehen" : "View detail page", currentLang === "de" ? "Direkt" : "Direct")] : []),
+      createBadgedOption("tour-explain", stepId, currentLang === "de" ? "Hier genauer erklaeren" : "Explain here", currentLang === "de" ? "Chat" : "Chat"),
+      ...(nextStep ? [createBadgedOption("tour-step", nextStep.id, currentLang === "de" ? "Naechster Bereich" : "Next section", nextStep.badge)] : []),
+      createBadgedOption("tour-other-topic", "tour-other-topic", currentLang === "de" ? "Andere Themen" : "Other topic", currentLang === "de" ? "Wechseln" : "Switch"),
+      createBadgedOption("tour-back-start", "tour-back-start", currentLang === "de" ? "Zurueck zum Start" : "Back to start", currentLang === "de" ? "Reset" : "Reset")
+    ]));
+  };
+
+  const getTourExplainOptions = (stepId = "", { allowDeeper = true } = {}) => {
+    const step = getTourStep(stepId);
+    const nextStep = getTourNextStep(stepId);
+    return withEndChatOption(dedupeHelpBotOptions([
+      ...(nextStep ? [createBadgedOption("tour-step", nextStep.id, currentLang === "de" ? "Naechster Bereich" : "Next section", nextStep.badge)] : []),
+      ...(step?.action ? [createBadgedOption("tour-open-page", step.id, currentLang === "de" ? "Detailseite ansehen" : "View detail page", currentLang === "de" ? "Direkt" : "Direct")] : []),
+      ...(allowDeeper ? [createBadgedOption("tour-explain-deeper", stepId, currentLang === "de" ? "Mehr Details hier" : "More detail here", currentLang === "de" ? "Tiefe" : "Depth")] : []),
+      createBadgedOption("tour-other-topic", "tour-other-topic", currentLang === "de" ? "Andere Themen" : "Other topic", currentLang === "de" ? "Wechseln" : "Switch"),
+      createBadgedOption("tour-back-start", "tour-back-start", currentLang === "de" ? "Zurueck zum Start" : "Back to start", currentLang === "de" ? "Reset" : "Reset")
+    ]));
+  };
+
+  const getTourOpeningText = () => (
+    currentLang === "de"
+      ? `${getTransitionLead("tour", currentRoleId)}\nIch starte mit einem kurzen Ueberblick und fuehre danach nacheinander durch Erfahrung, Journey, Projekte, Bildung, Zertifikate, Reviews und den Kontaktweg.`
+      : `${getTransitionLead("tour", currentRoleId)}\nI’ll begin with a short overview and then walk through experience, journey, projects, education, certificates, reviews, and the contact path in order.`
+  );
+
+  const getTourSummaryFollowUpText = () => (
+    currentLang === "de"
+      ? "Unten koennen Sie direkt zum naechsten Bereich gehen, die passende Detailseite ansehen oder sich diesen Abschnitt genauer erklaeren lassen."
+      : "Below, you can move to the next section, view the matching detail page, or let me explain this section in more depth."
+  );
+
+  const getTourDetailChoiceText = (step) => (
+    currentLang === "de"
+      ? `Ich kann ${step.label.toLowerCase()} hier Schritt fuer Schritt weiter erklaeren oder direkt die passende Detailseite im Portfolio oeffnen.\nWie moechten Sie weitermachen?`
+      : `I can walk you through ${step.label.toLowerCase()} in the chat or open the matching detailed page in the portfolio.\nHow would you like to continue?`
+  );
+
+  const getTourExplainedPromptText = (stepId = "", isDeeper = false) => {
+    const nextStep = getTourNextStep(stepId);
+    if (currentLang === "de") {
+      if (nextStep) {
+        return isDeeper
+          ? `Wenn Sie moechten, kann ich jetzt direkt mit ${nextStep.label} weitermachen, noch tiefer in diesem Bereich bleiben oder die passende Seite fuer Sie oeffnen.`
+          : `Wenn Sie moechten, kann ich jetzt direkt mit ${nextStep.label} weitermachen, hier noch tiefer erklaeren oder die passende Seite fuer Sie oeffnen.`;
+      }
+      return isDeeper
+        ? "Sie sind jetzt am Ende der Tour. Ich kann hier noch weiter vertiefen, die passende Seite oeffnen oder zu anderen Themen wechseln."
+        : "Sie sind jetzt am Ende der Tour. Ich kann hier noch tiefer erklaeren, die passende Seite oeffnen oder zu anderen Themen wechseln.";
+    }
+    if (nextStep) {
+      return isDeeper
+        ? `If you want, I can continue straight into ${nextStep.label}, stay even deeper in this section, or open the matching page for you.`
+        : `If you want, I can continue straight into ${nextStep.label}, go deeper here, or open the matching page for you.`;
+    }
+    return isDeeper
+      ? "You are at the end of the tour. I can stay even deeper here, open the matching page, or switch to another topic."
+      : "You are at the end of the tour. I can go deeper here, open the matching page, or switch to another topic.";
+  };
+
+  const clearPendingTourStep = () => {
+    helpBotState.pendingTourStepId = "";
+    persistHelpBotState();
+  };
+
+  const setPendingTourStep = (stepId = "") => {
+    helpBotState.pendingTourStepId = String(stepId || "").trim();
+    persistHelpBotState();
+  };
+
+  const getPendingTourStep = () => getTourStep(helpBotState.pendingTourStepId);
+
+  const getTourOtherTopicOptions = () => {
+    const role = config.roles[currentRoleId];
+    if (!role) {
+      return getRoleOptions();
+    }
+    return withEndChatOption(dedupeHelpBotOptions([
+      ...getTopicOptions(role),
+      getTourStartOption(),
+      createBadgedOption("tour-back-start", "tour-back-start", currentLang === "de" ? "Zurueck zum Start" : "Back to start", currentLang === "de" ? "Reset" : "Reset")
+    ]));
+  };
+
+  const openTourStepPage = (stepId = "") => {
+    const step = getTourStep(stepId);
+    if (!step?.action?.target) return;
+
+    appendMessage({
+      sender: "user",
+      text: currentLang === "de" ? "Ja, Detailseite oeffnen" : "Yes, open detail page"
+    });
+    helpBotState.lastNavTarget = step.action.target;
+    clearPendingTourStep();
+    persistHelpBotState();
+    trackAnalyticsEvent("help_bot_tour_page_opened", {
+      page_path: window.location.pathname,
+      lang: currentLang,
+      role: currentRoleId || "unassigned",
+      step: step.id
+    });
+    navigateHelpBotTarget(step.action.target, () => setOpen(false));
+  };
+
+  const explainTourStep = async (stepId = "", { deeper = false } = {}) => {
+    const step = getTourStep(stepId);
+    if (!step) return;
+
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    setPendingTourStep(step.id);
+    appendMessage({
+      sender: "user",
+      text: deeper
+        ? (currentLang === "de" ? "Mehr Details hier" : "More detail here")
+        : (currentLang === "de" ? "Hier erklaeren" : "Explain here")
+    });
+    setOptions([], "");
+    await queueBotReply({
+      text: `${deeper ? step.deepDetail : step.detail}\n${getTourExplainedPromptText(step.id, deeper)}`,
+      delay: deeper ? 520 : 460,
+      token,
+      inlineOptions: getTourExplainOptions(step.id, { allowDeeper: !deeper })
+    });
+
+    if (token !== responseToken) return;
+    trackAnalyticsEvent("help_bot_tour_explained", {
+      page_path: window.location.pathname,
+      lang: currentLang,
+      role: currentRoleId || "unassigned",
+      step: step.id,
+      depth: deeper ? "deep" : "detail"
+    });
+  };
+
+  const chooseTourStepDetailMode = async () => {
+    const step = getPendingTourStep();
+    if (!step) return;
+
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    appendMessage({
+      sender: "user",
+      text: currentLang === "de" ? "Mehr Details" : "More details"
+    });
+    setOptions([], "");
+    await queueBotReply({
+      text: getTourDetailChoiceText(step),
+      delay: 360,
+      token,
+      inlineOptions: getTourDetailChoiceOptions(step.id)
+    });
+  };
+
+  const showTourOtherTopics = async () => {
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    appendMessage({
+      sender: "user",
+      text: currentLang === "de" ? "Andere Themen" : "Other topic"
+    });
+    clearPendingTourStep();
+    setOptions([], "");
+    await queueBotReply({
+      text: currentLang === "de"
+        ? "Gerne. Waehlen Sie den Bereich, den ich als Naechstes erklaeren oder oeffnen soll."
+        : "Sure. Choose the area you would like me to explain or open next.",
+      delay: 360,
+      token,
+      inlineOptions: getTourOtherTopicOptions()
+    });
   };
 
   const getReviewPathOptions = () => withEndChatOption(dedupeHelpBotOptions([
@@ -6353,6 +6742,33 @@ function setupPortfolioHelpBot() {
     ]));
   };
 
+  const getTopicStayPromptText = (roleId, topicId) => {
+    const recommendedNextLabel = getRecommendedNextTopicLabel(roleId, topicId);
+    if (currentLang === "de") {
+      return recommendedNextLabel
+        ? `Moechten Sie mehr Details zu diesem Bereich, direkt die Detailseite oeffnen oder soll ich Sie als Naechstes zu ${recommendedNextLabel} weiterfuehren?`
+        : "Moechten Sie mehr Details zu diesem Bereich oder direkt die passende Detailseite oeffnen?";
+    }
+    return recommendedNextLabel
+      ? `Would you like more detail on this section, open the direct detail page, or should I take you next to ${recommendedNextLabel}?`
+      : "Would you like more detail on this section or open the direct detail page?";
+  };
+
+  const getTopicStayPromptOptions = (roleId, topicId) => {
+    const deepCopy = getTopicDeeperCopy(roleId, topicId);
+    const primaryAction = getTopicPrimaryAction(getPendingTopic());
+    const includeRoleFit = (roleId === "recruiter" || roleId === "hiringManager") && topicId === "fit";
+    const includeReviewPaths = topicId === "reviews";
+    return withEndChatOption(dedupeHelpBotOptions([
+      createBadgedOption("topic-more", "topic-more", deepCopy.explainMore, currentLang === "de" ? "Mehr" : "More"),
+      ...(primaryAction ? [createBadgedOption("topic-detail-open", "topic-detail-open", currentLang === "de" ? "Detailseite oeffnen" : "Open detail page", currentLang === "de" ? "Direkt" : "Direct")] : []),
+      ...(includeRoleFit ? [{ ...getRoleFitStartOption(), badge: "Smart" }] : []),
+      ...(includeReviewPaths ? [getReviewPathStartOption()] : []),
+      ...getSuggestedTopicOptions(roleId, topicId).slice(0, 2),
+      createBadgedOption("topic-other", "topic-other", deepCopy.otherTopics, currentLang === "de" ? "Wechseln" : "Switch")
+    ]));
+  };
+
   const getRecommendedNextTopicLabel = (roleId, topicId) => {
     const nextOption = getSuggestedTopicOptions(roleId, topicId)[0];
     return nextOption?.label || "";
@@ -6724,9 +7140,7 @@ function setupPortfolioHelpBot() {
   };
 
   const syncComposerState = () => {
-    if (helpBotState.pendingInputKind === "visitor-name"
-      || helpBotState.pendingInputKind === "student-university"
-      || helpBotState.pendingInputKind === "chat-feedback") {
+    if (HELP_BOT_PENDING_INPUT_KINDS.includes(helpBotState.pendingInputKind)) {
       showComposer();
       return;
     }
@@ -6789,6 +7203,128 @@ function setupPortfolioHelpBot() {
 
   const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
 
+  const escapeRegExp = (value = "") => String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+  const getHelpBotEmphasisTerms = () => {
+    const roleLabels = Object.values(config.roles || {})
+      .map((role) => role?.label)
+      .filter(Boolean);
+    const tourLabels = getTourSteps().map((step) => step.label).filter(Boolean);
+    const dynamicTerms = [
+      getVisitorName(),
+      getStudentUniversity(),
+      config.assistantTitle,
+      config.assistantName,
+      ...roleLabels,
+      ...tourLabels
+    ];
+    const staticTerms = currentLang === "de"
+      ? [
+          "KEBA Group",
+          "United Engineering",
+          "Deggendorf Institute of Technology, Germany",
+          "APJ Abdul Kalam Technological University",
+          "Master in Mechatronics",
+          "Bachelor in Mechanical Engineering",
+          "Deutschland",
+          "Indien",
+          "Robotik",
+          "Mechatronik",
+          "Automatisierung",
+          "ROS",
+          "Gazebo",
+          "RViz",
+          "Python",
+          "CV",
+          "Journey",
+          "Reviews",
+          "Kontakt",
+          "Projekte",
+          "Erfahrung",
+          "Bildung",
+          "Zertifikate",
+          "Profil-Ueberblick",
+          "Detailseite",
+          "Naechster Bereich"
+        ]
+      : [
+          "KEBA Group",
+          "United Engineering",
+          "Deggendorf Institute of Technology, Germany",
+          "APJ Abdul Kalam Technological University",
+          "Master's in Mechatronics",
+          "Bachelor's in Mechanical Engineering",
+          "Germany",
+          "India",
+          "robotics",
+          "mechatronics",
+          "automation",
+          "ROS",
+          "Gazebo",
+          "RViz",
+          "Python",
+          "CV",
+          "Journey",
+          "Reviews",
+          "Contact",
+          "Projects",
+          "Experience",
+          "Education",
+          "Certificates",
+          "Profile overview",
+          "detail page",
+          "Next section",
+          "View detail page"
+        ];
+    return Array.from(new Set([...dynamicTerms, ...staticTerms]
+      .map((term) => String(term || "").trim())
+      .filter((term) => term.length >= 2)))
+      .sort((left, right) => right.length - left.length);
+  };
+
+  const getEmphasisRanges = (text = "", terms = []) => {
+    const ranges = [];
+    terms.forEach((term) => {
+      const regex = new RegExp(escapeRegExp(term), "gi");
+      let match;
+      while ((match = regex.exec(text))) {
+        const start = match.index;
+        const end = start + match[0].length;
+        if (!ranges.some((range) => start < range.end && end > range.start)) {
+          ranges.push({ start, end });
+        }
+      }
+    });
+    return ranges.sort((left, right) => left.start - right.start);
+  };
+
+  const appendFormattedLine = (paragraph, line = "", sender = "bot") => {
+    const content = String(line || "");
+    if (!content) return;
+    if (sender !== "bot") {
+      paragraph.textContent = content;
+      return;
+    }
+    const ranges = getEmphasisRanges(content, getHelpBotEmphasisTerms());
+    if (!ranges.length) {
+      paragraph.textContent = content;
+      return;
+    }
+    let cursor = 0;
+    ranges.forEach((range) => {
+      if (range.start > cursor) {
+        paragraph.append(document.createTextNode(content.slice(cursor, range.start)));
+      }
+      const strong = document.createElement("strong");
+      strong.textContent = content.slice(range.start, range.end);
+      paragraph.append(strong);
+      cursor = range.end;
+    });
+    if (cursor < content.length) {
+      paragraph.append(document.createTextNode(content.slice(cursor)));
+    }
+  };
+
   const showTypingIndicator = () => {
     clearTypingIndicator();
     if (liveRegion) liveRegion.textContent = config.typingAnnouncement;
@@ -6824,7 +7360,7 @@ function setupPortfolioHelpBot() {
 
     text.split("\n").filter(Boolean).forEach((line) => {
       const paragraph = document.createElement("p");
-      paragraph.textContent = line;
+      appendFormattedLine(paragraph, line, sender);
       bubble.append(paragraph);
     });
 
@@ -6888,6 +7424,9 @@ function setupPortfolioHelpBot() {
         const button = document.createElement("button");
         button.type = "button";
         button.className = "help-bot-message-option";
+        if (option.priority === "low") {
+          button.classList.add("is-low-priority");
+        }
         if (option.badge) {
           const badgeEl = document.createElement("span");
           badgeEl.className = "help-bot-button-badge";
@@ -7337,6 +7876,101 @@ function setupPortfolioHelpBot() {
     showComposer();
   };
 
+  const promptVisitorProfileConsent = async (token = responseToken) => {
+    helpBotState.pendingInputKind = "";
+    persistHelpBotState();
+    hideComposer();
+    await queueBotReply({
+      text: config.visitorProfileConsent,
+      delay: 420,
+      token,
+      inlineOptions: getVisitorProfileConsentOptions()
+    });
+  };
+
+  const promptVisitorProfileField = async (field, token = responseToken) => {
+    let text = config.visitorNamePrompt;
+    let option = getVisitorFieldSkipOption("name");
+    if (field === "position") {
+      text = config.visitorPositionPrompt;
+      option = getVisitorFieldSkipOption("position");
+      helpBotState.pendingInputKind = "visitor-position";
+    } else if (field === "organization") {
+      text = config.visitorOrganizationPrompt;
+      option = getVisitorFieldSkipOption("organization");
+      helpBotState.pendingInputKind = "visitor-organization";
+    } else {
+      helpBotState.pendingInputKind = "visitor-name";
+    }
+    persistHelpBotState();
+    setStaticCopy();
+    await queueBotReply({
+      text,
+      delay: 360,
+      token,
+      inlineOptions: withEndChatOption([option])
+    });
+    if (token !== responseToken) return;
+    showComposer();
+  };
+
+  const continueVisitorAfterProfile = async (token = responseToken) => {
+    helpBotState.pendingInputKind = "";
+    persistHelpBotState();
+    hideComposer();
+    await queueBotReply({
+      text: config.visitorProfileThanks(getVisitorName(), getVisitorPosition(), getVisitorOrganization()),
+      delay: 360,
+      token
+    });
+    if (token !== responseToken) return;
+    await continueRoleFlow("visitor", token);
+  };
+
+  const handleVisitorProfileChoice = async (choiceId) => {
+    appendMessage({ sender: "user", text: choiceId === "share" ? config.visitorProfileShare : config.visitorProfileSkip });
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    if (choiceId === "skip") {
+      helpBotState.pendingInputKind = "";
+      persistHelpBotState();
+      await continueRoleFlow("visitor", token);
+      return;
+    }
+    await promptVisitorProfileField("name", token);
+  };
+
+  const handleVisitorFieldSkip = async (fieldId) => {
+    const skipLabel = fieldId === "name"
+      ? config.visitorNameSkip
+      : fieldId === "position"
+        ? config.visitorPositionSkip
+        : config.visitorOrganizationSkip;
+    appendMessage({ sender: "user", text: skipLabel });
+    if (fieldId === "name") {
+      helpBotState.visitorName = "";
+      responseToken += 1;
+      const token = responseToken;
+      clearTypingIndicator();
+      await promptVisitorProfileField("position", token);
+      return;
+    }
+    if (fieldId === "position") {
+      helpBotState.visitorPosition = "";
+      responseToken += 1;
+      const token = responseToken;
+      clearTypingIndicator();
+      await promptVisitorProfileField("organization", token);
+      return;
+    }
+    helpBotState.visitorOrganization = "";
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    await continueVisitorAfterProfile(token);
+  };
+
   const promptForStudentUniversity = async (token = responseToken) => {
     const visitorName = getVisitorName();
     helpBotState.pendingInputKind = "student-university";
@@ -7347,13 +7981,7 @@ function setupPortfolioHelpBot() {
       text: config.askUniversity(visitorName),
       delay: 420,
       token,
-      inlineOptions: withEndChatOption([
-        {
-          kind: "student-university-skip",
-          id: "student-university-skip",
-          label: config.askUniversitySkip
-        }
-      ])
+      inlineOptions: withEndChatOption([])
     });
     if (token !== responseToken) return;
     showComposer();
@@ -7367,6 +7995,18 @@ function setupPortfolioHelpBot() {
       await queueBotReply({
         text: config.askNameGreeting(greetName),
         delay: 420,
+        token
+      });
+      if (token !== responseToken) return;
+    }
+
+    if (roleId === "visitor" && (getVisitorPosition() || getVisitorOrganization())) {
+      const contextBits = [getVisitorPosition(), getVisitorOrganization()].filter(Boolean);
+      await queueBotReply({
+        text: currentLang === "de"
+          ? `Ich richte das jetzt mit Blick auf ${contextBits.join(" bei ")} etwas gezielter aus.`
+          : `I’ll tailor this a bit more closely around ${contextBits.join(" at ")}.`,
+        delay: 340,
         token
       });
       if (token !== responseToken) return;
@@ -7391,8 +8031,7 @@ function setupPortfolioHelpBot() {
     setOptions([], "");
   };
 
-  const continueStudentAfterUniversity = async ({ skipped = false } = {}) => {
-    const visitorName = getVisitorName();
+  const continueStudentAfterUniversity = async () => {
     responseToken += 1;
     const token = responseToken;
     clearTypingIndicator();
@@ -7400,27 +8039,6 @@ function setupPortfolioHelpBot() {
     helpBotState.studentUniversityCandidate = null;
     persistHelpBotState();
     hideComposer();
-
-    if (skipped) {
-      await queueBotReply({
-        text: config.askUniversitySkipped(visitorName),
-        delay: 380,
-        token,
-        inlineOptions: withEndChatOption([
-          {
-            kind: "student-university-add",
-            id: "student-university-add",
-            label: config.askUniversityAdd
-          },
-          {
-            kind: "student-university-continue",
-            id: "student-university-continue",
-            label: config.askUniversityContinue
-          }
-        ])
-      });
-      return;
-    }
 
     await continueRoleFlow("student", token);
   };
@@ -7469,14 +8087,6 @@ function setupPortfolioHelpBot() {
     clearTypingIndicator();
     setOptions([], "");
 
-    if (decisionId === "skip") {
-      appendMessage({ sender: "user", text: config.askUniversityContinue });
-      helpBotState.studentUniversityCandidate = null;
-      persistHelpBotState();
-      await continueStudentAfterUniversity({ skipped: true });
-      return;
-    }
-
     if (decisionId === "retype") {
       appendMessage({ sender: "user", text: config.askUniversityConfirmRetype });
       helpBotState.studentUniversityCandidate = null;
@@ -7519,11 +8129,14 @@ function setupPortfolioHelpBot() {
     config = getPortfolioHelpBotConfig(currentLang);
     currentRoleId = "";
     helpBotState.visitorName = "";
+    helpBotState.visitorPosition = "";
+    helpBotState.visitorOrganization = "";
     helpBotState.studentUniversity = "";
     helpBotState.studentUniversityCandidate = null;
     clearChatFeedbackDraft();
     helpBotState.pendingInputKind = "";
     helpBotState.pendingTopicId = "";
+    helpBotState.pendingTourStepId = "";
     setStaticCopy();
     clearTypingIndicator();
     hideComposer();
@@ -7535,16 +8148,6 @@ function setupPortfolioHelpBot() {
     persistHelpBotState();
     setOptions([], "");
     await queueBotReply({ text: config.welcome, delay: 420, token });
-    if (token !== responseToken) return;
-    const pageOpening = getPageAwareOpening();
-    if (pageOpening?.text) {
-      await queueBotReply({
-        text: prependLead(getTransitionLead("tour"), pageOpening.text),
-        delay: 420,
-        token,
-        inlineOptions: pageOpening.inlineOptions || []
-      });
-    }
     if (token !== responseToken) return;
     await queueBotReply({
       text: config.roleQuestion,
@@ -7568,10 +8171,18 @@ function setupPortfolioHelpBot() {
     helpBotState.studentUniversityCandidate = null;
     helpBotState.pendingInputKind = "";
     helpBotState.pendingTopicId = "";
+    helpBotState.pendingTourStepId = "";
     persistHelpBotState();
     appendMessage({ sender: "user", text: role.label });
     setOptions([], "");
-    if (roleNeedsNamePrompt(roleId) && !helpBotState.visitorName) {
+    if (roleId === "visitor") {
+      if (helpBotState.visitorName || helpBotState.visitorPosition || helpBotState.visitorOrganization) {
+        await continueRoleFlow(roleId, token);
+      } else {
+        await promptVisitorProfileConsent(token);
+      }
+      if (token !== responseToken) return;
+    } else if (roleNeedsNamePrompt(roleId) && !helpBotState.visitorName) {
       await promptForVisitorName(roleId, token);
       if (token !== responseToken) return;
     } else if (roleId === "student" && !getStudentUniversity()) {
@@ -7737,7 +8348,10 @@ function setupPortfolioHelpBot() {
   const continueAfterTopicOverview = async () => {
     const topic = getPendingTopic();
     if (!topic) return;
-    const recommendedNextLabel = getRecommendedNextTopicLabel(currentRoleId, topic.id);
+    const deepCopy = getTopicDeeperCopy(currentRoleId, topic.id);
+    const overviewText = roleUsesVisitorName(currentRoleId)
+      ? personalizeForNamedVisitor(deepCopy.detail)
+      : deepCopy.detail;
 
     responseToken += 1;
     const token = responseToken;
@@ -7748,20 +8362,22 @@ function setupPortfolioHelpBot() {
     });
     setOptions([], "");
     await queueBotReply({
-      text: roleUsesVisitorName(currentRoleId)
-        ? personalizeForNamedVisitor(currentLang === "de"
-          ? `In Ordnung. Ich bleibe im Chat und fuehre Sie weiter durch die Website.${recommendedNextLabel ? `\nEmpfohlener naechster Bereich: ${recommendedNextLabel}.` : ""}`
-          : `Alright. I’ll stay in the chat and guide you through the website from here.${recommendedNextLabel ? `\nRecommended next section: ${recommendedNextLabel}.` : ""}`)
-        : currentLang === "de"
-          ? `In Ordnung. Ich bleibe im Chat und fuehre Sie weiter durch die Website.${recommendedNextLabel ? `\nEmpfohlener naechster Bereich: ${recommendedNextLabel}.` : ""}`
-          : `Alright. I’ll stay in the chat and guide you through the website from here.${recommendedNextLabel ? `\nRecommended next section: ${recommendedNextLabel}.` : ""}`,
-      delay: 380,
+      text: overviewText,
+      delay: 420,
       token,
-      actions: topic.actions.map((action, index) => ({
+      actions: topic.actions.slice(0, 2).map((action, index) => ({
         ...action,
-        badge: action.badge || (index === 0 ? (currentLang === "de" ? "Details" : "Details") : "")
-      })),
-      inlineOptions: getTopicContinueOptions(currentRoleId, topic.id)
+        badge: action.badge || (index === 0 ? (currentLang === "de" ? "Start hier" : "Start here") : "")
+      }))
+    });
+    if (token !== responseToken) return;
+    await queueBotReply({
+      text: roleUsesVisitorName(currentRoleId)
+        ? personalizeForNamedVisitor(getTopicStayPromptText(currentRoleId, topic.id))
+        : getTopicStayPromptText(currentRoleId, topic.id),
+      delay: 360,
+      token,
+      inlineOptions: getTopicStayPromptOptions(currentRoleId, topic.id)
     });
   };
 
@@ -7858,12 +8474,21 @@ function setupPortfolioHelpBot() {
     appendMessage({ sender: "user", text: getTourStartOption().label });
     setOptions([], "");
     const steps = getTourSteps();
+    const firstStep = steps[0];
+    if (!firstStep) return;
+    setPendingTourStep(firstStep.id);
     await queueBotReply({
-      text: `${getTransitionLead("tour", currentRoleId)}\n${currentLang === "de" ? "Die Schnelltour zeigt Profil-Ueberblick, Top-Projekt, industriellen Nachweis und den direkten Kontaktweg." : "The fast tour shows profile overview, top project, industrial proof, and the direct contact path."}`,
+      text: getTourOpeningText(),
       delay: 460,
       token,
-      cards: steps.map((step) => ({ badge: step.badge, title: step.label, text: step.text })),
-      inlineOptions: getTourStepOptions("")
+      cards: steps.map((step) => ({ badge: step.badge, title: step.label, text: step.text }))
+    });
+    if (token !== responseToken) return;
+    await queueBotReply({
+      text: `${firstStep.text}\n${getTourSummaryFollowUpText()}`,
+      delay: 420,
+      token,
+      inlineOptions: getTourSummaryOptions(firstStep.id)
     });
 
     trackAnalyticsEvent("help_bot_tour_started", {
@@ -7881,13 +8506,13 @@ function setupPortfolioHelpBot() {
     const token = responseToken;
     clearTypingIndicator();
     appendMessage({ sender: "user", text: step.label });
+    setPendingTourStep(step.id);
     setOptions([], "");
     await queueBotReply({
-      text: `${step.text}\n${currentLang === "de" ? "Wenn Sie moechten, fuehre ich danach direkt zum naechsten Tour-Schritt oder in ein tieferes Thema." : "If you want, I can take you straight to the next tour stop or into a deeper topic after this."}`,
-      actions: [step.action],
+      text: `${step.text}\n${getTourSummaryFollowUpText()}`,
       delay: 480,
       token,
-      inlineOptions: getTourStepOptions(step.id)
+      inlineOptions: getTourSummaryOptions(step.id)
     });
 
     trackAnalyticsEvent("help_bot_tour_step_selected", {
@@ -7973,6 +8598,19 @@ function setupPortfolioHelpBot() {
         startPortfolioTour();
       } else if (kind === "tour-step") {
         selectTourStep(id);
+      } else if (kind === "tour-more") {
+        chooseTourStepDetailMode();
+      } else if (kind === "tour-open-page") {
+        openTourStepPage(id);
+      } else if (kind === "tour-explain") {
+        explainTourStep(id);
+      } else if (kind === "tour-explain-deeper") {
+        explainTourStep(id, { deeper: true });
+      } else if (kind === "tour-other-topic") {
+        showTourOtherTopics();
+      } else if (kind === "tour-back-start") {
+        appendMessage({ sender: "user", text: currentLang === "de" ? "Zurueck zum Start" : "Back to start" });
+        resetConversation();
       } else if (kind === "quick-path") {
         openQuickPath();
       } else if (kind === "topic") {
@@ -7993,6 +8631,10 @@ function setupPortfolioHelpBot() {
         selectFeedbackChoice(id);
       } else if (kind === "feedback-skip-confirm") {
         selectFeedbackSkipConfirm(id);
+      } else if (kind === "visitor-profile") {
+        handleVisitorProfileChoice(id);
+      } else if (kind === "visitor-field-skip") {
+        handleVisitorFieldSkip(id);
       } else if (kind === "feedback-rating") {
         selectFeedbackRating(id);
       } else if (kind === "feedback-retry") {
@@ -8003,23 +8645,10 @@ function setupPortfolioHelpBot() {
         startRoleFitFlow();
       } else if (kind === "role-fit") {
         selectRoleFit(id);
-      } else if (kind === "student-university-skip") {
-        appendMessage({ sender: "user", text: config.askUniversitySkip });
-        continueStudentAfterUniversity({ skipped: true });
       } else if (kind === "student-university-confirm") {
         confirmStudentUniversity(id);
       } else if (kind === "student-name-confirm") {
         handleStudentNameContinue(id);
-      } else if (kind === "student-university-add") {
-        appendMessage({ sender: "user", text: config.askUniversityAdd });
-        helpBotState.pendingInputKind = "student-university";
-        helpBotState.studentUniversityCandidate = null;
-        persistHelpBotState();
-        setStaticCopy();
-        showComposer();
-      } else if (kind === "student-university-continue") {
-        appendMessage({ sender: "user", text: config.askUniversityContinue });
-        continueRoleFlow("student");
       } else if (kind === "continue-chat") {
         continueConversation();
       } else if (kind === "start-over") {
@@ -8105,7 +8734,49 @@ function setupPortfolioHelpBot() {
         await promptForStudentUniversity(token);
         return;
       }
+      if (currentRoleId === "visitor") {
+        await promptVisitorProfileField("position", token);
+        return;
+      }
       await continueRoleFlow(currentRoleId, token, { greetName: visitorName });
+      return;
+    }
+
+    if (helpBotState.pendingInputKind === "visitor-position") {
+      const visitorPosition = normalizeVisitorPosition(composerValue);
+      if (!visitorPosition) {
+        focusComposerInput();
+        return;
+      }
+
+      responseToken += 1;
+      const token = responseToken;
+      clearTypingIndicator();
+      helpBotState.visitorPosition = visitorPosition;
+      helpBotState.pendingInputKind = "";
+      persistHelpBotState();
+      appendMessage({ sender: "user", text: visitorPosition });
+      hideComposer();
+      await promptVisitorProfileField("organization", token);
+      return;
+    }
+
+    if (helpBotState.pendingInputKind === "visitor-organization") {
+      const visitorOrganization = normalizeVisitorOrganization(composerValue);
+      if (!visitorOrganization) {
+        focusComposerInput();
+        return;
+      }
+
+      responseToken += 1;
+      const token = responseToken;
+      clearTypingIndicator();
+      helpBotState.visitorOrganization = visitorOrganization;
+      helpBotState.pendingInputKind = "";
+      persistHelpBotState();
+      appendMessage({ sender: "user", text: visitorOrganization });
+      hideComposer();
+      await continueVisitorAfterProfile(token);
       return;
     }
 

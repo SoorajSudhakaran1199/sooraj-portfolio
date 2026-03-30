@@ -13492,6 +13492,12 @@ body.help-bot-open {
   line-height: 1.65;
 }
 
+.help-bot-bubble p strong {
+  color: #f4fffd;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
 .help-bot-bubble p + p {
   margin-top: 0.45rem;
 }
@@ -13528,8 +13534,8 @@ body.help-bot-open {
 }
 
 .help-bot-message-actions {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.55rem;
   margin-top: 0.8rem;
 }
@@ -13583,8 +13589,8 @@ body.help-bot-open {
 }
 
 .help-bot-message-options {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.55rem;
   margin-top: 0.82rem;
 }
@@ -13607,6 +13613,7 @@ body.help-bot-open {
   text-align: center;
   cursor: pointer;
   transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
+  width: 100%;
 }
 
 .help-bot-message-link:hover,
@@ -13640,6 +13647,7 @@ body.help-bot-open {
     border-color 180ms ease,
     background 180ms ease,
     box-shadow 180ms ease;
+  width: 100%;
 }
 
 .help-bot-message-option:hover,
@@ -13651,6 +13659,21 @@ body.help-bot-open {
   box-shadow: 0 12px 24px rgba(6, 13, 24, 0.18);
   transform: translateY(-1px);
   outline: none;
+}
+
+.help-bot-message-option.is-low-priority {
+  border-color: rgba(128, 184, 255, 0.08);
+  background: rgba(255, 255, 255, 0.025);
+  color: var(--text-soft);
+  font-weight: 600;
+  opacity: 0.84;
+}
+
+.help-bot-message-option.is-low-priority:hover,
+.help-bot-message-option.is-low-priority:focus-visible {
+  border-color: rgba(128, 184, 255, 0.14);
+  background: rgba(255, 255, 255, 0.045);
+  box-shadow: none;
 }
 
 .help-bot-button-label {
@@ -13902,6 +13925,23 @@ body.help-bot-open {
   border-color: rgba(10, 22, 38, 0.1);
   background: rgba(255, 255, 255, 0.84);
   color: #15314a;
+}
+
+[data-theme="light"] .help-bot-message-option.is-low-priority {
+  border-color: rgba(10, 22, 38, 0.08);
+  background: rgba(255, 255, 255, 0.62);
+  color: rgba(21, 49, 74, 0.72);
+}
+
+[data-theme="light"] .help-bot-bubble p strong {
+  color: #0f2f47;
+}
+
+[data-theme="light"] .help-bot-message-option.is-low-priority:hover,
+[data-theme="light"] .help-bot-message-option.is-low-priority:focus-visible {
+  border-color: rgba(10, 22, 38, 0.12);
+  background: rgba(255, 255, 255, 0.76);
+  box-shadow: none;
 }
 
 [data-theme="light"] .help-bot-option:hover,
