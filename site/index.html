@@ -30,9 +30,14 @@
   <link rel="stylesheet" href="style.css" />
   <script>
     (() => {
-      const lang = localStorage.getItem("site-language") === "de" ? "de" : "en";
-      const saved = localStorage.getItem("theme");
-      const theme = saved || "dark";
+      let publicDefaults = {};
+      try {
+        publicDefaults = JSON.parse(localStorage.getItem("public-site-defaults") || "{}") || {};
+      } catch {}
+      const savedLang = localStorage.getItem("site-language");
+      const lang = savedLang === "de" ? "de" : savedLang === "en" ? "en" : publicDefaults.language === "de" ? "de" : "en";
+      const savedTheme = localStorage.getItem("theme");
+      const theme = savedTheme === "light" || savedTheme === "dark" ? savedTheme : publicDefaults.theme === "light" ? "light" : "dark";
       document.documentElement.setAttribute("lang", lang);
       document.documentElement.setAttribute("data-lang-ready", "false");
       document.documentElement.setAttribute("data-theme", theme);
@@ -1375,12 +1380,22 @@
                 </div>
               </div>
 
+              <div class="review-featured-panel" data-public-review-block="pinned">
+                <div class="review-section-head review-section-head-stack">
+                  <strong>Featured reviews</strong>
+                  <small>Admin-pinned reviews shown directly on the homepage</small>
+                </div>
+                <div class="feedback-public-review-list review-featured-list" data-public-review-list data-public-review-filter="pinned" data-public-review-limit="2">
+                  <span class="feedback-stats-empty">No featured reviews yet.</span>
+                </div>
+              </div>
+
               <div class="review-comments-callout">
                 <div class="review-section-head review-section-head-stack">
                   <strong>Published reviews</strong>
-                  <small>Read public reviews and visible owner replies</small>
+                  <small>Read every published review and owner reply</small>
                 </div>
-                <button class="btn btn-secondary review-comments-trigger" type="button" data-public-review-toggle aria-controls="homepage-public-reviews">Read public reviews</button>
+                <button class="btn btn-secondary review-comments-trigger" type="button" data-public-review-toggle aria-controls="homepage-public-reviews">Show all reviews</button>
               </div>
 
               <details class="review-comments-panel" id="homepage-public-reviews">
@@ -1390,8 +1405,8 @@
                     <small>Click to expand or collapse</small>
                   </span>
                 </summary>
-                <div class="feedback-public-review-list" data-public-review-list data-public-review-limit="6">
-                  <span class="feedback-stats-empty">No public reviews yet.</span>
+                <div class="feedback-public-review-list" data-public-review-list data-public-review-filter="unpinned" data-public-review-limit="12">
+                  <span class="feedback-stats-empty">No archived reviews yet.</span>
                 </div>
               </details>
             </article>

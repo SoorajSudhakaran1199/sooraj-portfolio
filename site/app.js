@@ -7,12 +7,14 @@ const STORAGE_PUBLIC_REVIEWS_KEY = "public-feedback-reviews";
 const STORAGE_FEEDBACK_LAST_SUBMISSION_KEY = "feedback-last-submission";
 const STORAGE_FEEDBACK_LAST_SUBMISSION_PERSISTED_KEY = "feedback-last-submission-persisted";
 const STORAGE_HOMEPAGE_REVIEW_PROMPT_KEY = "homepage-review-prompt-state";
+const STORAGE_PUBLIC_SITE_DEFAULTS_KEY = "public-site-defaults";
 const REVIEW_PROMPT_ELIGIBLE_PAGES = new Set(["index.html", "portfolio-map.html", "journey.html"]);
 const SUPABASE_SUBMISSION_EVENTS_TABLE = "portfolio_submission_events";
 const SUPABASE_PUBLIC_REVIEWS_TABLE = "portfolio_public_reviews";
 const SUPABASE_SITE_STATE_TABLE = "portfolio_site_state";
 const SUPABASE_SITE_UPDATE_STATE_ID = "public_site_update";
 const SUPABASE_REVIEW_PROMPT_STATE_ID = "public_review_prompt";
+const SUPABASE_SITE_DEFAULTS_STATE_ID = "public_site_defaults";
 const WEB3FORMS_ENDPOINT = "https://api.web3forms.com/submit";
 const WEB3FORMS_ACCESS_KEY = "d419d102-cb71-4958-b6e7-06fb6001803b";
 const GOOGLE_ANALYTICS_ID = "G-00H12CYMW0";
@@ -42,6 +44,10 @@ const DEFAULT_REVIEW_PROMPT_SETTINGS = Object.freeze({
     journey: true
   }
 });
+const DEFAULT_PUBLIC_SITE_DEFAULTS = Object.freeze({
+  theme: "dark",
+  language: "en"
+});
 let supabaseClientPromise = null;
 let supabaseClient = null;
 let adminSessionActive = false;
@@ -51,6 +57,8 @@ let sharedPublicReviewsCache = null;
 let sharedPublicReviewsPromise = null;
 let sharedReviewPromptSettingsCache = null;
 let sharedReviewPromptSettingsPromise = null;
+let sharedPublicSiteDefaultsCache = null;
+let sharedPublicSiteDefaultsPromise = null;
 let sharedSubmissionStatsSource = "unknown";
 let sharedPublicReviewsSource = "unknown";
 const REQUEST_CV_LINKS = {
@@ -560,6 +568,7 @@ function normalizePublicReviewEntry(entry) {
     rating: Number.isFinite(ratingValue) && ratingValue > 0 ? `${ratingValue}/5` : "",
     reviewTitle: String(entry.review_title || entry.reviewTitle || "").trim(),
     reviewText,
+    isPinned: Boolean(entry.is_pinned ?? entry.isPinned),
     adminReply: String(entry.admin_reply || entry.adminReply || "").trim(),
     adminReplyCreatedAt: entry.admin_reply_created_at || entry.adminReplyCreatedAt || "",
     submittedAt: entry.created_at || entry.submittedAt || new Date().toISOString()
@@ -590,6 +599,18 @@ function buildPublicReviews(reviews = []) {
     .map(normalizePublicReviewEntry)
     .filter(Boolean)
     .sort((a, b) => new Date(b.submittedAt || 0).getTime() - new Date(a.submittedAt || 0).getTime());
+}
+
+function filterPublicReviews(publicReviews = [], filter = "all") {
+  if (filter === "pinned") {
+    return publicReviews.filter((review) => review?.isPinned);
+  }
+
+  if (filter === "unpinned") {
+    return publicReviews.filter((review) => !review?.isPinned);
+  }
+
+  return publicReviews;
 }
 
 function loadStoredSubmissionStats() {
@@ -784,9 +805,18 @@ async function loadSharedPublicReviews({ forceRefresh = false } = {}) {
 
   sharedPublicReviewsPromise = (async () => {
     try {
-      const data = await fetchSupabaseRest(
-        `${SUPABASE_PUBLIC_REVIEWS_TABLE}?select=id,reviewer_name,company,country,rating_value,review_title,review_text,admin_reply,admin_reply_created_at,created_at&order=created_at.desc`
-      );
+      let data;
+
+      try {
+        data = await fetchSupabaseRest(
+          `${SUPABASE_PUBLIC_REVIEWS_TABLE}?select=id,reviewer_name,company,country,rating_value,review_title,review_text,is_pinned,admin_reply,admin_reply_created_at,created_at&order=created_at.desc`
+        );
+      } catch {
+        data = await fetchSupabaseRest(
+          `${SUPABASE_PUBLIC_REVIEWS_TABLE}?select=id,reviewer_name,company,country,rating_value,review_title,review_text,admin_reply,admin_reply_created_at,created_at&order=created_at.desc`
+        );
+      }
+
       sharedPublicReviewsSource = "remote";
       return setSharedPublicReviewsCache(data || []);
     } catch {
@@ -853,18 +883,28 @@ async function recordSharedPublicReview(review) {
   }
 }
 
-async function saveSharedPublicReviewReply(id, replyText) {
-  const trimmedReply = String(replyText || "").trim();
-  const replyDate = trimmedReply ? new Date().toISOString() : "";
+async function updateSharedPublicReviewAdminState(id, { replyText, isPinned } = {}) {
+  const payload = {};
+
+  if (typeof replyText === "string") {
+    const trimmedReply = String(replyText || "").trim();
+    payload.admin_reply = trimmedReply || null;
+    payload.admin_reply_created_at = trimmedReply ? new Date().toISOString() : null;
+  }
+
+  if (typeof isPinned === "boolean") {
+    payload.is_pinned = isPinned;
+  }
+
+  if (!Object.keys(payload).length) {
+    return loadSharedPublicReviews();
+  }
 
   try {
     const supabase = await getSupabaseClient();
     const { error } = await supabase
       .from(SUPABASE_PUBLIC_REVIEWS_TABLE)
-      .update({
-        admin_reply: trimmedReply || null,
-        admin_reply_created_at: trimmedReply ? replyDate : null
-      })
+      .update(payload)
       .eq("id", id);
 
     if (error) throw error;
@@ -874,6 +914,14 @@ async function saveSharedPublicReviewReply(id, replyText) {
     sharedPublicReviewsSource = "unavailable";
     throw new Error("Public review reply could not be saved to the shared website store.");
   }
+}
+
+async function saveSharedPublicReviewReply(id, replyText) {
+  return updateSharedPublicReviewAdminState(id, { replyText });
+}
+
+async function setSharedPublicReviewPinned(id, isPinned) {
+  return updateSharedPublicReviewAdminState(id, { isPinned });
 }
 
 async function clearSharedSubmissionEvents() {
@@ -1038,21 +1086,26 @@ function getPublicReviewUiCopy(lang) {
     ? {
         noRatings: "Noch keine Bewertungen",
         noReviews: "Noch keine öffentlichen Bewertungen.",
+        featuredEmpty: "Noch keine hervorgehobenen Bewertungen.",
+        archiveEmpty: "Noch keine archivierten Bewertungen.",
         awaiting: "Noch keine bewertete Rückmeldung vorhanden.",
         countries: "Laender",
         basedOn: (count) => `Basierend auf ${count} bewerteten oeffentlichen Rueckmeldungen`,
         ratingLabel: (value) => `${value} von 5`,
         reviewBadge: "Oeffentliche Bewertung",
+        pinnedBadge: "Fixiert",
         countryFallback: "Land nicht angegeben",
         viewPublicReviews: "Oeffentliche Bewertungen ansehen",
         publicReplyLabel: "Oeffentliche Antwort",
         verifiedOwnerReply: "Verifiziert",
         adminToolsLabel: "Admin-Aktionen",
-        adminToolsDescription: "Antwort veroeffentlichen oder diese Bewertung aus der Website entfernen.",
+        adminToolsDescription: "Antwort veroeffentlichen, diese Bewertung auf der Startseite fixieren oder aus der Website entfernen.",
         replyFieldLabel: "Oeffentliche Antwort",
         replyPlaceholder: "Oeffentliche Antwort auf diese Bewertung schreiben",
         saveReply: "Antwort veroeffentlichen",
         updateReply: "Antwort aktualisieren",
+        pinReview: "Bewertung fixieren",
+        unpinReview: "Fixierung loesen",
         deleteReview: "Bewertung loeschen",
         deleteConfirm: "Diese oeffentliche Bewertung wirklich loeschen?",
         replySaved: "Oeffentliche Antwort gespeichert.",
@@ -1062,21 +1115,26 @@ function getPublicReviewUiCopy(lang) {
     : {
         noRatings: "No ratings yet",
         noReviews: "No public reviews yet.",
+        featuredEmpty: "No featured reviews yet.",
+        archiveEmpty: "No archived reviews yet.",
         awaiting: "Awaiting first rated review.",
         countries: "countries",
         basedOn: (count) => `Based on ${count} rated public reviews`,
         ratingLabel: (value) => `${value} out of 5`,
         reviewBadge: "Public review",
+        pinnedBadge: "Pinned",
         countryFallback: "Country not shared",
         viewPublicReviews: "View public reviews",
         publicReplyLabel: "Public reply",
         verifiedOwnerReply: "Verified",
         adminToolsLabel: "Admin actions",
-        adminToolsDescription: "Publish a visible reply or remove this review from the website.",
+        adminToolsDescription: "Publish a visible reply, pin this review to the homepage, or remove it from the website.",
         replyFieldLabel: "Public reply",
         replyPlaceholder: "Write a public reply to this review",
         saveReply: "Publish reply",
         updateReply: "Update reply",
+        pinReview: "Pin review",
+        unpinReview: "Unpin review",
         deleteReview: "Delete review",
         deleteConfirm: "Delete this public review?",
         replySaved: "Public reply saved.",
@@ -1119,23 +1177,31 @@ async function renderPublicReviewLists({ scope = document, forceRefresh = false,
     : await loadSharedPublicReviews({ forceRefresh });
 
   reviewLists.forEach((list) => {
+    const filter = list.getAttribute("data-public-review-filter") || "all";
+    const filteredReviews = filterPublicReviews(publicReviews, filter);
     const limit = Number.parseInt(list.getAttribute("data-public-review-limit") || "", 10);
     const visibleReviews = Number.isFinite(limit) && limit > 0
-      ? publicReviews.slice(0, limit)
-      : publicReviews;
+      ? filteredReviews.slice(0, limit)
+      : filteredReviews;
     renderPublicReviewListContent({
       list,
       reviews: visibleReviews,
       copy,
       lang,
-      isAdminMode
+      isAdminMode,
+      filter
     });
+
+    const block = list.closest("[data-public-review-block]");
+    if (block instanceof HTMLElement && filter === "pinned") {
+      block.hidden = !isAdminMode && filteredReviews.length === 0;
+    }
   });
 
   return publicReviews;
 }
 
-function renderPublicReviewListContent({ list, reviews, copy, lang, isAdminMode }) {
+function renderPublicReviewListContent({ list, reviews, copy, lang, isAdminMode, filter = "all" }) {
   if (!(list instanceof HTMLElement)) return;
 
   list.innerHTML = "";
@@ -1143,14 +1209,18 @@ function renderPublicReviewListContent({ list, reviews, copy, lang, isAdminMode 
   if (!reviews.length) {
     const empty = document.createElement("span");
     empty.className = "feedback-stats-empty";
-    empty.textContent = copy.noReviews;
+    empty.textContent = filter === "pinned"
+      ? copy.featuredEmpty
+      : filter === "unpinned"
+        ? copy.archiveEmpty
+        : copy.noReviews;
     list.append(empty);
     return;
   }
 
   reviews.forEach((review) => {
     const card = document.createElement("article");
-    card.className = "feedback-public-review-card";
+    card.className = `feedback-public-review-card${review.isPinned ? " is-pinned" : ""}`;
 
     const countryMeta = getCountryDisplayMeta(review.country, copy.countryFallback);
     const countryLabel = `${countryMeta.flag} ${countryMeta.label}`;
@@ -1176,6 +1246,9 @@ function renderPublicReviewListContent({ list, reviews, copy, lang, isAdminMode 
     const reviewTitle = String(review.reviewTitle || "").trim();
     const reviewText = String(review.reviewText || "").trim();
     const shouldShowReviewTitle = reviewTitle && reviewTitle.toLowerCase() !== reviewText.toLowerCase();
+    const pinBadge = review.isPinned
+      ? `<span class="feedback-public-review-pin-badge">${escapeHtml(copy.pinnedBadge)}</span>`
+      : "";
     const replyBlock = review.adminReply
       ? `
         <div class="feedback-public-review-reply-shell">
@@ -1211,6 +1284,7 @@ function renderPublicReviewListContent({ list, reviews, copy, lang, isAdminMode 
           </label>
           <div class="feedback-public-review-admin-actions">
             <button class="btn btn-secondary btn-small" type="submit">${escapeHtml(review.adminReply ? copy.updateReply : copy.saveReply)}</button>
+            <button class="btn btn-secondary btn-small feedback-public-review-pin${review.isPinned ? " is-active" : ""}" type="button" data-public-review-pin="${escapeHtml(review.id)}" data-public-review-pin-state="${review.isPinned ? "pinned" : "unpinned"}">${escapeHtml(review.isPinned ? copy.unpinReview : copy.pinReview)}</button>
             <button class="btn btn-secondary btn-small feedback-public-review-delete" type="button" data-public-review-delete="${escapeHtml(review.id)}">${escapeHtml(copy.deleteReview)}</button>
           </div>
         </form>
@@ -1223,7 +1297,10 @@ function renderPublicReviewListContent({ list, reviews, copy, lang, isAdminMode 
           <span class="feedback-public-review-avatar" aria-hidden="true">${escapeHtml(reviewerInitials)}</span>
           <div class="feedback-public-review-identity">
             <div class="feedback-public-review-topline">
-              <strong class="feedback-public-review-name">${escapeHtml(review.reviewerName)}</strong>
+              <div class="feedback-public-review-heading">
+                <strong class="feedback-public-review-name">${escapeHtml(review.reviewerName)}</strong>
+                ${pinBadge}
+              </div>
               <span class="feedback-public-review-rating">${escapeHtml(ratingLabel)}</span>
             </div>
             <span class="feedback-public-review-meta">${escapeHtml(metaParts.join(" • "))}</span>
@@ -1344,6 +1421,31 @@ function setupPublicReviewAdminActions() {
   document.addEventListener("click", async (event) => {
     const target = event.target;
     if (!(target instanceof HTMLElement)) return;
+
+    const pinId = target.getAttribute("data-public-review-pin");
+    if (pinId && getAdminModeState()) {
+      const shouldPin = target.getAttribute("data-public-review-pin-state") !== "pinned";
+
+      if (target instanceof HTMLButtonElement) {
+        target.disabled = true;
+        target.setAttribute("aria-busy", "true");
+      }
+
+      try {
+        await setSharedPublicReviewPinned(pinId, shouldPin);
+        await refreshPublicReviewUi({ forceRefresh: true });
+      } catch {
+        window.alert(resolveInitialLanguage() === "de"
+          ? getPublicReviewUiCopy("de").adminError
+          : getPublicReviewUiCopy("en").adminError);
+      } finally {
+        if (target instanceof HTMLButtonElement) {
+          target.disabled = false;
+          target.removeAttribute("aria-busy");
+        }
+      }
+      return;
+    }
 
     const deleteId = target.getAttribute("data-public-review-delete");
     if (!deleteId || !getAdminModeState()) return;
@@ -2182,10 +2284,16 @@ Object.assign(LANGUAGE_TEXT.de, {
     "Join the conversation": "Am Gespraech teilnehmen",
     "Add a public review or send a private message.": "Fuegen Sie eine oeffentliche Bewertung hinzu oder senden Sie eine private Nachricht.",
     "Publish your review for visitors, or use the contact form for direct professional outreach.": "Veroeffentlichen Sie Ihre Bewertung fuer Besucher oder nutzen Sie das Kontaktformular fuer direkte professionelle Anfragen.",
+    "Featured reviews": "Hervorgehobene Bewertungen",
+    "Admin-pinned reviews shown directly on the homepage": "Vom Admin fixierte Bewertungen, die direkt auf der Startseite gezeigt werden.",
     "Published reviews": "Veroeffentlichte Bewertungen",
+    "Show all reviews": "Alle Bewertungen anzeigen",
     "Read public reviews": "Oeffentliche Bewertungen lesen",
+    "Read every published review and owner reply": "Alle veroeffentlichten Bewertungen und sichtbaren Antworten lesen",
     "Read public reviews and visible owner replies": "Oeffentliche Bewertungen und sichtbare Antworten des Website-Betreibers lesen",
     "Review archive": "Bewertungsarchiv",
+    "No featured reviews yet.": "Noch keine hervorgehobenen Bewertungen.",
+    "No archived reviews yet.": "Noch keine archivierten Bewertungen.",
     "Open Feedback Form": "Feedback-Formular öffnen",
   "Open feedback form": "Feedback-Formular oeffnen",
   "Open contact form": "Kontaktformular oeffnen",
@@ -2532,7 +2640,11 @@ Object.assign(META_TRANSLATIONS.de.description, {
 
 function resolveInitialLanguage() {
   const saved = localStorage.getItem(STORAGE_LANGUAGE_KEY);
-  return saved === "de" ? "de" : "en";
+  if (saved === "de" || saved === "en") {
+    return saved;
+  }
+
+  return loadStoredPublicSiteDefaults().language;
 }
 
 function normalizeText(text) {
@@ -2677,7 +2789,7 @@ function setupLanguageSwitcher() {
 function resolveInitialTheme() {
   const saved = localStorage.getItem(STORAGE_THEME_KEY);
   if (saved === "light" || saved === "dark") return saved;
-  return "dark";
+  return loadStoredPublicSiteDefaults().theme;
 }
 
 function applyTheme(theme) {
@@ -3023,6 +3135,22 @@ function clampNumber(value, min, max, fallback) {
   const numericValue = Number(value);
   if (!Number.isFinite(numericValue)) return fallback;
   return Math.min(max, Math.max(min, numericValue));
+}
+
+function normalizePublicSiteDefaults(raw = null) {
+  const source = raw && typeof raw === "object" ? raw : {};
+  const theme = source.theme === "light" ? "light" : "dark";
+  const language = source.language === "de" ? "de" : "en";
+
+  return { theme, language };
+}
+
+function loadStoredPublicSiteDefaults() {
+  return normalizePublicSiteDefaults(loadStoredJson(localStorage, STORAGE_PUBLIC_SITE_DEFAULTS_KEY));
+}
+
+function saveStoredPublicSiteDefaults(defaults) {
+  saveStoredJson(localStorage, STORAGE_PUBLIC_SITE_DEFAULTS_KEY, normalizePublicSiteDefaults(defaults));
 }
 
 function getReviewPromptPageKey(pageName = getCurrentPageName()) {
@@ -4583,10 +4711,12 @@ function setupAdminWorkspace() {
         title: "Verwaltungstools sind fuer diese Ansicht aktiv.",
         lead: "Sie koennen oeffentliche Bewertungen moderieren, die Update-Zeit steuern und private Uebermittlungsdaten dort einsehen, wo sie verfuegbar sind.",
         activeTools: "Auf dieser Seite aktiv",
+        defaultsTool: "Oeffentliche Theme- und Sprach-Standards setzen",
         updateTool: "Geteilte Update-Zeit aktualisieren",
         reviewsTool: "Oeffentliche Bewertungen beantworten oder loeschen",
         submissionsTool: "Private Uebermittlungsuebersicht einsehen",
         promptTool: "Review-Prompt fuer Besucher anpassen",
+        defaultsAction: "Site-Standards",
         refreshAction: "Update-Zeit aktualisieren",
         reviewsAction: "Zu Bewertungen",
         summaryAction: "Zur Uebersicht",
@@ -4601,10 +4731,12 @@ function setupAdminWorkspace() {
         title: "Management tools are active for this view.",
         lead: "You can moderate public reviews, control the shared update time, and inspect private submission data where it is available.",
         activeTools: "Active on this page",
+        defaultsTool: "Set the public theme and language defaults",
         updateTool: "Refresh the shared update timestamp",
         reviewsTool: "Reply to or remove public reviews",
         submissionsTool: "Inspect the private submission summary",
         promptTool: "Adjust the visitor review prompt",
+        defaultsAction: "Site defaults",
         refreshAction: "Refresh update time",
         reviewsAction: "Go to reviews",
         summaryAction: "Open summary",
@@ -4623,11 +4755,13 @@ function setupAdminWorkspace() {
     || document.querySelector("[data-public-review-list]");
   const summaryPanel = document.querySelector("[data-feedback-thankyou-summary-panel]");
   const submissionLog = document.querySelector("[data-feedback-stats-log]");
-  const toolLabels = [copy.promptTool];
+  const toolLabels = [copy.defaultsTool, copy.promptTool];
   const actions = [];
   const reviewSyncState = sharedPublicReviewsSource === "remote"
     ? copy.reviewSyncRemote
     : copy.reviewSyncUnavailable;
+
+  actions.push({ type: "defaults", label: copy.defaultsAction });
 
   if (refreshButton) {
     toolLabels.push(copy.updateTool);
@@ -4674,6 +4808,7 @@ function setupAdminWorkspace() {
       <div class="admin-workspace-actions">
         ${actions.map((action) => `<button class="btn btn-secondary btn-small" type="button" data-admin-workspace-action="${action.type}">${action.label}</button>`).join("")}
       </div>
+      <div class="admin-site-defaults-panel" data-admin-site-defaults-panel></div>
       <div class="admin-review-prompt-panel" data-admin-review-prompt-panel></div>
     </div>
   `;
@@ -4694,6 +4829,14 @@ function setupAdminWorkspace() {
 
       if (action === "refresh" && refreshButton instanceof HTMLButtonElement) {
         refreshButton.click();
+        return;
+      }
+
+      if (action === "defaults") {
+        const defaultsPanel = panel.querySelector("[data-admin-site-defaults-panel]");
+        if (defaultsPanel instanceof HTMLElement) {
+          defaultsPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
         return;
       }
 
@@ -4727,7 +4870,135 @@ function setupAdminWorkspace() {
     });
   });
 
+  renderAdminSiteDefaultsControls(panel);
   renderAdminReviewPromptControls(panel);
+}
+
+async function renderAdminSiteDefaultsControls(workspacePanel = document.querySelector("[data-admin-workspace]")) {
+  const panel = workspacePanel instanceof HTMLElement
+    ? workspacePanel.querySelector("[data-admin-site-defaults-panel]")
+    : null;
+  if (!(panel instanceof HTMLElement)) return;
+
+  if (!getAdminModeState()) {
+    panel.replaceChildren();
+    return;
+  }
+
+  const lang = resolveInitialLanguage();
+  const copy = lang === "de"
+    ? {
+        title: "Oeffentliche Site-Standards",
+        lead: "Legen Sie die Standardansicht fuer neue Besucher fest. Gespeichert werden der oeffentliche Standard fuer Theme und Sprache. Besucher mit eigener Browser-Auswahl behalten ihre persoenliche Einstellung.",
+        theme: "Standard-Theme",
+        themeDark: "Dunkel",
+        themeLight: "Hell",
+        language: "Standardsprache",
+        languageEn: "Englisch",
+        languageDe: "Deutsch",
+        save: "Site-Standards speichern",
+        reset: "Auf Standard zuruecksetzen",
+        saved: "Site-Standards gespeichert.",
+        saveError: "Speichern fehlgeschlagen. Pruefen Sie die Site-State-Tabelle in Supabase.",
+        note: "Diese Werte gelten oeffentlich als Standard. Persoenliche Browser-Auswahlen fuer Theme oder Sprache haben weiter Vorrang."
+      }
+    : {
+        title: "Public site defaults",
+        lead: "Set the default experience for new visitors. This saves the public default theme and language. Visitors who already chose their own browser preference keep their personal setting.",
+        theme: "Default theme",
+        themeDark: "Dark",
+        themeLight: "Light",
+        language: "Default language",
+        languageEn: "English",
+        languageDe: "German",
+        save: "Save site defaults",
+        reset: "Restore defaults",
+        saved: "Site defaults saved.",
+        saveError: "Saving failed. Check the site-state table in Supabase.",
+        note: "These values act as the public default. Personal browser choices for theme or language still take priority."
+      };
+  const defaults = await loadSharedPublicSiteDefaults();
+
+  panel.innerHTML = `
+    <div class="admin-review-prompt-card">
+      <div class="admin-review-prompt-head">
+        <h3>${copy.title}</h3>
+        <p>${copy.lead}</p>
+      </div>
+      <form class="admin-review-prompt-form" data-admin-site-defaults-form>
+        <div class="admin-review-prompt-grid admin-site-defaults-grid">
+          <label class="admin-review-prompt-field">
+            <span>${copy.theme}</span>
+            <select name="theme">
+              <option value="dark"${defaults.theme === "dark" ? " selected" : ""}>${copy.themeDark}</option>
+              <option value="light"${defaults.theme === "light" ? " selected" : ""}>${copy.themeLight}</option>
+            </select>
+          </label>
+          <label class="admin-review-prompt-field">
+            <span>${copy.language}</span>
+            <select name="language">
+              <option value="en"${defaults.language === "en" ? " selected" : ""}>${copy.languageEn}</option>
+              <option value="de"${defaults.language === "de" ? " selected" : ""}>${copy.languageDe}</option>
+            </select>
+          </label>
+        </div>
+        <p class="admin-review-prompt-note">${copy.note}</p>
+        <div class="admin-review-prompt-actions">
+          <button class="btn btn-secondary btn-small" type="button" data-admin-site-defaults-reset>${copy.reset}</button>
+          <button class="btn btn-small" type="submit">${copy.save}</button>
+        </div>
+        <p class="admin-review-prompt-status" data-admin-site-defaults-status hidden></p>
+      </form>
+    </div>
+  `;
+
+  const form = panel.querySelector("[data-admin-site-defaults-form]");
+  const resetButton = panel.querySelector("[data-admin-site-defaults-reset]");
+  const status = panel.querySelector("[data-admin-site-defaults-status]");
+  const applyDefaultsToForm = (nextDefaults) => {
+    if (!(form instanceof HTMLFormElement)) return;
+    const normalizedDefaults = normalizePublicSiteDefaults(nextDefaults);
+    const themeField = form.elements.namedItem("theme");
+    const languageField = form.elements.namedItem("language");
+    if (themeField instanceof HTMLSelectElement) themeField.value = normalizedDefaults.theme;
+    if (languageField instanceof HTMLSelectElement) languageField.value = normalizedDefaults.language;
+  };
+
+  form?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!(form instanceof HTMLFormElement)) return;
+
+    const themeField = form.elements.namedItem("theme");
+    const languageField = form.elements.namedItem("language");
+    const nextDefaults = normalizePublicSiteDefaults({
+      theme: themeField instanceof HTMLSelectElement ? themeField.value : undefined,
+      language: languageField instanceof HTMLSelectElement ? languageField.value : undefined
+    });
+
+    try {
+      await saveSharedPublicSiteDefaults(nextDefaults);
+      if (status instanceof HTMLElement) {
+        status.hidden = false;
+        status.dataset.state = "success";
+        status.textContent = copy.saved;
+      }
+    } catch {
+      if (status instanceof HTMLElement) {
+        status.hidden = false;
+        status.dataset.state = "error";
+        status.textContent = copy.saveError;
+      }
+    }
+  });
+
+  resetButton?.addEventListener("click", () => {
+    applyDefaultsToForm(DEFAULT_PUBLIC_SITE_DEFAULTS);
+    if (status instanceof HTMLElement) {
+      status.hidden = true;
+      status.textContent = "";
+      status.dataset.state = "";
+    }
+  });
 }
 
 async function renderAdminReviewPromptControls(workspacePanel = document.querySelector("[data-admin-workspace]")) {
@@ -7101,7 +7372,6 @@ async function setupPublicReviewSummary({ publicReviews: providedPublicReviews =
   const countryList = document.querySelector("[data-public-review-countries]");
   const starsShell = document.querySelector("[data-public-review-stars-shell]");
   const starsFill = document.querySelector("[data-public-review-stars-fill]");
-  const homepageReviewList = document.querySelector("#homepage-public-reviews [data-public-review-list]");
 
   const lang = resolveInitialLanguage();
   const copy = getPublicReviewUiCopy(lang);
@@ -7113,16 +7383,6 @@ async function setupPublicReviewSummary({ publicReviews: providedPublicReviews =
   const averageLabel = ratings.length ? `${average.toFixed(1)}/5` : copy.noRatings;
   const reviewCount = publicReviews.length;
   const reachCount = countryEntries.length;
-
-  if (homepageReviewList) {
-    renderPublicReviewListContent({
-      list: homepageReviewList,
-      reviews: publicReviews.slice(0, 6),
-      copy,
-      lang,
-      isAdminMode: getAdminModeState()
-    });
-  }
 
   if (averageValue) {
     averageValue.textContent = averageLabel;
@@ -7353,6 +7613,75 @@ async function fetchSharedReviewPromptSettings() {
   } catch {
     return normalizeReviewPromptSettings();
   }
+}
+
+async function fetchSharedPublicSiteDefaults() {
+  try {
+    const supabase = await getSupabaseClient();
+    const { data, error } = await supabase
+      .from(SUPABASE_SITE_STATE_TABLE)
+      .select("settings")
+      .eq("id", SUPABASE_SITE_DEFAULTS_STATE_ID)
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    return normalizePublicSiteDefaults(data?.settings);
+  } catch {
+    return loadStoredPublicSiteDefaults();
+  }
+}
+
+async function loadSharedPublicSiteDefaults({ forceRefresh = false } = {}) {
+  if (!forceRefresh && sharedPublicSiteDefaultsCache) {
+    return sharedPublicSiteDefaultsCache;
+  }
+
+  if (!forceRefresh && sharedPublicSiteDefaultsPromise) {
+    return sharedPublicSiteDefaultsPromise;
+  }
+
+  sharedPublicSiteDefaultsPromise = fetchSharedPublicSiteDefaults()
+    .then((defaults) => {
+      const normalizedDefaults = normalizePublicSiteDefaults(defaults);
+      sharedPublicSiteDefaultsCache = normalizedDefaults;
+      saveStoredPublicSiteDefaults(normalizedDefaults);
+      return normalizedDefaults;
+    })
+    .finally(() => {
+      sharedPublicSiteDefaultsPromise = null;
+    });
+
+  return sharedPublicSiteDefaultsPromise;
+}
+
+async function saveSharedPublicSiteDefaults(defaults) {
+  const normalizedDefaults = normalizePublicSiteDefaults(defaults);
+  const supabase = await getSupabaseClient();
+  const { error } = await supabase
+    .from(SUPABASE_SITE_STATE_TABLE)
+    .upsert(
+      {
+        id: SUPABASE_SITE_DEFAULTS_STATE_ID,
+        updated_at: new Date().toISOString(),
+        settings: normalizedDefaults
+      },
+      { onConflict: "id" }
+    );
+
+  if (error) {
+    throw error;
+  }
+
+  sharedPublicSiteDefaultsCache = normalizedDefaults;
+  saveStoredPublicSiteDefaults(normalizedDefaults);
+  return normalizedDefaults;
+}
+
+async function hydrateSharedPublicSiteDefaults({ forceRefresh = false } = {}) {
+  await loadSharedPublicSiteDefaults({ forceRefresh });
 }
 
 async function loadSharedReviewPromptSettings({ forceRefresh = false } = {}) {
@@ -7737,6 +8066,7 @@ async function setupHomepageReviewPrompt() {
 document.addEventListener("DOMContentLoaded", async () => {
   loadSiteAnalytics();
   setupAnalyticsClickTracking();
+  await hydrateSharedPublicSiteDefaults();
   applyTheme(resolveInitialTheme());
   setupLanguageSwitcher();
   setupThemeToggle();

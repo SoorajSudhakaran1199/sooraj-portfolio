@@ -26,8 +26,14 @@
   <link rel="stylesheet" href="style.css" />
   <script>
     (() => {
-      const lang = localStorage.getItem("site-language") === "de" ? "de" : "en";
-      const theme = localStorage.getItem("theme") || "dark";
+      let publicDefaults = {};
+      try {
+        publicDefaults = JSON.parse(localStorage.getItem("public-site-defaults") || "{}") || {};
+      } catch {}
+      const savedLang = localStorage.getItem("site-language");
+      const lang = savedLang === "de" ? "de" : savedLang === "en" ? "en" : publicDefaults.language === "de" ? "de" : "en";
+      const savedTheme = localStorage.getItem("theme");
+      const theme = savedTheme === "light" || savedTheme === "dark" ? savedTheme : publicDefaults.theme === "light" ? "light" : "dark";
       document.documentElement.setAttribute("lang", lang);
       document.documentElement.setAttribute("data-lang-ready", "false");
       document.documentElement.setAttribute("data-theme", theme);

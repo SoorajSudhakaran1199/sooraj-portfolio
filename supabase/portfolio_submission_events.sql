@@ -51,6 +51,7 @@ create table if not exists public.portfolio_public_reviews (
 
 alter table public.portfolio_public_reviews
   add column if not exists company text,
+  add column if not exists is_pinned boolean not null default false,
   add column if not exists admin_reply text,
   add column if not exists admin_reply_created_at timestamptz;
 
@@ -59,6 +60,9 @@ create index if not exists portfolio_public_reviews_created_at_idx
 
 create index if not exists portfolio_public_reviews_rating_value_idx
   on public.portfolio_public_reviews (rating_value);
+
+create index if not exists portfolio_public_reviews_is_pinned_idx
+  on public.portfolio_public_reviews (is_pinned);
 
 alter table public.portfolio_public_reviews enable row level security;
 
@@ -108,6 +112,10 @@ on conflict (id) do nothing;
 
 insert into public.portfolio_site_state (id, updated_at, settings)
 values ('public_review_prompt', timezone('utc', now()), '{}'::jsonb)
+on conflict (id) do nothing;
+
+insert into public.portfolio_site_state (id, updated_at, settings)
+values ('public_site_defaults', timezone('utc', now()), '{"theme":"dark","language":"en"}'::jsonb)
 on conflict (id) do nothing;
 
 alter table public.portfolio_site_state enable row level security;
