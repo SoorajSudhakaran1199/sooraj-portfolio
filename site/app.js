@@ -5574,6 +5574,7 @@ function setupPortfolioHelpBot() {
         studentUniversityCandidate: null,
         chatFeedbackDraft: normalizeHelpBotFeedbackDraft(null),
         remoteSessionId: "",
+        remoteSessionPersisted: false,
         pendingInputKind: "",
         pendingTopicId: "",
         pendingTourStepId: "",
@@ -5599,6 +5600,7 @@ function setupPortfolioHelpBot() {
       studentUniversityCandidate: normalizeHelpBotUniversityCandidate(source.studentUniversityCandidate),
       chatFeedbackDraft: normalizeHelpBotFeedbackDraft(source.chatFeedbackDraft),
       remoteSessionId: String(source.remoteSessionId || "").trim(),
+      remoteSessionPersisted: Boolean(source.remoteSessionPersisted),
       pendingInputKind: HELP_BOT_PENDING_INPUT_KINDS.includes(String(source.pendingInputKind || "").trim())
         ? String(source.pendingInputKind || "").trim()
         : "",
@@ -5642,6 +5644,7 @@ function setupPortfolioHelpBot() {
     helpBotState.studentUniversityCandidate = normalizeHelpBotUniversityCandidate(helpBotState.studentUniversityCandidate);
     helpBotState.chatFeedbackDraft = normalizeHelpBotFeedbackDraft(helpBotState.chatFeedbackDraft);
     helpBotState.remoteSessionId = String(helpBotState.remoteSessionId || "").trim();
+    helpBotState.remoteSessionPersisted = Boolean(helpBotState.remoteSessionPersisted) && Boolean(helpBotState.remoteSessionId);
     helpBotState.pendingInputKind = HELP_BOT_PENDING_INPUT_KINDS.includes(helpBotState.pendingInputKind)
       ? helpBotState.pendingInputKind
       : "";
@@ -5652,7 +5655,6 @@ function setupPortfolioHelpBot() {
     helpBotState.hasConversationBooted = hasConversationBooted && helpBotState.messages.length > 0;
     helpBotState.lastPageName = currentPageName;
     saveStoredJson(localStorage, STORAGE_HELP_BOT_STATE_KEY, helpBotState);
-    queueHelpBotRemoteSessionSync();
   };
 
   const clearHelpBotState = () => {
@@ -5676,14 +5678,15 @@ function setupPortfolioHelpBot() {
     const nextId = window.crypto?.randomUUID?.()
       || `helpbot-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
     helpBotState.remoteSessionId = nextId;
+    helpBotState.remoteSessionPersisted = false;
     saveStoredJson(localStorage, STORAGE_HELP_BOT_STATE_KEY, helpBotState);
     return nextId;
   };
 
   const buildHelpBotRemoteSessionSnapshot = ({ endedAt = "" } = {}) => {
     if (getAdminModeState()) return null;
+    if (!currentRoleId) return null;
     const normalizedEndedAt = String(endedAt || "").trim();
-    if (!normalizedEndedAt) return null;
     const transcript = helpBotState.messages
       .slice(-HELP_BOT_REMOTE_MAX_MESSAGES)
       .map((message) => normalizeHelpBotSessionTranscriptEntry({
@@ -5697,7 +5700,6 @@ function setupPortfolioHelpBot() {
     const nowIso = new Date().toISOString();
     const snapshot = {
       session_id: sessionId,
-      created_at: nowIso,
       updated_at: nowIso,
       page_path: window.location.pathname || `/${currentPageName}`,
       role_id: currentRoleId || null,
@@ -5706,14 +5708,20 @@ function setupPortfolioHelpBot() {
       visitor_organization: getVisitorOrganization() || null,
       student_university: getStudentUniversity() || null,
       message_count: transcript.length,
-      transcript_json: transcript,
-      ended_at: normalizedEndedAt
+      transcript_json: transcript
     };
+    if (!helpBotState.remoteSessionPersisted) {
+      snapshot.created_at = nowIso;
+    }
+    if (normalizedEndedAt) {
+      snapshot.ended_at = normalizedEndedAt;
+    }
 
     return {
       payload: snapshot,
       signature: JSON.stringify({
         session_id: snapshot.session_id,
+        remoteSessionPersisted: Boolean(helpBotState.remoteSessionPersisted),
         page_path: snapshot.page_path,
         role_id: snapshot.role_id,
         visitor_name: snapshot.visitor_name,
@@ -5732,10 +5740,20 @@ function setupPortfolioHelpBot() {
     if (!snapshot || snapshot.signature === helpBotRemoteSyncSignature) return;
     try {
       const supabase = await getSupabaseClient();
-      const { error } = await supabase
-        .from(SUPABASE_HELP_BOT_SESSIONS_TABLE)
-        .insert(snapshot.payload);
+      const request = helpBotState.remoteSessionPersisted
+        ? supabase
+          .from(SUPABASE_HELP_BOT_SESSIONS_TABLE)
+          .update(snapshot.payload)
+          .eq("session_id", snapshot.payload.session_id)
+        : supabase
+          .from(SUPABASE_HELP_BOT_SESSIONS_TABLE)
+          .insert(snapshot.payload);
+      const { error } = await request;
       if (error) throw error;
+      if (!helpBotState.remoteSessionPersisted) {
+        helpBotState.remoteSessionPersisted = true;
+        saveStoredJson(localStorage, STORAGE_HELP_BOT_STATE_KEY, helpBotState);
+      }
       helpBotRemoteSyncSignature = snapshot.signature;
     } catch {
       // Ignore remote sync failures so the local chat flow remains stable.
@@ -7160,6 +7178,9 @@ function setupPortfolioHelpBot() {
         (closeButton || panel).focus({ preventScroll: true });
       });
     } else {
+      if (currentRoleId && helpBotState.messages.some((message) => message?.sender === "user")) {
+        queueHelpBotRemoteSessionSync({ immediate: true });
+      }
       clearNudgeTimers();
       showNudge({ delay: HELP_BOT_NUDGE_RESHOW_MS });
       if (lastFocusedElement && document.contains(lastFocusedElement)) {
@@ -8262,6 +8283,7 @@ function setupPortfolioHelpBot() {
     helpBotState.studentUniversity = "";
     helpBotState.studentUniversityCandidate = null;
     helpBotState.remoteSessionId = "";
+    helpBotState.remoteSessionPersisted = false;
     clearChatFeedbackDraft();
     helpBotState.pendingInputKind = "";
     helpBotState.pendingTopicId = "";
