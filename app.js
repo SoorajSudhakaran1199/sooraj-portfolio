@@ -5682,6 +5682,8 @@ function setupPortfolioHelpBot() {
 
   const buildHelpBotRemoteSessionSnapshot = ({ endedAt = "" } = {}) => {
     if (getAdminModeState()) return null;
+    const normalizedEndedAt = String(endedAt || "").trim();
+    if (!normalizedEndedAt) return null;
     const transcript = helpBotState.messages
       .slice(-HELP_BOT_REMOTE_MAX_MESSAGES)
       .map((message) => normalizeHelpBotSessionTranscriptEntry({
@@ -5692,10 +5694,11 @@ function setupPortfolioHelpBot() {
     if (!transcript.some((entry) => entry.sender === "user")) return null;
 
     const sessionId = getHelpBotRemoteSessionId();
-    const normalizedEndedAt = String(endedAt || "").trim();
+    const nowIso = new Date().toISOString();
     const snapshot = {
       session_id: sessionId,
-      updated_at: new Date().toISOString(),
+      created_at: nowIso,
+      updated_at: nowIso,
       page_path: window.location.pathname || `/${currentPageName}`,
       role_id: currentRoleId || null,
       visitor_name: getVisitorName() || null,
@@ -5704,7 +5707,7 @@ function setupPortfolioHelpBot() {
       student_university: getStudentUniversity() || null,
       message_count: transcript.length,
       transcript_json: transcript,
-      ended_at: normalizedEndedAt || null
+      ended_at: normalizedEndedAt
     };
 
     return {
@@ -5731,7 +5734,7 @@ function setupPortfolioHelpBot() {
       const supabase = await getSupabaseClient();
       const { error } = await supabase
         .from(SUPABASE_HELP_BOT_SESSIONS_TABLE)
-        .upsert(snapshot.payload, { onConflict: "session_id" });
+        .insert(snapshot.payload);
       if (error) throw error;
       helpBotRemoteSyncSignature = snapshot.signature;
     } catch {
