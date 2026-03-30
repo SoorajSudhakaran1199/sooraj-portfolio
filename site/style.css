@@ -2015,6 +2015,114 @@ body.admin-modal-open {
   color: #ffb7b7;
 }
 
+.admin-help-bot-panel {
+  grid-column: 1 / -1;
+}
+
+.admin-help-bot-list {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.admin-help-bot-empty {
+  margin: 0;
+  color: var(--text-soft);
+}
+
+.admin-help-bot-session {
+  border: 1px solid rgba(128, 184, 255, 0.14);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  overflow: hidden;
+}
+
+.admin-help-bot-session-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.95rem 1rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.admin-help-bot-session-summary::-webkit-details-marker {
+  display: none;
+}
+
+.admin-help-bot-session-copy {
+  display: grid;
+  gap: 0.24rem;
+}
+
+.admin-help-bot-session-copy strong {
+  color: var(--text);
+  font-size: 0.92rem;
+}
+
+.admin-help-bot-session-copy span,
+.admin-help-bot-session-action {
+  color: var(--text-soft);
+  font-size: 0.8rem;
+}
+
+.admin-help-bot-session-action {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.admin-help-bot-session-body {
+  display: grid;
+  gap: 0.9rem;
+  padding: 0 1rem 1rem;
+  border-top: 1px solid rgba(128, 184, 255, 0.1);
+}
+
+.admin-help-bot-session-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  padding-top: 0.95rem;
+}
+
+.admin-help-bot-transcript {
+  display: grid;
+  gap: 0.72rem;
+  max-height: 420px;
+  padding: 0.25rem;
+  overflow: auto;
+}
+
+.admin-help-bot-transcript-line {
+  display: grid;
+  gap: 0.28rem;
+  padding: 0.82rem 0.9rem;
+  border-radius: 16px;
+  border: 1px solid rgba(128, 184, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.admin-help-bot-transcript-line.is-user {
+  border-color: rgba(89, 226, 188, 0.18);
+  background: rgba(89, 226, 188, 0.08);
+}
+
+.admin-help-bot-transcript-role {
+  color: #82d9d0;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-help-bot-transcript-line p {
+  margin: 0;
+  color: var(--text);
+  line-height: 1.62;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 .top-update-text[data-update-age="fresh"] {
   border-color: rgba(89, 226, 188, 0.24);
   background:
@@ -2185,6 +2293,30 @@ body.admin-modal-open {
 }
 
 [data-theme="light"] .admin-review-prompt-note {
+  color: rgba(63, 86, 111, 0.84);
+}
+
+[data-theme="light"] .admin-help-bot-session {
+  border-color: rgba(21, 44, 74, 0.09);
+  background: rgba(255, 255, 255, 0.76);
+}
+
+[data-theme="light"] .admin-help-bot-session-body {
+  border-top-color: rgba(21, 44, 74, 0.08);
+}
+
+[data-theme="light"] .admin-help-bot-transcript-line {
+  border-color: rgba(21, 44, 74, 0.09);
+  background: rgba(248, 251, 255, 0.96);
+}
+
+[data-theme="light"] .admin-help-bot-transcript-line.is-user {
+  border-color: rgba(2, 139, 112, 0.16);
+  background: rgba(2, 139, 112, 0.08);
+}
+
+[data-theme="light"] .admin-help-bot-session-copy span,
+[data-theme="light"] .admin-help-bot-session-action {
   color: rgba(63, 86, 111, 0.84);
 }
 

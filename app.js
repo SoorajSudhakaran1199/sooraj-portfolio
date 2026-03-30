@@ -13,6 +13,7 @@ const REVIEW_PROMPT_ELIGIBLE_PAGES = new Set(["index.html", "portfolio-map.html"
 const SUPABASE_SUBMISSION_EVENTS_TABLE = "portfolio_submission_events";
 const SUPABASE_PUBLIC_REVIEWS_TABLE = "portfolio_public_reviews";
 const SUPABASE_SITE_STATE_TABLE = "portfolio_site_state";
+const SUPABASE_HELP_BOT_SESSIONS_TABLE = "portfolio_help_bot_sessions";
 const SUPABASE_SITE_UPDATE_STATE_ID = "public_site_update";
 const SUPABASE_REVIEW_PROMPT_STATE_ID = "public_review_prompt";
 const SUPABASE_SITE_DEFAULTS_STATE_ID = "public_site_defaults";
@@ -573,6 +574,37 @@ function normalizePublicReviewEntry(entry) {
     adminReply: String(entry.admin_reply || entry.adminReply || "").trim(),
     adminReplyCreatedAt: entry.admin_reply_created_at || entry.adminReplyCreatedAt || "",
     submittedAt: entry.created_at || entry.submittedAt || new Date().toISOString()
+  };
+}
+
+function normalizeHelpBotSessionTranscriptEntry(entry) {
+  if (!entry || typeof entry !== "object") return null;
+  const sender = entry.sender === "user" ? "user" : "bot";
+  const text = String(entry.text || "").trim();
+  if (!text) return null;
+  return { sender, text };
+}
+
+function normalizeHelpBotSessionEntry(entry) {
+  if (!entry || typeof entry !== "object") return null;
+  const sessionId = String(entry.session_id || entry.sessionId || "").trim();
+  if (!sessionId) return null;
+  const transcript = Array.isArray(entry.transcript_json || entry.transcriptJson)
+    ? (entry.transcript_json || entry.transcriptJson).map(normalizeHelpBotSessionTranscriptEntry).filter(Boolean)
+    : [];
+  return {
+    sessionId,
+    createdAt: entry.created_at || entry.createdAt || "",
+    updatedAt: entry.updated_at || entry.updatedAt || "",
+    endedAt: entry.ended_at || entry.endedAt || "",
+    pagePath: String(entry.page_path || entry.pagePath || "").trim(),
+    roleId: String(entry.role_id || entry.roleId || "").trim(),
+    visitorName: String(entry.visitor_name || entry.visitorName || "").trim(),
+    visitorPosition: String(entry.visitor_position || entry.visitorPosition || "").trim(),
+    visitorOrganization: String(entry.visitor_organization || entry.visitorOrganization || "").trim(),
+    studentUniversity: String(entry.student_university || entry.studentUniversity || "").trim(),
+    messageCount: Math.max(0, Number.parseInt(String(entry.message_count || entry.messageCount || transcript.length || 0), 10) || 0),
+    transcript
   };
 }
 
@@ -5058,8 +5090,10 @@ function setupPortfolioHelpBot() {
   const HELP_BOT_NUDGE_AUTO_HIDE_MS = 5200;
   const HELP_BOT_NUDGE_RESHOW_MS = 28000;
   const HELP_BOT_NUDGE_MAX_RESHOWS = 1;
-  const HELP_BOT_STATE_VERSION = 8;
+  const HELP_BOT_STATE_VERSION = 9;
   const HELP_BOT_STATE_TTL_MS = 1000 * 60 * 60 * 24 * 7;
+  const HELP_BOT_REMOTE_MAX_MESSAGES = 60;
+  const HELP_BOT_REMOTE_SYNC_DELAY_MS = 1200;
   const HELP_BOT_STATE_MAX_MESSAGES = 28;
   const HELP_BOT_FOCUSABLE_SELECTOR = [
     "a[href]",
@@ -5539,6 +5573,7 @@ function setupPortfolioHelpBot() {
         studentUniversity: "",
         studentUniversityCandidate: null,
         chatFeedbackDraft: normalizeHelpBotFeedbackDraft(null),
+        remoteSessionId: "",
         pendingInputKind: "",
         pendingTopicId: "",
         pendingTourStepId: "",
@@ -5563,6 +5598,7 @@ function setupPortfolioHelpBot() {
       studentUniversity: normalizeUniversityName(source.studentUniversity),
       studentUniversityCandidate: normalizeHelpBotUniversityCandidate(source.studentUniversityCandidate),
       chatFeedbackDraft: normalizeHelpBotFeedbackDraft(source.chatFeedbackDraft),
+      remoteSessionId: String(source.remoteSessionId || "").trim(),
       pendingInputKind: HELP_BOT_PENDING_INPUT_KINDS.includes(String(source.pendingInputKind || "").trim())
         ? String(source.pendingInputKind || "").trim()
         : "",
@@ -5605,6 +5641,7 @@ function setupPortfolioHelpBot() {
     helpBotState.studentUniversity = normalizeUniversityName(helpBotState.studentUniversity);
     helpBotState.studentUniversityCandidate = normalizeHelpBotUniversityCandidate(helpBotState.studentUniversityCandidate);
     helpBotState.chatFeedbackDraft = normalizeHelpBotFeedbackDraft(helpBotState.chatFeedbackDraft);
+    helpBotState.remoteSessionId = String(helpBotState.remoteSessionId || "").trim();
     helpBotState.pendingInputKind = HELP_BOT_PENDING_INPUT_KINDS.includes(helpBotState.pendingInputKind)
       ? helpBotState.pendingInputKind
       : "";
@@ -5615,9 +5652,11 @@ function setupPortfolioHelpBot() {
     helpBotState.hasConversationBooted = hasConversationBooted && helpBotState.messages.length > 0;
     helpBotState.lastPageName = currentPageName;
     saveStoredJson(localStorage, STORAGE_HELP_BOT_STATE_KEY, helpBotState);
+    queueHelpBotRemoteSessionSync();
   };
 
   const clearHelpBotState = () => {
+    window.clearTimeout(helpBotRemoteSyncTimer);
     helpBotState = normalizeHelpBotState(null);
     currentRoleId = "";
     hasConversationBooted = false;
@@ -5626,6 +5665,89 @@ function setupPortfolioHelpBot() {
     } catch {
       // Ignore storage failures without breaking the assistant UI.
     }
+  };
+
+  let helpBotRemoteSyncTimer = 0;
+  let helpBotRemoteSyncSignature = "";
+
+  const getHelpBotRemoteSessionId = () => {
+    const existingId = String(helpBotState.remoteSessionId || "").trim();
+    if (existingId) return existingId;
+    const nextId = window.crypto?.randomUUID?.()
+      || `helpbot-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    helpBotState.remoteSessionId = nextId;
+    saveStoredJson(localStorage, STORAGE_HELP_BOT_STATE_KEY, helpBotState);
+    return nextId;
+  };
+
+  const buildHelpBotRemoteSessionSnapshot = ({ endedAt = "" } = {}) => {
+    if (getAdminModeState()) return null;
+    const transcript = helpBotState.messages
+      .slice(-HELP_BOT_REMOTE_MAX_MESSAGES)
+      .map((message) => normalizeHelpBotSessionTranscriptEntry({
+        sender: message.sender,
+        text: message.text
+      }))
+      .filter(Boolean);
+    if (!transcript.some((entry) => entry.sender === "user")) return null;
+
+    const sessionId = getHelpBotRemoteSessionId();
+    const normalizedEndedAt = String(endedAt || "").trim();
+    const snapshot = {
+      session_id: sessionId,
+      updated_at: new Date().toISOString(),
+      page_path: window.location.pathname || `/${currentPageName}`,
+      role_id: currentRoleId || null,
+      visitor_name: getVisitorName() || null,
+      visitor_position: getVisitorPosition() || null,
+      visitor_organization: getVisitorOrganization() || null,
+      student_university: getStudentUniversity() || null,
+      message_count: transcript.length,
+      transcript_json: transcript,
+      ended_at: normalizedEndedAt || null
+    };
+
+    return {
+      payload: snapshot,
+      signature: JSON.stringify({
+        session_id: snapshot.session_id,
+        page_path: snapshot.page_path,
+        role_id: snapshot.role_id,
+        visitor_name: snapshot.visitor_name,
+        visitor_position: snapshot.visitor_position,
+        visitor_organization: snapshot.visitor_organization,
+        student_university: snapshot.student_university,
+        message_count: snapshot.message_count,
+        transcript_json: snapshot.transcript_json,
+        ended_at: snapshot.ended_at
+      })
+    };
+  };
+
+  const syncHelpBotRemoteSession = async ({ endedAt = "" } = {}) => {
+    const snapshot = buildHelpBotRemoteSessionSnapshot({ endedAt });
+    if (!snapshot || snapshot.signature === helpBotRemoteSyncSignature) return;
+    try {
+      const supabase = await getSupabaseClient();
+      const { error } = await supabase
+        .from(SUPABASE_HELP_BOT_SESSIONS_TABLE)
+        .upsert(snapshot.payload, { onConflict: "session_id" });
+      if (error) throw error;
+      helpBotRemoteSyncSignature = snapshot.signature;
+    } catch {
+      // Ignore remote sync failures so the local chat flow remains stable.
+    }
+  };
+
+  const queueHelpBotRemoteSessionSync = ({ immediate = false, endedAt = "" } = {}) => {
+    window.clearTimeout(helpBotRemoteSyncTimer);
+    if (immediate) {
+      void syncHelpBotRemoteSession({ endedAt });
+      return;
+    }
+    helpBotRemoteSyncTimer = window.setTimeout(() => {
+      void syncHelpBotRemoteSession({ endedAt });
+    }, HELP_BOT_REMOTE_SYNC_DELAY_MS);
   };
 
   persistHelpBotState();
@@ -8122,6 +8244,9 @@ function setupPortfolioHelpBot() {
   };
 
   const resetConversation = async () => {
+    if (helpBotState.messages.some((message) => message?.sender === "user")) {
+      queueHelpBotRemoteSessionSync({ immediate: true, endedAt: new Date().toISOString() });
+    }
     responseToken += 1;
     const token = responseToken;
     hasConversationBooted = true;
@@ -8133,6 +8258,7 @@ function setupPortfolioHelpBot() {
     helpBotState.visitorOrganization = "";
     helpBotState.studentUniversity = "";
     helpBotState.studentUniversityCandidate = null;
+    helpBotState.remoteSessionId = "";
     clearChatFeedbackDraft();
     helpBotState.pendingInputKind = "";
     helpBotState.pendingTopicId = "";
@@ -8576,6 +8702,9 @@ function setupPortfolioHelpBot() {
     responseToken += 1;
     clearTypingIndicator();
     hideComposer();
+    if (helpBotState.messages.some((message) => message?.sender === "user")) {
+      queueHelpBotRemoteSessionSync({ immediate: true, endedAt: new Date().toISOString() });
+    }
     clearHelpBotState();
     if (liveRegion) liveRegion.textContent = "";
     messages.innerHTML = "";
@@ -9683,11 +9812,13 @@ function setupAdminWorkspace() {
         updateTool: "Geteilte Update-Zeit aktualisieren",
         reviewsTool: "Oeffentliche Bewertungen beantworten oder loeschen",
         submissionsTool: "Private Uebermittlungsuebersicht einsehen",
+        chatbotTool: "Private Chatbot-Protokolle ansehen oder loeschen",
         promptTool: "Review-Prompt fuer Besucher anpassen",
         defaultsAction: "Site-Standards",
         refreshAction: "Update-Zeit aktualisieren",
         reviewsAction: "Zu Bewertungen",
         summaryAction: "Zur Uebersicht",
+        chatbotAction: "Chatbot-Logs",
         promptAction: "Prompt-Einstellungen",
         reviewSyncLabel: "Public-Review-Sync",
         reviewSyncRemote: "Live fuer alle Besucher",
@@ -9703,11 +9834,13 @@ function setupAdminWorkspace() {
         updateTool: "Refresh the shared update timestamp",
         reviewsTool: "Reply to or remove public reviews",
         submissionsTool: "Inspect the private submission summary",
+        chatbotTool: "Inspect or delete private chatbot logs",
         promptTool: "Adjust the visitor review prompt",
         defaultsAction: "Site defaults",
         refreshAction: "Refresh update time",
         reviewsAction: "Go to reviews",
         summaryAction: "Open summary",
+        chatbotAction: "Chatbot logs",
         promptAction: "Prompt settings",
         reviewSyncLabel: "Public review sync",
         reviewSyncRemote: "Live for all visitors",
@@ -9723,13 +9856,14 @@ function setupAdminWorkspace() {
     || document.querySelector("[data-public-review-list]");
   const summaryPanel = document.querySelector("[data-feedback-thankyou-summary-panel]");
   const submissionLog = document.querySelector("[data-feedback-stats-log]");
-  const toolLabels = [copy.defaultsTool, copy.promptTool];
+  const toolLabels = [copy.defaultsTool, copy.promptTool, copy.chatbotTool];
   const actions = [];
   const reviewSyncState = sharedPublicReviewsSource === "remote"
     ? copy.reviewSyncRemote
     : copy.reviewSyncUnavailable;
 
   actions.push({ type: "defaults", label: copy.defaultsAction });
+  actions.push({ type: "chatbot", label: copy.chatbotAction });
 
   if (refreshButton) {
     toolLabels.push(copy.updateTool);
@@ -9778,6 +9912,7 @@ function setupAdminWorkspace() {
       </div>
       <div class="admin-site-defaults-panel" data-admin-site-defaults-panel></div>
       <div class="admin-review-prompt-panel" data-admin-review-prompt-panel></div>
+      <div class="admin-help-bot-panel" data-admin-help-bot-panel></div>
     </div>
   `;
 
@@ -9834,12 +9969,21 @@ function setupAdminWorkspace() {
         if (promptPanel instanceof HTMLElement) {
           promptPanel.scrollIntoView({ behavior: "smooth", block: "start" });
         }
+        return;
+      }
+
+      if (action === "chatbot") {
+        const chatPanel = panel.querySelector("[data-admin-help-bot-panel]");
+        if (chatPanel instanceof HTMLElement) {
+          chatPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
       }
     });
   });
 
   renderAdminSiteDefaultsControls(panel);
   renderAdminReviewPromptControls(panel);
+  renderAdminHelpBotControls(panel);
 }
 
 async function renderAdminSiteDefaultsControls(workspacePanel = document.querySelector("[data-admin-workspace]")) {
@@ -10185,6 +10329,176 @@ async function renderAdminReviewPromptControls(workspacePanel = document.querySe
       status.dataset.state = "";
     }
   });
+}
+
+async function renderAdminHelpBotControls(workspacePanel = document.querySelector("[data-admin-workspace]")) {
+  const panel = workspacePanel instanceof HTMLElement
+    ? workspacePanel.querySelector("[data-admin-help-bot-panel]")
+    : null;
+  if (!(panel instanceof HTMLElement)) return;
+
+  if (!getAdminModeState()) {
+    panel.replaceChildren();
+    return;
+  }
+
+  const lang = resolveInitialLanguage();
+  const copy = lang === "de"
+    ? {
+        title: "Chatbot-Protokolle",
+        lead: "Diese kompakte Uebersicht speichert private Chatbot-Sitzungen getrennt vom Review-System. Gespeichert werden die Bot-Nachrichten sowie die vom Besucher eingegebenen Texte und geklickten Auswahltexte.",
+        note: "Aus Speichergruenden wird pro Sitzung nur ein kompaktes Transcript gespeichert. Oeffentliche Reviews bleiben davon getrennt.",
+        empty: "Noch keine gespeicherten Chatbot-Sitzungen.",
+        refresh: "Neu laden",
+        delete: "Loeschen",
+        deleting: "Loeschen...",
+        deleteError: "Loeschen fehlgeschlagen. Pruefen Sie die Chatbot-SQL-Tabelle und die Admin-Policies in Supabase.",
+        messages: "Nachrichten",
+        role: "Rolle",
+        page: "Seite",
+        updated: "Aktualisiert",
+        ended: "Beendet",
+        visitor: "Besucher",
+        position: "Position",
+        organization: "Organisation",
+        university: "Hochschule",
+        transcript: "Transcript anzeigen",
+        bot: "Bot",
+        user: "Besucher",
+        anonymous: "Ohne Namen",
+        roleLabels: {
+          recruiter: "Recruiter",
+          student: "Student",
+          visitor: "Allgemeiner Besucher"
+        }
+      }
+    : {
+        title: "Chatbot logs",
+        lead: "This compact panel stores private chatbot sessions separately from the review system. It keeps the bot messages plus the text entered by the visitor and the labels of the options they clicked.",
+        note: "To reduce storage, each session is stored as one compact transcript record. Public reviews stay separate from this data.",
+        empty: "No chatbot sessions have been saved yet.",
+        refresh: "Refresh",
+        delete: "Delete",
+        deleting: "Deleting...",
+        deleteError: "Deleting failed. Check the chatbot SQL table and the admin policies in Supabase.",
+        messages: "Messages",
+        role: "Role",
+        page: "Page",
+        updated: "Updated",
+        ended: "Ended",
+        visitor: "Visitor",
+        position: "Position",
+        organization: "Organization",
+        university: "University",
+        transcript: "View transcript",
+        bot: "Bot",
+        user: "Visitor",
+        anonymous: "Unnamed",
+        roleLabels: {
+          recruiter: "Recruiter",
+          student: "Student",
+          visitor: "General visitor"
+        }
+      };
+
+  const render = async () => {
+    panel.innerHTML = `
+      <div class="admin-review-prompt-card">
+        <div class="admin-review-prompt-head">
+          <h3>${copy.title}</h3>
+          <p>${copy.lead}</p>
+        </div>
+        <p class="admin-review-prompt-note">${copy.note}</p>
+        <div class="admin-review-prompt-actions">
+          <button class="btn btn-secondary btn-small" type="button" data-admin-help-bot-refresh>${copy.refresh}</button>
+        </div>
+        <div class="admin-help-bot-list" data-admin-help-bot-list></div>
+      </div>
+    `;
+
+    const refreshButton = panel.querySelector("[data-admin-help-bot-refresh]");
+    refreshButton?.addEventListener("click", () => {
+      render();
+    });
+
+    const list = panel.querySelector("[data-admin-help-bot-list]");
+    if (!(list instanceof HTMLElement)) return;
+
+    const sessions = await fetchHelpBotSessions({ limit: 20 });
+    if (!sessions.length) {
+      list.innerHTML = `<p class="admin-help-bot-empty">${copy.empty}</p>`;
+      return;
+    }
+
+    list.innerHTML = sessions.map((session, index) => {
+      const roleLabel = copy.roleLabels[session.roleId] || session.roleId || "-";
+      const updatedLabel = session.updatedAt
+        ? formatUpdatedTimestamp(new Date(session.updatedAt), lang)
+        : "-";
+      const endedLabel = session.endedAt
+        ? formatUpdatedTimestamp(new Date(session.endedAt), lang)
+        : "—";
+      const pageLabel = session.pagePath || "-";
+      const transcriptMarkup = session.transcript.map((entry) => `
+        <div class="admin-help-bot-transcript-line is-${escapeHtml(entry.sender)}">
+          <span class="admin-help-bot-transcript-role">${escapeHtml(entry.sender === "user" ? copy.user : copy.bot)}</span>
+          <p>${escapeHtml(entry.text)}</p>
+        </div>
+      `).join("");
+      const detailFacts = [
+        `${copy.role}: ${roleLabel}`,
+        `${copy.page}: ${pageLabel}`,
+        `${copy.updated}: ${updatedLabel}`,
+        `${copy.ended}: ${endedLabel}`
+      ];
+      if (session.visitorName) detailFacts.push(`${copy.visitor}: ${session.visitorName}`);
+      if (session.visitorPosition) detailFacts.push(`${copy.position}: ${session.visitorPosition}`);
+      if (session.visitorOrganization) detailFacts.push(`${copy.organization}: ${session.visitorOrganization}`);
+      if (session.studentUniversity) detailFacts.push(`${copy.university}: ${session.studentUniversity}`);
+
+      return `
+        <details class="admin-help-bot-session"${index === 0 ? " open" : ""}>
+          <summary class="admin-help-bot-session-summary">
+            <div class="admin-help-bot-session-copy">
+              <strong>${escapeHtml(session.visitorName || roleLabel || copy.anonymous)}</strong>
+              <span>${escapeHtml(roleLabel)} • ${escapeHtml(updatedLabel)} • ${escapeHtml(`${session.messageCount} ${copy.messages}`)}</span>
+            </div>
+            <span class="admin-help-bot-session-action">${copy.transcript}</span>
+          </summary>
+          <div class="admin-help-bot-session-body">
+            <div class="admin-help-bot-session-meta">
+              ${detailFacts.map((item) => `<span class="admin-workspace-tool">${escapeHtml(item)}</span>`).join("")}
+            </div>
+            <div class="admin-help-bot-transcript">
+              ${transcriptMarkup}
+            </div>
+            <div class="admin-review-prompt-actions">
+              <button class="btn btn-secondary btn-small" type="button" data-admin-help-bot-delete="${escapeHtml(session.sessionId)}">${copy.delete}</button>
+            </div>
+          </div>
+        </details>
+      `;
+    }).join("");
+
+    list.querySelectorAll("[data-admin-help-bot-delete]").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const sessionId = button.getAttribute("data-admin-help-bot-delete") || "";
+        if (!sessionId) return;
+        button.disabled = true;
+        button.textContent = copy.deleting;
+        try {
+          await deleteHelpBotSession(sessionId);
+          await render();
+        } catch {
+          button.disabled = false;
+          button.textContent = copy.delete;
+          window.alert(copy.deleteError);
+        }
+      });
+    });
+  };
+
+  await render();
 }
 
 function setupAdminModeControl() {
@@ -12698,6 +13012,44 @@ async function saveSharedReviewPromptSettings(settings) {
 
   sharedReviewPromptSettingsCache = normalizedSettings;
   return normalizedSettings;
+}
+
+async function fetchHelpBotSessions({ limit = 20 } = {}) {
+  try {
+    const supabase = await getSupabaseClient();
+    const { data, error } = await supabase
+      .from(SUPABASE_HELP_BOT_SESSIONS_TABLE)
+      .select("session_id,created_at,updated_at,ended_at,page_path,role_id,visitor_name,visitor_position,visitor_organization,student_university,message_count,transcript_json")
+      .order("updated_at", { ascending: false })
+      .limit(Math.max(1, Math.min(50, Number(limit) || 20)));
+
+    if (error) {
+      throw error;
+    }
+
+    return Array.isArray(data)
+      ? data.map(normalizeHelpBotSessionEntry).filter(Boolean)
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+async function deleteHelpBotSession(sessionId) {
+  const normalizedId = String(sessionId || "").trim();
+  if (!normalizedId) {
+    throw new Error("Missing chatbot session id.");
+  }
+
+  const supabase = await getSupabaseClient();
+  const { error } = await supabase
+    .from(SUPABASE_HELP_BOT_SESSIONS_TABLE)
+    .delete()
+    .eq("session_id", normalizedId);
+
+  if (error) {
+    throw error;
+  }
 }
 
 async function setupLastUpdated() {
