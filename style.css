@@ -5877,8 +5877,8 @@ ul.clean li {
 
 .review-layout {
   display: grid;
-  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
-  gap: 1.3rem;
+  grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
+  gap: 1.45rem;
   align-items: start;
 }
 
@@ -6136,6 +6136,8 @@ ul.clean li {
 }
 
 .review-section-head-stack {
+  display: grid;
+  gap: 0.3rem;
   align-items: start;
   justify-content: start;
 }
@@ -6204,8 +6206,8 @@ ul.clean li {
 
 .review-featured-panel {
   display: grid;
-  gap: 0.95rem;
-  padding: 1.08rem 1.12rem;
+  gap: 1.1rem;
+  padding: 1.22rem 1.24rem;
   border-radius: 18px;
   border: 1px solid rgba(89, 226, 188, 0.18);
   background:
@@ -6220,6 +6222,79 @@ ul.clean li {
 
 .review-featured-list {
   margin-top: 0;
+}
+
+.review-featured-panel .review-section-head {
+  align-items: start;
+}
+
+.review-featured-panel .review-section-head strong {
+  font-size: 1.12rem;
+}
+
+.review-featured-panel .review-section-head small {
+  max-width: 36ch;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  letter-spacing: 0.03em;
+  text-transform: none;
+}
+
+.review-featured-panel .feedback-public-review-card {
+  gap: 1.08rem;
+  padding: 1.28rem 1.34rem 1.34rem;
+  border-radius: 24px;
+}
+
+.review-featured-panel .feedback-public-review-profile {
+  gap: 1rem;
+}
+
+.review-featured-panel .feedback-public-review-avatar {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 18px;
+}
+
+.review-featured-panel .feedback-public-review-topline {
+  align-items: start;
+  gap: 0.8rem 1rem;
+}
+
+.review-featured-panel .feedback-public-review-heading {
+  gap: 0.6rem;
+  max-width: min(100%, 34rem);
+}
+
+.review-featured-panel .feedback-public-review-name {
+  font-size: 1.08rem;
+}
+
+.review-featured-panel .feedback-public-review-meta {
+  font-size: 0.88rem;
+}
+
+.review-featured-panel .feedback-public-review-body {
+  gap: 0.6rem;
+  padding-top: 0.08rem;
+}
+
+.review-featured-panel .feedback-public-review-title {
+  max-width: 28ch;
+  font-size: 1.12rem;
+  line-height: 1.38;
+}
+
+.review-featured-panel .feedback-public-review-text,
+.review-featured-panel .feedback-public-review-reply-text {
+  max-width: 60ch;
+  font-size: 0.98rem;
+  line-height: 1.75;
+  text-wrap: pretty;
+}
+
+.review-featured-panel .feedback-public-review-reply {
+  padding: 1rem 1.06rem 1.04rem 1.1rem;
 }
 
 .review-comments-callout {

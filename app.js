@@ -4977,11 +4977,16 @@ async function renderAdminSiteDefaultsControls(workspacePanel = document.querySe
 
     try {
       await saveSharedPublicSiteDefaults(nextDefaults);
+      localStorage.setItem(STORAGE_THEME_KEY, nextDefaults.theme);
+      localStorage.setItem(STORAGE_LANGUAGE_KEY, nextDefaults.language);
       if (status instanceof HTMLElement) {
         status.hidden = false;
         status.dataset.state = "success";
         status.textContent = copy.saved;
       }
+      window.setTimeout(() => {
+        window.location.reload();
+      }, 420);
     } catch {
       if (status instanceof HTMLElement) {
         status.hidden = false;
