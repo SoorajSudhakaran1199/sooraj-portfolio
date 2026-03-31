@@ -3322,7 +3322,7 @@ function getHomepageReviewPromptCopy(lang) {
       };
 }
 
-function createHomepageContactRequestModal(copy, { onSuccess } = {}) {
+function createHomepageContactRequestModal(copy, { onSuccess, onToggle } = {}) {
   const modal = document.createElement("div");
   modal.className = "review-prompt-modal";
   modal.hidden = true;
@@ -3510,6 +3510,9 @@ function createHomepageContactRequestModal(copy, { onSuccess } = {}) {
     if (modal.hidden) return;
     modal.hidden = true;
     document.body.classList.remove("review-prompt-modal-open");
+    if (typeof onToggle === "function") {
+      onToggle(false);
+    }
     clearStatus();
     if (restoreFocus && lastFocusedElement instanceof HTMLElement) {
       window.setTimeout(() => lastFocusedElement.focus({ preventScroll: true }), 0);
@@ -3521,6 +3524,9 @@ function createHomepageContactRequestModal(copy, { onSuccess } = {}) {
     resetFormState();
     modal.hidden = false;
     document.body.classList.add("review-prompt-modal-open");
+    if (typeof onToggle === "function") {
+      onToggle(true);
+    }
     form?.querySelector('input[name="fullName"]')?.focus();
   };
 
@@ -15798,6 +15804,18 @@ async function setupHomepageReviewPrompt() {
   let delayReached = false;
   let engagementReached = false;
   let isVisible = false;
+  let isContactModalOpen = false;
+
+  const syncPromptLayoutState = () => {
+    const shouldReserveSpace = isVisible && !isContactModalOpen;
+    document.body.classList.toggle("review-prompt-active", shouldReserveSpace);
+    if (shouldReserveSpace) {
+      const nextOffset = Math.ceil(prompt.getBoundingClientRect().height + 18);
+      document.body.style.setProperty("--review-prompt-offset", `${nextOffset}px`);
+      return;
+    }
+    document.body.style.removeProperty("--review-prompt-offset");
+  };
 
   const recordPromptState = (patch) => {
     const currentState = loadStoredJson(localStorage, STORAGE_HOMEPAGE_REVIEW_PROMPT_KEY) || {};
@@ -15808,6 +15826,10 @@ async function setupHomepageReviewPrompt() {
   };
 
   const contactModal = createHomepageContactRequestModal(copy, {
+    onToggle: (open) => {
+      isContactModalOpen = Boolean(open);
+      syncPromptLayoutState();
+    },
     onSuccess: (submissionRecord) => {
       recordPromptState({
         startedAt: submissionRecord.submittedAt
@@ -15825,6 +15847,7 @@ async function setupHomepageReviewPrompt() {
     isVisible = false;
     prompt.classList.remove("is-visible");
     prompt.setAttribute("aria-hidden", "true");
+    syncPromptLayoutState();
     window.setTimeout(() => {
       prompt.hidden = true;
     }, 220);
@@ -15848,6 +15871,7 @@ async function setupHomepageReviewPrompt() {
     prompt.setAttribute("aria-hidden", "false");
     window.requestAnimationFrame(() => {
       prompt.classList.add("is-visible");
+      syncPromptLayoutState();
     });
     trackAnalyticsEvent("homepage_review_prompt_shown", {
       page_path: window.location.pathname
@@ -15898,6 +15922,16 @@ async function setupHomepageReviewPrompt() {
       page_path: window.location.pathname
     });
   });
+
+  if (typeof ResizeObserver === "function") {
+    const resizeObserver = new ResizeObserver(() => {
+      syncPromptLayoutState();
+    });
+    resizeObserver.observe(prompt);
+  }
+
+  window.addEventListener("resize", syncPromptLayoutState, { passive: true });
+  syncPromptLayoutState();
 
   document.addEventListener("keydown", (event) => {
     if (contactModal.isOpen()) return;
