@@ -10449,8 +10449,11 @@ function setupPortfolioHelpBot() {
     if (token !== responseToken) return;
     clearTypingIndicator();
 
-    if (looksLikeQuestionSearch(query)) {
-      const questionMatches = await findWebsiteQuestionMatches(query, { deep: nextAttempts >= 2 });
+    const isQuestionSearch = looksLikeQuestionSearch(query);
+    const useExpandedSearch = isQuestionSearch || nextAttempts >= 2;
+
+    if (isQuestionSearch) {
+      const questionMatches = await findWebsiteQuestionMatches(query, { deep: useExpandedSearch });
       if (token !== responseToken) return;
       if (questionMatches.length) {
         helpBotState.websiteSearchResults = questionMatches.map((entry) => ({
@@ -10510,7 +10513,7 @@ function setupPortfolioHelpBot() {
       return;
     }
 
-    const matches = findWebsiteSearchMatches(query, { deep: nextAttempts >= 2 });
+    const matches = findWebsiteSearchMatches(query, { deep: useExpandedSearch });
     if (matches.length) {
       helpBotState.websiteSearchResults = matches.map((entry) => ({ label: entry.label, target: entry.target }));
       helpBotState.websiteSearchResult = matches[0] ? { label: matches[0].label, target: matches[0].target } : null;
