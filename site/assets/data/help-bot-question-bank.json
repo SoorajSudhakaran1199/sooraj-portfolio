@@ -1,0 +1,324 @@
+{
+  "intents": [
+    {
+      "id": "robotics-experience",
+      "keywords": ["robotics", "automation", "keba", "industrial robotics", "working student", "thesis"],
+      "questions": [
+        "What robotics experience does Sooraj have?",
+        "Can you explain Sooraj's robotics experience?",
+        "What kind of industrial robotics work has Sooraj done?",
+        "Where is Sooraj's strongest robotics experience shown?",
+        "What automation experience does Sooraj have?",
+        "How much robotics exposure does Sooraj have?",
+        "What robotics work is in Sooraj's portfolio?",
+        "Can you summarize Sooraj's robotics background?",
+        "What practical robotics experience does Sooraj have?",
+        "Which pages show Sooraj's robotics experience best?"
+      ]
+    },
+    {
+      "id": "vr-immersive",
+      "keywords": ["vr", "ar", "xr", "mr", "unity", "immersive", "workshop"],
+      "questions": [
+        "What AR or VR experience does Sooraj have?",
+        "Can you explain the VR workshop project?",
+        "What is the VR Machine Operation Workshop about?",
+        "How does Sooraj fit AR VR XR roles?",
+        "What immersive technology work does Sooraj have?",
+        "Does Sooraj have VR project experience?",
+        "What XR related experience is in the portfolio?",
+        "Can you explain Sooraj's Unity VR work?",
+        "What is Sooraj's experience in immersive simulation?",
+        "Which page shows Sooraj's VR experience?"
+      ]
+    },
+    {
+      "id": "journey-india-germany",
+      "keywords": ["journey", "india", "germany", "path", "transition", "move"],
+      "questions": [
+        "How did Sooraj's journey go from India to Germany?",
+        "Can you explain Sooraj's path from India to Germany?",
+        "What is Sooraj's India to Germany story?",
+        "How did Sooraj move from India into robotics in Germany?",
+        "Can you summarize Sooraj's journey page?",
+        "What does the journey section explain?",
+        "How did Sooraj's academic path lead to Germany?",
+        "What is the transition story from India to Germany?",
+        "How did Sooraj go from India to industrial robotics in Germany?",
+        "Which page explains Sooraj's move to Germany?"
+      ]
+    },
+    {
+      "id": "bachelor-path",
+      "keywords": ["bachelor", "btech", "mechanical engineering", "ktu", "apj", "years"],
+      "questions": [
+        "Can you explain Sooraj's bachelor's experience with years?",
+        "When did Sooraj do the bachelor's in mechanical engineering?",
+        "What is Sooraj's bachelor timeline?",
+        "Where did Sooraj study for the bachelor's degree?",
+        "What happened during Sooraj's bachelor years?",
+        "Can you explain the bachelor phase before Germany?",
+        "What is the bachelor's background in India?",
+        "When was Sooraj's B.Tech and what did it cover?",
+        "What is Sooraj's mechanical engineering bachelor path?",
+        "Can you summarize the bachelor stage before the move to Germany?"
+      ]
+    },
+    {
+      "id": "current-role-germany",
+      "keywords": ["current role", "workstudent", "working student", "werkstudent", "keba", "stuttgart"],
+      "questions": [
+        "What is Sooraj's current role in Germany?",
+        "Can you explain Sooraj's working student role?",
+        "What does Sooraj do as a working student at KEBA?",
+        "What is Sooraj doing currently in Germany?",
+        "Can you summarize the current KEBA role?",
+        "What kind of work is Sooraj doing right now?",
+        "What is Sooraj's current job in Stuttgart?",
+        "How does the current role relate to robotics?",
+        "What is the present role in Germany for Sooraj?",
+        "Which page explains Sooraj's current working student role?"
+      ]
+    },
+    {
+      "id": "germany-location",
+      "keywords": ["where", "live", "staying", "based", "stuttgart", "deggendorf", "germany"],
+      "questions": [
+        "Where is Sooraj staying in Germany?",
+        "Where is Sooraj based in Germany?",
+        "What city is Sooraj in right now?",
+        "Can you explain where Sooraj lives or works in Germany?",
+        "Is Sooraj based in Stuttgart or Deggendorf?",
+        "Where is Sooraj currently located in Germany?",
+        "What is Sooraj's current base in Germany?",
+        "Can you tell me Sooraj's Germany location context?",
+        "Where does Sooraj stay for work and study in Germany?",
+        "Which place in Germany is most connected to Sooraj's role?"
+      ]
+    },
+    {
+      "id": "travel-footprint",
+      "keywords": ["travel", "visited", "places", "india", "germany", "countries"],
+      "questions": [
+        "What places has Sooraj visited in India?",
+        "What countries has Sooraj explored?",
+        "Can you show the travel footprint of Sooraj?",
+        "Which places in India are mentioned in Sooraj's journey?",
+        "What places in Germany are connected to Sooraj?",
+        "Can you explain the travel section?",
+        "What states or regions in Germany has Sooraj experienced?",
+        "Which countries are listed in the portfolio travel section?",
+        "What places has Sooraj been to according to the journey page?",
+        "Can you summarize Sooraj's travel footprint?"
+      ]
+    },
+    {
+      "id": "projects-all",
+      "keywords": ["projects", "all projects", "portfolio work", "technical work"],
+      "questions": [
+        "What projects does Sooraj have in the portfolio?",
+        "Can you explain all of Sooraj's projects?",
+        "What are the main projects Sooraj has done?",
+        "Can you summarize the selected projects section?",
+        "What kind of project work has Sooraj done?",
+        "Which projects are included in Sooraj's portfolio?",
+        "Can you list Sooraj's major projects?",
+        "What technical projects does Sooraj show?",
+        "How many main projects are in Sooraj's portfolio?",
+        "Which project pages should I review first?"
+      ]
+    },
+    {
+      "id": "thesis-detail",
+      "keywords": ["thesis", "master thesis", "keba thesis", "industrial robotics", "6 axis"],
+      "questions": [
+        "Can you explain Sooraj's master's thesis?",
+        "What is the KEBA master's thesis about?",
+        "What did Sooraj do in the industrial robotics thesis?",
+        "Can you summarize the thesis work at KEBA?",
+        "What is the 6 axis robot thesis project about?",
+        "How does the thesis connect planning and deployment?",
+        "What tools were used in Sooraj's thesis?",
+        "Which page explains Sooraj's thesis in detail?",
+        "What is the technical scope of Sooraj's master's thesis?",
+        "Can you explain the thesis contribution clearly?"
+      ]
+    },
+    {
+      "id": "ros-project",
+      "keywords": ["ros", "vacuum robot", "slam", "gazebo", "rviz", "autonomous"],
+      "questions": [
+        "Can you explain the autonomous vacuum robot project?",
+        "What is Sooraj's ROS project about?",
+        "How does the autonomous vacuum robot work?",
+        "What does the ROS vacuum robot demonstrate?",
+        "Can you summarize the SLAM and navigation project?",
+        "Which project shows Sooraj's ROS experience best?",
+        "What tools were used in the autonomous vacuum robot?",
+        "How does Sooraj show autonomous navigation experience?",
+        "What is the robotics software proof page in the portfolio?",
+        "Can you explain the ROS autonomy project in detail?"
+      ]
+    },
+    {
+      "id": "service-robot-detail",
+      "keywords": ["service robot", "arduino", "award", "bachelor project", "healthcare"],
+      "questions": [
+        "Can you explain the service robot project?",
+        "What is the automated mechatronic service robot about?",
+        "Why is the service robot important in Sooraj's portfolio?",
+        "What did Sooraj build in the award winning bachelor project?",
+        "How does the service robot relate to healthcare support?",
+        "Can you summarize the Arduino service robot project?",
+        "What recognition did the service robot receive?",
+        "What is Sooraj's early robotics project before ROS?",
+        "How does the service robot show real world relevance?",
+        "Which page explains Sooraj's best bachelor project?"
+      ]
+    },
+    {
+      "id": "active-suspension-detail",
+      "keywords": ["active suspension", "matlab", "simulink", "simulation", "controls"],
+      "questions": [
+        "Can you explain the active suspension project?",
+        "What is the MATLAB Simulink project about?",
+        "How does Sooraj show controls or simulation experience?",
+        "What does the active suspension model demonstrate?",
+        "Can you summarize the MATLAB project?",
+        "Which project shows system modeling and control analysis?",
+        "What is Sooraj's simulation focused project?",
+        "How does the active suspension work in the portfolio?",
+        "What tools were used in the active suspension modeling page?",
+        "Can you explain Sooraj's Simulink work?"
+      ]
+    },
+    {
+      "id": "topology-detail",
+      "keywords": ["topology", "solidworks", "fea", "optimization", "bag sealer"],
+      "questions": [
+        "Can you explain the topology bag sealer project?",
+        "What is Sooraj's SolidWorks and FEA project about?",
+        "How does the optimization project work?",
+        "What does the topology optimization page demonstrate?",
+        "Can you summarize the mechanical design optimization project?",
+        "Which page shows Sooraj's FEA and optimization work?",
+        "What is the bag sealer project in the portfolio?",
+        "How does Sooraj show SolidWorks based design skills?",
+        "What project proves mechanical design and trade off handling?",
+        "Can you explain the topology optimization case study?"
+      ]
+    },
+    {
+      "id": "reviews",
+      "keywords": ["reviews", "feedback", "rating", "trust", "credibility"],
+      "questions": [
+        "What is the review section in Sooraj's portfolio?",
+        "Can you explain the reviews section?",
+        "What do the public reviews show?",
+        "Why does the review section matter?",
+        "What is the difference between featured reviews and all reviews?",
+        "Can I see trust signals in the portfolio?",
+        "How does the portfolio show external credibility?",
+        "What are owner replies in the review section?",
+        "Can you summarize the feedback and review area?",
+        "Which section should I open for public reviews?"
+      ]
+    },
+    {
+      "id": "robotics-fit",
+      "keywords": ["fit", "role", "robotics", "automation", "autonomous systems"],
+      "questions": [
+        "Which robotics role is Sooraj best fit for?",
+        "How does Sooraj fit industrial robotics roles?",
+        "Is Sooraj suitable for autonomous systems roles?",
+        "What robotics role fit does the portfolio show?",
+        "Can you explain Sooraj's fit for robotics jobs?",
+        "How strong is Sooraj for automation roles?",
+        "Which page proves Sooraj's robotics fit best?",
+        "What kind of robotics engineer role fits Sooraj most?",
+        "Can you summarize the robotics role fit?",
+        "How does the portfolio position Sooraj for robotics hiring?"
+      ]
+    },
+    {
+      "id": "immersive-fit",
+      "keywords": ["fit", "ar", "vr", "xr", "mr", "unity", "immersive"],
+      "questions": [
+        "Which AR VR XR role is Sooraj fit for?",
+        "Can Sooraj fit VR or XR engineering roles?",
+        "How does the portfolio position Sooraj for immersive roles?",
+        "Is Sooraj suitable for Unity based simulation jobs?",
+        "What immersive engineering role fit does Sooraj have?",
+        "Can you explain Sooraj's fit for AR VR XR MR work?",
+        "Which page should I see for Sooraj's VR role fit?",
+        "How strong is Sooraj for training simulation roles?",
+        "What kind of immersive technology job suits Sooraj?",
+        "Can you summarize the AR VR role fit?"
+      ]
+    },
+    {
+      "id": "simulation-fit",
+      "keywords": ["fit", "matlab", "simulink", "simulation", "controls"],
+      "questions": [
+        "Is Sooraj fit for MATLAB or Simulink roles?",
+        "How does Sooraj fit simulation engineering roles?",
+        "What controls or system modeling fit does Sooraj have?",
+        "Can you explain Sooraj's fit for simulation jobs?",
+        "Which project proves MATLAB simulation skills?",
+        "How strong is Sooraj for controls oriented engineering?",
+        "What role fit is shown for system modeling work?",
+        "Can Sooraj fit validation or simulation roles?",
+        "Which page should I check for MATLAB role fit?",
+        "Can you summarize the simulation role fit?"
+      ]
+    },
+    {
+      "id": "design-fit",
+      "keywords": ["fit", "solidworks", "cad", "fea", "optimization", "design"],
+      "questions": [
+        "Is Sooraj fit for SolidWorks related roles?",
+        "How does Sooraj fit mechanical design jobs?",
+        "What design and FEA role fit does Sooraj have?",
+        "Can you explain Sooraj's fit for CAD or optimization roles?",
+        "Which project shows SolidWorks and FEA skills best?",
+        "How strong is Sooraj for product design or analysis roles?",
+        "What mechanical engineering fit is in the portfolio?",
+        "Can Sooraj fit optimization or manufacturability roles?",
+        "Which page should I review for design role fit?",
+        "Can you summarize the SolidWorks and design role fit?"
+      ]
+    },
+    {
+      "id": "skills-overview",
+      "keywords": ["skills", "stack", "tools", "software", "technologies"],
+      "questions": [
+        "Can you explain all of Sooraj's skills?",
+        "What are Sooraj's main technical skills?",
+        "What software and tools does Sooraj use?",
+        "How would you summarize Sooraj's skill stack?",
+        "What robotics software skills does Sooraj have?",
+        "What programming and simulation tools are in the portfolio?",
+        "Can you explain the skills section clearly?",
+        "What is Sooraj strong in technically?",
+        "Which tools and platforms does Sooraj know?",
+        "Can you summarize the core skills across robotics and engineering?"
+      ]
+    },
+    {
+      "id": "contact",
+      "keywords": ["contact", "cv", "connect", "reach", "hire", "email"],
+      "questions": [
+        "How can I contact Sooraj?",
+        "Can you connect me with Sooraj?",
+        "How do I request contact through the website?",
+        "Can I request Sooraj's CV?",
+        "What is the fastest way to reach Sooraj?",
+        "How does the contact path work on this website?",
+        "Can you guide me to the contact request?",
+        "How can I ask for Sooraj's latest CV?",
+        "What should I open for direct professional outreach?",
+        "Can you take me to the contact or CV section?"
+      ]
+    }
+  ]
+}

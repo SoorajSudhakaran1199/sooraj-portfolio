@@ -4038,8 +4038,8 @@ function getPortfolioHelpBotConfig(lang) {
       askName: "Bevor ich Sie weiterfuehre: Wie darf ich Sie ansprechen?",
       askNamePlaceholder: "Geben Sie Ihren Namen ein",
       askNameSubmit: "Senden",
-      askNameGreeting: (name) => `Willkommen ${name} 😊 Ich freue mich, Sie heute durch die Website zu begleiten.`,
-      askUniversity: (name) => `Prima ${name} 😊 Von welcher Hochschule oder Universitaet kommen Sie?`,
+      askNameGreeting: (name) => `Willkommen ${name} 👋😊 Ich freue mich, Sie heute durch die Website zu begleiten.`,
+      askUniversity: (name) => `Schoen, dass Sie da sind, ${name} 👋 Welche Hochschule oder Universitaet kann ich heute mit Ihrem Weg verknuepfen?`,
       askUniversityPlaceholder: "Hochschule oder Universitaet eingeben",
       askUniversitySubmit: "Weiter",
       askUniversitySkip: "Ohne Hochschule starten",
@@ -4063,22 +4063,28 @@ function getPortfolioHelpBotConfig(lang) {
       askNameBossYes: "Ja, nennen Sie mich so",
       askNameBossRetype: "Nein, Namen neu eingeben",
       askNameBossRetypePrompt: "Alles klar 😊 Dann geben Sie Ihren Namen bitte noch einmal ein.",
+      askNameInvalid: "Das sieht fuer mich noch nicht wie ein richtiger Name aus. Bitte geben Sie Ihren korrekten Namen ein.",
       searchWebsiteLabel: "🔍 Website durchsuchen",
       searchWebsitePrompt: "Geben Sie ein Stichwort, eine Rolle, ein Tool oder ein Thema ein. Ich suche dann die passende Stelle auf der Website fuer Sie.",
       searchWebsitePlaceholder: "Zum Beispiel ROS, Thesis, KEBA, Journey, CV ...",
       searchWebsiteSubmit: "Suchen",
       searchWebsiteSearching: "Ich suche gerade die passende Stelle auf der Website ...",
       searchWebsiteDeepSearching: "Ich starte gerade eine tiefere Suche ueber die Website ...",
+      searchWebsiteQuestionFound: (label) => `Meinen Sie diese Frage?\n${label}`,
+      searchWebsiteQuestionFoundMultiple: "Ich habe mehrere passende Fragen gefunden. Meinen Sie eine von diesen?",
       searchWebsiteFound: (label) => `Ich habe einen guten Treffer gefunden: ${label}. Moechten Sie diesen Bereich jetzt oeffnen?`,
       searchWebsiteFoundMultiple: "Ich habe mehrere passende Treffer gefunden. Meinen Sie einen dieser Bereiche?",
+      searchWebsiteAnswerYes: "Ja, diese Frage beantworten",
+      searchWebsiteAnswerNo: "Nein, noch einmal fragen",
       searchWebsiteOpenYes: "Ja, bitte oeffnen",
       searchWebsiteOpenNo: "Nein, noch einmal suchen",
       searchWebsiteRetryPrompt: "Suche fehlgeschlagen. Bitte versuchen Sie jetzt genau ein Stichwort. Ich suche noch einmal.",
       searchWebsiteDeepRetryPrompt: "Suche erneut fehlgeschlagen. Bitte geben Sie jetzt nur ein praezises Stichwort ein. Ich starte direkt eine tiefere Suche.",
-      searchWebsiteNoResult: "Wichtiger Hinweis: Ich konnte dafuer noch keinen klaren Treffer auf der Website finden. Ich informiere Sooraj, dass dieses Suchwort spaeter sauberer auffindbar sein sollte.\nWenn Sie moechten, kann ich Sie jetzt direkt zum Hauptmenue zurueckbringen oder den Kontaktweg oeffnen.",
+      searchWebsiteNoResult: "Ich konnte die Frage noch nicht sauber verstehen. Wenn Sie moechten, kann ich Sooraj diese Frage direkt weitergeben.\nSie koennen jetzt einen Kontaktweg starten, erneut fragen oder ins Hauptmenue zurueckgehen.",
       searchWebsiteMainMenu: "Zum Hauptmenue",
-      searchWebsiteContact: "Kontaktweg oeffnen",
-      visitorProfileConsent: "Hallo Besucher 😊 Moechten Sie ein paar kurze Angaben wie Ihren Namen, Ihre Position und Ihre Organisation teilen, damit ich Sie passender ansprechen kann?",
+      searchWebsiteContact: "Sooraj fragen",
+      searchWebsiteAskAgain: "Noch einmal fragen",
+      visitorProfileConsent: "Hallo Besucher 👋 Moechten Sie ein paar kurze Angaben wie Ihren Namen, Ihre Position und Ihre Organisation teilen, damit ich Sie passender ansprechen kann?",
       visitorProfileShare: "Ja, ich teile das",
       visitorProfileSkip: "Nein, direkt weiter",
       visitorNamePrompt: "Wie darf ich Sie ansprechen?",
@@ -4095,8 +4101,8 @@ function getPortfolioHelpBotConfig(lang) {
       visitorOrganizationSkip: "Ohne Organisation weiter",
       visitorProfileThanks: (name, position, organisation) => {
         const details = [name, position, organisation].filter(Boolean);
-        if (!details.length) return "Kein Problem 😊 Ich fuehre Sie trotzdem passend weiter.";
-        return `Danke ${name || "Ihnen"} 😊 Ich habe ${details.join(" • ")} im Blick und richte die naechsten Schritte passender fuer Sie aus.`;
+        if (!details.length) return "Kein Problem 👋 Ich fuehre Sie trotzdem passend weiter.";
+        return `Danke ${name || "Ihnen"} 👋 Ich habe ${details.join(" • ")} im Blick und richte die naechsten Schritte jetzt etwas passender fuer Sie aus.`;
       },
       feedbackPrompt: (name = "") => name
         ? `Bevor Sie gehen, ${name}: Moechten Sie, dass ich Ihre Bewertung direkt hier im Chat aufnehme?`
@@ -4503,8 +4509,8 @@ function getPortfolioHelpBotConfig(lang) {
     askName: "Before I guide you further, what should I call you?",
     askNamePlaceholder: "Type your name",
     askNameSubmit: "Send",
-    askNameGreeting: (name) => `Welcome ${name} 😊 I am here to help guide you through the website today.`,
-    askUniversity: (name) => `Nice to meet you, ${name} 😊 Which university are you from?`,
+    askNameGreeting: (name) => `Welcome ${name} 👋😊 I am here to help guide you through the website today.`,
+    askUniversity: (name) => `Glad you are here, ${name} 👋 Which university should I connect your path with today?`,
     askUniversityPlaceholder: "Type your university",
     askUniversitySubmit: "Continue",
     askUniversitySkip: "Start without university",
@@ -4528,22 +4534,28 @@ function getPortfolioHelpBotConfig(lang) {
     askNameBossYes: "Yes, call me that",
     askNameBossRetype: "No, type my name again",
     askNameBossRetypePrompt: "All right 😊 Please type your name once more.",
+    askNameInvalid: "That does not look like a real name yet. Please enter your correct name.",
     searchWebsiteLabel: "🔍 Search website",
     searchWebsitePrompt: "Type any keyword, role, tool, or topic you want. I’ll search the website and route you to the closest matching place.",
     searchWebsitePlaceholder: "For example ROS, thesis, KEBA, journey, CV ...",
     searchWebsiteSubmit: "Search",
     searchWebsiteSearching: "I’m searching the website for the closest match ...",
     searchWebsiteDeepSearching: "I’m running a deeper search across the website now ...",
+    searchWebsiteQuestionFound: (label) => `Did you mean this question?\n${label}`,
+    searchWebsiteQuestionFoundMultiple: "I found multiple matching questions. Did you mean any of these?",
     searchWebsiteFound: (label) => `I found a strong match: ${label}. Would you like me to open that section now?`,
     searchWebsiteFoundMultiple: "I found multiple relevant matches. Are you asking for one of these sections?",
+    searchWebsiteAnswerYes: "Yes, answer this",
+    searchWebsiteAnswerNo: "No, ask again",
     searchWebsiteOpenYes: "Yes, open it",
     searchWebsiteOpenNo: "No, search once more",
     searchWebsiteRetryPrompt: "Search failed. Please try exactly one keyword now, and I’ll search again.",
     searchWebsiteDeepRetryPrompt: "Search failed again. Please enter only one precise keyword now, and I’ll run a deeper search right away.",
-    searchWebsiteNoResult: "Important: I still could not find a clear match for that keyword on the website. I will inform Sooraj that this search term should be surfaced more clearly.\nIf you want, I can take you back to the main menu or open the contact path now.",
+    searchWebsiteNoResult: "I still could not understand the question clearly. If you want, I can pass this question to Sooraj directly.\nYou can start a contact request now, ask again, or go back to the main menu.",
     searchWebsiteMainMenu: "Go to main menu",
-    searchWebsiteContact: "Open contact path",
-    visitorProfileConsent: "Hi visitor 😊 Would you be willing to share a few quick details like your name, position, and organisation so I can address you better?",
+    searchWebsiteContact: "Ask Sooraj",
+    searchWebsiteAskAgain: "Ask again",
+    visitorProfileConsent: "Hi visitor 👋 Would you be willing to share a few quick details like your name, position, and organisation so I can address you better?",
     visitorProfileShare: "Yes, I’ll share",
     visitorProfileSkip: "No, continue directly",
     visitorNamePrompt: "What should I call you?",
@@ -4560,8 +4572,8 @@ function getPortfolioHelpBotConfig(lang) {
     visitorOrganizationSkip: "Continue without organisation",
     visitorProfileThanks: (name, position, organisation) => {
       const details = [name, position, organisation].filter(Boolean);
-      if (!details.length) return "No problem 😊 I’ll still guide you properly from here.";
-      return `Thanks ${name || "there"} 😊 I’ll keep ${details.join(" • ")} in mind and tailor the next steps a bit more closely for you.`;
+      if (!details.length) return "No problem 👋 I’ll still guide you properly from here.";
+      return `Thanks ${name || "there"} 👋 I’ll keep ${details.join(" • ")} in mind and tailor the next steps a bit more closely for you.`;
     },
     feedbackPrompt: (name = "") => name
       ? `Before you go, ${name}, would you like me to take your review here in the chat?`
@@ -5224,11 +5236,13 @@ function setupPortfolioHelpBot() {
   const HELP_BOT_NUDGE_AUTO_HIDE_MS = 5200;
   const HELP_BOT_NUDGE_RESHOW_MS = 28000;
   const HELP_BOT_NUDGE_MAX_RESHOWS = 1;
-  const HELP_BOT_STATE_VERSION = 9;
+  const HELP_BOT_STATE_VERSION = 10;
   const HELP_BOT_STATE_TTL_MS = 1000 * 60 * 60 * 24 * 7;
   const HELP_BOT_REMOTE_MAX_MESSAGES = 60;
   const HELP_BOT_REMOTE_SYNC_DELAY_MS = 1200;
   const HELP_BOT_STATE_MAX_MESSAGES = 28;
+  const HELP_BOT_QUESTION_BANK_PATH = "assets/data/help-bot-question-bank.json";
+  const HELP_BOT_QUESTION_RETRY_LIMIT = 5;
   const HELP_BOT_FOCUSABLE_SELECTOR = [
     "a[href]",
     "button:not([disabled])",
@@ -5322,12 +5336,30 @@ function setupPortfolioHelpBot() {
   let activeTypingIndicator = null;
   let responseToken = 0;
   let lastFocusedElement = null;
+  let inlineNudgeOverrideMessage = "";
+  let hoverNudgeTimer = 0;
   const currentPageName = getCurrentPageName();
 
   const normalizeVisitorName = (value) => String(value || "")
     .replace(/\s+/g, " ")
     .trim()
     .slice(0, 40);
+
+  const INVALID_VISITOR_NAME_WORDS = new Set([
+    "a", "aa", "aaa", "ab", "abc", "bot", "chat", "ello", "hallo", "hello", "hey", "hi",
+    "hola", "hii", "hlo", "me", "name", "no", "ok", "s", "sa", "ss", "srj", "test", "user", "yo"
+  ]);
+
+  const isPlausibleVisitorName = (value = "") => {
+    const normalized = normalizeVisitorName(value);
+    if (!normalized) return false;
+    const compact = normalized.toLowerCase().replace(/[^a-z]/g, "");
+    if (compact.length < 3) return false;
+    if (INVALID_VISITOR_NAME_WORDS.has(compact)) return false;
+    if (/^(.)\1+$/.test(compact)) return false;
+    if (!/[a-z]{3,}/.test(compact)) return false;
+    return true;
+  };
 
   const normalizeUniversityName = (value) => String(value || "")
     .replace(/\s+/g, " ")
@@ -5854,24 +5886,28 @@ function setupPortfolioHelpBot() {
       chatFeedbackDraft: normalizeHelpBotFeedbackDraft(source.chatFeedbackDraft),
       recruiterRequestDraft: normalizeHelpBotRecruiterRequestDraft(source.recruiterRequestDraft),
       websiteSearchQuery: String(source.websiteSearchQuery || "").trim().slice(0, 120),
-      websiteSearchAttempts: Math.max(0, Math.min(3, Number(source.websiteSearchAttempts || 0))),
+      websiteSearchAttempts: Math.max(0, Math.min(5, Number(source.websiteSearchAttempts || 0))),
       websiteSearchResult: source.websiteSearchResult && typeof source.websiteSearchResult === "object"
         ? {
+            kind: String(source.websiteSearchResult.kind || "section").trim(),
             label: String(source.websiteSearchResult.label || "").trim(),
+            answerId: String(source.websiteSearchResult.answerId || "").trim(),
             target: source.websiteSearchResult.target && typeof source.websiteSearchResult.target === "object"
               ? source.websiteSearchResult.target
               : null
-          }
+        }
         : null,
       websiteSearchResults: Array.isArray(source.websiteSearchResults)
         ? source.websiteSearchResults
           .map((entry) => entry && typeof entry === "object"
             ? {
+                kind: String(entry.kind || "section").trim(),
                 label: String(entry.label || "").trim(),
+                answerId: String(entry.answerId || "").trim(),
                 target: entry.target && typeof entry.target === "object" ? entry.target : null
               }
             : null)
-          .filter((entry) => entry?.label && entry?.target)
+          .filter((entry) => entry?.label && (entry?.target || entry?.answerId))
           .slice(0, 4)
         : [],
       remoteSessionId: String(source.remoteSessionId || "").trim(),
@@ -5921,10 +5957,12 @@ function setupPortfolioHelpBot() {
     helpBotState.chatFeedbackDraft = normalizeHelpBotFeedbackDraft(helpBotState.chatFeedbackDraft);
     helpBotState.recruiterRequestDraft = normalizeHelpBotRecruiterRequestDraft(helpBotState.recruiterRequestDraft);
     helpBotState.websiteSearchQuery = String(helpBotState.websiteSearchQuery || "").trim().slice(0, 120);
-    helpBotState.websiteSearchAttempts = Math.max(0, Math.min(3, Number(helpBotState.websiteSearchAttempts || 0)));
+    helpBotState.websiteSearchAttempts = Math.max(0, Math.min(5, Number(helpBotState.websiteSearchAttempts || 0)));
     helpBotState.websiteSearchResult = helpBotState.websiteSearchResult && typeof helpBotState.websiteSearchResult === "object"
       ? {
+          kind: String(helpBotState.websiteSearchResult.kind || "section").trim(),
           label: String(helpBotState.websiteSearchResult.label || "").trim(),
+          answerId: String(helpBotState.websiteSearchResult.answerId || "").trim(),
           target: helpBotState.websiteSearchResult.target && typeof helpBotState.websiteSearchResult.target === "object"
             ? helpBotState.websiteSearchResult.target
             : null
@@ -5934,11 +5972,13 @@ function setupPortfolioHelpBot() {
       ? helpBotState.websiteSearchResults
         .map((entry) => entry && typeof entry === "object"
           ? {
+              kind: String(entry.kind || "section").trim(),
               label: String(entry.label || "").trim(),
+              answerId: String(entry.answerId || "").trim(),
               target: entry.target && typeof entry.target === "object" ? entry.target : null
             }
           : null)
-        .filter((entry) => entry?.label && entry?.target)
+        .filter((entry) => entry?.label && (entry?.target || entry?.answerId))
         .slice(0, 4)
       : [];
     helpBotState.remoteSessionId = String(helpBotState.remoteSessionId || "").trim();
@@ -6075,12 +6115,13 @@ function setupPortfolioHelpBot() {
   const clearNudgeTimers = () => {
     window.clearTimeout(nudgeHideTimer);
     window.clearTimeout(nudgeReshowTimer);
+    window.clearTimeout(hoverNudgeTimer);
     nudgeHideTimer = 0;
     nudgeReshowTimer = 0;
+    hoverNudgeTimer = 0;
   };
 
-  const shouldUseStudentCornerNudge = () => currentPageName !== "index.html"
-    && currentRoleId === "student"
+  const shouldUseStudentCornerNudge = () => (currentRoleId === "student" || currentRoleId === "visitor")
     && Boolean(getVisitorName())
     && hasConversationBooted;
 
@@ -6088,8 +6129,8 @@ function setupPortfolioHelpBot() {
     const visitorName = getVisitorName();
     if (!visitorName) return config.nudge;
     return currentLang === "de"
-      ? `Hi ${visitorName} 😊 Schoen, dass Sie da sind. Ich begleite Sie weiter durch den studentischen Weg, sobald Sie mich wieder oeffnen.`
-      : `Hi ${visitorName} 😊 Glad you're here. I can keep guiding you through the student path whenever you open me again.`;
+      ? `Hi ${visitorName} 😊 Kann ich Ihnen bei etwas helfen?`
+      : `Hi ${visitorName} 😊 Can I help you with something?`;
   };
 
   const getStudentInlineNudgeText = () => {
@@ -6104,14 +6145,22 @@ function setupPortfolioHelpBot() {
     if (nudgeText) nudgeText.textContent = String(message || "").trim() || config.nudge;
   };
 
+  const setInlineNudgeOverride = (message = "") => {
+    inlineNudgeOverrideMessage = String(message || "").trim();
+  };
+
   const syncInlineStudentNudge = () => {
     if (!root || !nudge) return;
-    const shouldShow = root.classList.contains("is-open")
-      && currentPageName !== "index.html"
+    const shouldShowOverride = root.classList.contains("is-open") && Boolean(inlineNudgeOverrideMessage);
+    const shouldShow = shouldShowOverride || (root.classList.contains("is-open")
       && currentRoleId === "student"
       && Boolean(getVisitorName())
-      && hasConversationBooted;
+      && hasConversationBooted);
     root.classList.toggle("is-inline-nudge-visible", shouldShow);
+    if (shouldShowOverride) {
+      setNudgeMessage(inlineNudgeOverrideMessage);
+      return;
+    }
     if (shouldShow) {
       setNudgeMessage(getStudentInlineNudgeText());
       return;
@@ -6768,6 +6817,464 @@ function setupPortfolioHelpBot() {
     createBadgedOption("review-path", "contact", currentLang === "de" ? "Kontakt statt Reviews" : "Contact instead", currentLang === "de" ? "Aktion" : "Action")
   ]));
 
+  let helpBotQuestionBankPromise = null;
+
+  const loadHelpBotQuestionBank = async () => {
+    if (helpBotQuestionBankPromise) return helpBotQuestionBankPromise;
+    helpBotQuestionBankPromise = fetch(HELP_BOT_QUESTION_BANK_PATH, { cache: "no-cache" })
+      .then((response) => {
+        if (!response.ok) throw new Error("Question bank not available");
+        return response.json();
+      })
+      .then((payload) => {
+        const intents = Array.isArray(payload?.intents)
+          ? payload.intents
+            .map((entry) => {
+              if (!entry || typeof entry !== "object") return null;
+              const id = String(entry.id || "").trim();
+              const keywords = Array.isArray(entry.keywords)
+                ? entry.keywords.map((item) => String(item || "").trim()).filter(Boolean)
+                : [];
+              const questions = Array.isArray(entry.questions)
+                ? entry.questions.map((item) => String(item || "").trim()).filter(Boolean)
+                : [];
+              return id && questions.length ? { id, keywords, questions } : null;
+            })
+            .filter(Boolean)
+          : [];
+        return { intents };
+      })
+      .catch(() => ({ intents: [] }));
+    return helpBotQuestionBankPromise;
+  };
+
+  const looksLikeQuestionSearch = (query = "") => {
+    const normalized = String(query || "").trim().toLowerCase();
+    if (!normalized) return false;
+    const rawTokens = normalized.split(/\s+/).filter(Boolean);
+    const lead = rawTokens[0] || "";
+    return normalized.includes("?")
+      || rawTokens.length >= 5
+      || ["what", "where", "who", "which", "when", "why", "how", "can", "does", "is", "are", "explain", "tell"].includes(lead);
+  };
+
+  const getWebsiteQuestionAnswerEntry = (answerId = "") => {
+    if (currentLang === "de") {
+      const deAnswers = {
+        "about-profile": {
+          text: "Wenn Sie Soorajs Gesamtprofil schnell verstehen wollen, beginnen Sie mit About, Experience und Where I Fit. Dort sehen Sie die technische Richtung zwischen Robotik, Mechatronik, Simulation, immersiven Projekten und industriellem Kontext in Deutschland.",
+          actions: [
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Start"),
+            createBadgedAction("Erfahrung", createHelpBotHomeTarget("experience"), "Proof"),
+            createBadgedAction("Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit")
+          ]
+        },
+        "robotics-experience": {
+          text: "Soorajs staerkste Robotik-Erfahrung liegt in drei Ebenen: in der KEBA Master-Thesis zur industriellen Robotik, in der parallelen KEBA Werkstudentenrolle im Live-Industrieumfeld und in Robotikprojekten wie dem autonomen Vakuumroboter und dem Service-Roboter. Zusammen zeigen diese Seiten Robotiksoftware, Motion Planning, Robot Programming, Simulation und umsetzungsnahe Engineering-Logik.",
+          actions: [
+            createBadgedAction("Erfahrung oeffnen", createHelpBotHomeTarget("experience"), "Proof"),
+            createBadgedAction("KEBA Master-Thesis", createHelpBotPageTarget("experience-masters-thesis-keba.html"), "Robotik"),
+            createBadgedAction("KEBA Werkstudent", createHelpBotPageTarget("experience-working-student-keba.html"), "Industrie"),
+            createBadgedAction("Vakuumroboter", createHelpBotPageTarget("project-autonomous-vacuum-robot.html"), "ROS")
+          ]
+        },
+        "vr-immersive": {
+          text: "Die staerkste immersive Erfahrung im Portfolio ist der VR Machine Operation Workshop. Dort hat Sooraj in Unity und C# eine trainingsorientierte Simulationsumgebung fuer Maschinenbedienung, raeumliche Interaktion und realistischere Nutzerfuehrung aufgebaut. Die cleareste Evidenz liegt also im VR/XR-Bereich, nicht in einem separaten AR-only Produktfall.",
+          actions: [
+            createBadgedAction("VR-Workshop", createHelpBotPageTarget("project-vr-machine-workshop.html"), "VR"),
+            createBadgedAction("Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
+            createBadgedAction("Skills", createHelpBotHomeTarget("skills"), "Stack")
+          ]
+        },
+        "journey-india-germany": {
+          text: "Der Weg von Indien nach Deutschland ist klar aufgebaut. Erst kamen Schulbasis und B.Tech in Mechanical Engineering in Indien, dann 2022 die industrielle Grundlage ueber Non-Destructive Testing in Kochi, und ab 2023 der Wechsel nach Deutschland fuer den M.Eng. in Mechatronics and Cyber-Physical Systems an der TH Deggendorf. Von dort fuehrte der Weg weiter in die KEBA Werkstudentenrolle und die parallele Master-Thesis in industrieller Robotik in Stuttgart.",
+          actions: [
+            createBadgedAction("Journey oeffnen", createHelpBotPageTarget("journey.html"), "Story"),
+            createBadgedAction("Bildung", createHelpBotHomeTarget("education"), "Study"),
+            createBadgedAction("KEBA Erfahrung", createHelpBotHomeTarget("experience"), "Proof")
+          ]
+        },
+        "bachelor-path": {
+          text: "Soorajs Bachelor-Phase lief von August 2017 bis Juli 2021 als B.Tech in Mechanical Engineering an der APJ Abdul Kalam Technological University. In dieser Zeit wurden Mechanical Design, Manufacturing, CAD/CAE und die technischen Grundlagen aufgebaut. Parallel dazu entstanden Leadership-Erfahrung und das spaeter ausgezeichnete Service-Roboter-Projekt, bevor danach erst die Industriephase in Indien und dann Deutschland folgten.",
+          actions: [
+            createBadgedAction("Bildungsbereich", createHelpBotHomeTarget("education"), "Study"),
+            createBadgedAction("Journey", createHelpBotPageTarget("journey.html"), "Context"),
+            createBadgedAction("Service-Roboter", createHelpBotPageTarget("project-service-robot.html"), "Award")
+          ]
+        },
+        "current-role-germany": {
+          text: "Die aktuelle Rolle in Deutschland ist Werkstudent bei der KEBA Group in Stuttgart, Baden-Wuerttemberg. Der Schwerpunkt liegt auf industrieller Robotik und Automation in einem echten Engineering-Umfeld, also auf Robot Programming, Implementierungsqualitaet und Deployment-Kontext. Parallel dazu laeuft die Master-Thesis in industrieller Robotik mit Fokus auf 6-Achs-Workflow, Motion Planning und umsetzungsnaher Ausfuehrung.",
+          actions: [
+            createBadgedAction("KEBA Werkstudent", createHelpBotPageTarget("experience-working-student-keba.html"), "Current"),
+            createBadgedAction("KEBA Master-Thesis", createHelpBotPageTarget("experience-masters-thesis-keba.html"), "Parallel"),
+            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+          ]
+        },
+        "germany-location": {
+          text: "Der aktuelle berufliche Ankerpunkt ist Stuttgart in Deutschland, weil dort die KEBA Werkstudentenrolle und die Thesis-nahe Robotikarbeit liegen. Die akademische Spur fuehrt ueber die TH Deggendorf, und die Journey-Seite nennt ausserdem gelebte Erfahrung in Bayern, Thueringen und Baden-Wuerttemberg.",
+          actions: [
+            createBadgedAction("Travel-Footprint", createHelpBotPageTarget("journey.html", "travel"), "Travel"),
+            createBadgedAction("KEBA Rolle", createHelpBotPageTarget("experience-working-student-keba.html"), "Current"),
+            createBadgedAction("Bildung", createHelpBotHomeTarget("education"), "Study")
+          ]
+        },
+        "travel-footprint": {
+          text: "Die Travel-Footprint-Sektion ist nach Indien, internationale Laender und gelebte Deutschland-Erfahrung getrennt. In Indien nennt das Portfolio Kerala, Tamil Nadu, Rajasthan und Goa. International werden Deutschland, Bahrain, Katar, Oesterreich, die Schweiz, Tschechien und Luxemburg genannt. Fuer Deutschland werden gelebte Erfahrung in Bayern, Thueringen und Baden-Wuerttemberg hervorgehoben.",
+          actions: [
+            createBadgedAction("Travel-Footprint", createHelpBotPageTarget("journey.html", "travel"), "Travel"),
+            createBadgedAction("Journey", createHelpBotPageTarget("journey.html"), "Story"),
+            createBadgedAction("KEBA Rolle", createHelpBotPageTarget("experience-working-student-keba.html"), "Germany")
+          ]
+        },
+        "projects-all": {
+          text: "Die Projektsektion deckt fuenf Hauptprojekte ab. 1. Der autonome Vakuumroboter in ROS zeigt SLAM, Lokalisierung und Navigation. 2. Der VR Machine Operation Workshop zeigt Unity-basierte immersive Trainingssimulation. 3. Active Suspension zeigt MATLAB- und Simulink-basierte Modellierung und Controls-Denken. 4. Der Topology Bag Sealer zeigt SOLIDWORKS-, FEA- und Optimierungsarbeit. 5. Der Service-Roboter zeigt eine fruehe Arduino-basierte Robotikbasis mit Best-Bachelor-Project-Auszeichnung.",
+          actions: [
+            createBadgedAction("Projektbereich", createHelpBotHomeTarget("projects"), "Overview"),
+            createBadgedAction("Vakuumroboter", createHelpBotPageTarget("project-autonomous-vacuum-robot.html"), "ROS"),
+            createBadgedAction("VR-Workshop", createHelpBotPageTarget("project-vr-machine-workshop.html"), "VR"),
+            createBadgedAction("Fahrwerksregelung", createHelpBotPageTarget("project-active-suspension.html"), "MATLAB")
+          ]
+        },
+        "thesis-detail": {
+          text: "Die Master-Thesis bei KEBA lief von September 2025 bis Maerz 2026 und fokussierte eine 6-Achs-Robotik fuer Maschinenoperation. Entscheidend war nicht nur Simulation, sondern das Verbinden von Planung, Greiflogik, Zellgeometrie und deployment-naher Ausfuehrung. Dazu kam ein leichtgewichtiges webbasiertes Joint-Path-Planner-Tool fuer Waypoints und drag&bot-Simulationsvalidierung.",
+          actions: [
+            createBadgedAction("Master-Thesis", createHelpBotPageTarget("experience-masters-thesis-keba.html"), "Robotics"),
+            createBadgedAction("KEBA Erfahrung", createHelpBotPageTarget("experience-working-student-keba.html"), "Context"),
+            createBadgedAction("Journey", createHelpBotPageTarget("journey.html"), "Story")
+          ]
+        },
+        "ros-project": {
+          text: "Der autonome Vakuumroboter ist das klarste ROS-Projekt im Portfolio. Er zeigt SLAM-basierte Lokalisierung, Hinderniserkennung, Pfadplanung, sensorgetriebene Entscheidungslogik sowie den Workflow mit ROS, Gazebo und RViz. Das Projekt ist einer der direktesten Nachweise fuer Robotiksoftware und autonome Navigation.",
+          actions: [
+            createBadgedAction("ROS-Projekt", createHelpBotPageTarget("project-autonomous-vacuum-robot.html"), "ROS"),
+            createBadgedAction("KEBA Master-Thesis", createHelpBotPageTarget("experience-masters-thesis-keba.html"), "Related"),
+            createBadgedAction("Projektbereich", createHelpBotHomeTarget("projects"), "Overview")
+          ]
+        },
+        "service-robot-detail": {
+          text: "Der Service-Roboter ist eine fruehe, aber wichtige Robotikbasis im Portfolio. Das Arduino-basierte System entstand im Juli 2021 fuer patientennahe Service-Szenarien waehrend der Pandemie und verband Sensorintegration, Line-Following, Bewegungslogik und eine reale, menschenzentrierte Problemstellung. Spaeter erhielt das Projekt die Best-Bachelor-Project-Auszeichnung.",
+          actions: [
+            createBadgedAction("Service-Roboter", createHelpBotPageTarget("project-service-robot.html"), "Award"),
+            createBadgedAction("Bildung", createHelpBotHomeTarget("education"), "Bachelor"),
+            createBadgedAction("Projektbereich", createHelpBotHomeTarget("projects"), "Overview")
+          ]
+        },
+        "active-suspension-detail": {
+          text: "Das Active-Suspension-Projekt zeigt MATLAB- und Simulink-basierte Modellierung fuer dynamisches Systemverhalten. Untersucht wurden hydraulische Aktuatorlogik, Systemantwort und simulationsgetriebene Leistungsanalyse. Damit beweist diese Seite Systems Thinking, Controls-Denken und technische Analyse jenseits klassischer Robotikseiten.",
+          actions: [
+            createBadgedAction("Active Suspension", createHelpBotPageTarget("project-active-suspension.html"), "MATLAB"),
+            createBadgedAction("Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
+            createBadgedAction("Skills", createHelpBotHomeTarget("skills"), "Stack")
+          ]
+        },
+        "topology-detail": {
+          text: "Der Topology Bag Sealer ist die staerkste SOLIDWORKS- und FEA-nahe Designseite im Portfolio. Die Arbeit fokussierte Gewichts- und Materialreduktion durch Topologieoptimierung, ohne die Fertigbarkeit aus dem Blick zu verlieren. Dadurch zeigt die Seite mechanisches Denken, Analyse-getriebene Konstruktion und Engineering-Trade-offs.",
+          actions: [
+            createBadgedAction("Topology Bag Sealer", createHelpBotPageTarget("project-topology-bag-sealer.html"), "SOLIDWORKS"),
+            createBadgedAction("Skills", createHelpBotHomeTarget("skills"), "Tools"),
+            createBadgedAction("Projektbereich", createHelpBotHomeTarget("projects"), "Overview")
+          ]
+        },
+        "reviews": {
+          text: "Die Review-Sektion ist die Vertrauensebene des Portfolios. Dort sehen Sie hervorgehobene, vom Admin gepinnte Reviews, das Archiv oeffentlicher Reviews, die Gesamtbewertung, Reichweite nach Laendern und sichtbare Owner-Replies. Wenn Sie pruefen wollen, wie das Profil von anderen wahrgenommen wird, ist das der richtige Bereich.",
+          actions: [
+            createBadgedAction("Reviews oeffnen", createHelpBotHomeTarget("reviews"), "Trust"),
+            createBadgedAction("Feedback-Seite", createHelpBotPageTarget("feedback.html"), "Archive"),
+            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+          ]
+        },
+        "robotics-fit": {
+          text: "Fuer Robotik passt Sooraj am staerksten zu industrieller Robotik, autonomen Systemen und motion-planning-naher Engineering-Arbeit. Die besten Belege liegen in der KEBA Erfahrung, der Master-Thesis, dem ROS-Vakuumroboter und der allgemeinen Experience-Sektion. Diese Kombination deckt Industrieumfeld, Robotiksoftware, Planung und Umsetzung ab.",
+          actions: [
+            createBadgedAction("Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
+            createBadgedAction("KEBA Erfahrung", createHelpBotPageTarget("experience-working-student-keba.html"), "Industry"),
+            createBadgedAction("ROS-Projekt", createHelpBotPageTarget("project-autonomous-vacuum-robot.html"), "Proof")
+          ]
+        },
+        "immersive-fit": {
+          text: "Fuer AR/VR/XR liegt der staerkste Match in immersiver Trainings- und Simulationsarbeit. Die klarste Evidenz ist der VR Machine Operation Workshop in Unity mit C# und raeumlicher Interaktion. Das Profil ist hier also am glaubwuerdigsten fuer VR/XR-Workflows, HMI-nahe Trainingssimulation und interaktive Engineering-Prototypen.",
+          actions: [
+            createBadgedAction("VR-Workshop", createHelpBotPageTarget("project-vr-machine-workshop.html"), "VR"),
+            createBadgedAction("Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
+            createBadgedAction("Skills", createHelpBotHomeTarget("skills"), "Stack")
+          ]
+        },
+        "simulation-fit": {
+          text: "Fuer MATLAB-, Simulink- und Simulationsrollen liegt die staerkste Evidenz im Active-Suspension-Projekt, im allgemeinen simulation-led Engineering-Profil und in der These, dass Sooraj Systeme nicht nur modelliert, sondern in Richtung Ausfuehrungslogik denkt. Das Profil passt hier gut zu controls-naher Modellierung, Simulationsvalidierung und systemorientierter Analyse.",
+          actions: [
+            createBadgedAction("Active Suspension", createHelpBotPageTarget("project-active-suspension.html"), "MATLAB"),
+            createBadgedAction("Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
+            createBadgedAction("Skills", createHelpBotHomeTarget("skills"), "Stack")
+          ]
+        },
+        "design-fit": {
+          text: "Fuer SOLIDWORKS- und designnahe Rollen zeigt das Portfolio vor allem den Topology Bag Sealer mit FEA-getriebener Optimierung sowie die mechanische Basis aus dem Bachelor. Dazu kommen Tool-Erfahrung mit SOLIDWORKS, AutoCAD, ANSYS und Blender. Das Profil ist also nicht nur softwarelastig, sondern hat eine saubere Mechanical-Engineering-Seite.",
+          actions: [
+            createBadgedAction("Topology Bag Sealer", createHelpBotPageTarget("project-topology-bag-sealer.html"), "SOLIDWORKS"),
+            createBadgedAction("Skills", createHelpBotHomeTarget("skills"), "Tools"),
+            createBadgedAction("Bildung", createHelpBotHomeTarget("education"), "Base")
+          ]
+        },
+        "skills-overview": {
+          text: "Die Skills lassen sich in vier Gruppen lesen. 1. Robotik: ROS, ROS 2, Robot Programming, Trajectory Planning, Navigation und SLAM. 2. Programming und Simulation: Python, C++, C#, MATLAB, Simulink, Unity, VR und XR. 3. Sensing und Tools: LiDAR, Radar, OpenCV, GitHub, Ubuntu, SOLIDWORKS, AutoCAD, ANSYS und Blender. 4. Engineering-Disziplin: Design Validation, Reporting, Industrial Context und deployment-orientiertes Problem Solving.",
+          actions: [
+            createBadgedAction("Skills", createHelpBotHomeTarget("skills"), "Stack"),
+            createBadgedAction("Projektbereich", createHelpBotHomeTarget("projects"), "Proof"),
+            createBadgedAction("KEBA Erfahrung", createHelpBotPageTarget("experience-working-student-keba.html"), "Industry")
+          ]
+        },
+        "contact": {
+          text: "Sie koennen Sooraj direkt ueber die Kontaktwege der Website erreichen. Am schnellsten sind Kontaktformular und CV-Anfrage. Wenn Sie moechten, kann ich Sie direkt in den Kontaktpfad fuehren oder die CV-Anfrage starten, damit die Verbindung sauber ueber die Website laeuft.",
+          actions: [
+            createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action"),
+            createBadgedAction("CV anfragen", createHelpBotCvTarget(), "CV"),
+            createBadgedAction("Kontaktbereich", createHelpBotHomeTarget("contact"), "Direct")
+          ]
+        }
+      };
+      return deAnswers[answerId] || null;
+    }
+
+    const enAnswers = {
+      "about-profile": {
+        text: "If you want the clearest overall picture of Sooraj, start with About, Experience, and Where I Fit. Those sections show the technical direction across robotics, mechatronics, simulation, immersive work, and industrial context in Germany.",
+        actions: [
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Start"),
+          createBadgedAction("Open experience section", createHelpBotHomeTarget("experience"), "Proof"),
+          createBadgedAction("Open Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit")
+        ]
+      },
+      "robotics-experience": {
+        text: "Sooraj's strongest robotics experience is spread across three layers: the KEBA master's thesis in industrial robotics, the parallel KEBA working-student role in a live industrial environment, and robotics projects like the autonomous vacuum robot and the service robot. Together those pages show robotics software, motion planning, robot programming, simulation, and deployment-facing engineering logic.",
+        actions: [
+          createBadgedAction("Open experience section", createHelpBotHomeTarget("experience"), "Proof"),
+          createBadgedAction("KEBA master's thesis", createHelpBotPageTarget("experience-masters-thesis-keba.html"), "Robotics"),
+          createBadgedAction("KEBA working student role", createHelpBotPageTarget("experience-working-student-keba.html"), "Industry"),
+          createBadgedAction("Autonomous vacuum robot", createHelpBotPageTarget("project-autonomous-vacuum-robot.html"), "ROS")
+        ]
+      },
+      "vr-immersive": {
+        text: "Sooraj's clearest immersive engineering experience is the VR Machine Operation Workshop. That project uses Unity and C# to build a training-oriented simulation environment for machine operation, spatial interaction, and realistic user flow. So the strongest evidence is in VR/XR-style work rather than in a separate AR-only product case.",
+        actions: [
+          createBadgedAction("Open VR workshop", createHelpBotPageTarget("project-vr-machine-workshop.html"), "VR"),
+          createBadgedAction("Open Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
+          createBadgedAction("Open skills", createHelpBotHomeTarget("skills"), "Stack")
+        ]
+      },
+      "journey-india-germany": {
+        text: "The India-to-Germany path is structured clearly. It starts with school foundation and a B.Tech in Mechanical Engineering in India, then adds the 2022 industrial foundation through non-destructive testing in Kochi, and from March 2023 moves into Germany for the M.Eng. in Mechatronics and Cyber-Physical Systems at TH Deggendorf. From there the profile grows into the KEBA working-student role and the parallel industrial robotics thesis in Stuttgart.",
+        actions: [
+          createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story"),
+          createBadgedAction("Open education section", createHelpBotHomeTarget("education"), "Study"),
+          createBadgedAction("Open experience section", createHelpBotHomeTarget("experience"), "Proof")
+        ]
+      },
+      "bachelor-path": {
+        text: "Sooraj's bachelor's phase ran from August 2017 to July 2021 as a B.Tech in Mechanical Engineering at APJ Abdul Kalam Technological University. That period built the base in mechanical design, manufacturing, CAD/CAE, and engineering fundamentals. It also included leadership work and the later award-winning service robot project before the next steps into industry and then Germany.",
+        actions: [
+          createBadgedAction("Open education section", createHelpBotHomeTarget("education"), "Study"),
+          createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Context"),
+          createBadgedAction("Open service robot", createHelpBotPageTarget("project-service-robot.html"), "Award")
+        ]
+      },
+      "current-role-germany": {
+        text: "The current role in Germany is Working Student at KEBA Group in Stuttgart, Baden-Wuerttemberg. The work is centered on industrial robotics and automation in a live engineering environment, with focus on robot programming, implementation quality, and deployment context. In parallel, Sooraj is also doing the master's thesis in industrial robotics with a 6-axis workflow, motion planning, and execution-facing constraints.",
+        actions: [
+          createBadgedAction("Open KEBA working student role", createHelpBotPageTarget("experience-working-student-keba.html"), "Current"),
+          createBadgedAction("Open KEBA master's thesis", createHelpBotPageTarget("experience-masters-thesis-keba.html"), "Parallel"),
+          createBadgedAction("Open contact form", createHelpBotContactFormTarget(), "Action")
+        ]
+      },
+      "germany-location": {
+        text: "The current professional base is Stuttgart, Germany, because that is where the KEBA role and thesis-linked robotics work are anchored. The academic path is tied to TH Deggendorf, and the journey page also highlights lived experience across Bavaria, Thuringia, and Baden-Wuerttemberg.",
+        actions: [
+          createBadgedAction("Open travel footprint", createHelpBotPageTarget("journey.html", "travel"), "Travel"),
+          createBadgedAction("Open KEBA role", createHelpBotPageTarget("experience-working-student-keba.html"), "Current"),
+          createBadgedAction("Open education section", createHelpBotHomeTarget("education"), "Study")
+        ]
+      },
+      "travel-footprint": {
+        text: "The travel footprint is split into India, international countries, and Germany lived experience. In India the portfolio lists Kerala, Tamil Nadu, Rajasthan, and Goa. The countries explored list includes Germany, Bahrain, Qatar, Austria, Switzerland, Czech Republic, and Luxembourg. For Germany specifically, the journey page highlights lived experience across Bavaria, Thuringia, and Baden-Wuerttemberg.",
+        actions: [
+          createBadgedAction("Open travel footprint", createHelpBotPageTarget("journey.html", "travel"), "Travel"),
+          createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story"),
+          createBadgedAction("Open KEBA role", createHelpBotPageTarget("experience-working-student-keba.html"), "Germany")
+        ]
+      },
+      "projects-all": {
+        text: "The projects section covers five main projects. 1. Autonomous Vacuum Robot in ROS for SLAM, localization, and navigation. 2. VR Machine Operation Workshop for Unity-based immersive training simulation. 3. Active Suspension System Modeling for MATLAB and Simulink-based controls thinking. 4. Topology Optimized Temporary Bag Sealer for SOLIDWORKS, FEA, and optimization. 5. Automated Mechatronic Service Robot for early Arduino-based robotics and the Best Bachelor Project award.",
+        actions: [
+          createBadgedAction("Open projects section", createHelpBotHomeTarget("projects"), "Overview"),
+          createBadgedAction("Autonomous vacuum robot", createHelpBotPageTarget("project-autonomous-vacuum-robot.html"), "ROS"),
+          createBadgedAction("VR workshop", createHelpBotPageTarget("project-vr-machine-workshop.html"), "VR"),
+          createBadgedAction("Active suspension", createHelpBotPageTarget("project-active-suspension.html"), "MATLAB")
+        ]
+      },
+      "thesis-detail": {
+        text: "The master's thesis at KEBA ran from September 2025 to March 2026 and focused on a 6-axis industrial robotics workflow for machine operation. The important point is that it was not only about simulation. It connected planning, gripping logic, cell geometry, and deployment-facing execution. It also included a lightweight web-based joint path planner for waypoints and drag&bot simulation validation.",
+        actions: [
+          createBadgedAction("Open master's thesis", createHelpBotPageTarget("experience-masters-thesis-keba.html"), "Robotics"),
+          createBadgedAction("Open KEBA experience", createHelpBotPageTarget("experience-working-student-keba.html"), "Context"),
+          createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story")
+        ]
+      },
+      "ros-project": {
+        text: "The autonomous vacuum robot is the clearest ROS project in the portfolio. It shows SLAM-based localization, obstacle detection, path planning, sensor-driven decision logic, and the working stack across ROS, Gazebo, and RViz. It is one of the most direct pieces of evidence for robotics software and autonomous navigation work.",
+        actions: [
+          createBadgedAction("Open ROS project", createHelpBotPageTarget("project-autonomous-vacuum-robot.html"), "ROS"),
+          createBadgedAction("Open KEBA master's thesis", createHelpBotPageTarget("experience-masters-thesis-keba.html"), "Related"),
+          createBadgedAction("Open projects section", createHelpBotHomeTarget("projects"), "Overview")
+        ]
+      },
+      "service-robot-detail": {
+        text: "The service robot is an early but important robotics foundation in the portfolio. Built in July 2021, the Arduino-based system was shaped around patient-care support during the pandemic and combined sensor integration, line-following, guided movement, and a real human-centered use case. It later received Best Bachelor Project recognition.",
+        actions: [
+          createBadgedAction("Open service robot", createHelpBotPageTarget("project-service-robot.html"), "Award"),
+          createBadgedAction("Open education section", createHelpBotHomeTarget("education"), "Bachelor"),
+          createBadgedAction("Open projects section", createHelpBotHomeTarget("projects"), "Overview")
+        ]
+      },
+      "active-suspension-detail": {
+        text: "The Active Suspension project shows MATLAB and Simulink-based modeling for dynamic system behavior. It focuses on hydraulic actuator logic, system response, and simulation-led performance study. That makes it one of the clearer controls and system-analysis pages in the portfolio beyond the robotics-specific pages.",
+        actions: [
+          createBadgedAction("Open Active Suspension", createHelpBotPageTarget("project-active-suspension.html"), "MATLAB"),
+          createBadgedAction("Open Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
+          createBadgedAction("Open skills", createHelpBotHomeTarget("skills"), "Stack")
+        ]
+      },
+      "topology-detail": {
+        text: "The Topology Bag Sealer is the strongest SolidWorks and FEA-oriented design page in the portfolio. It focused on weight and material reduction through topology optimization while still keeping manufacturability practical. So it demonstrates mechanical reasoning, analysis-driven design, and engineering trade-off handling.",
+        actions: [
+          createBadgedAction("Open Topology Bag Sealer", createHelpBotPageTarget("project-topology-bag-sealer.html"), "SOLIDWORKS"),
+          createBadgedAction("Open skills", createHelpBotHomeTarget("skills"), "Tools"),
+          createBadgedAction("Open projects section", createHelpBotHomeTarget("projects"), "Overview")
+        ]
+      },
+      "reviews": {
+        text: "The reviews section is the trust layer of the portfolio. It shows featured admin-pinned reviews, the archive of public reviews, overall rating, reach by country, and visible owner replies. If you want to understand how the profile is being received by others, that is the right section to read.",
+        actions: [
+          createBadgedAction("Open reviews", createHelpBotHomeTarget("reviews"), "Trust"),
+          createBadgedAction("Open feedback page", createHelpBotPageTarget("feedback.html"), "Archive"),
+          createBadgedAction("Open contact", createHelpBotContactFormTarget(), "Action")
+        ]
+      },
+      "robotics-fit": {
+        text: "For robotics, Sooraj fits best in industrial robotics, autonomous systems, and motion-planning-oriented engineering roles. The strongest evidence comes from the KEBA experience, the master's thesis, the ROS vacuum robot, and the broader experience section. That combination covers industrial context, robotics software, planning, and execution.",
+        actions: [
+          createBadgedAction("Open Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
+          createBadgedAction("Open KEBA experience", createHelpBotPageTarget("experience-working-student-keba.html"), "Industry"),
+          createBadgedAction("Open ROS project", createHelpBotPageTarget("project-autonomous-vacuum-robot.html"), "Proof")
+        ]
+      },
+      "immersive-fit": {
+        text: "For AR, VR, XR, or MR-style work, the strongest fit is in immersive training and simulation engineering. The clearest evidence is the VR Machine Operation Workshop in Unity with C# and spatial interaction design. So the profile is most credible here for VR/XR workflows, HMI-adjacent training simulation, and interactive engineering prototypes.",
+        actions: [
+          createBadgedAction("Open VR workshop", createHelpBotPageTarget("project-vr-machine-workshop.html"), "VR"),
+          createBadgedAction("Open Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
+          createBadgedAction("Open skills", createHelpBotHomeTarget("skills"), "Stack")
+        ]
+      },
+      "simulation-fit": {
+        text: "For MATLAB, Simulink, and simulation roles, the strongest evidence is the Active Suspension project, the simulation-led engineering profile, and the wider pattern that Sooraj connects modeling with execution logic rather than stopping at theory. That makes the profile a good match for control-oriented simulation, system modeling, and validation-heavy engineering work.",
+        actions: [
+          createBadgedAction("Open Active Suspension", createHelpBotPageTarget("project-active-suspension.html"), "MATLAB"),
+          createBadgedAction("Open Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
+          createBadgedAction("Open skills", createHelpBotHomeTarget("skills"), "Stack")
+        ]
+      },
+      "design-fit": {
+        text: "For SolidWorks and design-oriented roles, the strongest proof is the Topology Bag Sealer with FEA-driven optimization and manufacturability thinking, supported by the mechanical engineering base from the bachelor's path. The skills section also shows SolidWorks, AutoCAD, ANSYS, and Blender, so the profile is not software-only; it still has a clear mechanical-design side.",
+        actions: [
+          createBadgedAction("Open Topology Bag Sealer", createHelpBotPageTarget("project-topology-bag-sealer.html"), "SOLIDWORKS"),
+          createBadgedAction("Open skills", createHelpBotHomeTarget("skills"), "Tools"),
+          createBadgedAction("Open education section", createHelpBotHomeTarget("education"), "Base")
+        ]
+      },
+      "skills-overview": {
+        text: "The skills section reads best in four groups. 1. Robotics: ROS, ROS 2, robot programming, trajectory planning, navigation, and SLAM. 2. Programming and simulation: Python, C++, C#, MATLAB, Simulink, Unity, VR, and XR. 3. Sensing and tools: LiDAR, radar, OpenCV, GitHub, Ubuntu, SOLIDWORKS, AutoCAD, ANSYS, and Blender. 4. Engineering discipline: design validation, technical reporting, industrial context, and deployment-focused problem solving.",
+        actions: [
+          createBadgedAction("Open skills", createHelpBotHomeTarget("skills"), "Stack"),
+          createBadgedAction("Open projects section", createHelpBotHomeTarget("projects"), "Proof"),
+          createBadgedAction("Open KEBA experience", createHelpBotPageTarget("experience-working-student-keba.html"), "Industry")
+        ]
+      },
+      "contact": {
+        text: "You can reach Sooraj through the website contact paths directly. The fastest routes are the contact form and the CV request flow. If you want, I can help connect you by taking you straight into the contact path or the CV request path through the website.",
+        actions: [
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action"),
+          createBadgedAction("Request CV", createHelpBotCvTarget(), "CV"),
+          createBadgedAction("Open contact section", createHelpBotHomeTarget("contact"), "Direct")
+        ]
+      }
+    };
+    return enAnswers[answerId] || null;
+  };
+
+  const findWebsiteQuestionMatches = async (query, { deep = false } = {}) => {
+    const normalizedQuery = String(query || "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+    const tokens = normalizeSearchTokens(normalizedQuery).filter((token) => token.length >= 2);
+    if (!tokens.length) return [];
+    const bank = await loadHelpBotQuestionBank();
+    if (!Array.isArray(bank?.intents) || !bank.intents.length) return [];
+
+    const scoreQuestion = (question = "", keywords = []) => {
+      const questionNormalized = String(question || "")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, " ")
+        .trim();
+      const questionTokens = normalizeSearchTokens(questionNormalized).filter((token) => token.length >= 2);
+      if (!questionTokens.length) return 0;
+      const matchedTokens = tokens.filter((token) => questionTokens.some((candidate) => (
+        candidate === token
+        || candidate.startsWith(token)
+        || token.startsWith(candidate)
+      )));
+      const keywordMatches = Array.isArray(keywords)
+        ? keywords.filter((keyword) => {
+            const normalizedKeyword = String(keyword || "").toLowerCase().trim();
+            return normalizedKeyword && (
+              normalizedQuery.includes(normalizedKeyword)
+              || tokens.includes(normalizedKeyword)
+            );
+          }).length
+        : 0;
+      const exact = normalizedQuery === questionNormalized;
+      const strongPhrase = normalizedQuery.length >= 6 && (questionNormalized.includes(normalizedQuery) || normalizedQuery.includes(questionNormalized));
+      const overlap = matchedTokens.length;
+      const ratio = overlap / Math.max(Math.min(questionTokens.length, tokens.length), 1);
+      let score = (overlap * 3) + (keywordMatches * 2);
+      if (exact) score += 18;
+      if (strongPhrase) score += 10;
+      if (ratio >= 0.75) score += 8;
+      else if (ratio >= 0.55) score += 5;
+      if (deep && ratio >= 0.4) score += 4;
+      return score;
+    };
+
+    const ranked = bank.intents
+      .map((intent) => {
+        const bestQuestion = intent.questions
+          .map((question) => ({ question, score: scoreQuestion(question, intent.keywords) }))
+          .sort((left, right) => right.score - left.score)[0];
+        if (!bestQuestion || bestQuestion.score <= 0) return null;
+        const threshold = deep ? 6 : 9;
+        if (bestQuestion.score < threshold) return null;
+        return {
+          kind: "question",
+          answerId: intent.id,
+          label: bestQuestion.question,
+          score: bestQuestion.score
+        };
+      })
+      .filter(Boolean)
+      .sort((left, right) => right.score - left.score);
+
+    return ranked.slice(0, 4);
+  };
+
   const getWebsiteSearchIndex = () => ([
     {
       label: currentLang === "de" ? "About Sooraj" : "About Sooraj",
@@ -6856,10 +7363,512 @@ function setupPortfolioHelpBot() {
     }
   ]);
 
+  const getWebsiteQuestionAnswer = (query = "") => {
+    const normalizedQuery = String(query || "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+    const tokens = normalizeSearchTokens(normalizedQuery)
+      .filter((token) => token.length >= 2);
+    if (!tokens.length) return null;
+
+    const hasTerm = (value = "") => {
+      const target = String(value || "")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, " ")
+        .trim();
+      if (!target) return false;
+      if (target.includes(" ")) return normalizedQuery.includes(target);
+      return tokens.some((token) => (
+        token === target
+        || token.startsWith(target)
+        || target.startsWith(token)
+        || (target.length >= 4 && token.includes(target))
+      ));
+    };
+
+    const hasAny = (values = []) => values.some((value) => hasTerm(value));
+    const hasAll = (values = []) => values.every((value) => hasTerm(value));
+    const scoreMatches = (values = [], weight = 1) => values.reduce((score, value) => score + (hasTerm(value) ? weight : 0), 0);
+    const scoreIf = (condition, points) => (condition ? points : 0);
+
+    const definitions = currentLang === "de"
+      ? [
+          {
+            id: "robotics-experience",
+            minScore: 6,
+            score: () => (
+              scoreMatches(["robotik", "robotics", "automation", "industrielle robotik", "mechatronik"], 3)
+              + scoreMatches(["erfahrung", "experience", "keba", "werkstudent", "thesis", "projekte"], 2)
+            ),
+            text: "Soorajs staerkste Robotik-Erfahrung liegt in drei Ebenen: in der KEBA Master-Thesis zur industriellen Robotik, in der parallelen KEBA Werkstudentenrolle im Live-Industrieumfeld und in Robotikprojekten wie dem autonomen Vakuumroboter und dem Service-Roboter. Zusammen zeigen diese Seiten Robotiksoftware, Motion Planning, Robot Programming, Simulation und umsetzungsnahe Engineering-Logik.",
+            actions: [
+              createBadgedAction("Erfahrung oeffnen", createHelpBotHomeTarget("experience"), "Proof"),
+              createBadgedAction("KEBA Master-Thesis", createHelpBotPageTarget("experience-masters-thesis-keba.html"), "Robotik"),
+              createBadgedAction("KEBA Werkstudent", createHelpBotPageTarget("experience-working-student-keba.html"), "Industrie"),
+              createBadgedAction("Vakuumroboter", createHelpBotPageTarget("project-autonomous-vacuum-robot.html"), "ROS")
+            ]
+          },
+          {
+            id: "vr-immersive",
+            minScore: 5,
+            score: () => (
+              scoreMatches(["vr", "xr", "ar", "mr", "unity", "immersive"], 3)
+              + scoreMatches(["workshop", "maschine", "machine", "training", "interaction"], 2)
+            ),
+            text: "Die staerkste immersive Erfahrung im Portfolio ist der VR Machine Operation Workshop. Dort hat Sooraj in Unity und C# eine trainingsorientierte Simulationsumgebung fuer Maschinenbedienung, raeumliche Interaktion und realistischere Nutzerfuehrung aufgebaut. Die cleareste Evidenz liegt also im VR/XR-Bereich, nicht in einem separaten AR-only Produktfall.",
+            actions: [
+              createBadgedAction("VR-Workshop", createHelpBotPageTarget("project-vr-machine-workshop.html"), "VR"),
+              createBadgedAction("Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
+              createBadgedAction("Skills", createHelpBotHomeTarget("skills"), "Stack")
+            ]
+          },
+          {
+            id: "journey-india-germany",
+            minScore: 6,
+            score: () => (
+              scoreIf(hasAll(["india", "germany"]), 6)
+              + scoreMatches(["journey", "weg", "path", "story", "transition", "move"], 2)
+              + scoreMatches(["bachelor", "master", "studium", "robotik"], 1)
+            ),
+            text: "Der Weg von Indien nach Deutschland ist klar aufgebaut. Erst kamen Schulbasis und B.Tech in Mechanical Engineering in Indien, dann 2022 die industrielle Grundlage ueber Non-Destructive Testing in Kochi, und ab 2023 der Wechsel nach Deutschland fuer den M.Eng. in Mechatronics and Cyber-Physical Systems an der TH Deggendorf. Von dort fuehrte der Weg weiter in die KEBA Werkstudentenrolle und die parallele Master-Thesis in industrieller Robotik in Stuttgart.",
+            actions: [
+              createBadgedAction("Journey oeffnen", createHelpBotPageTarget("journey.html"), "Story"),
+              createBadgedAction("Bildung", createHelpBotHomeTarget("education"), "Study"),
+              createBadgedAction("KEBA Erfahrung", createHelpBotHomeTarget("experience"), "Proof")
+            ]
+          },
+          {
+            id: "bachelor-path",
+            minScore: 5,
+            score: () => (
+              scoreMatches(["bachelor", "btech", "mechanical engineering", "mechanik", "mechanical"], 3)
+              + scoreMatches(["india", "jahr", "year", "ktu", "apj", "university"], 2)
+            ),
+            text: "Soorajs Bachelor-Phase lief von August 2017 bis Juli 2021 als B.Tech in Mechanical Engineering an der APJ Abdul Kalam Technological University. In dieser Zeit wurden Mechanical Design, Manufacturing, CAD/CAE und die technischen Grundlagen aufgebaut. Parallel dazu entstanden Leadership-Erfahrung und das spaeter ausgezeichnete Service-Roboter-Projekt, bevor danach erst die Industriephase in Indien und dann Deutschland folgten.",
+            actions: [
+              createBadgedAction("Bildungsbereich", createHelpBotHomeTarget("education"), "Study"),
+              createBadgedAction("Journey", createHelpBotPageTarget("journey.html"), "Context"),
+              createBadgedAction("Service-Roboter", createHelpBotPageTarget("project-service-robot.html"), "Award")
+            ]
+          },
+          {
+            id: "current-role-germany",
+            minScore: 5,
+            score: () => (
+              scoreMatches(["current role", "aktuelle rolle", "werkstudent", "working student", "workstudent", "job"], 3)
+              + scoreMatches(["germany", "stuttgart", "keba", "current", "role"], 2)
+            ),
+            text: "Die aktuelle Rolle in Deutschland ist Werkstudent bei der KEBA Group in Stuttgart, Baden-Wuerttemberg. Der Schwerpunkt liegt auf industrieller Robotik und Automation in einem echten Engineering-Umfeld, also auf Robot Programming, Implementierungsqualitaet und Deployment-Kontext. Parallel dazu laeuft die Master-Thesis in industrieller Robotik mit Fokus auf 6-Achs-Workflow, Motion Planning und umsetzungsnaher Ausfuehrung.",
+            actions: [
+              createBadgedAction("KEBA Werkstudent", createHelpBotPageTarget("experience-working-student-keba.html"), "Current"),
+              createBadgedAction("KEBA Master-Thesis", createHelpBotPageTarget("experience-masters-thesis-keba.html"), "Parallel"),
+              createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+            ]
+          },
+          {
+            id: "germany-location",
+            minScore: 5,
+            score: () => (
+              scoreMatches(["where", "wo", "stay", "staying", "live", "living", "based", "location"], 2)
+              + scoreMatches(["germany", "stuttgart", "deggendorf", "bavaria", "baden"], 2)
+            ),
+            text: "Der aktuelle berufliche Ankerpunkt ist Stuttgart in Deutschland, weil dort die KEBA Werkstudentenrolle und die Thesis-nahe Robotikarbeit liegen. Die akademische Spur fuehrt ueber die TH Deggendorf, und die Journey-Seite nennt ausserdem gelebte Erfahrung in Bayern, Thueringen und Baden-Wuerttemberg.",
+            actions: [
+              createBadgedAction("Journey Travel", createHelpBotPageTarget("journey.html", "travel"), "Travel"),
+              createBadgedAction("KEBA Rolle", createHelpBotPageTarget("experience-working-student-keba.html"), "Current"),
+              createBadgedAction("Bildung", createHelpBotHomeTarget("education"), "Study")
+            ]
+          },
+          {
+            id: "travel-footprint",
+            minScore: 5,
+            score: () => (
+              scoreMatches(["travel", "visited", "places", "orte", "countries", "explored", "footprint"], 3)
+              + scoreMatches(["india", "indian", "germany", "deutschland"], 2)
+            ),
+            text: "Die Travel-Footprint-Sektion ist nach Indien, internationale Laender und gelebte Deutschland-Erfahrung getrennt. In Indien nennt das Portfolio Kerala, Tamil Nadu, Rajasthan und Goa. International werden Deutschland, Bahrain, Katar, Oesterreich, die Schweiz, Tschechien und Luxemburg genannt. Fuer Deutschland werden gelebte Erfahrung in Bayern, Thueringen und Baden-Wuerttemberg hervorgehoben.",
+            actions: [
+              createBadgedAction("Travel-Footprint", createHelpBotPageTarget("journey.html", "travel"), "Travel"),
+              createBadgedAction("Journey", createHelpBotPageTarget("journey.html"), "Story"),
+              createBadgedAction("KEBA Rolle", createHelpBotPageTarget("experience-working-student-keba.html"), "Germany")
+            ]
+          },
+          {
+            id: "projects-all",
+            minScore: 5,
+            score: () => (
+              scoreMatches(["project", "projects", "projekte", "portfolio work", "technical work"], 3)
+              + scoreMatches(["all", "explain", "liste", "show", "what all"], 1)
+            ),
+            text: "Die Projektsektion deckt fuenf Hauptprojekte ab. 1. Der autonome Vakuumroboter in ROS zeigt SLAM, Lokalisierung und Navigation. 2. Der VR Machine Operation Workshop zeigt Unity-basierte immersive Trainingssimulation. 3. Active Suspension zeigt MATLAB- und Simulink-basierte Modellierung und Controls-Denken. 4. Der Topology Bag Sealer zeigt SOLIDWORKS-, FEA- und Optimierungsarbeit. 5. Der Service-Roboter zeigt eine fruehe Arduino-basierte Robotikbasis mit Best-Bachelor-Project-Auszeichnung.",
+            actions: [
+              createBadgedAction("Projektbereich", createHelpBotHomeTarget("projects"), "Overview"),
+              createBadgedAction("Vakuumroboter", createHelpBotPageTarget("project-autonomous-vacuum-robot.html"), "ROS"),
+              createBadgedAction("VR-Workshop", createHelpBotPageTarget("project-vr-machine-workshop.html"), "VR"),
+              createBadgedAction("Fahrwerksregelung", createHelpBotPageTarget("project-active-suspension.html"), "MATLAB")
+            ]
+          },
+          {
+            id: "reviews",
+            minScore: 4,
+            score: () => (
+              scoreMatches(["review", "reviews", "feedback", "trust", "credibility"], 3)
+              + scoreMatches(["public", "reply", "archive", "rating"], 1)
+            ),
+            text: "Die Review-Sektion ist die Vertrauensebene des Portfolios. Dort sehen Sie hervorgehobene, vom Admin gepinnte Reviews, das Archiv oeffentlicher Reviews, die Gesamtbewertung, Reichweite nach Laendern und sichtbare Owner-Replies. Wenn Sie pruefen wollen, wie das Profil von anderen wahrgenommen wird, ist das der richtige Bereich.",
+            actions: [
+              createBadgedAction("Reviews oeffnen", createHelpBotHomeTarget("reviews"), "Trust"),
+              createBadgedAction("Feedback-Seite", createHelpBotPageTarget("feedback.html"), "Archive"),
+              createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+            ]
+          },
+          {
+            id: "robotics-fit",
+            minScore: 5,
+            score: () => (
+              scoreMatches(["fit", "rolle", "role", "best", "suited"], 2)
+              + scoreMatches(["robotics", "robotik", "automation", "autonomous", "industry"], 3)
+            ),
+            text: "Fuer Robotik passt Sooraj am staerksten zu industrieller Robotik, autonomen Systemen und motion-planning-naher Engineering-Arbeit. Die besten Belege liegen in der KEBA Erfahrung, der Master-Thesis, dem ROS-Vakuumroboter und der allgemeinen Experience-Sektion. Diese Kombination deckt Industrieumfeld, Robotiksoftware, Planung und Umsetzung ab.",
+            actions: [
+              createBadgedAction("Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
+              createBadgedAction("KEBA Erfahrung", createHelpBotPageTarget("experience-working-student-keba.html"), "Industry"),
+              createBadgedAction("ROS-Projekt", createHelpBotPageTarget("project-autonomous-vacuum-robot.html"), "Proof")
+            ]
+          },
+          {
+            id: "immersive-fit",
+            minScore: 5,
+            score: () => (
+              scoreMatches(["fit", "rolle", "role", "best", "suited"], 2)
+              + scoreMatches(["ar", "vr", "xr", "mr", "unity", "immersive"], 3)
+            ),
+            text: "Fuer AR/VR/XR liegt der staerkste Match in immersiver Trainings- und Simulationsarbeit. Die klarste Evidenz ist der VR Machine Operation Workshop in Unity mit C# und raeumlicher Interaktion. Das Profil ist hier also am glaubwuerdigsten fuer VR/XR-Workflows, HMI-nahe Trainingssimulation und interaktive Engineering-Prototypen.",
+            actions: [
+              createBadgedAction("VR-Workshop", createHelpBotPageTarget("project-vr-machine-workshop.html"), "VR"),
+              createBadgedAction("Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
+              createBadgedAction("Skills", createHelpBotHomeTarget("skills"), "Stack")
+            ]
+          },
+          {
+            id: "simulation-fit",
+            minScore: 5,
+            score: () => (
+              scoreMatches(["fit", "rolle", "role", "best", "suited"], 2)
+              + scoreMatches(["matlab", "simulink", "simulation", "controls", "control"], 3)
+            ),
+            text: "Fuer MATLAB-, Simulink- und Simulationsrollen liegt die staerkste Evidenz im Active-Suspension-Projekt, im allgemeinen simulation-led Engineering-Profil und in der These, dass Sooraj Systeme nicht nur modelliert, sondern in Richtung Ausfuehrungslogik denkt. Das Profil passt hier gut zu controls-naher Modellierung, Simulationsvalidierung und systemorientierter Analyse.",
+            actions: [
+              createBadgedAction("Active Suspension", createHelpBotPageTarget("project-active-suspension.html"), "MATLAB"),
+              createBadgedAction("Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
+              createBadgedAction("Skills", createHelpBotHomeTarget("skills"), "Stack")
+            ]
+          },
+          {
+            id: "design-fit",
+            minScore: 5,
+            score: () => (
+              scoreMatches(["solidworks", "cad", "design", "fea", "optimization", "optimierung"], 3)
+              + scoreMatches(["fit", "rolle", "project", "projekt"], 1)
+            ),
+            text: "Fuer SOLIDWORKS- und designnahe Rollen zeigt das Portfolio vor allem den Topology Bag Sealer mit FEA-getriebener Optimierung sowie die mechanische Basis aus dem Bachelor. Dazu kommen Tool-Erfahrung mit SOLIDWORKS, AutoCAD, ANSYS und Blender. Das Profil ist also nicht nur softwarelastig, sondern hat eine saubere Mechanical-Engineering-Seite.",
+            actions: [
+              createBadgedAction("Topology Bag Sealer", createHelpBotPageTarget("project-topology-bag-sealer.html"), "SOLIDWORKS"),
+              createBadgedAction("Skills", createHelpBotHomeTarget("skills"), "Tools"),
+              createBadgedAction("Bildung", createHelpBotHomeTarget("education"), "Base")
+            ]
+          },
+          {
+            id: "skills-overview",
+            minScore: 5,
+            score: () => (
+              scoreMatches(["skills", "skill", "tools", "stack", "software"], 3)
+              + scoreMatches(["robotics", "matlab", "solidworks", "unity", "python", "c"], 1)
+            ),
+            text: "Die Skills lassen sich in vier Gruppen lesen. 1. Robotik: ROS, ROS 2, Robot Programming, Trajectory Planning, Navigation und SLAM. 2. Programming und Simulation: Python, C++, C#, MATLAB, Simulink, Unity, VR und XR. 3. Sensing und Tools: LiDAR, Radar, OpenCV, GitHub, Ubuntu, SOLIDWORKS, AutoCAD, ANSYS und Blender. 4. Engineering-Disziplin: Design Validation, Reporting, Industrial Context und deployment-orientiertes Problem Solving.",
+            actions: [
+              createBadgedAction("Skills", createHelpBotHomeTarget("skills"), "Stack"),
+              createBadgedAction("Projektbereich", createHelpBotHomeTarget("projects"), "Proof"),
+              createBadgedAction("KEBA Erfahrung", createHelpBotPageTarget("experience-working-student-keba.html"), "Industry")
+            ]
+          },
+          {
+            id: "contact",
+            minScore: 4,
+            score: () => (
+              scoreMatches(["contact", "kontakt", "cv", "resume", "email", "hire", "reach"], 3)
+              + scoreMatches(["message", "connect", "request", "talk"], 1)
+            ),
+            text: "Sie koennen Sooraj direkt ueber die Kontaktwege der Website erreichen. Am schnellsten sind Kontaktformular und CV-Anfrage. Wenn Sie moechten, kann ich Sie direkt in den Kontaktpfad fuehren oder die CV-Anfrage starten, damit die Verbindung sauber ueber die Website laeuft.",
+            actions: [
+              createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action"),
+              createBadgedAction("CV anfragen", createHelpBotCvTarget(), "CV"),
+              createBadgedAction("Kontaktbereich", createHelpBotHomeTarget("contact"), "Direct")
+            ]
+          },
+          {
+            id: "about-profile",
+            minScore: 4,
+            score: () => (
+              scoreMatches(["about", "profil", "profile", "overview", "introduction", "sooraj"], 2)
+              + scoreMatches(["who", "background", "summary", "direction"], 1)
+            ),
+            text: "Wenn Sie Soorajs Gesamtprofil schnell verstehen wollen, beginnen Sie mit About, Experience und Where I Fit. Dort sehen Sie die technische Richtung zwischen Robotik, Mechatronik, Simulation, immersiven Projekten und industriellem Kontext in Deutschland.",
+            actions: [
+              createBadgedAction("About", createHelpBotHomeTarget("about"), "Start"),
+              createBadgedAction("Erfahrung", createHelpBotHomeTarget("experience"), "Proof"),
+              createBadgedAction("Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit")
+            ]
+          }
+        ]
+      : [
+          {
+            id: "robotics-experience",
+            minScore: 6,
+            score: () => (
+              scoreMatches(["robotics", "automation", "industrial robotics", "mechatronics"], 3)
+              + scoreMatches(["experience", "keba", "working student", "workstudent", "thesis", "project", "projects"], 2)
+            ),
+            text: "Sooraj's strongest robotics experience is spread across three layers: the KEBA master's thesis in industrial robotics, the parallel KEBA working-student role in a live industrial environment, and robotics projects like the autonomous vacuum robot and the service robot. Together those pages show robotics software, motion planning, robot programming, simulation, and deployment-facing engineering logic.",
+            actions: [
+              createBadgedAction("Open experience section", createHelpBotHomeTarget("experience"), "Proof"),
+              createBadgedAction("KEBA master's thesis", createHelpBotPageTarget("experience-masters-thesis-keba.html"), "Robotics"),
+              createBadgedAction("KEBA working student role", createHelpBotPageTarget("experience-working-student-keba.html"), "Industry"),
+              createBadgedAction("Autonomous vacuum robot", createHelpBotPageTarget("project-autonomous-vacuum-robot.html"), "ROS")
+            ]
+          },
+          {
+            id: "vr-immersive",
+            minScore: 5,
+            score: () => (
+              scoreMatches(["vr", "xr", "ar", "mr", "unity", "immersive"], 3)
+              + scoreMatches(["workshop", "machine", "training", "interaction"], 2)
+            ),
+            text: "Sooraj's clearest immersive engineering experience is the VR Machine Operation Workshop. That project uses Unity and C# to build a training-oriented simulation environment for machine operation, spatial interaction, and realistic user flow. So the strongest evidence is in VR/XR-style work rather than in a separate AR-only product case.",
+            actions: [
+              createBadgedAction("Open VR workshop", createHelpBotPageTarget("project-vr-machine-workshop.html"), "VR"),
+              createBadgedAction("Open Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
+              createBadgedAction("Open skills", createHelpBotHomeTarget("skills"), "Stack")
+            ]
+          },
+          {
+            id: "journey-india-germany",
+            minScore: 6,
+            score: () => (
+              scoreIf(hasAll(["india", "germany"]), 6)
+              + scoreMatches(["journey", "path", "story", "transition", "move"], 2)
+              + scoreMatches(["bachelor", "master", "study", "robotics"], 1)
+            ),
+            text: "The India-to-Germany path is structured clearly. It starts with school foundation and a B.Tech in Mechanical Engineering in India, then adds the 2022 industrial foundation through non-destructive testing in Kochi, and from March 2023 moves into Germany for the M.Eng. in Mechatronics and Cyber-Physical Systems at TH Deggendorf. From there the profile grows into the KEBA working-student role and the parallel industrial robotics thesis in Stuttgart.",
+            actions: [
+              createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story"),
+              createBadgedAction("Open education section", createHelpBotHomeTarget("education"), "Study"),
+              createBadgedAction("Open experience section", createHelpBotHomeTarget("experience"), "Proof")
+            ]
+          },
+          {
+            id: "bachelor-path",
+            minScore: 5,
+            score: () => (
+              scoreMatches(["bachelor", "btech", "mechanical engineering", "mechanical"], 3)
+              + scoreMatches(["india", "year", "ktu", "apj", "university"], 2)
+            ),
+            text: "Sooraj's bachelor's phase ran from August 2017 to July 2021 as a B.Tech in Mechanical Engineering at APJ Abdul Kalam Technological University. That period built the base in mechanical design, manufacturing, CAD/CAE, and engineering fundamentals. It also included leadership work and the later award-winning service robot project before the next steps into industry and then Germany.",
+            actions: [
+              createBadgedAction("Open education section", createHelpBotHomeTarget("education"), "Study"),
+              createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Context"),
+              createBadgedAction("Open service robot", createHelpBotPageTarget("project-service-robot.html"), "Award")
+            ]
+          },
+          {
+            id: "current-role-germany",
+            minScore: 5,
+            score: () => (
+              scoreMatches(["current role", "working student", "workstudent", "werkstudent", "current", "role", "job"], 3)
+              + scoreMatches(["germany", "stuttgart", "keba"], 2)
+            ),
+            text: "The current role in Germany is Working Student at KEBA Group in Stuttgart, Baden-Wuerttemberg. The work is centered on industrial robotics and automation in a live engineering environment, with focus on robot programming, implementation quality, and deployment context. In parallel, Sooraj is also doing the master's thesis in industrial robotics with a 6-axis workflow, motion planning, and execution-facing constraints.",
+            actions: [
+              createBadgedAction("Open KEBA working student role", createHelpBotPageTarget("experience-working-student-keba.html"), "Current"),
+              createBadgedAction("Open KEBA master's thesis", createHelpBotPageTarget("experience-masters-thesis-keba.html"), "Parallel"),
+              createBadgedAction("Open contact form", createHelpBotContactFormTarget(), "Action")
+            ]
+          },
+          {
+            id: "germany-location",
+            minScore: 5,
+            score: () => (
+              scoreMatches(["where", "stay", "staying", "live", "living", "based", "location"], 2)
+              + scoreMatches(["germany", "stuttgart", "deggendorf", "bavaria", "baden"], 2)
+            ),
+            text: "The current professional base is Stuttgart, Germany, because that is where the KEBA role and thesis-linked robotics work are anchored. The academic path is tied to TH Deggendorf, and the journey page also highlights lived experience across Bavaria, Thuringia, and Baden-Wuerttemberg.",
+            actions: [
+              createBadgedAction("Open travel footprint", createHelpBotPageTarget("journey.html", "travel"), "Travel"),
+              createBadgedAction("Open KEBA role", createHelpBotPageTarget("experience-working-student-keba.html"), "Current"),
+              createBadgedAction("Open education section", createHelpBotHomeTarget("education"), "Study")
+            ]
+          },
+          {
+            id: "travel-footprint",
+            minScore: 5,
+            score: () => (
+              scoreMatches(["travel", "visited", "places", "countries", "explored", "footprint"], 3)
+              + scoreMatches(["india", "indian", "germany"], 2)
+            ),
+            text: "The travel footprint is split into India, international countries, and Germany lived experience. In India the portfolio lists Kerala, Tamil Nadu, Rajasthan, and Goa. The countries explored list includes Germany, Bahrain, Qatar, Austria, Switzerland, Czech Republic, and Luxembourg. For Germany specifically, the journey page highlights lived experience across Bavaria, Thuringia, and Baden-Wuerttemberg.",
+            actions: [
+              createBadgedAction("Open travel footprint", createHelpBotPageTarget("journey.html", "travel"), "Travel"),
+              createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story"),
+              createBadgedAction("Open KEBA role", createHelpBotPageTarget("experience-working-student-keba.html"), "Germany")
+            ]
+          },
+          {
+            id: "projects-all",
+            minScore: 5,
+            score: () => (
+              scoreMatches(["project", "projects", "portfolio work", "technical work"], 3)
+              + scoreMatches(["all", "explain", "list", "show"], 1)
+            ),
+            text: "The projects section covers five main projects. 1. Autonomous Vacuum Robot in ROS for SLAM, localization, and navigation. 2. VR Machine Operation Workshop for Unity-based immersive training simulation. 3. Active Suspension System Modeling for MATLAB and Simulink-based controls thinking. 4. Topology Optimized Temporary Bag Sealer for SOLIDWORKS, FEA, and optimization. 5. Automated Mechatronic Service Robot for early Arduino-based robotics and the Best Bachelor Project award.",
+            actions: [
+              createBadgedAction("Open projects section", createHelpBotHomeTarget("projects"), "Overview"),
+              createBadgedAction("Autonomous vacuum robot", createHelpBotPageTarget("project-autonomous-vacuum-robot.html"), "ROS"),
+              createBadgedAction("VR workshop", createHelpBotPageTarget("project-vr-machine-workshop.html"), "VR"),
+              createBadgedAction("Active suspension", createHelpBotPageTarget("project-active-suspension.html"), "MATLAB")
+            ]
+          },
+          {
+            id: "reviews",
+            minScore: 4,
+            score: () => (
+              scoreMatches(["review", "reviews", "feedback", "trust", "credibility"], 3)
+              + scoreMatches(["public", "reply", "archive", "rating"], 1)
+            ),
+            text: "The reviews section is the trust layer of the portfolio. It shows featured admin-pinned reviews, the archive of public reviews, overall rating, reach by country, and visible owner replies. If you want to understand how the profile is being received by others, that is the right section to read.",
+            actions: [
+              createBadgedAction("Open reviews", createHelpBotHomeTarget("reviews"), "Trust"),
+              createBadgedAction("Open feedback page", createHelpBotPageTarget("feedback.html"), "Archive"),
+              createBadgedAction("Open contact", createHelpBotContactFormTarget(), "Action")
+            ]
+          },
+          {
+            id: "robotics-fit",
+            minScore: 5,
+            score: () => (
+              scoreMatches(["fit", "role", "best", "suited"], 2)
+              + scoreMatches(["robotics", "automation", "autonomous", "industry"], 3)
+            ),
+            text: "For robotics, Sooraj fits best in industrial robotics, autonomous systems, and motion-planning-oriented engineering roles. The strongest evidence comes from the KEBA experience, the master's thesis, the ROS vacuum robot, and the broader experience section. That combination covers industrial context, robotics software, planning, and execution.",
+            actions: [
+              createBadgedAction("Open Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
+              createBadgedAction("Open KEBA experience", createHelpBotPageTarget("experience-working-student-keba.html"), "Industry"),
+              createBadgedAction("Open ROS project", createHelpBotPageTarget("project-autonomous-vacuum-robot.html"), "Proof")
+            ]
+          },
+          {
+            id: "immersive-fit",
+            minScore: 5,
+            score: () => (
+              scoreMatches(["fit", "role", "best", "suited"], 2)
+              + scoreMatches(["ar", "vr", "xr", "mr", "unity", "immersive"], 3)
+            ),
+            text: "For AR, VR, XR, or MR-style work, the strongest fit is in immersive training and simulation engineering. The clearest evidence is the VR Machine Operation Workshop in Unity with C# and spatial interaction design. So the profile is most credible here for VR/XR workflows, HMI-adjacent training simulation, and interactive engineering prototypes.",
+            actions: [
+              createBadgedAction("Open VR workshop", createHelpBotPageTarget("project-vr-machine-workshop.html"), "VR"),
+              createBadgedAction("Open Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
+              createBadgedAction("Open skills", createHelpBotHomeTarget("skills"), "Stack")
+            ]
+          },
+          {
+            id: "simulation-fit",
+            minScore: 5,
+            score: () => (
+              scoreMatches(["fit", "role", "best", "suited"], 2)
+              + scoreMatches(["matlab", "simulink", "simulation", "controls", "control"], 3)
+            ),
+            text: "For MATLAB, Simulink, and simulation roles, the strongest evidence is the Active Suspension project, the simulation-led engineering profile, and the wider pattern that Sooraj connects modeling with execution logic rather than stopping at theory. That makes the profile a good match for control-oriented simulation, system modeling, and validation-heavy engineering work.",
+            actions: [
+              createBadgedAction("Open Active Suspension", createHelpBotPageTarget("project-active-suspension.html"), "MATLAB"),
+              createBadgedAction("Open Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
+              createBadgedAction("Open skills", createHelpBotHomeTarget("skills"), "Stack")
+            ]
+          },
+          {
+            id: "design-fit",
+            minScore: 5,
+            score: () => (
+              scoreMatches(["solidworks", "cad", "design", "fea", "optimization"], 3)
+              + scoreMatches(["fit", "role", "project"], 1)
+            ),
+            text: "For SolidWorks and design-oriented roles, the strongest proof is the Topology Bag Sealer with FEA-driven optimization and manufacturability thinking, supported by the mechanical engineering base from the bachelor's path. The skills section also shows SolidWorks, AutoCAD, ANSYS, and Blender, so the profile is not software-only; it still has a clear mechanical-design side.",
+            actions: [
+              createBadgedAction("Open Topology Bag Sealer", createHelpBotPageTarget("project-topology-bag-sealer.html"), "SOLIDWORKS"),
+              createBadgedAction("Open skills", createHelpBotHomeTarget("skills"), "Tools"),
+              createBadgedAction("Open education section", createHelpBotHomeTarget("education"), "Base")
+            ]
+          },
+          {
+            id: "skills-overview",
+            minScore: 5,
+            score: () => (
+              scoreMatches(["skills", "skill", "tools", "stack", "software"], 3)
+              + scoreMatches(["robotics", "matlab", "solidworks", "unity", "python", "c"], 1)
+            ),
+            text: "The skills section reads best in four groups. 1. Robotics: ROS, ROS 2, robot programming, trajectory planning, navigation, and SLAM. 2. Programming and simulation: Python, C++, C#, MATLAB, Simulink, Unity, VR, and XR. 3. Sensing and tools: LiDAR, radar, OpenCV, GitHub, Ubuntu, SOLIDWORKS, AutoCAD, ANSYS, and Blender. 4. Engineering discipline: design validation, technical reporting, industrial context, and deployment-focused problem solving.",
+            actions: [
+              createBadgedAction("Open skills", createHelpBotHomeTarget("skills"), "Stack"),
+              createBadgedAction("Open projects section", createHelpBotHomeTarget("projects"), "Proof"),
+              createBadgedAction("Open KEBA experience", createHelpBotPageTarget("experience-working-student-keba.html"), "Industry")
+            ]
+          },
+          {
+            id: "contact",
+            minScore: 4,
+            score: () => (
+              scoreMatches(["contact", "cv", "resume", "email", "hire", "reach"], 3)
+              + scoreMatches(["message", "connect", "request", "talk"], 1)
+            ),
+            text: "You can reach Sooraj through the website contact paths directly. The fastest routes are the contact form and the CV request flow. If you want, I can help connect you by taking you straight into the contact path or the CV request path through the website.",
+            actions: [
+              createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action"),
+              createBadgedAction("Request CV", createHelpBotCvTarget(), "CV"),
+              createBadgedAction("Open contact section", createHelpBotHomeTarget("contact"), "Direct")
+            ]
+          },
+          {
+            id: "about-profile",
+            minScore: 4,
+            score: () => (
+              scoreMatches(["about", "profile", "overview", "introduction", "sooraj"], 2)
+              + scoreMatches(["who", "background", "summary", "direction"], 1)
+            ),
+            text: "If you want the clearest overall picture of Sooraj, start with About, Experience, and Where I Fit. Those sections show the technical direction across robotics, mechatronics, simulation, immersive work, and industrial context in Germany.",
+            actions: [
+              createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Start"),
+              createBadgedAction("Open experience section", createHelpBotHomeTarget("experience"), "Proof"),
+              createBadgedAction("Open Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit")
+            ]
+          }
+        ];
+
+    const ranked = definitions
+      .map((definition) => {
+        const score = typeof definition.score === "function" ? definition.score() : 0;
+        if (score < definition.minScore) return null;
+        return { ...definition, score };
+      })
+      .filter(Boolean)
+      .sort((left, right) => right.score - left.score);
+
+    return ranked[0] || null;
+  };
+
   const SEARCH_STOP_WORDS = new Set([
-    "a", "an", "and", "are", "about", "at", "can", "do", "for", "from", "get", "give", "i",
-    "in", "is", "it", "know", "me", "my", "of", "on", "or", "please", "search", "section",
-    "show", "tell", "that", "the", "this", "to", "want", "what", "where", "with", "you", "your"
+    "a", "an", "and", "are", "about", "at", "can", "describe", "do", "does", "explain", "for",
+    "from", "get", "give", "has", "have", "i", "in", "is", "it", "know", "like", "me", "my",
+    "of", "on", "or", "please", "regarding", "search", "section", "show", "tell", "that", "the",
+    "this", "to", "want", "what", "where", "with", "you", "your"
   ]);
 
   const normalizeSearchTokens = (value = "") => String(value || "")
@@ -6930,22 +7939,41 @@ function setupPortfolioHelpBot() {
       .map((entry) => entry.entry);
   };
 
-  const getWebsiteSearchResultOptions = () => withEndChatOption([
-    createBadgedOption("website-search-result", "open", config.searchWebsiteOpenYes, currentLang === "de" ? "Treffer" : "Match"),
-    createBadgedOption("website-search-result", "retry", config.searchWebsiteOpenNo, currentLang === "de" ? "Erneut" : "Retry")
-  ]);
+  const getWebsiteSearchResultOptions = () => {
+    const isQuestionResult = helpBotState.websiteSearchResult?.kind === "question";
+    return withEndChatOption([
+      createBadgedOption(
+        "website-search-result",
+        "open",
+        isQuestionResult ? config.searchWebsiteAnswerYes : config.searchWebsiteOpenYes,
+        currentLang === "de" ? "Treffer" : "Match"
+      ),
+      createBadgedOption(
+        "website-search-result",
+        "retry",
+        isQuestionResult ? config.searchWebsiteAnswerNo : config.searchWebsiteOpenNo,
+        currentLang === "de" ? "Erneut" : "Retry"
+      )
+    ]);
+  };
 
   const getWebsiteSearchMatchOptions = () => withEndChatOption(dedupeHelpBotOptions([
     ...(Array.isArray(helpBotState.websiteSearchResults) ? helpBotState.websiteSearchResults : [])
-      .map((entry, index) => entry?.label && entry?.target
-        ? createBadgedOption("website-search-match", String(index), entry.label, currentLang === "de" ? "Treffer" : "Match")
+      .map((entry, index) => entry?.label && (entry?.target || entry?.answerId)
+        ? createBadgedOption(
+            "website-search-match",
+            String(index),
+            `${index + 1}. ${entry.label}`,
+            currentLang === "de" ? `Treffer ${index + 1}` : `Match ${index + 1}`
+          )
         : null)
       .filter(Boolean),
-    createBadgedOption("website-search-result", "retry", config.searchWebsiteOpenNo, currentLang === "de" ? "Erneut" : "Retry")
+    createBadgedOption("website-search-result", "retry", config.searchWebsiteAskAgain, currentLang === "de" ? "Erneut" : "Retry")
   ]));
 
   const getWebsiteSearchFallbackOptions = () => withEndChatOption([
     createBadgedOption("website-search-fallback", "contact", config.searchWebsiteContact, currentLang === "de" ? "Aktion" : "Action"),
+    createBadgedOption("website-search-fallback", "retry", config.searchWebsiteAskAgain, currentLang === "de" ? "Erneut" : "Retry"),
     createBadgedOption("website-search-fallback", "menu", config.searchWebsiteMainMenu, currentLang === "de" ? "Menue" : "Menu")
   ]);
 
@@ -7685,6 +8713,7 @@ function setupPortfolioHelpBot() {
       lastFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : launcher;
       clearNudgeTimers();
       root.classList.remove("is-nudge-visible");
+      setInlineNudgeOverride("");
       if (currentPageName === "index.html") {
         setNudgeMessage(config.nudge);
       }
@@ -7693,7 +8722,7 @@ function setupPortfolioHelpBot() {
       } else {
         currentRoleId = helpBotState.currentRoleId;
         renderStoredConversation();
-        if (helpBotState.pendingResumePrompt) {
+        if (helpBotState.pendingResumePrompt && currentPageName !== "index.html") {
           appendMessage({
             sender: "bot",
             text: getPortfolioHelpBotResumeMessage(
@@ -7705,6 +8734,9 @@ function setupPortfolioHelpBot() {
             ),
             inlineOptions: getResumeChoiceOptions()
           });
+          helpBotState.pendingResumePrompt = false;
+          persistHelpBotState();
+        } else if (helpBotState.pendingResumePrompt) {
           helpBotState.pendingResumePrompt = false;
           persistHelpBotState();
         }
@@ -7723,6 +8755,7 @@ function setupPortfolioHelpBot() {
         (closeButton || panel).focus({ preventScroll: true });
       });
     } else {
+      setInlineNudgeOverride("");
       if (helpBotState.messages.length >= 2 && (currentRoleId || hasConversationBooted)) {
         queueHelpBotRemoteSessionSync({ immediate: true });
       }
@@ -9378,6 +10411,26 @@ function setupPortfolioHelpBot() {
     showComposer();
   };
 
+  const answerWebsiteQuestion = async (result, token = responseToken) => {
+    const answer = getWebsiteQuestionAnswerEntry(result?.answerId) || getWebsiteQuestionAnswer(result?.label || "");
+    if (!answer) return false;
+    helpBotState.websiteSearchResult = result && typeof result === "object" ? result : null;
+    helpBotState.websiteSearchResults = [];
+    helpBotState.pendingInputKind = "website-search";
+    persistHelpBotState();
+    await queueBotReply({
+      text: answer.text,
+      actions: answer.actions,
+      delay: 260,
+      token,
+      inlineOptions: withEndChatOption([])
+    });
+    if (token !== responseToken) return true;
+    setStaticCopy();
+    showComposer();
+    return true;
+  };
+
   const runWebsiteSearch = async (query) => {
     responseToken += 1;
     const token = responseToken;
@@ -9395,6 +10448,67 @@ function setupPortfolioHelpBot() {
     await wait(nextAttempts >= 2 ? 1250 : 850);
     if (token !== responseToken) return;
     clearTypingIndicator();
+
+    if (looksLikeQuestionSearch(query)) {
+      const questionMatches = await findWebsiteQuestionMatches(query, { deep: nextAttempts >= 2 });
+      if (token !== responseToken) return;
+      if (questionMatches.length) {
+        helpBotState.websiteSearchResults = questionMatches.map((entry) => ({
+          kind: "question",
+          label: entry.label,
+          answerId: entry.answerId,
+          target: null
+        }));
+        helpBotState.websiteSearchResult = questionMatches[0]
+          ? {
+              kind: "question",
+              label: questionMatches[0].label,
+              answerId: questionMatches[0].answerId,
+              target: null
+            }
+          : null;
+        persistHelpBotState();
+        if (questionMatches.length > 1) {
+          await queueBotReply({
+            text: nextAttempts >= 2
+              ? `${config.searchWebsiteDeepSearching}\n${config.searchWebsiteQuestionFoundMultiple}`
+              : config.searchWebsiteQuestionFoundMultiple,
+            delay: 260,
+            token,
+            inlineOptions: getWebsiteSearchMatchOptions()
+          });
+          return;
+        }
+        await queueBotReply({
+          text: nextAttempts >= 2
+            ? `${config.searchWebsiteDeepSearching}\n${config.searchWebsiteQuestionFound(questionMatches[0].label)}`
+            : config.searchWebsiteQuestionFound(questionMatches[0].label),
+          delay: 260,
+          token,
+          inlineOptions: getWebsiteSearchResultOptions()
+        });
+        return;
+      }
+    }
+
+    const answer = getWebsiteQuestionAnswer(query);
+    if (answer) {
+      helpBotState.websiteSearchResult = null;
+      helpBotState.websiteSearchResults = [];
+      helpBotState.pendingInputKind = "website-search";
+      persistHelpBotState();
+      await queueBotReply({
+        text: answer.text,
+        actions: answer.actions,
+        delay: 260,
+        token,
+        inlineOptions: withEndChatOption([])
+      });
+      if (token !== responseToken) return;
+      setStaticCopy();
+      showComposer();
+      return;
+    }
 
     const matches = findWebsiteSearchMatches(query, { deep: nextAttempts >= 2 });
     if (matches.length) {
@@ -9426,7 +10540,7 @@ function setupPortfolioHelpBot() {
     helpBotState.websiteSearchResult = null;
     helpBotState.websiteSearchResults = [];
     persistHelpBotState();
-    if (nextAttempts >= 3) {
+    if (nextAttempts >= HELP_BOT_QUESTION_RETRY_LIMIT) {
       await queueBotReply({
         text: config.searchWebsiteNoResult,
         delay: 260,
@@ -9441,9 +10555,23 @@ function setupPortfolioHelpBot() {
 
   const handleWebsiteSearchResult = async (decisionId) => {
     const result = helpBotState.websiteSearchResult;
-    if (!result?.target) return;
-    appendMessage({ sender: "user", text: decisionId === "open" ? config.searchWebsiteOpenYes : config.searchWebsiteOpenNo });
+    if (!result) return;
+    const isQuestionResult = result.kind === "question";
+    appendMessage({
+      sender: "user",
+      text: decisionId === "open"
+        ? (isQuestionResult ? config.searchWebsiteAnswerYes : config.searchWebsiteOpenYes)
+        : (isQuestionResult ? config.searchWebsiteAnswerNo : config.searchWebsiteOpenNo)
+    });
     if (decisionId === "open") {
+      if (isQuestionResult) {
+        responseToken += 1;
+        const token = responseToken;
+        clearTypingIndicator();
+        await answerWebsiteQuestion(result, token);
+        return;
+      }
+      if (!result?.target) return;
       helpBotState.lastNavTarget = result.target;
       persistHelpBotState();
       navigateHelpBotTarget(result.target, () => setOpen(false));
@@ -9452,9 +10580,9 @@ function setupPortfolioHelpBot() {
     responseToken += 1;
     const token = responseToken;
     clearTypingIndicator();
-    helpBotState.websiteSearchAttempts = Math.min(3, Number(helpBotState.websiteSearchAttempts || 0) + 1);
+    helpBotState.websiteSearchAttempts = Math.min(HELP_BOT_QUESTION_RETRY_LIMIT, Number(helpBotState.websiteSearchAttempts || 0) + 1);
     persistHelpBotState();
-    if (helpBotState.websiteSearchAttempts >= 3) {
+    if (helpBotState.websiteSearchAttempts >= HELP_BOT_QUESTION_RETRY_LIMIT) {
       await queueBotReply({
         text: config.searchWebsiteNoResult,
         delay: 260,
@@ -9469,24 +10597,54 @@ function setupPortfolioHelpBot() {
   const handleWebsiteSearchMatch = async (matchId) => {
     const matches = Array.isArray(helpBotState.websiteSearchResults) ? helpBotState.websiteSearchResults : [];
     const result = matches[Number(matchId)];
-    if (!result?.target) return;
+    if (!result) return;
     appendMessage({ sender: "user", text: result.label });
     helpBotState.websiteSearchResult = result;
+    persistHelpBotState();
+    if (result.kind === "question") {
+      responseToken += 1;
+      const token = responseToken;
+      clearTypingIndicator();
+      await answerWebsiteQuestion(result, token);
+      return;
+    }
+    if (!result?.target) return;
     helpBotState.lastNavTarget = result.target;
     persistHelpBotState();
     navigateHelpBotTarget(result.target, () => setOpen(false));
   };
 
   const handleWebsiteSearchFallback = async (choiceId) => {
-    appendMessage({ sender: "user", text: choiceId === "contact" ? config.searchWebsiteContact : config.searchWebsiteMainMenu });
+    appendMessage({
+      sender: "user",
+      text: choiceId === "contact"
+        ? config.searchWebsiteContact
+        : choiceId === "retry"
+          ? config.searchWebsiteAskAgain
+          : config.searchWebsiteMainMenu
+    });
     if (choiceId === "contact") {
       responseToken += 1;
       const token = responseToken;
       clearTypingIndicator();
       await beginRecruiterRequestFlow("contact", {
         fullName: getVisitorName(),
-        role: currentRoleId === "recruiter" ? "Recruiter" : ""
+        role: currentRoleId === "recruiter" ? "Recruiter" : currentRoleId === "student" ? "Student" : "Visitor",
+        message: (currentLang === "de"
+          ? `Frage aus dem AI Assistant Chat:\n${helpBotState.websiteSearchQuery || ""}\n\nBitte helfen Sie mir bei dieser Frage.`
+          : `Question from the AI Assistant chat:\n${helpBotState.websiteSearchQuery || ""}\n\nPlease help me with this question.`)
       }, token);
+      return;
+    }
+    if (choiceId === "retry") {
+      responseToken += 1;
+      const token = responseToken;
+      clearTypingIndicator();
+      helpBotState.websiteSearchAttempts = 0;
+      helpBotState.websiteSearchResult = null;
+      helpBotState.websiteSearchResults = [];
+      persistHelpBotState();
+      await startWebsiteSearchFlow(token, { retry: true });
       return;
     }
     responseToken += 1;
@@ -9987,6 +11145,26 @@ function setupPortfolioHelpBot() {
     }
   });
 
+  launcher?.addEventListener("mouseenter", () => {
+    if (root.classList.contains("is-open")) return;
+    clearNudgeTimers();
+    setInlineNudgeOverride("");
+    setNudgeMessage(shouldUseStudentCornerNudge() ? getStudentCornerNudgeText() : config.nudge);
+    root.classList.add("is-nudge-visible");
+    hoverNudgeTimer = window.setTimeout(() => {
+      if (!root.classList.contains("is-open")) {
+        hideNudge({ scheduleNext: false });
+      }
+    }, 2600);
+  });
+
+  launcher?.addEventListener("mouseleave", () => {
+    if (root.classList.contains("is-open")) return;
+    window.clearTimeout(hoverNudgeTimer);
+    hoverNudgeTimer = 0;
+    hideNudge({ scheduleNext: false });
+  });
+
   composerForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
     const activeComposerField = getActiveComposerField();
@@ -9996,7 +11174,18 @@ function setupPortfolioHelpBot() {
     if (helpBotState.pendingInputKind === "visitor-name") {
       const visitorName = normalizeVisitorName(composerValue);
       if (!visitorName) {
-        setComposerNote(config.feedbackInvalidName);
+        setInlineNudgeOverride(currentLang === "de"
+          ? "Hmm... das sieht noch nicht wie ein richtiger Name aus. Geben Sie bitte Ihren korrekten Namen ein 👋"
+          : "Hmm... that does not look like a real name yet. Please enter your correct name 👋");
+        syncInlineStudentNudge();
+        focusComposerInput();
+        return;
+      }
+      if (!isPlausibleVisitorName(visitorName)) {
+        setInlineNudgeOverride(currentLang === "de"
+          ? "Hmm... ich glaube, das ist noch kein echter Name. Geben Sie bitte Ihren korrekten Namen ein 👋"
+          : "Hmm... I know that is not a real name yet. Please enter your correct name 👋");
+        syncInlineStudentNudge();
         focusComposerInput();
         return;
       }
@@ -10004,6 +11193,7 @@ function setupPortfolioHelpBot() {
       responseToken += 1;
       const token = responseToken;
       clearTypingIndicator();
+      setInlineNudgeOverride("");
       helpBotState.visitorName = visitorName;
       helpBotState.pendingInputKind = "";
       persistHelpBotState();
@@ -10030,6 +11220,14 @@ function setupPortfolioHelpBot() {
         return;
       }
       if (currentRoleId === "visitor") {
+        await queueBotReply({
+          text: currentLang === "de"
+            ? `Willkommen ${visitorName} 👋 Ich richte den restlichen Weg jetzt etwas persoenlicher fuer Sie aus.`
+            : `Welcome ${visitorName} 👋 I’ll make the rest of the path a bit more personal for you now.`,
+          delay: 340,
+          token
+        });
+        if (token !== responseToken) return;
         await promptVisitorProfileField("position", token);
         return;
       }
