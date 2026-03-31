@@ -4535,10 +4535,10 @@ function getPortfolioHelpBotConfig(lang) {
     askNameBossRetype: "No, type my name again",
     askNameBossRetypePrompt: "All right 😊 Please type your name once more.",
     askNameInvalid: "That does not look like a real name yet. Please enter your correct name.",
-    searchWebsiteLabel: "🔍 Search website",
-    searchWebsitePrompt: "Type any keyword, role, tool, or topic you want. I’ll search the website and route you to the closest matching place.",
+    searchWebsiteLabel: "❓ Ask a question",
+    searchWebsitePrompt: "Ask any question, keyword, role, tool, or topic you want. I’ll search the website and route you to the closest matching place.",
     searchWebsitePlaceholder: "For example ROS, thesis, KEBA, journey, CV ...",
-    searchWebsiteSubmit: "Search",
+    searchWebsiteSubmit: "Ask",
     searchWebsiteSearching: "I’m searching the website for the closest match ...",
     searchWebsiteDeepSearching: "I’m running a deeper search across the website now ...",
     searchWebsiteQuestionFound: (label) => `Did you mean this question?\n${label}`,
@@ -6869,6 +6869,15 @@ function setupPortfolioHelpBot() {
             createBadgedAction("Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit")
           ]
         },
+        "experience-overview": {
+          text: "Soorajs allgemeine Experience-Sektion ist am staerksten in drei Teilen: die aktuelle KEBA Werkstudentenrolle in industrieller Robotik, die parallele KEBA Master-Thesis mit planungs- und ausfuehrungsnaher Robotikarbeit und die fruehere industrielle Grundlage als NDT-Techniker in Indien. Zusammen zeigen diese Seiten aktuelle Robotikrichtung, Thesis-Tiefe und fruehere industrielle Verantwortung.",
+          actions: [
+            createBadgedAction("Erfahrung oeffnen", createHelpBotHomeTarget("experience"), "Proof"),
+            createBadgedAction("KEBA Werkstudent", createHelpBotPageTarget("experience-working-student-keba.html"), "Current"),
+            createBadgedAction("KEBA Master-Thesis", createHelpBotPageTarget("experience-masters-thesis-keba.html"), "Thesis"),
+            createBadgedAction("NDT Rolle", createHelpBotPageTarget("experience-ndt-technician.html"), "Base")
+          ]
+        },
         "robotics-experience": {
           text: "Soorajs staerkste Robotik-Erfahrung liegt in drei Ebenen: in der KEBA Master-Thesis zur industriellen Robotik, in der parallelen KEBA Werkstudentenrolle im Live-Industrieumfeld und in Robotikprojekten wie dem autonomen Vakuumroboter und dem Service-Roboter. Zusammen zeigen diese Seiten Robotiksoftware, Motion Planning, Robot Programming, Simulation und umsetzungsnahe Engineering-Logik.",
           actions: [
@@ -7044,6 +7053,15 @@ function setupPortfolioHelpBot() {
           createBadgedAction("Open Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit")
         ]
       },
+      "experience-overview": {
+        text: "Sooraj's broader experience section is strongest in three parts: the current KEBA working-student role in industrial robotics, the parallel KEBA master's thesis with planning- and execution-facing robotics work, and the earlier industrial foundation as an NDT technician in India. Together those pages show current robotics direction, thesis depth, and earlier engineering responsibility.",
+        actions: [
+          createBadgedAction("Open experience section", createHelpBotHomeTarget("experience"), "Proof"),
+          createBadgedAction("KEBA working student role", createHelpBotPageTarget("experience-working-student-keba.html"), "Current"),
+          createBadgedAction("KEBA master's thesis", createHelpBotPageTarget("experience-masters-thesis-keba.html"), "Thesis"),
+          createBadgedAction("NDT technician role", createHelpBotPageTarget("experience-ndt-technician.html"), "Base")
+        ]
+      },
       "robotics-experience": {
         text: "Sooraj's strongest robotics experience is spread across three layers: the KEBA master's thesis in industrial robotics, the parallel KEBA working-student role in a live industrial environment, and robotics projects like the autonomous vacuum robot and the service robot. Together those pages show robotics software, motion planning, robot programming, simulation, and deployment-facing engineering logic.",
         actions: [
@@ -7215,7 +7233,7 @@ function setupPortfolioHelpBot() {
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, " ")
       .trim();
-    const tokens = normalizeSearchTokens(normalizedQuery).filter((token) => token.length >= 2);
+    const tokens = getRelevantSearchTokens(normalizedQuery);
     if (!tokens.length) return [];
     const bank = await loadHelpBotQuestionBank();
     if (!Array.isArray(bank?.intents) || !bank.intents.length) return [];
@@ -7225,29 +7243,30 @@ function setupPortfolioHelpBot() {
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, " ")
         .trim();
-      const questionTokens = normalizeSearchTokens(questionNormalized).filter((token) => token.length >= 2);
-      if (!questionTokens.length) return 0;
-      const matchedTokens = tokens.filter((token) => questionTokens.some((candidate) => (
-        candidate === token
-        || candidate.startsWith(token)
-        || token.startsWith(candidate)
-      )));
-      const keywordMatches = Array.isArray(keywords)
-        ? keywords.filter((keyword) => {
-            const normalizedKeyword = String(keyword || "").toLowerCase().trim();
-            return normalizedKeyword && (
-              normalizedQuery.includes(normalizedKeyword)
-              || tokens.includes(normalizedKeyword)
-            );
-          }).length
-        : 0;
+      const questionTokens = getRelevantSearchTokens(questionNormalized);
+      const keywordParts = Array.isArray(keywords)
+        ? keywords
+          .map((keyword) => getSearchPhraseParts(keyword))
+          .filter((part) => part.normalized)
+        : [];
+      const keywordTokens = [...new Set(keywordParts.flatMap((part) => getRelevantSearchTokens(part.normalized)))];
+      const keywordPhraseMatches = keywordParts.filter((part) => (
+        part.normalized
+        && normalizedQuery.length >= 3
+        && (normalizedQuery.includes(part.normalized) || part.normalized.includes(normalizedQuery))
+      )).length;
+      const questionTokenMatches = tokens.filter((token) => questionTokens.some((candidate) => isSearchTokenRelated(token, candidate)));
+      const keywordTokenMatches = tokens.filter((token) => keywordTokens.some((candidate) => isSearchTokenRelated(token, candidate)));
+      const overlap = new Set([...questionTokenMatches, ...keywordTokenMatches]).size;
       const exact = normalizedQuery === questionNormalized;
       const strongPhrase = normalizedQuery.length >= 6 && (questionNormalized.includes(normalizedQuery) || normalizedQuery.includes(questionNormalized));
-      const overlap = matchedTokens.length;
-      const ratio = overlap / Math.max(Math.min(questionTokens.length, tokens.length), 1);
-      let score = (overlap * 3) + (keywordMatches * 2);
+      const ratio = overlap / Math.max(tokens.length, 1);
+      if (!exact && !strongPhrase && !keywordPhraseMatches && overlap < Math.min(tokens.length, 2)) return 0;
+      let score = (overlap * 4) + (keywordTokenMatches.length * 2) + (keywordPhraseMatches * 3);
       if (exact) score += 18;
       if (strongPhrase) score += 10;
+      if (keywordPhraseMatches) score += 6;
+      if (overlap === tokens.length && tokens.length > 1) score += 8;
       if (ratio >= 0.75) score += 8;
       else if (ratio >= 0.55) score += 5;
       if (deep && ratio >= 0.4) score += 4;
@@ -7259,14 +7278,16 @@ function setupPortfolioHelpBot() {
         const bestQuestion = intent.questions
           .map((question) => ({ question, score: scoreQuestion(question, intent.keywords) }))
           .sort((left, right) => right.score - left.score)[0];
-        if (!bestQuestion || bestQuestion.score <= 0) return null;
-        const threshold = deep ? 6 : 9;
-        if (bestQuestion.score < threshold) return null;
+        const keywordOnlyScore = scoreQuestion("", intent.keywords);
+        const bestScore = Math.max(bestQuestion?.score || 0, keywordOnlyScore);
+        if (bestScore <= 0) return null;
+        const threshold = deep ? 7 : 9;
+        if (bestScore < threshold) return null;
         return {
           kind: "question",
           answerId: intent.id,
-          label: bestQuestion.question,
-          score: bestQuestion.score
+          label: bestQuestion?.question || intent.questions?.[0] || intent.id,
+          score: bestScore
         };
       })
       .filter(Boolean)
@@ -7394,6 +7415,20 @@ function setupPortfolioHelpBot() {
 
     const definitions = currentLang === "de"
       ? [
+          {
+            id: "experience-overview",
+            minScore: 5,
+            score: () => (
+              scoreMatches(["erfahrung", "experience", "karriere", "arbeit", "beruflich", "rollen", "jobs"], 2)
+            ),
+            text: "Soorajs allgemeine Experience-Sektion ist am staerksten in drei Teilen: die aktuelle KEBA Werkstudentenrolle in industrieller Robotik, die parallele KEBA Master-Thesis mit planungs- und ausfuehrungsnaher Robotikarbeit und die fruehere industrielle Grundlage als NDT-Techniker in Indien. Zusammen zeigen diese Seiten aktuelle Robotikrichtung, Thesis-Tiefe und fruehere industrielle Verantwortung.",
+            actions: [
+              createBadgedAction("Erfahrung oeffnen", createHelpBotHomeTarget("experience"), "Proof"),
+              createBadgedAction("KEBA Werkstudent", createHelpBotPageTarget("experience-working-student-keba.html"), "Current"),
+              createBadgedAction("KEBA Master-Thesis", createHelpBotPageTarget("experience-masters-thesis-keba.html"), "Thesis"),
+              createBadgedAction("NDT Rolle", createHelpBotPageTarget("experience-ndt-technician.html"), "Base")
+            ]
+          },
           {
             id: "robotics-experience",
             minScore: 6,
@@ -7623,6 +7658,20 @@ function setupPortfolioHelpBot() {
           }
         ]
       : [
+          {
+            id: "experience-overview",
+            minScore: 5,
+            score: () => (
+              scoreMatches(["experience", "career", "background", "work", "professional", "roles", "jobs"], 2)
+            ),
+            text: "Sooraj's broader experience section is strongest in three parts: the current KEBA working-student role in industrial robotics, the parallel KEBA master's thesis with planning- and execution-facing robotics work, and the earlier industrial foundation as an NDT technician in India. Together those pages show current robotics direction, thesis depth, and earlier engineering responsibility.",
+            actions: [
+              createBadgedAction("Open experience section", createHelpBotHomeTarget("experience"), "Proof"),
+              createBadgedAction("KEBA working student role", createHelpBotPageTarget("experience-working-student-keba.html"), "Current"),
+              createBadgedAction("KEBA master's thesis", createHelpBotPageTarget("experience-masters-thesis-keba.html"), "Thesis"),
+              createBadgedAction("NDT technician role", createHelpBotPageTarget("experience-ndt-technician.html"), "Base")
+            ]
+          },
           {
             id: "robotics-experience",
             minScore: 6,
@@ -7870,6 +7919,7 @@ function setupPortfolioHelpBot() {
     "of", "on", "or", "please", "regarding", "search", "section", "show", "tell", "that", "the",
     "this", "to", "want", "what", "where", "with", "you", "your"
   ]);
+  const SEARCH_LOW_SIGNAL_TOKENS = new Set(["page", "pages", "portfolio", "site", "website", "sooraj"]);
 
   const normalizeSearchTokens = (value = "") => String(value || "")
     .toLowerCase()
@@ -7877,6 +7927,45 @@ function setupPortfolioHelpBot() {
     .trim()
     .split(/\s+/)
     .filter((token) => token && !SEARCH_STOP_WORDS.has(token));
+
+  const getRelevantSearchTokens = (value = "") => {
+    const tokens = normalizeSearchTokens(value).filter((token) => token.length >= 2);
+    const filtered = tokens.filter((token) => !SEARCH_LOW_SIGNAL_TOKENS.has(token));
+    return filtered.length ? filtered : tokens;
+  };
+
+  const isSearchTokenRelated = (leftToken = "", rightToken = "") => {
+    const left = String(leftToken || "").toLowerCase().trim();
+    const right = String(rightToken || "").toLowerCase().trim();
+    if (!left || !right) return false;
+    if (left === right) return true;
+    if (left.length >= 4 && right.length >= 4 && (left.startsWith(right) || right.startsWith(left))) return true;
+    if (left.length < 5 || right.length < 5) return false;
+    if (left.includes(right) || right.includes(left)) return true;
+    if (Math.abs(left.length - right.length) > 1) return false;
+
+    let leftIndex = 0;
+    let rightIndex = 0;
+    let mismatches = 0;
+    while (leftIndex < left.length && rightIndex < right.length) {
+      if (left[leftIndex] === right[rightIndex]) {
+        leftIndex += 1;
+        rightIndex += 1;
+        continue;
+      }
+      mismatches += 1;
+      if (mismatches > 1) return false;
+      if (left.length > right.length) {
+        leftIndex += 1;
+      } else if (right.length > left.length) {
+        rightIndex += 1;
+      } else {
+        leftIndex += 1;
+        rightIndex += 1;
+      }
+    }
+    return mismatches + (left.length - leftIndex) + (right.length - rightIndex) <= 1;
+  };
 
   const getSearchPhraseParts = (value = "") => ({
     normalized: String(value || "")
@@ -9005,7 +9094,7 @@ function setupPortfolioHelpBot() {
           "Next section",
           "View detail page",
           "Important",
-          "Search website",
+          "Ask a question",
           "main menu"
         ];
     return Array.from(new Set([...dynamicTerms, ...staticTerms]
