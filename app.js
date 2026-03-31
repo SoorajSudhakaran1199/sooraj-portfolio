@@ -4542,8 +4542,8 @@ function getPortfolioHelpBotConfig(lang) {
     askNameBossRetypePrompt: "All right 😊 Please type your name once more.",
     askNameInvalid: "That does not look like a real name yet. Please enter your correct name.",
     searchWebsiteLabel: "❓ Ask a question",
-    searchWebsitePrompt: "Ask any question, keyword, role, tool, or topic you want. I’ll search the website and route you to the closest matching place.",
-    searchWebsitePlaceholder: "For example ROS, thesis, KEBA, journey, CV ...",
+    searchWebsitePrompt: "I am the AI Assistant of Sooraj. You can ask me a question, or I can help you find something on the website. For now, what can I do for you?",
+    searchWebsitePlaceholder: "For example: show experience, open CV, tell me about thesis ...",
     searchWebsiteSubmit: "Ask",
     searchWebsiteSearching: "I’m searching the website for the closest match ...",
     searchWebsiteDeepSearching: "I’m running a deeper search across the website now ...",
@@ -8850,6 +8850,10 @@ function setupPortfolioHelpBot() {
         (closeButton || panel).focus({ preventScroll: true });
       });
     } else {
+      const activeElement = document.activeElement;
+      if (activeElement instanceof HTMLElement && root.contains(activeElement)) {
+        activeElement.blur();
+      }
       setInlineNudgeOverride("");
       if (helpBotState.messages.length >= 2 && (currentRoleId || hasConversationBooted)) {
         queueHelpBotRemoteSessionSync({ immediate: true });

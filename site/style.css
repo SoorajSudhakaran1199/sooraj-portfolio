@@ -14589,7 +14589,7 @@ body.help-bot-open {
   .help-bot-composer-submit {
     min-height: 44px;
     border-radius: 14px;
-    font-size: 0.82rem;
+    font-size: 1rem;
   }
 
   .help-bot-message-link,
