@@ -53,6 +53,7 @@ const DEFAULT_PUBLIC_SITE_DEFAULTS = Object.freeze({
 let supabaseClientPromise = null;
 let supabaseClient = null;
 let adminSessionActive = false;
+let adminHelpBotAutoRefreshBound = false;
 let sharedSubmissionStatsCache = null;
 let sharedSubmissionStatsPromise = null;
 let sharedPublicReviewsCache = null;
@@ -708,6 +709,19 @@ async function fetchSupabaseRest(path, { method = "GET", body = null, authToken 
   }
 
   return data;
+}
+
+async function getSupabaseAccessToken() {
+  const supabase = await getSupabaseClient();
+  const { data, error } = await supabase.auth.getSession();
+  if (error) {
+    throw error;
+  }
+  const accessToken = String(data?.session?.access_token || "").trim();
+  if (!accessToken) {
+    throw new Error("Missing Supabase access token.");
+  }
+  return accessToken;
 }
 
 function parseSubmissionRatingValue(entry) {
@@ -6140,6 +6154,7 @@ function setupPortfolioHelpBot() {
               saveStoredJson(localStorage, STORAGE_HELP_BOT_STATE_KEY, helpBotState);
             }
             helpBotRemoteSyncSignature = snapshot.signature;
+            window.dispatchEvent(new CustomEvent("portfoliohelpbotsessionschange"));
           } catch (error) {
             console.warn("Help bot remote session sync failed.", error);
           }
@@ -6179,6 +6194,7 @@ function setupPortfolioHelpBot() {
           saveStoredJson(localStorage, STORAGE_HELP_BOT_STATE_KEY, helpBotState);
         }
         helpBotRemoteSyncSignature = snapshot.signature;
+        window.dispatchEvent(new CustomEvent("portfoliohelpbotsessionschange"));
       })
       .catch((error) => {
         console.warn("Help bot remote session flush failed.", error);
@@ -13836,12 +13852,38 @@ function getAdminModeState() {
   return adminSessionActive;
 }
 
+function setupAdminHelpBotAutoRefresh() {
+  if (adminHelpBotAutoRefreshBound) return;
+  adminHelpBotAutoRefreshBound = true;
+
+  const runRefresh = () => {
+    if (!getAdminModeState()) return;
+    void renderAdminHelpBotControls();
+  };
+
+  window.addEventListener("pageshow", () => {
+    runRefresh();
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      runRefresh();
+    }
+  });
+
+  window.addEventListener("portfoliohelpbotsessionschange", () => {
+    runRefresh();
+  });
+}
+
 function setupAdminWorkspace() {
   const existing = document.querySelector("[data-admin-workspace]");
   if (!getAdminModeState()) {
     existing?.remove();
     return;
   }
+
+  setupAdminHelpBotAutoRefresh();
 
   const lang = resolveInitialLanguage();
   const copy = lang === "de"
@@ -17083,16 +17125,12 @@ async function saveSharedReviewPromptSettings(settings) {
 
 async function fetchHelpBotSessions({ limit = 20 } = {}) {
   try {
-    const supabase = await getSupabaseClient();
-    const { data, error } = await supabase
-      .from(SUPABASE_HELP_BOT_SESSIONS_TABLE)
-      .select("session_id,created_at,updated_at,ended_at,page_path,role_id,visitor_name,visitor_position,visitor_organization,student_university,message_count,transcript_json")
-      .order("updated_at", { ascending: false })
-      .limit(Math.max(1, Math.min(50, Number(limit) || 20)));
-
-    if (error) {
-      throw error;
-    }
+    const accessToken = await getSupabaseAccessToken();
+    const safeLimit = Math.max(1, Math.min(50, Number(limit) || 20));
+    const data = await fetchSupabaseRest(
+      `${SUPABASE_HELP_BOT_SESSIONS_TABLE}?select=session_id,created_at,updated_at,ended_at,page_path,role_id,visitor_name,visitor_position,visitor_organization,student_university,message_count,transcript_json&order=updated_at.desc&limit=${safeLimit}`,
+      { authToken: accessToken }
+    );
 
     return {
       sessions: Array.isArray(data)
@@ -17115,15 +17153,16 @@ async function deleteHelpBotSession(sessionId) {
     throw new Error("Missing chatbot session id.");
   }
 
-  const supabase = await getSupabaseClient();
-  const { error } = await supabase
-    .from(SUPABASE_HELP_BOT_SESSIONS_TABLE)
-    .delete()
-    .eq("session_id", normalizedId);
-
-  if (error) {
-    throw error;
-  }
+  const accessToken = await getSupabaseAccessToken();
+  await fetchSupabaseRest(
+    `${SUPABASE_HELP_BOT_SESSIONS_TABLE}?session_id=eq.${encodeURIComponent(normalizedId)}`,
+    {
+      method: "DELETE",
+      authToken: accessToken,
+      prefer: "return=minimal"
+    }
+  );
+  window.dispatchEvent(new CustomEvent("portfoliohelpbotsessionschange"));
 }
 
 async function setupLastUpdated() {
