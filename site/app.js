@@ -6108,22 +6108,12 @@ function setupPortfolioHelpBot() {
   };
 
   const upsertHelpBotRemoteSessionSnapshot = async (snapshot, { keepalive = false } = {}) => {
-    if (keepalive) {
-      await fetchSupabaseRest(`${SUPABASE_HELP_BOT_SESSIONS_TABLE}?on_conflict=session_id`, {
-        method: "POST",
-        body: snapshot.payload,
-        prefer: "resolution=merge-duplicates,return=minimal",
-        keepalive: true
-      });
-      return;
-    }
-
-    const supabase = await getSupabaseClient();
-    const request = supabase
-      .from(SUPABASE_HELP_BOT_SESSIONS_TABLE)
-      .upsert(snapshot.payload, { onConflict: "session_id" });
-    const { error } = await request;
-    if (error) throw error;
+    await fetchSupabaseRest(`${SUPABASE_HELP_BOT_SESSIONS_TABLE}?on_conflict=session_id`, {
+      method: "POST",
+      body: snapshot.payload,
+      prefer: "resolution=merge-duplicates,return=minimal",
+      keepalive: Boolean(keepalive)
+    });
   };
 
   const syncHelpBotRemoteSession = async ({ endedAt = "" } = {}) => {
