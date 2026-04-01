@@ -25,26 +25,22 @@ create index if not exists portfolio_help_bot_sessions_role_updated_idx
 
 alter table public.portfolio_help_bot_sessions enable row level security;
 
+grant usage on schema public to public;
+grant insert, update on table public.portfolio_help_bot_sessions to public;
+grant select, delete on table public.portfolio_help_bot_sessions to authenticated;
+
 drop policy if exists "Public can insert chatbot sessions" on public.portfolio_help_bot_sessions;
 create policy "Public can insert chatbot sessions"
 on public.portfolio_help_bot_sessions
 for insert
-with check (
-  length(trim(coalesce(session_id, ''))) > 0
-  and message_count between 0 and 120
-  and jsonb_typeof(transcript_json) = 'array'
-);
+with check (true);
 
 drop policy if exists "Public can update chatbot sessions" on public.portfolio_help_bot_sessions;
 create policy "Public can update chatbot sessions"
 on public.portfolio_help_bot_sessions
 for update
 using (true)
-with check (
-  length(trim(coalesce(session_id, ''))) > 0
-  and message_count between 0 and 120
-  and jsonb_typeof(transcript_json) = 'array'
-);
+with check (true);
 
 drop policy if exists "Admin can read chatbot sessions" on public.portfolio_help_bot_sessions;
 create policy "Admin can read chatbot sessions"

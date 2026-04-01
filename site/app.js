@@ -6050,7 +6050,6 @@ function setupPortfolioHelpBot() {
   };
 
   const buildHelpBotRemoteSessionSnapshot = ({ endedAt = "" } = {}) => {
-    if (getAdminModeState()) return null;
     const normalizedEndedAt = String(endedAt || "").trim();
     const transcript = helpBotState.messages
       .slice(-HELP_BOT_REMOTE_MAX_MESSAGES)
@@ -6151,8 +6150,8 @@ function setupPortfolioHelpBot() {
               saveStoredJson(localStorage, STORAGE_HELP_BOT_STATE_KEY, helpBotState);
             }
             helpBotRemoteSyncSignature = snapshot.signature;
-          } catch {
-            // Ignore remote sync failures so the local chat flow remains stable.
+          } catch (error) {
+            console.warn("Help bot remote session sync failed.", error);
           }
         }
 
@@ -6161,8 +6160,8 @@ function setupPortfolioHelpBot() {
         }
         nextEndedAt = helpBotRemoteSyncRequestedEndedAt;
       }
-    } catch {
-      // Ignore remote sync failures so the local chat flow remains stable.
+    } catch (error) {
+      console.warn("Help bot remote session sync failed.", error);
     } finally {
       helpBotRemoteSyncInFlight = false;
     }
@@ -6191,8 +6190,8 @@ function setupPortfolioHelpBot() {
         }
         helpBotRemoteSyncSignature = snapshot.signature;
       })
-      .catch(() => {
-        // Ignore final flush failures without interrupting page lifecycle.
+      .catch((error) => {
+        console.warn("Help bot remote session flush failed.", error);
       });
   };
 
@@ -14403,6 +14402,7 @@ async function renderAdminHelpBotControls(workspacePanel = document.querySelecto
         lead: "Diese kompakte Uebersicht speichert private Chatbot-Sitzungen getrennt vom Review-System. Gespeichert werden die Bot-Nachrichten sowie die vom Besucher eingegebenen Texte und geklickten Auswahltexte.",
         note: "Aus Speichergruenden wird pro Sitzung nur ein kompaktes Transcript gespeichert. Oeffentliche Reviews bleiben davon getrennt.",
         empty: "Noch keine gespeicherten Chatbot-Sitzungen.",
+        loadError: "Chatbot-Sitzungen konnten nicht geladen werden. Pruefen Sie die Browser-Konsole sowie die Select-Policy fuer die Tabelle in Supabase.",
         refresh: "Neu laden",
         delete: "Loeschen",
         deleting: "Loeschen...",
@@ -14431,6 +14431,7 @@ async function renderAdminHelpBotControls(workspacePanel = document.querySelecto
         lead: "This compact panel stores private chatbot sessions separately from the review system. It keeps the bot messages plus the text entered by the visitor and the labels of the options they clicked.",
         note: "To reduce storage, each session is stored as one compact transcript record. Public reviews stay separate from this data.",
         empty: "No chatbot sessions have been saved yet.",
+        loadError: "Chatbot sessions could not be loaded. Check the browser console and the table select policy in Supabase.",
         refresh: "Refresh",
         delete: "Delete",
         deleting: "Deleting...",
@@ -14478,7 +14479,12 @@ async function renderAdminHelpBotControls(workspacePanel = document.querySelecto
     const list = panel.querySelector("[data-admin-help-bot-list]");
     if (!(list instanceof HTMLElement)) return;
 
-    const sessions = await fetchHelpBotSessions({ limit: 20 });
+    const { sessions, error } = await fetchHelpBotSessions({ limit: 20 });
+    if (error) {
+      list.innerHTML = `<p class="admin-help-bot-empty">${copy.loadError}</p>`;
+      return;
+    }
+
     if (!sessions.length) {
       list.innerHTML = `<p class="admin-help-bot-empty">${copy.empty}</p>`;
       return;
@@ -17098,11 +17104,18 @@ async function fetchHelpBotSessions({ limit = 20 } = {}) {
       throw error;
     }
 
-    return Array.isArray(data)
-      ? data.map(normalizeHelpBotSessionEntry).filter(Boolean)
-      : [];
-  } catch {
-    return [];
+    return {
+      sessions: Array.isArray(data)
+        ? data.map(normalizeHelpBotSessionEntry).filter(Boolean)
+        : [],
+      error: null
+    };
+  } catch (error) {
+    console.error("Failed to fetch help bot sessions.", error);
+    return {
+      sessions: [],
+      error
+    };
   }
 }
 
