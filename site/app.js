@@ -4087,9 +4087,16 @@ function getPortfolioHelpBotConfig(lang) {
       searchWebsiteRetryPrompt: "Suche fehlgeschlagen. Bitte versuchen Sie jetzt genau ein Stichwort. Ich suche noch einmal.",
       searchWebsiteDeepRetryPrompt: "Suche erneut fehlgeschlagen. Bitte geben Sie jetzt nur ein praezises Stichwort ein. Ich starte direkt eine tiefere Suche.",
       searchWebsiteNoResult: "Ich konnte die Frage noch nicht sauber verstehen. Wenn Sie moechten, kann ich Sooraj diese Frage direkt weitergeben.\nSie koennen jetzt einen Kontaktweg starten, erneut fragen oder ins Hauptmenue zurueckgehen.",
+      searchWebsiteFollowupPrompt: "Sie koennen hier direkt noch eine weitere Frage stellen, wenn Sie moechten.",
       searchWebsiteMainMenu: "Zum Hauptmenue",
       searchWebsiteContact: "Sooraj fragen",
       searchWebsiteAskAgain: "Noch einmal fragen",
+      searchWebsiteTrainingClarifyPrompt: "Meinen Sie, wer mich als AI Assistant weiter trainiert, oder fragen Sie nach Soorajs eigenem Trainings- und Lernweg?",
+      searchWebsiteTrainingClarifyAssistant: "Den AI Assistant meinen",
+      searchWebsiteTrainingClarifySooraj: "Soorajs Trainingsweg meinen",
+      searchWebsiteNameClarifyPrompt: "Meinen Sie meinen Bot-Namen oder den Namen des Portfolio-Inhabers?",
+      searchWebsiteNameClarifyBot: "Den Bot-Namen meinen",
+      searchWebsiteNameClarifyOwner: "Den Portfolio-Inhaber meinen",
       visitorProfileConsent: "Hallo Besucher 👋 Moechten Sie ein paar kurze Angaben wie Ihren Namen, Ihre Position und Ihre Organisation teilen, damit ich Sie passender ansprechen kann?",
       visitorProfileShare: "Ja, ich teile das",
       visitorProfileSkip: "Nein, direkt weiter",
@@ -4558,9 +4565,16 @@ function getPortfolioHelpBotConfig(lang) {
     searchWebsiteRetryPrompt: "Search failed. Please try exactly one keyword now, and I’ll search again.",
     searchWebsiteDeepRetryPrompt: "Search failed again. Please enter only one precise keyword now, and I’ll run a deeper search right away.",
     searchWebsiteNoResult: "I still could not understand the question clearly. If you want, I can pass this question to Sooraj directly.\nYou can start a contact request now, ask again, or go back to the main menu.",
+    searchWebsiteFollowupPrompt: "You can keep asking me more questions here if you want.",
     searchWebsiteMainMenu: "Go to main menu",
     searchWebsiteContact: "Ask Sooraj",
     searchWebsiteAskAgain: "Ask again",
+    searchWebsiteTrainingClarifyPrompt: "Do you mean who is training me as the AI assistant, or are you asking about Sooraj's own training and learning path?",
+    searchWebsiteTrainingClarifyAssistant: "You mean the AI assistant",
+    searchWebsiteTrainingClarifySooraj: "You mean Sooraj's path",
+    searchWebsiteNameClarifyPrompt: "Do you mean my bot name, or the name of the portfolio owner?",
+    searchWebsiteNameClarifyBot: "You mean the bot name",
+    searchWebsiteNameClarifyOwner: "You mean the portfolio owner",
     visitorProfileConsent: "Hi visitor 👋 Would you be willing to share a few quick details like your name, position, and organisation so I can address you better?",
     visitorProfileShare: "Yes, I’ll share",
     visitorProfileSkip: "No, continue directly",
@@ -5871,6 +5885,7 @@ function setupPortfolioHelpBot() {
         hasConversationBooted: false,
         lastPageName: currentPageName,
         pendingResumePrompt: false,
+        pendingWebsiteSearchStart: false,
         lastNavTarget: null,
         topicTrail: [],
         studentCornerNudgeSeen: false
@@ -5926,6 +5941,7 @@ function setupPortfolioHelpBot() {
       hasConversationBooted: Boolean(source.hasConversationBooted) && messagesList.length > 0,
       lastPageName: String(source.lastPageName || "").trim() || currentPageName,
       pendingResumePrompt: Boolean(source.pendingResumePrompt) && messagesList.length > 0,
+      pendingWebsiteSearchStart: Boolean(source.pendingWebsiteSearchStart),
       lastNavTarget: source.lastNavTarget && typeof source.lastNavTarget === "object" ? source.lastNavTarget : null,
       studentCornerNudgeSeen: Boolean(source.studentCornerNudgeSeen),
       topicTrail: Array.isArray(source.topicTrail)
@@ -5999,6 +6015,7 @@ function setupPortfolioHelpBot() {
     helpBotState.studentCornerNudgeSeen = Boolean(helpBotState.studentCornerNudgeSeen);
     helpBotState.hasConversationBooted = hasConversationBooted && helpBotState.messages.length > 0;
     helpBotState.lastPageName = currentPageName;
+    helpBotState.pendingWebsiteSearchStart = Boolean(helpBotState.pendingWebsiteSearchStart);
     saveStoredJson(localStorage, STORAGE_HELP_BOT_STATE_KEY, helpBotState);
   };
 
@@ -6030,7 +6047,6 @@ function setupPortfolioHelpBot() {
 
   const buildHelpBotRemoteSessionSnapshot = ({ endedAt = "" } = {}) => {
     if (getAdminModeState()) return null;
-    if (!currentRoleId && !hasConversationBooted) return null;
     const normalizedEndedAt = String(endedAt || "").trim();
     const transcript = helpBotState.messages
       .slice(-HELP_BOT_REMOTE_MAX_MESSAGES)
@@ -6085,14 +6101,9 @@ function setupPortfolioHelpBot() {
     if (!snapshot || snapshot.signature === helpBotRemoteSyncSignature) return;
     try {
       const supabase = await getSupabaseClient();
-      const request = helpBotState.remoteSessionPersisted
-        ? supabase
-          .from(SUPABASE_HELP_BOT_SESSIONS_TABLE)
-          .update(snapshot.payload)
-          .eq("session_id", snapshot.payload.session_id)
-        : supabase
-          .from(SUPABASE_HELP_BOT_SESSIONS_TABLE)
-          .insert(snapshot.payload);
+      const request = supabase
+        .from(SUPABASE_HELP_BOT_SESSIONS_TABLE)
+        .upsert(snapshot.payload, { onConflict: "session_id" });
       const { error } = await request;
       if (error) throw error;
       if (!helpBotState.remoteSessionPersisted) {
@@ -6867,6 +6878,32 @@ function setupPortfolioHelpBot() {
   const getWebsiteQuestionAnswerEntry = (answerId = "") => {
     if (currentLang === "de") {
       const deAnswers = {
+        "profile-overview": {
+          text: "Kurz zusammengefasst ist Sooraj ein Mechatronik- und Robotikingenieur in Deutschland mit starkem Fokus auf industrielle Robotik, Automation, ROS-nahe Projekte, Simulation und umsetzungsorientiertes Engineering. Das Profil verbindet die Mechanical-Engineering-Basis aus Indien, den Master in Mechatronics and Cyber-Physical Systems in Deutschland, die aktuelle KEBA Erfahrung in Stuttgart, die industrielle Robotik-Thesis und projektbasierte Nachweise in ROS, VR, MATLAB/Simulink und designnaher Engineering-Arbeit.",
+          actions: [
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Start"),
+            createBadgedAction("Erfahrung", createHelpBotHomeTarget("experience"), "Proof"),
+            createBadgedAction("Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
+            createBadgedAction("Projekte", createHelpBotHomeTarget("projects"), "Work")
+          ]
+        },
+        "portfolio-sections-overview": {
+          text: "Die Website laesst sich am besten in acht Hauptbereiche lesen. About gibt das Gesamtprofil. Where I Fit zeigt recruiter-orientierte Rollenpassung. Experience deckt KEBA, Thesis und fruehere Industriearbeit ab. Projects zeigt ROS, VR, MATLAB/Simulink, Design und Robotikprojekte. Skills fasst Tools und technische Staerken zusammen. Journey verbindet Indien-Deutschland-Entwicklung. Reviews liefert die Vertrauensebene. Contact und CV-Anfrage sind der direkte naechste Schritt.",
+          actions: [
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Start"),
+            createBadgedAction("Erfahrung", createHelpBotHomeTarget("experience"), "Proof"),
+            createBadgedAction("Projektbereich", createHelpBotHomeTarget("projects"), "Work"),
+            createBadgedAction("Kontakt", createHelpBotHomeTarget("contact"), "Action")
+          ]
+        },
+        "chat-greeting": {
+          text: "Hallo. Wie kann ich Ihnen helfen? Sie koennen mich etwas ueber Sooraj, die Website, Projekte, Erfahrung, Reviews, CV oder Kontakt fragen.",
+          actions: [
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Start"),
+            createBadgedAction("Erfahrung", createHelpBotHomeTarget("experience"), "Proof"),
+            createBadgedAction("Kontakt", createHelpBotHomeTarget("contact"), "Action")
+          ]
+        },
         "about-profile": {
           text: "Wenn Sie Soorajs Gesamtprofil schnell verstehen wollen, beginnen Sie mit About, Experience und Where I Fit. Dort sehen Sie die technische Richtung zwischen Robotik, Mechatronik, Simulation, immersiven Projekten und industriellem Kontext in Deutschland.",
           actions: [
@@ -6991,10 +7028,34 @@ function setupPortfolioHelpBot() {
           ]
         },
         "reviews": {
-          text: "Die Review-Sektion ist die Vertrauensebene des Portfolios. Dort sehen Sie hervorgehobene, vom Admin gepinnte Reviews, das Archiv oeffentlicher Reviews, die Gesamtbewertung, Reichweite nach Laendern und sichtbare Owner-Replies. Wenn Sie pruefen wollen, wie das Profil von anderen wahrgenommen wird, ist das der richtige Bereich.",
+          text: "Die Review-Sektion ist die Vertrauensebene des Portfolios. Dort sehen Sie hervorgehobene, vom Admin gepinnte Reviews, veroeffentlichte Reviews im Archiv, die Gesamtbewertung, Reichweite nach Laendern und sichtbare Owner-Replies. Wenn ein Reviewer es freigibt, koennen auch Angaben wie Unternehmen oder Hochschule, Land, Bewertungstitel und Kommentar sichtbar werden. Wenn Sie pruefen wollen, wie das Profil von anderen wahrgenommen wird, ist das der richtige Bereich.",
           actions: [
             createBadgedAction("Reviews oeffnen", createHelpBotHomeTarget("reviews"), "Trust"),
             createBadgedAction("Feedback-Seite", createHelpBotPageTarget("feedback.html"), "Archive"),
+            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+          ]
+        },
+        "review-fields-details": {
+          text: "Oeffentliche Reviews koennen je nach Freigabe Namen, Unternehmen oder Hochschule, Land, Bewertung, Review-Titel, Kommentar und sichtbare Owner-Replies zeigen. Damit zeigt die Review-Sektion nicht nur Sterne, sondern strukturierten Kontext dazu, wer das Feedback gegeben hat und wie Sooraj darauf reagiert hat.",
+          actions: [
+            createBadgedAction("Reviews oeffnen", createHelpBotHomeTarget("reviews"), "Fields"),
+            createBadgedAction("Feedback-Seite", createHelpBotPageTarget("feedback.html"), "Public"),
+            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+          ]
+        },
+        "review-company-details": {
+          text: "Ja. Wenn jemand eine oeffentliche Bewertung mit Unternehmens-, Organisations- oder Hochschulangabe freigibt, wird diese Angabe direkt in der Review-Karte gezeigt. So kann der Review-Bereich nicht nur den Kommentar, sondern auch den professionellen oder akademischen Kontext des Feedbacks sichtbar machen.",
+          actions: [
+            createBadgedAction("Reviews oeffnen", createHelpBotHomeTarget("reviews"), "Company"),
+            createBadgedAction("Feedback-Seite", createHelpBotPageTarget("feedback.html"), "Public"),
+            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+          ]
+        },
+        "review-country-details": {
+          text: "Ja. Die Review-Sektion zeigt die Reichweite nach Laendern ueber Flags und Country-Chips. In einzelnen oeffentlichen Reviews kann ausserdem das Land des Reviewers sichtbar sein, wenn diese Angabe freigegeben wurde. So sehen Besucher sowohl die Gesamtstreuung der Reviews als auch den Laenderkontext einzelner Rueckmeldungen.",
+          actions: [
+            createBadgedAction("Reviews oeffnen", createHelpBotHomeTarget("reviews"), "Country"),
+            createBadgedAction("Feedback-Seite", createHelpBotPageTarget("feedback.html"), "Reach"),
             createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
           ]
         },
@@ -7039,11 +7100,112 @@ function setupPortfolioHelpBot() {
           ]
         },
         "contact": {
-          text: "Sie koennen Sooraj direkt ueber die Kontaktwege der Website erreichen. Am schnellsten sind Kontaktformular und CV-Anfrage. Wenn Sie moechten, kann ich Sie direkt in den Kontaktpfad fuehren oder die CV-Anfrage starten, damit die Verbindung sauber ueber die Website laeuft.",
+          text: "Sie koennen Sooraj direkt ueber die Kontaktwege der Website erreichen. Am schnellsten sind Kontaktformular und CV-Anfrage. Der direkte Kontaktpfad ist fuer Recruiter-Outreach, Zusammenarbeit und professionelle Nachrichten gedacht, waehrend der Feedback-Pfad besser fuer Website-Kommentare oder oeffentliche Reviews passt. Wenn Sie moechten, kann ich Sie direkt in den Kontaktpfad fuehren oder die CV-Anfrage starten, damit die Verbindung sauber ueber die Website laeuft.",
           actions: [
             createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action"),
             createBadgedAction("CV anfragen", createHelpBotCvTarget(), "CV"),
             createBadgedAction("Kontaktbereich", createHelpBotHomeTarget("contact"), "Direct")
+          ]
+        },
+        "contact-section-details": {
+          text: "Die Kontaktsektion ist fuer direkte professionelle Anfragen gedacht. Typisch sind Name, E-Mail, Unternehmen, Land und eine klare Nachricht mit Anlass oder naechstem Schritt. Fuer CV-Anfragen gibt es zusaetzlich den direkten CV-Pfad. Fuer Website-Kommentare, Korrekturen oder oeffentliche Reviews ist dagegen eher die Feedback-Seite richtig.",
+          actions: [
+            createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action"),
+            createBadgedAction("CV anfragen", createHelpBotCvTarget(), "CV"),
+            createBadgedAction("Kontaktbereich", createHelpBotHomeTarget("contact"), "Direct")
+          ]
+        },
+        "assistant-training": {
+          text: "Ich bin Synapse, der AI Assistant von Sooraj. Sie koennen mich als Assistenten sehen, den Sooraj Schritt fuer Schritt weiter verbessert. Wenn ich eine Frage noch nicht sauber beantworten kann, kann der Verlauf spaeter von Sooraj geprueft und fuer bessere Antworten genutzt werden. Dadurch kann ich bei einer aehnlichen Frage spaeter klarer reagieren.",
+          actions: [
+            createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action"),
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+            createBadgedAction("Journey", createHelpBotPageTarget("journey.html"), "Story")
+          ]
+        },
+        "assistant-behind-you": {
+          text: "Nein. Hinter mir arbeitet gerade keine weitere AI. Ich antworte auf Basis des Trainings, der Struktur und der laufenden Verbesserungen von Sooraj Sudhakaran. Sie koennen mich als Soorajs Assistenten sehen, der von ihm aufgebaut wurde, um Sie hier durch die Website zu fuehren.",
+          actions: [
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+            createBadgedAction("Journey", createHelpBotPageTarget("journey.html"), "Story"),
+            createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action")
+          ]
+        },
+        "sooraj-training": {
+          text: "Sooraj baut seinen Weg weitgehend selbstgesteuert auf. Das Portfolio zeigt einen motivierten, eigenstaendig aufgebauten Lern- und Karrierepfad ueber Mechanical Engineering, den Master in Deutschland, KEBA-Erfahrung, die Robotik-Thesis und fortlaufende Projekte in Robotik, Simulation und Software. Kurz gesagt: Er trainiert und entwickelt sich stark aus eigener Initiative weiter.",
+          actions: [
+            createBadgedAction("Journey", createHelpBotPageTarget("journey.html"), "Story"),
+            createBadgedAction("Erfahrung", createHelpBotHomeTarget("experience"), "Proof"),
+            createBadgedAction("Bildung", createHelpBotHomeTarget("education"), "Study")
+          ]
+        },
+        "password-request": {
+          text: "Dabei kann ich nicht helfen. Passwoerter, Admin-Zugaenge und andere vertrauliche Daten sind geschuetzt. Wenn Sie einen legitimen Zugang brauchen, fragen Sie bitte Sooraj direkt ueber den Kontaktweg der Website.",
+          actions: [
+            createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action"),
+            createBadgedAction("Kontaktbereich", createHelpBotHomeTarget("contact"), "Direct")
+          ]
+        },
+        "owner-name": {
+          text: "Der Inhaber dieses Portfolios ist Sooraj Sudhakaran. Kurz gesagt ist er ein Mechatronik- und Robotikingenieur mit Fokus auf industrielle Robotik, Automation, Simulation und einen stark selbst aufgebauten Karriereweg zwischen Indien und Deutschland. Wenn Sie moechten, oeffnen Sie als naechstes den About-Bereich fuer die saubere Kurzvorstellung.",
+          actions: [
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+            createBadgedAction("Journey", createHelpBotPageTarget("journey.html"), "Story"),
+            createBadgedAction("Erfahrung", createHelpBotHomeTarget("experience"), "Proof")
+          ]
+        },
+        "bot-name": {
+          text: "Mein Name hier ist Synapse. Ich bin der AI Assistant von Sooraj. Sie koennen mich als digitalen Guide sehen, der hier ist, um Sooraj dabei zu helfen, Sie schneller durch die Website zu fuehren. Ich werde von Sooraj ueber die Zeit weiter verbessert. Wenn Sie moechten, gehen wir direkt wieder zu den wichtigsten Website-Bereichen zurueck.",
+          actions: [
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+            createBadgedAction("Projekte", createHelpBotHomeTarget("projects"), "Work"),
+            createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action")
+          ]
+        },
+        "bot-age": {
+          text: "Ich habe kein menschliches Alter. Ich bin ein Software-Assistent und werde ueber die Zeit von Sooraj weiter verbessert und aktualisiert.",
+          actions: [
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+            createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action")
+          ]
+        },
+        "bot-origin": {
+          text: "Ich wurde von Sooraj Sudhakaran als digitaler Assistent gebaut. Ich bin nicht wie ein Mensch geboren, daher habe ich keinen menschlichen Vater oder keine menschliche Mutter.",
+          actions: [
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+            createBadgedAction("Journey", createHelpBotPageTarget("journey.html"), "Story")
+          ]
+        },
+        "chat-privacy": {
+          text: "Ich kann nicht sagen, dass dieser Chat Ende-zu-Ende verschluesselt ist. Teilweise ja, aber nicht vollstaendig in diesem Sinne, weil einige Fragen von mir noch nicht selbst beantwortet werden koennen. In solchen Faellen kann der Chat-Inhalt oder die offene Frage gesammelt und an Sooraj weitergegeben werden, damit er die Daten fuer spaeteres Training und bessere Antworten nutzen kann.",
+          actions: [
+            createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action"),
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+            createBadgedAction("Kontaktbereich", createHelpBotHomeTarget("contact"), "Direct")
+          ]
+        },
+        "confidential-followup": {
+          text: "Es ist trotzdem meine Aufgabe, die Unterhaltung zu fuehren. Wenn ich etwas nicht direkt beantworten kann, gebe ich manchmal aehnliche Vorschlaege, deshalb sehen Sie solche Hinweise. Hoch vertrauliche Daten wie Passwoerter oder Admin-Zugaenge darf ich aber nicht freigeben. Wenn Sie das aus einem legitimen Grund wirklich brauchen, kann ich Ihre Anfrage lieber direkt an Sooraj weiterleiten.",
+          actions: [
+            createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action"),
+            createBadgedAction("Kontaktbereich", createHelpBotHomeTarget("contact"), "Direct"),
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile")
+          ]
+        },
+        "feedback-vs-contact": {
+          text: "Feedback ist fuer Website-Kommentare, Korrekturen, Vorschlaege und oeffentliche oder private Reviews gedacht. Contact ist fuer Recruiter-Outreach, Zusammenarbeit, CV-Bezug und direkte professionelle Nachrichten gedacht. Kurz gesagt: Feedback verbessert die Website oder teilt einen Review, Contact startet eine direkte berufliche Kommunikation.",
+          actions: [
+            createBadgedAction("Reviews oeffnen", createHelpBotHomeTarget("reviews"), "Trust"),
+            createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Contact"),
+            createBadgedAction("Feedback-Seite", createHelpBotPageTarget("feedback.html"), "Form")
+          ]
+        },
+        "job-search-status": {
+          text: "Ja. Laut Portfolio ist Sooraj offen fuer Vollzeitrollen. Der staerkste Fokus liegt auf Robotik, Automation, Unity- und immersiven Simulationsrollen sowie autonomen Systemen. Wenn Sie pruefen wollen, wie gut das Profil passt, sind Where I Fit, CV-Anfrage und der Kontaktpfad die besten naechsten Schritte.",
+          actions: [
+            createBadgedAction("Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
+            createBadgedAction("CV anfragen", createHelpBotCvTarget(), "CV"),
+            createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action")
           ]
         }
       };
@@ -7051,6 +7213,32 @@ function setupPortfolioHelpBot() {
     }
 
     const enAnswers = {
+      "profile-overview": {
+        text: "In short, Sooraj is a mechatronics and robotics engineer in Germany with the strongest focus on industrial robotics, automation, ROS-oriented projects, simulation, and deployment-minded engineering. The profile connects a mechanical-engineering foundation from India, the master's path in Mechatronics and Cyber-Physical Systems in Germany, current KEBA experience in Stuttgart, the industrial robotics thesis, and project proof across ROS, VR, MATLAB/Simulink, and design-oriented engineering work.",
+        actions: [
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Start"),
+          createBadgedAction("Open experience section", createHelpBotHomeTarget("experience"), "Proof"),
+          createBadgedAction("Open Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
+          createBadgedAction("Open projects section", createHelpBotHomeTarget("projects"), "Work")
+        ]
+      },
+      "chat-greeting": {
+        text: "Hi. How can I help you? You can ask me about Sooraj, the website, projects, experience, reviews, CV, or contact.",
+        actions: [
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Start"),
+          createBadgedAction("Open experience section", createHelpBotHomeTarget("experience"), "Proof"),
+          createBadgedAction("Open contact section", createHelpBotHomeTarget("contact"), "Action")
+        ]
+      },
+      "portfolio-sections-overview": {
+        text: "The website reads best in eight main parts. About gives the overall profile. Where I Fit shows recruiter-facing role alignment. Experience covers KEBA, the thesis, and earlier industrial work. Projects shows ROS, VR, MATLAB/Simulink, design, and robotics projects. Skills summarizes tools and technical strengths. Journey connects the India-to-Germany path. Reviews adds the trust layer. Contact and the CV request path are the direct next step.",
+        actions: [
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Start"),
+          createBadgedAction("Open experience section", createHelpBotHomeTarget("experience"), "Proof"),
+          createBadgedAction("Open projects section", createHelpBotHomeTarget("projects"), "Work"),
+          createBadgedAction("Open contact section", createHelpBotHomeTarget("contact"), "Action")
+        ]
+      },
       "about-profile": {
         text: "If you want the clearest overall picture of Sooraj, start with About, Experience, and Where I Fit. Those sections show the technical direction across robotics, mechatronics, simulation, immersive work, and industrial context in Germany.",
         actions: [
@@ -7175,10 +7363,34 @@ function setupPortfolioHelpBot() {
         ]
       },
       "reviews": {
-        text: "The reviews section is the trust layer of the portfolio. It shows featured admin-pinned reviews, the archive of public reviews, overall rating, reach by country, and visible owner replies. If you want to understand how the profile is being received by others, that is the right section to read.",
+        text: "The reviews section is the trust layer of the portfolio. It shows featured admin-pinned reviews, published reviews in the archive, overall rating, country reach, and visible owner replies. When a reviewer allows it, the cards can also show details like company or university, country, review title, rating, and written feedback. If you want to understand how the profile is being received by others, that is the right section to read.",
         actions: [
           createBadgedAction("Open reviews", createHelpBotHomeTarget("reviews"), "Trust"),
           createBadgedAction("Open feedback page", createHelpBotPageTarget("feedback.html"), "Archive"),
+          createBadgedAction("Open contact", createHelpBotContactFormTarget(), "Action")
+        ]
+      },
+      "review-fields-details": {
+        text: "Public reviews can show the reviewer's name, company or university, country, rating, review title, written comment, and visible owner reply when that information was shared for public display. So the review section is not only star ratings. It also gives structured context around who gave the feedback and how Sooraj responded.",
+        actions: [
+          createBadgedAction("Open reviews", createHelpBotHomeTarget("reviews"), "Fields"),
+          createBadgedAction("Open feedback page", createHelpBotPageTarget("feedback.html"), "Public"),
+          createBadgedAction("Open contact", createHelpBotContactFormTarget(), "Action")
+        ]
+      },
+      "review-company-details": {
+        text: "Yes. If a public reviewer shared a company, organization, or university name, that detail can appear directly in the review card. That means the review area can show not only the written feedback, but also the professional or academic context behind it.",
+        actions: [
+          createBadgedAction("Open reviews", createHelpBotHomeTarget("reviews"), "Company"),
+          createBadgedAction("Open feedback page", createHelpBotPageTarget("feedback.html"), "Public"),
+          createBadgedAction("Open contact", createHelpBotContactFormTarget(), "Action")
+        ]
+      },
+      "review-country-details": {
+        text: "Yes. The review section shows country reach through flags and country chips, and individual public reviews can also show the reviewer's country when it was shared. So visitors can read both the overall geographic spread of the reviews and the country context on specific public feedback cards.",
+        actions: [
+          createBadgedAction("Open reviews", createHelpBotHomeTarget("reviews"), "Country"),
+          createBadgedAction("Open feedback page", createHelpBotPageTarget("feedback.html"), "Reach"),
           createBadgedAction("Open contact", createHelpBotContactFormTarget(), "Action")
         ]
       },
@@ -7223,15 +7435,371 @@ function setupPortfolioHelpBot() {
         ]
       },
       "contact": {
-        text: "You can reach Sooraj through the website contact paths directly. The fastest routes are the contact form and the CV request flow. If you want, I can help connect you by taking you straight into the contact path or the CV request path through the website.",
+        text: "You can reach Sooraj through the website contact paths directly. The fastest routes are the contact form and the CV request flow. The direct contact route is meant for recruiter outreach, collaboration, and professional messages, while the feedback route is better for website comments or public reviews. If you want, I can help connect you by taking you straight into the contact path or the CV request path through the website.",
         actions: [
           createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action"),
           createBadgedAction("Request CV", createHelpBotCvTarget(), "CV"),
           createBadgedAction("Open contact section", createHelpBotHomeTarget("contact"), "Direct")
         ]
+      },
+      "contact-section-details": {
+        text: "The contact section is designed for direct professional outreach. The usual path is name, email, company, country, and a clear message explaining the reason for contact or the next step you want. There is also a separate CV request path. For website comments, corrections, or public reviews, the feedback page is the better route.",
+        actions: [
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action"),
+          createBadgedAction("Request CV", createHelpBotCvTarget(), "CV"),
+          createBadgedAction("Open contact section", createHelpBotHomeTarget("contact"), "Direct")
+        ]
+      },
+      "assistant-training": {
+        text: "I am Synapse, the AI assistant of Sooraj. You can think of me as a guide that Sooraj keeps improving over time. When I cannot answer something clearly yet, the conversation can be reviewed by Sooraj and used to improve future replies, so if you ask again later I may answer more accurately.",
+        actions: [
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action"),
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+          createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story")
+        ]
+      },
+      "assistant-behind-you": {
+        text: "No. There is not another AI working behind me right now. I answer based on the training, structure, and ongoing improvements set up by Sooraj Sudhakaran. You can think of me as Sooraj's assistant, built by him to help guide you through this website.",
+        actions: [
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+          createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story"),
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action")
+        ]
+      },
+      "sooraj-training": {
+        text: "Sooraj is building his path in a strongly self-driven way. The portfolio shows a motivated learning and career path built largely through his own effort across mechanical engineering, the master's path in Germany, KEBA work, the robotics thesis, and continuous robotics, simulation, and software projects. In short, he is training and building his career path with strong personal initiative.",
+        actions: [
+          createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story"),
+          createBadgedAction("Open experience section", createHelpBotHomeTarget("experience"), "Proof"),
+          createBadgedAction("Open education section", createHelpBotHomeTarget("education"), "Study")
+        ]
+      },
+      "password-request": {
+        text: "I cannot help with passwords, admin access, or other confidential credentials. That information is private. If you need legitimate access, the right path is to contact Sooraj directly through the website.",
+        actions: [
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action"),
+          createBadgedAction("Open contact section", createHelpBotHomeTarget("contact"), "Direct")
+        ]
+      },
+      "owner-name": {
+        text: "The owner of this portfolio is Sooraj Sudhakaran. In short, he is a mechatronics and robotics engineer focused on industrial robotics, automation, simulation, and a strongly self-built career path across India and Germany. If you want the clean introduction next, open the About section.",
+        actions: [
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+          createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story"),
+          createBadgedAction("Open experience section", createHelpBotHomeTarget("experience"), "Proof")
+        ]
+      },
+      "bot-name": {
+        text: "My name here is Synapse. I am the AI assistant of Sooraj. You can think of me as the digital guide hired here to help Sooraj help you move through the website faster. I am trained and improved by Sooraj over time. If you want, we can go straight back to the main website sections now.",
+        actions: [
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+          createBadgedAction("Open projects section", createHelpBotHomeTarget("projects"), "Work"),
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action")
+        ]
+      },
+      "bot-age": {
+        text: "I do not have a human age. I am a software assistant that Sooraj updates and improves over time.",
+        actions: [
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action")
+        ]
+      },
+      "bot-origin": {
+        text: "I was created by Sooraj Sudhakaran as a digital assistant. I was not born like a human, so I do not have a human father or mother.",
+        actions: [
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+          createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story")
+        ]
+      },
+      "chat-privacy": {
+        text: "I cannot describe this chat as end-to-end encrypted. Partially yes in a general sense, but not fully in that strict meaning, because some questions are still not answerable by me on my own. In those cases, the chat content or unanswered question can be collected and sent to Sooraj so he can use that data to improve my future training and responses.",
+        actions: [
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action"),
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+          createBadgedAction("Open contact section", createHelpBotHomeTarget("contact"), "Direct")
+        ]
+      },
+      "confidential-followup": {
+        text: "It is still my job to guide the conversation. If I cannot answer something directly, I may show a similar suggestion, which is why you saw that. But highly confidential data like passwords or admin credentials cannot be shared by me. If you need that for a legitimate reason, the safer path is for me to route the request to Sooraj directly.",
+        actions: [
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action"),
+          createBadgedAction("Open contact section", createHelpBotHomeTarget("contact"), "Direct"),
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile")
+        ]
+      },
+      "feedback-vs-contact": {
+        text: "Feedback is for website comments, corrections, suggestions, and public or private reviews. Contact is for recruiter outreach, collaboration, CV-related requests, and direct professional messages. In short, feedback improves the website or adds a review, while contact starts a direct professional conversation.",
+        actions: [
+          createBadgedAction("Open reviews", createHelpBotHomeTarget("reviews"), "Trust"),
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Contact"),
+          createBadgedAction("Open feedback page", createHelpBotPageTarget("feedback.html"), "Form")
+        ]
+      },
+      "job-search-status": {
+        text: "Yes. Based on the portfolio, Sooraj is open to full-time roles. The strongest focus areas are robotics, automation, Unity and immersive simulation, and autonomous systems opportunities. If you want to evaluate fit quickly, the best next steps are Where I Fit, the CV request path, or direct contact through the website.",
+        actions: [
+          createBadgedAction("Open Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
+          createBadgedAction("Request CV", createHelpBotCvTarget(), "CV"),
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action")
+        ]
       }
     };
     return enAnswers[answerId] || null;
+  };
+
+  const normalizeReviewLookupText = (value = "") => String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+
+  const isGenericReviewLookupLabel = (value = "") => {
+    const normalized = normalizeReviewLookupText(value);
+    if (!normalized) return true;
+    return [
+      "public",
+      "the public",
+      "review",
+      "reviews",
+      "public review",
+      "public reviews",
+      "feedback",
+      "the feedback",
+      "comment",
+      "comments",
+      "the review section",
+      "review section",
+      "details",
+      "the details"
+    ].includes(normalized);
+  };
+
+  const formatReviewLookupLabel = (value = "") => {
+    const trimmed = String(value || "").trim();
+    if (!trimmed) return "";
+    return trimmed
+      .split(/\s+/)
+      .map((word) => {
+        const clean = word.replace(/[^a-z0-9&+.\-]/gi, "");
+        if (!clean) return "";
+        if (/^[a-z]{2,5}$/i.test(clean)) return clean.toUpperCase();
+        return clean.charAt(0).toUpperCase() + clean.slice(1);
+      })
+      .filter(Boolean)
+      .join(" ");
+  };
+
+  const inferReviewLookupCompany = (query = "", reviews = []) => {
+    const normalizedQuery = normalizeReviewLookupText(query);
+    if (!normalizedQuery) return "";
+
+    const companies = Array.from(new Set(
+      (Array.isArray(reviews) ? reviews : [])
+        .map((review) => String(review?.company || "").trim())
+        .filter(Boolean)
+    ));
+
+    const reviewCompanyMatch = companies.find((company) => {
+      const normalizedCompany = normalizeReviewLookupText(company);
+      return normalizedCompany && (
+        normalizedQuery.includes(normalizedCompany)
+        || normalizedCompany.split(" ").every((token) => normalizedQuery.includes(token))
+      );
+    });
+    if (reviewCompanyMatch) return reviewCompanyMatch;
+
+    const pattern = /(?:from|at|by|of)\s+([a-z0-9&+.\- ]+?)(?:\s+(?:review|reviews|feedback|comment|comments|public|here|there|now|currently))?$/i;
+    const match = String(query || "").trim().match(pattern);
+    if (!match?.[1]) return "";
+    const candidate = formatReviewLookupLabel(match[1]);
+    return isGenericReviewLookupLabel(candidate) ? "" : candidate;
+  };
+
+  const inferReviewLookupCountry = (query = "", reviews = []) => {
+    const normalizedQuery = normalizeReviewLookupText(query);
+    if (!normalizedQuery) return "";
+
+    const reviewCountries = Array.from(new Set(
+      (Array.isArray(reviews) ? reviews : [])
+        .map((review) => String(review?.country || "").trim())
+        .filter(Boolean)
+    ));
+
+    const countryMatch = reviewCountries.find((country) => {
+      const normalizedCountry = normalizeReviewLookupText(country);
+      return normalizedCountry && normalizedQuery.includes(normalizedCountry);
+    });
+    if (countryMatch) return countryMatch;
+
+    const knownCountry = COUNTRY_OPTIONS.find((country) => normalizedQuery.includes(normalizeReviewLookupText(country)));
+    if (knownCountry) return knownCountry;
+
+    const pattern = /(?:from|in|by)\s+([a-z0-9.\- ]+?)(?:\s+(?:review|reviews|feedback|comment|comments|public|here|there|now|currently))?$/i;
+    const match = String(query || "").trim().match(pattern);
+    if (!match?.[1]) return "";
+    const candidate = formatReviewLookupLabel(match[1]);
+    if (isGenericReviewLookupLabel(candidate)) return "";
+    const normalizedCandidate = normalizeReviewLookupText(candidate);
+    const matchedReviewCountry = reviewCountries.find((country) => normalizeReviewLookupText(country) === normalizedCandidate);
+    if (matchedReviewCountry) return matchedReviewCountry;
+    const matchedKnownCountry = COUNTRY_OPTIONS.find((country) => normalizeReviewLookupText(country) === normalizedCandidate);
+    return matchedKnownCountry || "";
+  };
+
+  const createReviewLookupActions = () => currentLang === "de"
+    ? [
+        createBadgedAction("Reviews oeffnen", createHelpBotHomeTarget("reviews"), "Trust"),
+        createBadgedAction("Feedback-Seite", createHelpBotPageTarget("feedback.html"), "Archive"),
+        createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+      ]
+    : [
+        createBadgedAction("Open reviews", createHelpBotHomeTarget("reviews"), "Trust"),
+        createBadgedAction("Open feedback page", createHelpBotPageTarget("feedback.html"), "Archive"),
+        createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action")
+      ];
+
+  const buildDynamicWebsiteQuestionAnswer = async (query = "", { forcedAnswerId = "" } = {}) => {
+    const normalizedQuery = normalizeReviewLookupText(query);
+    if (!normalizedQuery) return null;
+
+    const wantsWebsiteUpdateTime = forcedAnswerId === "website-last-updated"
+      || (
+        /\b(site|website|portfolio|page|pages)\b/.test(normalizedQuery)
+        && /\b(update|updated|change|changed|modified|refresh|refreshed)\b/.test(normalizedQuery)
+        && /\b(time|date|when|last|latest|recent|recently|current)\b/.test(normalizedQuery)
+      )
+      || /\bwhen\s+(?:was|is)\s+(?:the\s+)?(?:website|site|portfolio|page)\s+(?:last\s+)?(?:updated|changed|modified|refreshed)\b/.test(normalizedQuery)
+      || /\b(?:what(?:'s| is)|show|tell|give)\s+(?:me\s+)?(?:the\s+)?(?:last|latest|current)\s+(?:website|site|portfolio)\s+(?:update|updated\s+time|update\s+time)\b/.test(normalizedQuery)
+      || /\b(?:last|latest|recent)\s+(?:website|site|portfolio)\s+(?:update|change|modification)\b/.test(normalizedQuery);
+
+    if (wantsWebsiteUpdateTime) {
+      const effectiveDate = await resolveEffectiveSiteUpdateDate();
+      const timezoneLabel = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+
+      if (!effectiveDate) {
+        return currentLang === "de"
+          ? {
+              text: "Ich kann die aktuelle Update-Zeit der Website gerade nicht sicher verifizieren. Wenn Sie moechten, laden Sie die Seite bitte neu und fragen Sie mich danach noch einmal.",
+              actions: []
+            }
+          : {
+              text: "I cannot verify the live website update time safely right now. If you want, refresh the page and ask me again once more.",
+              actions: []
+            };
+      }
+
+      const formattedTimestamp = formatUpdatedTimestamp(effectiveDate, currentLang);
+      return currentLang === "de"
+        ? {
+            text: `Ich habe die Update-Zeit der Website gerade live geprueft. Die neueste Zeit, die ich verifizieren kann, ist ${formattedTimestamp}${timezoneLabel ? ` (${timezoneLabel})` : ""}. Diese Zeit pruefe ich jedes Mal neu, bevor ich antworte.`,
+            actions: []
+          }
+        : {
+            text: `I just checked the website update time live. The latest time I can verify is ${formattedTimestamp}${timezoneLabel ? ` (${timezoneLabel})` : ""}. I check this again each time before answering.`,
+            actions: []
+          };
+    }
+
+    const reviewTerms = /\b(review|reviews|feedback|comment|comments|rating|public review|public feedback)\b/.test(normalizedQuery);
+    const companyTerms = /\b(company|organisation|organization|university|college|school|employer|firm)\b/.test(normalizedQuery);
+    const countryTerms = /\b(country|countries|nation|nations|place|places|where)\b/.test(normalizedQuery);
+    const publicReviews = await loadSharedPublicReviews();
+
+    const companyHint = inferReviewLookupCompany(query, publicReviews);
+    const countryHint = inferReviewLookupCountry(query, publicReviews);
+
+    const wantsCompanyLookup = forcedAnswerId === "review-company-lookup"
+      || (reviewTerms && (companyTerms || Boolean(companyHint)));
+    if (wantsCompanyLookup) {
+      const normalizedCompany = normalizeReviewLookupText(companyHint);
+      const matchedReviews = normalizedCompany
+        ? publicReviews.filter((review) => {
+            const normalizedReviewCompany = normalizeReviewLookupText(review?.company || "");
+            return normalizedReviewCompany && (
+              normalizedReviewCompany.includes(normalizedCompany)
+              || normalizedCompany.includes(normalizedReviewCompany)
+            );
+          })
+        : [];
+
+      if (matchedReviews.length && companyHint) {
+        return currentLang === "de"
+          ? {
+              text: `Ja. In den oeffentlichen Review-Daten, die ich gerade lesen kann, finde ich ${matchedReviews.length} veroeffentlichte Bewertung${matchedReviews.length === 1 ? "" : "en"}, in denen ${companyHint} als Unternehmen, Organisation oder Hochschule genannt wird. Wenn diese Angabe freigegeben wurde, erscheint ${companyHint} direkt in der Review-Karte zusammen mit dem Feedback.`,
+              actions: createReviewLookupActions()
+            }
+          : {
+              text: `Yes. In the public review data I can read right now, I can see ${matchedReviews.length} published review${matchedReviews.length === 1 ? "" : "s"} where ${companyHint} is named as the company, organization, or university. When that detail is shared publicly, ${companyHint} appears directly in the review card with the feedback.`,
+              actions: createReviewLookupActions()
+            };
+      }
+
+      if (companyHint) {
+        return currentLang === "de"
+          ? {
+              text: `Ich kann gerade keine veroeffentlichte Bewertung bestaetigen, in der ${companyHint} in den oeffentlichen Review-Daten auftaucht, die ich lesen kann. Grundsaetzlich kann die Review-Sektion Unternehmens-, Organisations- oder Hochschulnamen wie ${companyHint} anzeigen, wenn Reviewer diese Angabe freigeben. Der beste naechste Schritt ist, die Reviews zu oeffnen oder Sooraj direkt zu kontaktieren, wenn Sie eine Bestaetigung brauchen.`,
+              actions: createReviewLookupActions()
+            }
+          : {
+              text: `I cannot confirm a published review from ${companyHint} in the public review data I can read right now. But the review section does support showing company, organization, or university names like ${companyHint} when reviewers choose to share them publicly. The best next step is to open Reviews or contact Sooraj directly if you need confirmation.`,
+              actions: createReviewLookupActions()
+            };
+      }
+
+      return currentLang === "de"
+        ? {
+            text: "Die Review-Sektion kann Unternehmens-, Organisations- oder Hochschulnamen anzeigen, wenn Reviewer diese Angaben oeffentlich teilen. Wenn Sie wissen wollen, ob Feedback von einer bestimmten Firma wie KEBA sichtbar ist, oeffnen Sie am besten die Reviews oder fragen Sie Sooraj direkt.",
+            actions: createReviewLookupActions()
+          }
+        : {
+            text: "The review section can show company, organization, or university names when reviewers share those details publicly. If you want to check whether feedback from a specific company like KEBA is visible, the best next step is to open Reviews or ask Sooraj directly.",
+            actions: createReviewLookupActions()
+          };
+    }
+
+    const wantsCountryLookup = forcedAnswerId === "review-country-lookup"
+      || (reviewTerms && (countryTerms || Boolean(countryHint)));
+    if (wantsCountryLookup) {
+      const normalizedCountry = normalizeReviewLookupText(countryHint);
+      const matchedReviews = normalizedCountry
+        ? publicReviews.filter((review) => normalizeReviewLookupText(review?.country || "") === normalizedCountry)
+        : [];
+
+      if (matchedReviews.length && countryHint) {
+        return currentLang === "de"
+          ? {
+              text: `Ja. In den oeffentlichen Review-Daten, die ich gerade lesen kann, finde ich ${matchedReviews.length} veroeffentlichte Bewertung${matchedReviews.length === 1 ? "" : "en"} aus ${countryHint}. Wenn das Land freigegeben wurde, erscheint es in der Review-Karte, und die Reviews-Sektion zeigt ausserdem die Laenderreichweite insgesamt.`,
+              actions: createReviewLookupActions()
+            }
+          : {
+              text: `Yes. In the public review data I can read right now, I can see ${matchedReviews.length} published review${matchedReviews.length === 1 ? "" : "s"} from ${countryHint}. When the country is shared publicly, it appears in the review card, and the reviews section also shows overall country reach.`,
+              actions: createReviewLookupActions()
+            };
+      }
+
+      if (countryHint) {
+        return currentLang === "de"
+          ? {
+              text: `Ich kann gerade keine veroeffentlichte Bewertung aus ${countryHint} in den oeffentlichen Review-Daten bestaetigen, die ich lesen kann. Grundsaetzlich kann die Review-Sektion Laender in einzelnen Review-Karten und in der gesamten Reichweitenansicht zeigen, wenn Reviewer diese Angabe freigeben.`,
+              actions: createReviewLookupActions()
+            }
+          : {
+              text: `I cannot confirm a published review from ${countryHint} in the public review data I can read right now. But the review section does support showing countries both in individual review cards and in the overall country-reach summary when reviewers choose to share that detail.`,
+              actions: createReviewLookupActions()
+            };
+      }
+
+      return currentLang === "de"
+        ? {
+            text: "Die Review-Sektion kann Laender in einzelnen oeffentlichen Reviews und in der gesamten Reichweitenansicht zeigen, wenn Reviewer diese Angabe freigeben. Wenn Sie pruefen wollen, ob Feedback aus einem bestimmten Land sichtbar ist, oeffnen Sie am besten die Reviews.",
+            actions: createReviewLookupActions()
+          }
+        : {
+            text: "The review section can show countries in individual public reviews and in the overall country-reach summary when reviewers share that detail. If you want to check whether feedback from a specific country is visible, the best next step is to open Reviews.",
+            actions: createReviewLookupActions()
+          };
+    }
+
+    return null;
   };
 
   const findWebsiteQuestionMatches = async (query, { deep = false } = {}) => {
@@ -7267,7 +7835,9 @@ function setupPortfolioHelpBot() {
       const exact = normalizedQuery === questionNormalized;
       const strongPhrase = normalizedQuery.length >= 6 && (questionNormalized.includes(normalizedQuery) || normalizedQuery.includes(questionNormalized));
       const ratio = overlap / Math.max(tokens.length, 1);
-      if (!exact && !strongPhrase && !keywordPhraseMatches && overlap < Math.min(tokens.length, 2)) return 0;
+      if (!exact && !strongPhrase && !keywordPhraseMatches && overlap < Math.min(tokens.length, 2)) {
+        return { score: 0, confidence: 0 };
+      }
       let score = (overlap * 4) + (keywordTokenMatches.length * 2) + (keywordPhraseMatches * 3);
       if (exact) score += 18;
       if (strongPhrase) score += 10;
@@ -7276,24 +7846,50 @@ function setupPortfolioHelpBot() {
       if (ratio >= 0.75) score += 8;
       else if (ratio >= 0.55) score += 5;
       if (deep && ratio >= 0.4) score += 4;
-      return score;
+      let confidence = 0;
+      if (exact) {
+        confidence = 1;
+      } else {
+        confidence = Math.max(confidence, Math.min(0.78, ratio));
+        if (strongPhrase) confidence = Math.max(confidence, 0.88);
+        if (keywordPhraseMatches) confidence = Math.max(confidence, Math.min(0.86, 0.58 + (keywordPhraseMatches * 0.12)));
+        if (overlap === tokens.length && tokens.length > 1) confidence = Math.max(confidence, 0.84);
+        if (ratio >= 0.75) confidence = Math.max(confidence, 0.84);
+        else if (ratio >= 0.55) confidence = Math.max(confidence, 0.7);
+        if (deep && ratio >= 0.4) confidence = Math.max(confidence, 0.6);
+      }
+      return {
+        score,
+        confidence: Math.min(1, confidence)
+      };
     };
 
     const ranked = bank.intents
       .map((intent) => {
         const bestQuestion = intent.questions
-          .map((question) => ({ question, score: scoreQuestion(question, intent.keywords) }))
+          .map((question) => {
+            const scored = scoreQuestion(question, intent.keywords);
+            return {
+              question,
+              score: scored.score || 0,
+              confidence: scored.confidence || 0
+            };
+          })
           .sort((left, right) => right.score - left.score)[0];
-        const keywordOnlyScore = scoreQuestion("", intent.keywords);
-        const bestScore = Math.max(bestQuestion?.score || 0, keywordOnlyScore);
+        const keywordOnlyMatch = scoreQuestion("", intent.keywords);
+        const bestScore = Math.max(bestQuestion?.score || 0, keywordOnlyMatch.score || 0);
         if (bestScore <= 0) return null;
         const threshold = deep ? 7 : 9;
         if (bestScore < threshold) return null;
+        const confidence = bestQuestion?.score >= (keywordOnlyMatch.score || 0)
+          ? (bestQuestion?.confidence || 0)
+          : (keywordOnlyMatch.confidence || 0);
         return {
           kind: "question",
           answerId: intent.id,
           label: bestQuestion?.question || intent.questions?.[0] || intent.id,
-          score: bestScore
+          score: bestScore,
+          confidence
         };
       })
       .filter(Boolean)
@@ -7421,6 +8017,36 @@ function setupPortfolioHelpBot() {
 
     const definitions = currentLang === "de"
       ? [
+          {
+            id: "profile-overview",
+            minScore: 5,
+            score: () => (
+              scoreMatches(["ueberblick", "overview", "gesamtprofil", "profil", "summary", "zusammenfassung", "kurzprofil"], 3)
+              + scoreMatches(["sooraj", "overall", "insgesamt", "quick", "wer ist", "who is"], 1)
+            ),
+            text: "Kurz zusammengefasst ist Sooraj ein Mechatronik- und Robotikingenieur in Deutschland mit starkem Fokus auf industrielle Robotik, Automation, ROS-nahe Projekte, Simulation und umsetzungsorientiertes Engineering. Das Profil verbindet die Mechanical-Engineering-Basis aus Indien, den Master in Mechatronics and Cyber-Physical Systems in Deutschland, die aktuelle KEBA Erfahrung in Stuttgart, die industrielle Robotik-Thesis und projektbasierte Nachweise in ROS, VR, MATLAB/Simulink und designnaher Engineering-Arbeit.",
+            actions: [
+              createBadgedAction("About", createHelpBotHomeTarget("about"), "Start"),
+              createBadgedAction("Erfahrung", createHelpBotHomeTarget("experience"), "Proof"),
+              createBadgedAction("Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
+              createBadgedAction("Projekte", createHelpBotHomeTarget("projects"), "Work")
+            ]
+          },
+          {
+            id: "portfolio-sections-overview",
+            minScore: 5,
+            score: () => (
+              scoreMatches(["alle bereiche", "all sections", "website struktur", "website aufbau", "hauptbereiche", "portfolio bereiche", "site structure", "whole website", "gesamte website"], 3)
+              + scoreMatches(["sections", "bereiche", "seiten", "overview", "ueberblick", "summary", "zusammenfassung"], 1)
+            ),
+            text: "Die Website laesst sich am besten in acht Hauptbereiche lesen. About gibt das Gesamtprofil. Where I Fit zeigt recruiter-orientierte Rollenpassung. Experience deckt KEBA, Thesis und fruehere Industriearbeit ab. Projects zeigt ROS, VR, MATLAB/Simulink, Design und Robotikprojekte. Skills fasst Tools und technische Staerken zusammen. Journey verbindet Indien-Deutschland-Entwicklung. Reviews liefert die Vertrauensebene. Contact und CV-Anfrage sind der direkte naechste Schritt.",
+            actions: [
+              createBadgedAction("About", createHelpBotHomeTarget("about"), "Start"),
+              createBadgedAction("Erfahrung", createHelpBotHomeTarget("experience"), "Proof"),
+              createBadgedAction("Projektbereich", createHelpBotHomeTarget("projects"), "Work"),
+              createBadgedAction("Kontakt", createHelpBotHomeTarget("contact"), "Action")
+            ]
+          },
           {
             id: "experience-overview",
             minScore: 5,
@@ -7551,13 +8177,206 @@ function setupPortfolioHelpBot() {
             ]
           },
           {
+            id: "chat-greeting",
+            minScore: 2,
+            score: () => (
+              scoreMatches(["hi", "hii", "hiii", "hello", "hey", "hlo", "helo", "hallo", "hy", "yo", "good morning", "good evening"], 3)
+              + scoreIf(["hi", "hii", "hiii", "hello", "hey", "hlo", "helo", "hallo", "hy", "yo", "hola", "good morning", "good afternoon", "good evening"].includes(normalizedQuery), 8)
+            ),
+            text: "Hallo. Wie kann ich Ihnen helfen? Sie koennen mich etwas ueber Sooraj, die Website, Projekte, Erfahrung, Reviews, CV oder Kontakt fragen.",
+            actions: [
+              createBadgedAction("About", createHelpBotHomeTarget("about"), "Start"),
+              createBadgedAction("Erfahrung", createHelpBotHomeTarget("experience"), "Proof"),
+              createBadgedAction("Kontakt", createHelpBotHomeTarget("contact"), "Action")
+            ]
+          },
+          {
+            id: "assistant-training",
+            minScore: 6,
+            score: () => (
+              scoreIf(hasAll(["ai", "training"]), 7)
+              + scoreIf(hasAll(["assistant", "training"]), 7)
+              + scoreMatches(["who trained the ai", "who is training the ai", "who trains the assistant", "ai assistant training", "bot training"], 3)
+              + scoreMatches(["ai", "assistant", "bot", "synapse", "training", "trained", "teaching", "guiding"], 2)
+            ),
+            text: "Ich bin Synapse, der AI Assistant von Sooraj. Sie koennen mich als Assistenten sehen, den Sooraj Schritt fuer Schritt weiter verbessert. Wenn ich eine Frage noch nicht sauber beantworten kann, kann der Verlauf spaeter von Sooraj geprueft und fuer bessere Antworten genutzt werden. Dadurch kann ich bei einer aehnlichen Frage spaeter klarer reagieren.",
+            actions: [
+              createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action"),
+              createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+              createBadgedAction("Journey", createHelpBotPageTarget("journey.html"), "Story")
+            ]
+          },
+          {
+            id: "assistant-behind-you",
+            minScore: 6,
+            score: () => (
+              scoreIf(hasAll(["ai", "behind"]), 8)
+              + scoreIf(hasAll(["working", "behind"]), 7)
+              + scoreIf(hasAll(["another", "ai"]), 5)
+              + scoreIf(hasAll(["other", "ai"]), 5)
+              + scoreMatches(["is any ai working behind you", "is another ai behind you", "does any ai work behind you", "who is behind you as ai", "is another assistant behind you"], 4)
+              + scoreMatches(["behind you", "another ai", "other ai", "working behind", "running you", "controlling you", "behind this bot"], 2)
+            ),
+            text: "Nein. Hinter mir arbeitet gerade keine weitere AI. Ich antworte auf Basis des Trainings, der Struktur und der laufenden Verbesserungen von Sooraj Sudhakaran. Sie koennen mich als Soorajs Assistenten sehen, der von ihm aufgebaut wurde, um Sie hier durch die Website zu fuehren.",
+            actions: [
+              createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+              createBadgedAction("Journey", createHelpBotPageTarget("journey.html"), "Story"),
+              createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action")
+            ]
+          },
+          {
+            id: "sooraj-training",
+            minScore: 6,
+            score: () => (
+              scoreIf(hasAll(["sooraj", "training"]), 7)
+              + scoreIf(hasAll(["sooraj", "learn"]), 7)
+              + scoreMatches(["who is training sooraj", "how is sooraj training", "sooraj learning path", "sooraj self learning", "sooraj self taught"], 3)
+              + scoreMatches(["sooraj", "training", "learning", "career path", "self", "motivation", "guided"], 2)
+            ),
+            text: "Sooraj baut seinen Weg weitgehend selbstgesteuert auf. Das Portfolio zeigt einen motivierten, eigenstaendig aufgebauten Lern- und Karrierepfad ueber Mechanical Engineering, den Master in Deutschland, KEBA-Erfahrung, die Robotik-Thesis und fortlaufende Projekte in Robotik, Simulation und Software. Kurz gesagt: Er trainiert und entwickelt sich stark aus eigener Initiative weiter.",
+            actions: [
+              createBadgedAction("Journey", createHelpBotPageTarget("journey.html"), "Story"),
+              createBadgedAction("Erfahrung", createHelpBotHomeTarget("experience"), "Proof"),
+              createBadgedAction("Bildung", createHelpBotHomeTarget("education"), "Study")
+            ]
+          },
+          {
+            id: "password-request",
+            minScore: 3,
+            score: () => (
+              scoreMatches(["password", "admin password", "login password", "passcode", "credentials", "confidential", "secret"], 3)
+              + scoreMatches(["admin", "find", "give", "tell", "share", "access"], 1)
+            ),
+            text: "Dabei kann ich nicht helfen. Passwoerter, Admin-Zugaenge und andere vertrauliche Daten sind geschuetzt. Wenn Sie einen legitimen Zugang brauchen, fragen Sie bitte Sooraj direkt ueber den Kontaktweg der Website.",
+            actions: [
+              createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action"),
+              createBadgedAction("Kontaktbereich", createHelpBotHomeTarget("contact"), "Direct")
+            ]
+          },
+          {
+            id: "owner-name",
+            minScore: 4,
+            score: () => (
+              scoreIf(hasAll(["owner", "name"]), 7)
+              + scoreIf(hasAll(["sooraj", "name"]), 7)
+              + scoreMatches(["who is the owner", "portfolio owner name", "website owner name", "who is sooraj", "what is sooraj s name"], 3)
+              + scoreMatches(["owner", "portfolio", "website owner", "sooraj", "founder"], 2)
+            ),
+            text: "Der Inhaber dieses Portfolios ist Sooraj Sudhakaran. Kurz gesagt ist er ein Mechatronik- und Robotikingenieur mit Fokus auf industrielle Robotik, Automation, Simulation und einen stark selbst aufgebauten Karriereweg zwischen Indien und Deutschland. Wenn Sie moechten, oeffnen Sie als naechstes den About-Bereich fuer die saubere Kurzvorstellung.",
+            actions: [
+              createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+              createBadgedAction("Journey", createHelpBotPageTarget("journey.html"), "Story"),
+              createBadgedAction("Erfahrung", createHelpBotHomeTarget("experience"), "Proof")
+            ]
+          },
+          {
+            id: "bot-name",
+            minScore: 3,
+            score: () => (
+              scoreIf(hasAll(["your", "name"]), 6)
+              + scoreMatches(["who are you", "what is your name", "your name", "bot name", "assistant name", "synapse"], 3)
+              + scoreMatches(["name", "bot", "assistant"], 1)
+            ),
+            text: "Mein Name hier ist Synapse. Ich bin der AI Assistant von Sooraj. Sie koennen mich als digitalen Guide sehen, der hier ist, um Sooraj dabei zu helfen, Sie schneller durch die Website zu fuehren. Ich werde von Sooraj ueber die Zeit weiter verbessert. Wenn Sie moechten, gehen wir direkt wieder zu den wichtigsten Website-Bereichen zurueck.",
+            actions: [
+              createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+              createBadgedAction("Projekte", createHelpBotHomeTarget("projects"), "Work"),
+              createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action")
+            ]
+          },
+          {
+            id: "bot-age",
+            minScore: 3,
+            score: () => (
+              scoreIf(hasAll(["how", "old"]), 6)
+              + scoreMatches(["your age", "how old are you", "bot age", "assistant age", "age"], 3)
+            ),
+            text: "Ich habe kein menschliches Alter. Ich bin ein Software-Assistent und werde ueber die Zeit von Sooraj weiter verbessert und aktualisiert.",
+            actions: [
+              createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+              createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action")
+            ]
+          },
+          {
+            id: "bot-origin",
+            minScore: 2,
+            score: () => (
+              scoreMatches(["who created you", "who made you", "who built you", "who is your father", "who is your mother", "were you born"], 3)
+              + scoreMatches(["father", "mother", "creator", "created", "built", "born"], 2)
+            ),
+            text: "Ich wurde von Sooraj Sudhakaran als digitaler Assistent gebaut. Ich bin nicht wie ein Mensch geboren, daher habe ich keinen menschlichen Vater oder keine menschliche Mutter.",
+            actions: [
+              createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+              createBadgedAction("Journey", createHelpBotPageTarget("journey.html"), "Story")
+            ]
+          },
+          {
+            id: "chat-privacy",
+            minScore: 4,
+            score: () => (
+              scoreIf(hasAll(["end", "encrypted"]), 7)
+              + scoreIf(hasAll(["chat", "data"]), 6)
+              + scoreIf(hasAll(["collect", "data"]), 6)
+              + scoreMatches(["end to end encrypted", "end to end encryption", "e2e", "chat privacy", "chat data", "collecting chat data", "do you collect chats", "store chats", "save chats"], 3)
+              + scoreMatches(["encrypted", "encryption", "privacy", "private", "data", "collect", "collecting", "store", "stored", "save", "saved", "transcript", "record", "recorded"], 2)
+            ),
+            text: "Ich kann nicht sagen, dass dieser Chat Ende-zu-Ende verschluesselt ist. Teilweise ja, aber nicht vollstaendig in diesem Sinne, weil einige Fragen von mir noch nicht selbst beantwortet werden koennen. In solchen Faellen kann der Chat-Inhalt oder die offene Frage gesammelt und an Sooraj weitergegeben werden, damit er die Daten fuer spaeteres Training und bessere Antworten nutzen kann.",
+            actions: [
+              createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action"),
+              createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+              createBadgedAction("Kontaktbereich", createHelpBotHomeTarget("contact"), "Direct")
+            ]
+          },
+          {
+            id: "review-fields-details",
+            minScore: 6,
+            score: () => (
+              scoreMatches(["review details", "review fields", "public review details", "what do reviews show", "what is shown in reviews", "review card details"], 3)
+              + scoreMatches(["review", "reviews", "feedback", "rating", "reply", "title", "comment", "details"], 2)
+            ),
+            text: "Oeffentliche Reviews koennen je nach Freigabe Namen, Unternehmen oder Hochschule, Land, Bewertung, Review-Titel, Kommentar und sichtbare Owner-Replies zeigen. Damit zeigt die Review-Sektion nicht nur Sterne, sondern strukturierten Kontext dazu, wer das Feedback gegeben hat und wie Sooraj darauf reagiert hat.",
+            actions: [
+              createBadgedAction("Reviews oeffnen", createHelpBotHomeTarget("reviews"), "Fields"),
+              createBadgedAction("Feedback-Seite", createHelpBotPageTarget("feedback.html"), "Public"),
+              createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+            ]
+          },
+          {
+            id: "review-company-details",
+            minScore: 6,
+            score: () => (
+              scoreMatches(["company review", "company name", "organization name", "university name", "which company", "review company"], 3)
+              + scoreMatches(["company", "organisation", "organization", "university", "review", "reviews", "feedback"], 2)
+            ),
+            text: "Ja. Wenn jemand eine oeffentliche Bewertung mit Unternehmens-, Organisations- oder Hochschulangabe freigibt, wird diese Angabe direkt in der Review-Karte gezeigt. So kann der Review-Bereich nicht nur den Kommentar, sondern auch den professionellen oder akademischen Kontext des Feedbacks sichtbar machen.",
+            actions: [
+              createBadgedAction("Reviews oeffnen", createHelpBotHomeTarget("reviews"), "Company"),
+              createBadgedAction("Feedback-Seite", createHelpBotPageTarget("feedback.html"), "Public"),
+              createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+            ]
+          },
+          {
+            id: "review-country-details",
+            minScore: 6,
+            score: () => (
+              scoreMatches(["review country", "country reach", "review countries", "which country", "what country", "country in reviews", "review from country"], 3)
+              + scoreMatches(["country", "countries", "reach", "flag", "review", "reviews", "feedback"], 2)
+            ),
+            text: "Ja. Die Review-Sektion zeigt die Reichweite nach Laendern ueber Flags und Country-Chips. In einzelnen oeffentlichen Reviews kann ausserdem das Land des Reviewers sichtbar sein, wenn diese Angabe freigegeben wurde. So sehen Besucher sowohl die Gesamtstreuung der Reviews als auch den Laenderkontext einzelner Rueckmeldungen.",
+            actions: [
+              createBadgedAction("Reviews oeffnen", createHelpBotHomeTarget("reviews"), "Country"),
+              createBadgedAction("Feedback-Seite", createHelpBotPageTarget("feedback.html"), "Reach"),
+              createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+            ]
+          },
+          {
             id: "reviews",
             minScore: 4,
             score: () => (
               scoreMatches(["review", "reviews", "feedback", "trust", "credibility"], 3)
               + scoreMatches(["public", "reply", "archive", "rating"], 1)
             ),
-            text: "Die Review-Sektion ist die Vertrauensebene des Portfolios. Dort sehen Sie hervorgehobene, vom Admin gepinnte Reviews, das Archiv oeffentlicher Reviews, die Gesamtbewertung, Reichweite nach Laendern und sichtbare Owner-Replies. Wenn Sie pruefen wollen, wie das Profil von anderen wahrgenommen wird, ist das der richtige Bereich.",
+            text: "Die Review-Sektion ist die Vertrauensebene des Portfolios. Dort sehen Sie hervorgehobene, vom Admin gepinnte Reviews, veroeffentlichte Reviews im Archiv, die Gesamtbewertung, Reichweite nach Laendern und sichtbare Owner-Replies. Wenn ein Reviewer es freigibt, koennen auch Angaben wie Unternehmen oder Hochschule, Land, Bewertungstitel und Kommentar sichtbar werden. Wenn Sie pruefen wollen, wie das Profil von anderen wahrgenommen wird, ist das der richtige Bereich.",
             actions: [
               createBadgedAction("Reviews oeffnen", createHelpBotHomeTarget("reviews"), "Trust"),
               createBadgedAction("Feedback-Seite", createHelpBotPageTarget("feedback.html"), "Archive"),
@@ -7635,17 +8454,64 @@ function setupPortfolioHelpBot() {
             ]
           },
           {
+            id: "contact-section-details",
+            minScore: 6,
+            score: () => (
+              scoreMatches(["contact form", "contact details", "contact section", "how contact works", "contact process", "what details for contact"], 3)
+              + scoreMatches(["contact", "email", "company", "country", "message", "cv", "reach out"], 2)
+            ),
+            text: "Die Kontaktsektion ist fuer direkte professionelle Anfragen gedacht. Typisch sind Name, E-Mail, Unternehmen, Land und eine klare Nachricht mit Anlass oder naechstem Schritt. Fuer CV-Anfragen gibt es zusaetzlich den direkten CV-Pfad. Fuer Website-Kommentare, Korrekturen oder oeffentliche Reviews ist dagegen eher die Feedback-Seite richtig.",
+            actions: [
+              createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action"),
+              createBadgedAction("CV anfragen", createHelpBotCvTarget(), "CV"),
+              createBadgedAction("Kontaktbereich", createHelpBotHomeTarget("contact"), "Direct")
+            ]
+          },
+          {
+            id: "feedback-vs-contact",
+            minScore: 6,
+            score: () => (
+              scoreIf(hasAll(["feedback", "contact"]), 7)
+              + scoreMatches(["difference between feedback and contact", "feedback or contact", "feedback vs contact", "which form should i use"], 3)
+              + scoreMatches(["feedback", "contact", "form", "review", "message", "outreach"], 1)
+            ),
+            text: "Feedback ist fuer Website-Kommentare, Korrekturen, Vorschlaege und oeffentliche oder private Reviews gedacht. Contact ist fuer Recruiter-Outreach, Zusammenarbeit, CV-Bezug und direkte professionelle Nachrichten gedacht. Kurz gesagt: Feedback verbessert die Website oder teilt einen Review, Contact startet eine direkte berufliche Kommunikation.",
+            actions: [
+              createBadgedAction("Reviews oeffnen", createHelpBotHomeTarget("reviews"), "Trust"),
+              createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Contact"),
+              createBadgedAction("Feedback-Seite", createHelpBotPageTarget("feedback.html"), "Form")
+            ]
+          },
+          {
             id: "contact",
             minScore: 4,
             score: () => (
               scoreMatches(["contact", "kontakt", "cv", "resume", "email", "hire", "reach"], 3)
               + scoreMatches(["message", "connect", "request", "talk"], 1)
             ),
-            text: "Sie koennen Sooraj direkt ueber die Kontaktwege der Website erreichen. Am schnellsten sind Kontaktformular und CV-Anfrage. Wenn Sie moechten, kann ich Sie direkt in den Kontaktpfad fuehren oder die CV-Anfrage starten, damit die Verbindung sauber ueber die Website laeuft.",
+            text: "Sie koennen Sooraj direkt ueber die Kontaktwege der Website erreichen. Am schnellsten sind Kontaktformular und CV-Anfrage. Der direkte Kontaktpfad ist fuer Recruiter-Outreach, Zusammenarbeit und professionelle Nachrichten gedacht, waehrend der Feedback-Pfad besser fuer Website-Kommentare oder oeffentliche Reviews passt. Wenn Sie moechten, kann ich Sie direkt in den Kontaktpfad fuehren oder die CV-Anfrage starten, damit die Verbindung sauber ueber die Website laeuft.",
             actions: [
               createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action"),
               createBadgedAction("CV anfragen", createHelpBotCvTarget(), "CV"),
               createBadgedAction("Kontaktbereich", createHelpBotHomeTarget("contact"), "Direct")
+            ]
+          },
+          {
+            id: "job-search-status",
+            minScore: 5,
+            score: () => (
+              scoreIf(hasAll(["job", "search"]), 6)
+              + scoreIf(hasAll(["open", "work"]), 6)
+              + scoreIf(hasAll(["full time", "role"]), 5)
+              + scoreMatches(["job", "rolle", "roles", "arbeit", "stelle", "position"], 2)
+              + scoreMatches(["searching", "looking", "open", "available", "seeking", "vollzeit"], 2)
+              + scoreMatches(["hire", "hiring", "wechsel", "opportunity", "opportunities"], 1)
+            ),
+            text: "Ja. Laut Portfolio ist Sooraj offen fuer Vollzeitrollen. Der staerkste Fokus liegt auf Robotik, Automation, Unity- und immersiven Simulationsrollen sowie autonomen Systemen. Wenn Sie pruefen wollen, wie gut das Profil passt, sind Where I Fit, CV-Anfrage und der Kontaktpfad die besten naechsten Schritte.",
+            actions: [
+              createBadgedAction("Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
+              createBadgedAction("CV anfragen", createHelpBotCvTarget(), "CV"),
+              createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action")
             ]
           },
           {
@@ -7664,6 +8530,36 @@ function setupPortfolioHelpBot() {
           }
         ]
       : [
+          {
+            id: "profile-overview",
+            minScore: 5,
+            score: () => (
+              scoreMatches(["overview", "overall profile", "profile", "summary", "quick summary", "introduction"], 3)
+              + scoreMatches(["sooraj", "overall", "brief", "who is", "tell me"], 1)
+            ),
+            text: "In short, Sooraj is a mechatronics and robotics engineer in Germany with the strongest focus on industrial robotics, automation, ROS-oriented projects, simulation, and deployment-minded engineering. The profile connects a mechanical-engineering foundation from India, the master's path in Mechatronics and Cyber-Physical Systems in Germany, current KEBA experience in Stuttgart, the industrial robotics thesis, and project proof across ROS, VR, MATLAB/Simulink, and design-oriented engineering work.",
+            actions: [
+              createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Start"),
+              createBadgedAction("Open experience section", createHelpBotHomeTarget("experience"), "Proof"),
+              createBadgedAction("Open Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
+              createBadgedAction("Open projects section", createHelpBotHomeTarget("projects"), "Work")
+            ]
+          },
+          {
+            id: "portfolio-sections-overview",
+            minScore: 5,
+            score: () => (
+              scoreMatches(["all sections", "website structure", "site structure", "whole website", "main sections", "portfolio sections", "all pages"], 3)
+              + scoreMatches(["sections", "website", "site", "overview", "summary", "structure"], 1)
+            ),
+            text: "The website reads best in eight main parts. About gives the overall profile. Where I Fit shows recruiter-facing role alignment. Experience covers KEBA, the thesis, and earlier industrial work. Projects shows ROS, VR, MATLAB/Simulink, design, and robotics projects. Skills summarizes tools and technical strengths. Journey connects the India-to-Germany path. Reviews adds the trust layer. Contact and the CV request path are the direct next step.",
+            actions: [
+              createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Start"),
+              createBadgedAction("Open experience section", createHelpBotHomeTarget("experience"), "Proof"),
+              createBadgedAction("Open projects section", createHelpBotHomeTarget("projects"), "Work"),
+              createBadgedAction("Open contact section", createHelpBotHomeTarget("contact"), "Action")
+            ]
+          },
           {
             id: "experience-overview",
             minScore: 5,
@@ -7794,13 +8690,206 @@ function setupPortfolioHelpBot() {
             ]
           },
           {
+            id: "chat-greeting",
+            minScore: 2,
+            score: () => (
+              scoreMatches(["hi", "hii", "hiii", "hello", "hey", "hlo", "helo", "hallo", "hy", "yo", "good morning", "good evening"], 3)
+              + scoreIf(["hi", "hii", "hiii", "hello", "hey", "hlo", "helo", "hallo", "hy", "yo", "hola", "good morning", "good afternoon", "good evening"].includes(normalizedQuery), 8)
+            ),
+            text: "Hi. How can I help you? You can ask me about Sooraj, the website, projects, experience, reviews, CV, or contact.",
+            actions: [
+              createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Start"),
+              createBadgedAction("Open experience section", createHelpBotHomeTarget("experience"), "Proof"),
+              createBadgedAction("Open contact section", createHelpBotHomeTarget("contact"), "Action")
+            ]
+          },
+          {
+            id: "assistant-training",
+            minScore: 6,
+            score: () => (
+              scoreIf(hasAll(["ai", "training"]), 7)
+              + scoreIf(hasAll(["assistant", "training"]), 7)
+              + scoreMatches(["who trained the ai", "who is training the ai", "who trains the assistant", "ai assistant training", "bot training"], 3)
+              + scoreMatches(["ai", "assistant", "bot", "synapse", "training", "trained", "teaching", "guiding"], 2)
+            ),
+            text: "I am Synapse, the AI assistant of Sooraj. You can think of me as a guide that Sooraj keeps improving over time. When I cannot answer something clearly yet, the conversation can be reviewed by Sooraj and used to improve future replies, so if you ask again later I may answer more accurately.",
+            actions: [
+              createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action"),
+              createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+              createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story")
+            ]
+          },
+          {
+            id: "assistant-behind-you",
+            minScore: 6,
+            score: () => (
+              scoreIf(hasAll(["ai", "behind"]), 8)
+              + scoreIf(hasAll(["working", "behind"]), 7)
+              + scoreIf(hasAll(["another", "ai"]), 5)
+              + scoreIf(hasAll(["other", "ai"]), 5)
+              + scoreMatches(["is any ai working behind you", "is another ai behind you", "does any ai work behind you", "who is behind you as ai", "is another assistant behind you"], 4)
+              + scoreMatches(["behind you", "another ai", "other ai", "working behind", "running you", "controlling you", "behind this bot"], 2)
+            ),
+            text: "No. There is not another AI working behind me right now. I answer based on the training, structure, and ongoing improvements set up by Sooraj Sudhakaran. You can think of me as Sooraj's assistant, built by him to help guide you through this website.",
+            actions: [
+              createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+              createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story"),
+              createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action")
+            ]
+          },
+          {
+            id: "sooraj-training",
+            minScore: 6,
+            score: () => (
+              scoreIf(hasAll(["sooraj", "training"]), 7)
+              + scoreIf(hasAll(["sooraj", "learn"]), 7)
+              + scoreMatches(["who is training sooraj", "how is sooraj training", "sooraj learning path", "sooraj self learning", "sooraj self taught"], 3)
+              + scoreMatches(["sooraj", "training", "learning", "career path", "self", "motivation", "guided"], 2)
+            ),
+            text: "Sooraj is building his path in a strongly self-driven way. The portfolio shows a motivated learning and career path built largely through his own effort across mechanical engineering, the master's path in Germany, KEBA work, the robotics thesis, and continuous robotics, simulation, and software projects. In short, he is training and building his career path with strong personal initiative.",
+            actions: [
+              createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story"),
+              createBadgedAction("Open experience section", createHelpBotHomeTarget("experience"), "Proof"),
+              createBadgedAction("Open education section", createHelpBotHomeTarget("education"), "Study")
+            ]
+          },
+          {
+            id: "password-request",
+            minScore: 3,
+            score: () => (
+              scoreMatches(["password", "admin password", "login password", "passcode", "credentials", "confidential", "secret"], 3)
+              + scoreMatches(["admin", "find", "give", "tell", "share", "access"], 1)
+            ),
+            text: "I cannot help with passwords, admin access, or other confidential credentials. That information is private. If you need legitimate access, the right path is to contact Sooraj directly through the website.",
+            actions: [
+              createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action"),
+              createBadgedAction("Open contact section", createHelpBotHomeTarget("contact"), "Direct")
+            ]
+          },
+          {
+            id: "owner-name",
+            minScore: 4,
+            score: () => (
+              scoreIf(hasAll(["owner", "name"]), 7)
+              + scoreIf(hasAll(["sooraj", "name"]), 7)
+              + scoreMatches(["who is the owner", "portfolio owner name", "website owner name", "who is sooraj", "what is sooraj s name"], 3)
+              + scoreMatches(["owner", "portfolio", "website owner", "sooraj", "founder"], 2)
+            ),
+            text: "The owner of this portfolio is Sooraj Sudhakaran. In short, he is a mechatronics and robotics engineer focused on industrial robotics, automation, simulation, and a strongly self-built career path across India and Germany. If you want the clean introduction next, open the About section.",
+            actions: [
+              createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+              createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story"),
+              createBadgedAction("Open experience section", createHelpBotHomeTarget("experience"), "Proof")
+            ]
+          },
+          {
+            id: "bot-name",
+            minScore: 3,
+            score: () => (
+              scoreIf(hasAll(["your", "name"]), 6)
+              + scoreMatches(["who are you", "what is your name", "your name", "bot name", "assistant name", "synapse"], 3)
+              + scoreMatches(["name", "bot", "assistant"], 1)
+            ),
+            text: "My name here is Synapse. I am the AI assistant of Sooraj. You can think of me as the digital guide hired here to help Sooraj help you move through the website faster. I am trained and improved by Sooraj over time. If you want, we can go straight back to the main website sections now.",
+            actions: [
+              createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+              createBadgedAction("Open projects section", createHelpBotHomeTarget("projects"), "Work"),
+              createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action")
+            ]
+          },
+          {
+            id: "bot-age",
+            minScore: 3,
+            score: () => (
+              scoreIf(hasAll(["how", "old"]), 6)
+              + scoreMatches(["your age", "how old are you", "bot age", "assistant age", "age"], 3)
+            ),
+            text: "I do not have a human age. I am a software assistant that Sooraj updates and improves over time.",
+            actions: [
+              createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+              createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action")
+            ]
+          },
+          {
+            id: "bot-origin",
+            minScore: 2,
+            score: () => (
+              scoreMatches(["who created you", "who made you", "who built you", "who is your father", "who is your mother", "were you born"], 3)
+              + scoreMatches(["father", "mother", "creator", "created", "built", "born"], 2)
+            ),
+            text: "I was created by Sooraj Sudhakaran as a digital assistant. I was not born like a human, so I do not have a human father or mother.",
+            actions: [
+              createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+              createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story")
+            ]
+          },
+          {
+            id: "chat-privacy",
+            minScore: 4,
+            score: () => (
+              scoreIf(hasAll(["end", "encrypted"]), 7)
+              + scoreIf(hasAll(["chat", "data"]), 6)
+              + scoreIf(hasAll(["collect", "data"]), 6)
+              + scoreMatches(["end to end encrypted", "end to end encryption", "e2e", "chat privacy", "chat data", "collecting chat data", "do you collect chats", "store chats", "save chats"], 3)
+              + scoreMatches(["encrypted", "encryption", "privacy", "private", "data", "collect", "collecting", "store", "stored", "save", "saved", "transcript", "record", "recorded"], 2)
+            ),
+            text: "I cannot describe this chat as end-to-end encrypted. Partially yes in a general sense, but not fully in that strict meaning, because some questions are still not answerable by me on my own. In those cases, the chat content or unanswered question can be collected and sent to Sooraj so he can use that data to improve my future training and responses.",
+            actions: [
+              createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action"),
+              createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+              createBadgedAction("Open contact section", createHelpBotHomeTarget("contact"), "Direct")
+            ]
+          },
+          {
+            id: "review-fields-details",
+            minScore: 6,
+            score: () => (
+              scoreMatches(["review details", "review fields", "public review details", "what do reviews show", "what is shown in reviews", "review card details"], 3)
+              + scoreMatches(["review", "reviews", "feedback", "rating", "reply", "title", "comment", "details"], 2)
+            ),
+            text: "Public reviews can show the reviewer's name, company or university, country, rating, review title, written comment, and visible owner reply when that information was shared for public display. So the review section is not only star ratings. It also gives structured context around who gave the feedback and how Sooraj responded.",
+            actions: [
+              createBadgedAction("Open reviews", createHelpBotHomeTarget("reviews"), "Fields"),
+              createBadgedAction("Open feedback page", createHelpBotPageTarget("feedback.html"), "Public"),
+              createBadgedAction("Open contact", createHelpBotContactFormTarget(), "Action")
+            ]
+          },
+          {
+            id: "review-company-details",
+            minScore: 6,
+            score: () => (
+              scoreMatches(["company review", "company name", "organization name", "university name", "which company", "review company"], 3)
+              + scoreMatches(["company", "organization", "university", "review", "reviews", "feedback"], 2)
+            ),
+            text: "Yes. If a public reviewer shared a company, organization, or university name, that detail can appear directly in the review card. That means the review area can show not only the written feedback, but also the professional or academic context behind it.",
+            actions: [
+              createBadgedAction("Open reviews", createHelpBotHomeTarget("reviews"), "Company"),
+              createBadgedAction("Open feedback page", createHelpBotPageTarget("feedback.html"), "Public"),
+              createBadgedAction("Open contact", createHelpBotContactFormTarget(), "Action")
+            ]
+          },
+          {
+            id: "review-country-details",
+            minScore: 6,
+            score: () => (
+              scoreMatches(["review country", "country reach", "review countries", "which country", "what country", "country in reviews", "review from country"], 3)
+              + scoreMatches(["country", "countries", "reach", "flag", "review", "reviews", "feedback"], 2)
+            ),
+            text: "Yes. The review section shows country reach through flags and country chips, and individual public reviews can also show the reviewer's country when it was shared. So visitors can read both the overall geographic spread of the reviews and the country context on specific public feedback cards.",
+            actions: [
+              createBadgedAction("Open reviews", createHelpBotHomeTarget("reviews"), "Country"),
+              createBadgedAction("Open feedback page", createHelpBotPageTarget("feedback.html"), "Reach"),
+              createBadgedAction("Open contact", createHelpBotContactFormTarget(), "Action")
+            ]
+          },
+          {
             id: "reviews",
             minScore: 4,
             score: () => (
               scoreMatches(["review", "reviews", "feedback", "trust", "credibility"], 3)
               + scoreMatches(["public", "reply", "archive", "rating"], 1)
             ),
-            text: "The reviews section is the trust layer of the portfolio. It shows featured admin-pinned reviews, the archive of public reviews, overall rating, reach by country, and visible owner replies. If you want to understand how the profile is being received by others, that is the right section to read.",
+            text: "The reviews section is the trust layer of the portfolio. It shows featured admin-pinned reviews, published reviews in the archive, overall rating, country reach, and visible owner replies. When a reviewer allows it, the cards can also show details like company or university, country, review title, rating, and written feedback. If you want to understand how the profile is being received by others, that is the right section to read.",
             actions: [
               createBadgedAction("Open reviews", createHelpBotHomeTarget("reviews"), "Trust"),
               createBadgedAction("Open feedback page", createHelpBotPageTarget("feedback.html"), "Archive"),
@@ -7878,17 +8967,64 @@ function setupPortfolioHelpBot() {
             ]
           },
           {
+            id: "contact-section-details",
+            minScore: 6,
+            score: () => (
+              scoreMatches(["contact form", "contact details", "contact section", "how contact works", "contact process", "what details for contact"], 3)
+              + scoreMatches(["contact", "email", "company", "country", "message", "cv", "reach out"], 2)
+            ),
+            text: "The contact section is designed for direct professional outreach. The usual path is name, email, company, country, and a clear message explaining the reason for contact or the next step you want. There is also a separate CV request path. For website comments, corrections, or public reviews, the feedback page is the better route.",
+            actions: [
+              createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action"),
+              createBadgedAction("Request CV", createHelpBotCvTarget(), "CV"),
+              createBadgedAction("Open contact section", createHelpBotHomeTarget("contact"), "Direct")
+            ]
+          },
+          {
+            id: "feedback-vs-contact",
+            minScore: 6,
+            score: () => (
+              scoreIf(hasAll(["feedback", "contact"]), 7)
+              + scoreMatches(["difference between feedback and contact", "feedback or contact", "feedback vs contact", "which form should i use"], 3)
+              + scoreMatches(["feedback", "contact", "form", "review", "message", "outreach"], 1)
+            ),
+            text: "Feedback is for website comments, corrections, suggestions, and public or private reviews. Contact is for recruiter outreach, collaboration, CV-related requests, and direct professional messages. In short, feedback improves the website or adds a review, while contact starts a direct professional conversation.",
+            actions: [
+              createBadgedAction("Open reviews", createHelpBotHomeTarget("reviews"), "Trust"),
+              createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Contact"),
+              createBadgedAction("Open feedback page", createHelpBotPageTarget("feedback.html"), "Form")
+            ]
+          },
+          {
             id: "contact",
             minScore: 4,
             score: () => (
               scoreMatches(["contact", "cv", "resume", "email", "hire", "reach"], 3)
               + scoreMatches(["message", "connect", "request", "talk"], 1)
             ),
-            text: "You can reach Sooraj through the website contact paths directly. The fastest routes are the contact form and the CV request flow. If you want, I can help connect you by taking you straight into the contact path or the CV request path through the website.",
+            text: "You can reach Sooraj through the website contact paths directly. The fastest routes are the contact form and the CV request flow. The direct contact route is meant for recruiter outreach, collaboration, and professional messages, while the feedback route is better for website comments or public reviews. If you want, I can help connect you by taking you straight into the contact path or the CV request path through the website.",
             actions: [
               createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action"),
               createBadgedAction("Request CV", createHelpBotCvTarget(), "CV"),
               createBadgedAction("Open contact section", createHelpBotHomeTarget("contact"), "Direct")
+            ]
+          },
+          {
+            id: "job-search-status",
+            minScore: 5,
+            score: () => (
+              scoreIf(hasAll(["job", "search"]), 6)
+              + scoreIf(hasAll(["open", "work"]), 6)
+              + scoreIf(hasAll(["full time", "role"]), 5)
+              + scoreMatches(["job", "jobs", "role", "roles", "position", "positions"], 2)
+              + scoreMatches(["searching", "looking", "open", "available", "seeking", "full time"], 2)
+              + scoreMatches(["hire", "hiring", "opportunity", "opportunities", "work"], 1)
+            ),
+            text: "Yes. Based on the portfolio, Sooraj is open to full-time roles. The strongest focus areas are robotics, automation, Unity and immersive simulation, and autonomous systems opportunities. If you want to evaluate fit quickly, the best next steps are Where I Fit, the CV request path, or direct contact through the website.",
+            actions: [
+              createBadgedAction("Open Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
+              createBadgedAction("Request CV", createHelpBotCvTarget(), "CV"),
+              createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action")
             ]
           },
           {
@@ -8071,6 +9207,123 @@ function setupPortfolioHelpBot() {
     createBadgedOption("website-search-fallback", "retry", config.searchWebsiteAskAgain, currentLang === "de" ? "Erneut" : "Retry"),
     createBadgedOption("website-search-fallback", "menu", config.searchWebsiteMainMenu, currentLang === "de" ? "Menue" : "Menu")
   ]);
+
+  const getWebsiteTrainingClarifyOptions = () => withEndChatOption([
+    createBadgedOption(
+      "training-clarify",
+      "assistant-training",
+      config.searchWebsiteTrainingClarifyAssistant,
+      currentLang === "de" ? "AI" : "AI"
+    ),
+    createBadgedOption(
+      "training-clarify",
+      "sooraj-training",
+      config.searchWebsiteTrainingClarifySooraj,
+      "Sooraj"
+    )
+  ]);
+
+  const getWebsiteNameClarifyOptions = () => withEndChatOption([
+    createBadgedOption(
+      "name-clarify",
+      "bot-name",
+      config.searchWebsiteNameClarifyBot,
+      currentLang === "de" ? "Bot" : "Bot"
+    ),
+    createBadgedOption(
+      "name-clarify",
+      "owner-name",
+      config.searchWebsiteNameClarifyOwner,
+      "Sooraj"
+    )
+  ]);
+
+  const shouldClarifyTrainingQuestion = (query = "") => {
+    const normalized = String(query || "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+    if (!normalized) return false;
+
+    const trainingPatterns = [
+      "who is training you",
+      "who s training you",
+      "who trains you",
+      "who trained you",
+      "who is teaching you",
+      "who teaches you",
+      "who taught you",
+      "who is guiding you",
+      "who guides you",
+      "who is coaching you",
+      "who coaches you",
+      "who is mentoring you",
+      "who mentors you"
+    ];
+
+    if (!trainingPatterns.some((pattern) => normalized.includes(pattern))) {
+      return false;
+    }
+
+    if (/(ai|assistant|bot|synapse|sooraj|portfolio|website|career|his|he)\b/.test(normalized)) {
+      return false;
+    }
+
+    return true;
+  };
+
+  const shouldClarifyNameQuestion = (query = "") => {
+    const normalized = String(query || "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+    if (!normalized) return false;
+
+    const namePatterns = [
+      "what is your name",
+      "whats your name",
+      "what s your name",
+      "your name",
+      "who are you",
+      "name please",
+      "tell me your name",
+      "can i know your name",
+      "what should i call you"
+    ];
+
+    if (!namePatterns.some((pattern) => normalized.includes(pattern) || normalized === pattern)) {
+      return false;
+    }
+
+    if (/\b(sooraj|owner|portfolio owner|website owner|founder|bot|assistant|ai|synapse|chatbot)\b/.test(normalized)) {
+      return false;
+    }
+
+    return true;
+  };
+
+  const shouldHandleConfidentialSuggestionFollowup = (query = "", previousAnswerId = "") => {
+    if (previousAnswerId !== "password-request" && previousAnswerId !== "confidential-followup") {
+      return false;
+    }
+
+    const normalized = normalizeReviewLookupText(query);
+    if (!normalized) return false;
+
+    const followupPatterns = [
+      "why you suggest me",
+      "why did you suggest",
+      "why are you suggesting",
+      "why do you suggest",
+      "then why you suggest",
+      "why did you show that",
+      "why did you suggest that",
+      "why you show me this",
+      "why recommend that"
+    ];
+
+    return followupPatterns.some((pattern) => normalized.includes(pattern));
+  };
 
   const getReviewPathResponse = (pathId) => {
     const responses = currentLang === "de"
@@ -8929,12 +10182,12 @@ function setupPortfolioHelpBot() {
     }
   };
 
-  const focusComposerInput = () => {
+  const focusComposerInput = ({ select = true } = {}) => {
     if (!composer || composer.hidden) return;
     window.requestAnimationFrame(() => {
       const activeField = getActiveComposerField();
       activeField?.focus({ preventScroll: true });
-      if (activeField instanceof HTMLInputElement || activeField instanceof HTMLTextAreaElement) {
+      if (select && (activeField instanceof HTMLInputElement || activeField instanceof HTMLTextAreaElement)) {
         activeField.select();
       }
     });
@@ -8951,7 +10204,7 @@ function setupPortfolioHelpBot() {
     clearComposerNote();
   };
 
-  const showComposer = () => {
+  const showComposer = ({ focus = helpBotState.pendingInputKind !== "website-search", select = focus } = {}) => {
     if (!composer) return;
     composer.hidden = false;
     root.classList.add("is-composer-visible");
@@ -8964,12 +10217,14 @@ function setupPortfolioHelpBot() {
         activeField.value = draftValue || "";
       }
     }
-    focusComposerInput();
+    if (focus) {
+      focusComposerInput({ select });
+    }
   };
 
   const syncComposerState = () => {
     if (HELP_BOT_PENDING_INPUT_KINDS.includes(helpBotState.pendingInputKind)) {
-      showComposer();
+      showComposer({ focus: true });
       return;
     }
     hideComposer();
@@ -8989,15 +10244,51 @@ function setupPortfolioHelpBot() {
         persist: false
       });
     });
+    window.requestAnimationFrame(() => {
+      scrollMessagesToEnd({ behavior: "auto" });
+    });
     syncComposerState();
     setOptions([], "");
   };
 
-  const scrollMessagesToEnd = () => {
+  const scrollMessagesToEnd = ({ behavior = "smooth" } = {}) => {
     messages.scrollTo({
       top: messages.scrollHeight,
-      behavior: "smooth"
+      behavior
     });
+  };
+
+  const scrollMessageToStart = (messageElement, { behavior = "smooth" } = {}) => {
+    if (!(messageElement instanceof HTMLElement) || !messages.contains(messageElement)) {
+      scrollMessagesToEnd({ behavior });
+      return;
+    }
+
+    messages.scrollTo({
+      top: Math.max(0, messageElement.offsetTop - 12),
+      behavior
+    });
+  };
+
+  const shouldScrollReplyFromStart = (messageElement, { sender = "bot", actions = [], inlineOptions = [], cards = [] } = {}) => {
+    if (sender !== "bot" || !(messageElement instanceof HTMLElement)) return false;
+
+    const bubble = messageElement.querySelector(".help-bot-bubble");
+    const paragraphCount = bubble ? bubble.querySelectorAll("p").length : 0;
+    const messageHeight = Math.max(
+      messageElement.offsetHeight || 0,
+      bubble instanceof HTMLElement ? bubble.offsetHeight : 0
+    );
+    const viewportHeight = messages.clientHeight || 0;
+    const hasExpandedContent = Boolean(
+      (Array.isArray(actions) && actions.length)
+      || (Array.isArray(inlineOptions) && inlineOptions.length)
+      || (Array.isArray(cards) && cards.length)
+    );
+
+    return messageHeight > Math.max(220, viewportHeight * 0.52)
+      || (hasExpandedContent && messageHeight > Math.max(180, viewportHeight * 0.34))
+      || paragraphCount >= 3;
   };
 
   const createBotMessageFrame = () => {
@@ -9276,6 +10567,7 @@ function setupPortfolioHelpBot() {
       bubble.append(optionRow);
     }
 
+    let appendedItem = item;
     if (sender === "bot") {
       const frame = createBotMessageFrame();
       frame.bubble.replaceWith(bubble);
@@ -9284,6 +10576,7 @@ function setupPortfolioHelpBot() {
         bubble
       );
       messages.append(frame.item);
+      appendedItem = frame.item;
     } else {
       item.append(bubble);
       messages.append(item);
@@ -9308,7 +10601,14 @@ function setupPortfolioHelpBot() {
       setStaticCopy();
       syncComposerState();
     }
-    window.requestAnimationFrame(scrollMessagesToEnd);
+    window.requestAnimationFrame(() => {
+      const behavior = persist ? "smooth" : "auto";
+      if (shouldScrollReplyFromStart(appendedItem, { sender, actions, inlineOptions, cards })) {
+        scrollMessageToStart(appendedItem, { behavior });
+        return;
+      }
+      scrollMessagesToEnd({ behavior });
+    });
   };
 
   const setOptions = (items = [], prompt = config.optionPrompt) => {
@@ -9413,7 +10713,7 @@ function setupPortfolioHelpBot() {
       token
     });
     if (token !== responseToken) return;
-    showComposer();
+    showComposer({ focus: true });
   };
 
   const promptChatFeedbackRating = async (token = responseToken) => {
@@ -9769,11 +11069,10 @@ function setupPortfolioHelpBot() {
     await promptChatFeedbackField("comments", token);
   };
 
-  const promptForVisitorName = async (roleId, token = responseToken) => {
-    const role = config.roles[roleId];
-    if (!role) return;
+  const promptForVisitorName = async (roleId, token = responseToken, { resumeWebsiteSearch = false } = {}) => {
     helpBotState.pendingInputKind = "visitor-name";
     helpBotState.pendingTopicId = "";
+    helpBotState.pendingWebsiteSearchStart = Boolean(resumeWebsiteSearch);
     persistHelpBotState();
     setStaticCopy();
     await queueBotReply({
@@ -10022,6 +11321,12 @@ function setupPortfolioHelpBot() {
       token
     });
     if (token !== responseToken) return;
+    if (helpBotState.pendingWebsiteSearchStart) {
+      helpBotState.pendingWebsiteSearchStart = false;
+      persistHelpBotState();
+      await startWebsiteSearchFlow(token);
+      return;
+    }
     await promptForStudentUniversity(token);
   };
 
@@ -10055,6 +11360,7 @@ function setupPortfolioHelpBot() {
     helpBotState.studentUniversityCandidate = null;
     helpBotState.pendingInputKind = "";
     persistHelpBotState();
+    queueHelpBotRemoteSessionSync({ immediate: true });
     await queueBotReply({
       text: candidate.matchType === "deggendorf"
         ? config.askUniversitySameMatch(getVisitorName())
@@ -10089,6 +11395,7 @@ function setupPortfolioHelpBot() {
     helpBotState.websiteSearchAttempts = 0;
     helpBotState.websiteSearchResult = null;
     helpBotState.websiteSearchResults = [];
+    helpBotState.pendingWebsiteSearchStart = false;
     clearChatFeedbackDraft();
     clearRecruiterRequestDraft();
     helpBotState.pendingInputKind = "";
@@ -10129,6 +11436,7 @@ function setupPortfolioHelpBot() {
     helpBotState.pendingInputKind = "";
     helpBotState.pendingTopicId = "";
     helpBotState.pendingTourStepId = "";
+    helpBotState.pendingWebsiteSearchStart = false;
     persistHelpBotState();
     appendMessage({ sender: "user", text: role.label });
     setOptions([], "");
@@ -10494,6 +11802,7 @@ function setupPortfolioHelpBot() {
 
   const startWebsiteSearchFlow = async (token = responseToken, { retry = false } = {}) => {
     helpBotState.pendingInputKind = "website-search";
+    helpBotState.pendingWebsiteSearchStart = false;
     helpBotState.websiteSearchResult = null;
     helpBotState.websiteSearchResults = [];
     persistHelpBotState();
@@ -10511,14 +11820,16 @@ function setupPortfolioHelpBot() {
   };
 
   const answerWebsiteQuestion = async (result, token = responseToken) => {
-    const answer = getWebsiteQuestionAnswerEntry(result?.answerId) || getWebsiteQuestionAnswer(result?.label || "");
+    const answer = await buildDynamicWebsiteQuestionAnswer(helpBotState.websiteSearchQuery || result?.label || "", {
+      forcedAnswerId: result?.answerId || ""
+    }) || getWebsiteQuestionAnswerEntry(result?.answerId) || getWebsiteQuestionAnswer(result?.label || "");
     if (!answer) return false;
     helpBotState.websiteSearchResult = result && typeof result === "object" ? result : null;
     helpBotState.websiteSearchResults = [];
     helpBotState.pendingInputKind = "website-search";
     persistHelpBotState();
     await queueBotReply({
-      text: answer.text,
+      text: `${answer.text}\n${config.searchWebsiteFollowupPrompt}`,
       actions: answer.actions,
       delay: 260,
       token,
@@ -10530,11 +11841,44 @@ function setupPortfolioHelpBot() {
     return true;
   };
 
+  const handleTrainingClarification = async (answerId) => {
+    const label = answerId === "assistant-training"
+      ? config.searchWebsiteTrainingClarifyAssistant
+      : config.searchWebsiteTrainingClarifySooraj;
+    appendMessage({ sender: "user", text: label });
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    await answerWebsiteQuestion({
+      kind: "question",
+      label,
+      answerId,
+      target: null
+    }, token);
+  };
+
+  const handleNameClarification = async (answerId) => {
+    const label = answerId === "bot-name"
+      ? config.searchWebsiteNameClarifyBot
+      : config.searchWebsiteNameClarifyOwner;
+    appendMessage({ sender: "user", text: label });
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    await answerWebsiteQuestion({
+      kind: "question",
+      label,
+      answerId,
+      target: null
+    }, token);
+  };
+
   const runWebsiteSearch = async (query) => {
     responseToken += 1;
     const token = responseToken;
     clearTypingIndicator();
     hideComposer({ clearValue: false });
+    const previousAnswerId = String(helpBotState.websiteSearchResult?.answerId || "").trim();
     const previousAttempts = Number(helpBotState.websiteSearchAttempts || 0);
     const nextAttempts = previousAttempts + 1;
     helpBotState.pendingInputKind = "";
@@ -10548,6 +11892,68 @@ function setupPortfolioHelpBot() {
     if (token !== responseToken) return;
     clearTypingIndicator();
 
+    if (shouldClarifyTrainingQuestion(query)) {
+      helpBotState.websiteSearchResult = null;
+      helpBotState.websiteSearchResults = [];
+      helpBotState.pendingInputKind = "website-search";
+      persistHelpBotState();
+      await queueBotReply({
+        text: config.searchWebsiteTrainingClarifyPrompt,
+        delay: 260,
+        token,
+        inlineOptions: getWebsiteTrainingClarifyOptions()
+      });
+      if (token !== responseToken) return;
+      showComposer();
+      return;
+    }
+
+    if (shouldClarifyNameQuestion(query)) {
+      helpBotState.websiteSearchResult = null;
+      helpBotState.websiteSearchResults = [];
+      helpBotState.pendingInputKind = "website-search";
+      persistHelpBotState();
+      await queueBotReply({
+        text: config.searchWebsiteNameClarifyPrompt,
+        delay: 260,
+        token,
+        inlineOptions: getWebsiteNameClarifyOptions()
+      });
+      if (token !== responseToken) return;
+      showComposer();
+      return;
+    }
+
+    if (shouldHandleConfidentialSuggestionFollowup(query, previousAnswerId)) {
+      await answerWebsiteQuestion({
+        kind: "question",
+        label: query,
+        answerId: "confidential-followup",
+        target: null
+      }, token);
+      return;
+    }
+
+    const dynamicAnswer = await buildDynamicWebsiteQuestionAnswer(query);
+    if (token !== responseToken) return;
+    if (dynamicAnswer) {
+      helpBotState.websiteSearchResult = null;
+      helpBotState.websiteSearchResults = [];
+      helpBotState.pendingInputKind = "website-search";
+      persistHelpBotState();
+      await queueBotReply({
+        text: `${dynamicAnswer.text}\n${config.searchWebsiteFollowupPrompt}`,
+        actions: dynamicAnswer.actions,
+        delay: 260,
+        token,
+        inlineOptions: withEndChatOption([])
+      });
+      if (token !== responseToken) return;
+      setStaticCopy();
+      showComposer();
+      return;
+    }
+
     const isQuestionSearch = looksLikeQuestionSearch(query);
     const useExpandedSearch = isQuestionSearch || nextAttempts >= 2;
 
@@ -10555,6 +11961,25 @@ function setupPortfolioHelpBot() {
       const questionMatches = await findWebsiteQuestionMatches(query, { deep: useExpandedSearch });
       if (token !== responseToken) return;
       if (questionMatches.length) {
+        const topQuestionMatch = questionMatches[0];
+        const secondQuestionMatch = questionMatches[1];
+        const shouldAnswerDirectly = Boolean(topQuestionMatch)
+          && topQuestionMatch.confidence >= 0.8
+          && (!secondQuestionMatch || (topQuestionMatch.confidence - secondQuestionMatch.confidence) >= 0.08 || (topQuestionMatch.score - secondQuestionMatch.score) >= 4);
+
+        if (shouldAnswerDirectly) {
+          helpBotState.websiteSearchResult = {
+            kind: "question",
+            label: topQuestionMatch.label,
+            answerId: topQuestionMatch.answerId,
+            target: null
+          };
+          helpBotState.websiteSearchResults = [];
+          persistHelpBotState();
+          await answerWebsiteQuestion(helpBotState.websiteSearchResult, token);
+          return;
+        }
+
         helpBotState.websiteSearchResults = questionMatches.map((entry) => ({
           kind: "question",
           label: entry.label,
@@ -10600,7 +12025,7 @@ function setupPortfolioHelpBot() {
       helpBotState.pendingInputKind = "website-search";
       persistHelpBotState();
       await queueBotReply({
-        text: answer.text,
+        text: `${answer.text}\n${config.searchWebsiteFollowupPrompt}`,
         actions: answer.actions,
         delay: 260,
         token,
@@ -11124,6 +12549,10 @@ function setupPortfolioHelpBot() {
         responseToken += 1;
         const token = responseToken;
         clearTypingIndicator();
+        if (!getVisitorName()) {
+          promptForVisitorName(currentRoleId, token, { resumeWebsiteSearch: true });
+          return;
+        }
         startWebsiteSearchFlow(token);
       } else if (kind === "tour-start") {
         startPortfolioTour();
@@ -11174,6 +12603,10 @@ function setupPortfolioHelpBot() {
         handleWebsiteSearchMatch(id);
       } else if (kind === "website-search-fallback") {
         handleWebsiteSearchFallback(id);
+      } else if (kind === "training-clarify") {
+        handleTrainingClarification(id);
+      } else if (kind === "name-clarify") {
+        handleNameClarification(id);
       } else if (kind === "visitor-profile") {
         handleVisitorProfileChoice(id);
       } else if (kind === "visitor-field-skip") {
@@ -11299,9 +12732,22 @@ function setupPortfolioHelpBot() {
       helpBotState.visitorName = visitorName;
       helpBotState.pendingInputKind = "";
       persistHelpBotState();
+      queueHelpBotRemoteSessionSync({ immediate: true });
       syncInlineStudentNudge();
       appendMessage({ sender: "user", text: visitorName });
       hideComposer();
+      if (helpBotState.pendingWebsiteSearchStart) {
+        helpBotState.pendingWebsiteSearchStart = false;
+        persistHelpBotState();
+        await queueBotReply({
+          text: config.askNameGreeting(visitorName),
+          delay: 420,
+          token
+        });
+        if (token !== responseToken) return;
+        await startWebsiteSearchFlow(token);
+        return;
+      }
       if (currentRoleId === "student") {
         if (isBossLikeVisitorName(visitorName)) {
           await queueBotReply({
@@ -12974,13 +14420,14 @@ async function renderAdminHelpBotControls(workspacePanel = document.querySelecto
           <p>${escapeHtml(entry.text)}</p>
         </div>
       `).join("");
-      const detailFacts = [
+      const detailFacts = [];
+      if (session.visitorName) detailFacts.push(`${copy.visitor}: ${session.visitorName}`);
+      detailFacts.push(
         `${copy.role}: ${roleLabel}`,
         `${copy.page}: ${pageLabel}`,
         `${copy.updated}: ${updatedLabel}`,
         `${copy.ended}: ${endedLabel}`
-      ];
-      if (session.visitorName) detailFacts.push(`${copy.visitor}: ${session.visitorName}`);
+      );
       if (session.visitorPosition) detailFacts.push(`${copy.position}: ${session.visitorPosition}`);
       if (session.visitorOrganization) detailFacts.push(`${copy.organization}: ${session.visitorOrganization}`);
       if (session.studentUniversity) detailFacts.push(`${copy.university}: ${session.studentUniversity}`);
@@ -15375,6 +16822,22 @@ async function resolveLatestSiteUpdate() {
   ));
 }
 
+async function resolveEffectiveSiteUpdateDate() {
+  const fallbackModifiedAt = new Date(document.lastModified);
+  const safeFallbackDate = Number.isNaN(fallbackModifiedAt.getTime()) ? null : fallbackModifiedAt;
+
+  const [latestModifiedAt, sharedOverrideDate] = await Promise.all([
+    resolveLatestSiteUpdate(),
+    fetchSharedSiteUpdateOverride()
+  ]);
+
+  const effectiveDate = sharedOverrideDate && (!latestModifiedAt || sharedOverrideDate > latestModifiedAt)
+    ? sharedOverrideDate
+    : latestModifiedAt;
+
+  return effectiveDate || safeFallbackDate;
+}
+
 async function fetchSharedSiteUpdateOverride() {
   try {
     const supabase = await getSupabaseClient();
@@ -15651,13 +17114,7 @@ async function setupLastUpdated() {
 
   applyUpdateState(fallbackModifiedAt);
 
-  const [latestModifiedAt, sharedOverrideDate] = await Promise.all([
-    resolveLatestSiteUpdate(),
-    fetchSharedSiteUpdateOverride()
-  ]);
-  const effectiveDate = sharedOverrideDate && (!latestModifiedAt || sharedOverrideDate > latestModifiedAt)
-    ? sharedOverrideDate
-    : latestModifiedAt;
+  const effectiveDate = await resolveEffectiveSiteUpdateDate();
 
   if (effectiveDate) {
     applyUpdateState(effectiveDate);
