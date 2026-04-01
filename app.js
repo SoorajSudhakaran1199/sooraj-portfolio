@@ -678,7 +678,7 @@ function saveStoredPublicReviews(reviews) {
   localStorage.setItem(STORAGE_PUBLIC_REVIEWS_KEY, JSON.stringify(reviews));
 }
 
-async function fetchSupabaseRest(path, { method = "GET", body = null, authToken = SUPABASE_PUBLISHABLE_KEY, prefer = "" } = {}) {
+async function fetchSupabaseRest(path, { method = "GET", body = null, authToken = SUPABASE_PUBLISHABLE_KEY, prefer = "", keepalive = false } = {}) {
   const headers = {
     apikey: SUPABASE_PUBLISHABLE_KEY,
     Authorization: `Bearer ${authToken}`,
@@ -696,7 +696,8 @@ async function fetchSupabaseRest(path, { method = "GET", body = null, authToken 
   const response = await fetch(`${SUPABASE_REST_URL}/${path}`, {
     method,
     headers,
-    body: body === null ? undefined : JSON.stringify(body)
+    body: body === null ? undefined : JSON.stringify(body),
+    keepalive: Boolean(keepalive)
   });
 
   const raw = await response.text();
@@ -6033,6 +6034,9 @@ function setupPortfolioHelpBot() {
 
   let helpBotRemoteSyncTimer = 0;
   let helpBotRemoteSyncSignature = "";
+  let helpBotRemoteSyncInFlight = false;
+  let helpBotRemoteSyncRequested = false;
+  let helpBotRemoteSyncRequestedEndedAt = "";
 
   const getHelpBotRemoteSessionId = () => {
     const existingId = String(helpBotState.remoteSessionId || "").trim();
@@ -6096,23 +6100,71 @@ function setupPortfolioHelpBot() {
     };
   };
 
+  const mergeHelpBotEndedAt = (existingEndedAt = "", nextEndedAt = "") => {
+    const normalizedExisting = String(existingEndedAt || "").trim();
+    const normalizedNext = String(nextEndedAt || "").trim();
+    if (!normalizedExisting) return normalizedNext;
+    if (!normalizedNext) return normalizedExisting;
+    return normalizedNext > normalizedExisting ? normalizedNext : normalizedExisting;
+  };
+
+  const upsertHelpBotRemoteSessionSnapshot = async (snapshot, { keepalive = false } = {}) => {
+    if (keepalive) {
+      await fetchSupabaseRest(`${SUPABASE_HELP_BOT_SESSIONS_TABLE}?on_conflict=session_id`, {
+        method: "POST",
+        body: snapshot.payload,
+        prefer: "resolution=merge-duplicates,return=minimal",
+        keepalive: true
+      });
+      return;
+    }
+
+    const supabase = await getSupabaseClient();
+    const request = supabase
+      .from(SUPABASE_HELP_BOT_SESSIONS_TABLE)
+      .upsert(snapshot.payload, { onConflict: "session_id" });
+    const { error } = await request;
+    if (error) throw error;
+  };
+
   const syncHelpBotRemoteSession = async ({ endedAt = "" } = {}) => {
-    const snapshot = buildHelpBotRemoteSessionSnapshot({ endedAt });
-    if (!snapshot || snapshot.signature === helpBotRemoteSyncSignature) return;
+    if (helpBotRemoteSyncInFlight) {
+      helpBotRemoteSyncRequested = true;
+      helpBotRemoteSyncRequestedEndedAt = mergeHelpBotEndedAt(helpBotRemoteSyncRequestedEndedAt, endedAt);
+      return;
+    }
+
+    helpBotRemoteSyncInFlight = true;
+    let nextEndedAt = String(endedAt || "").trim();
     try {
-      const supabase = await getSupabaseClient();
-      const request = supabase
-        .from(SUPABASE_HELP_BOT_SESSIONS_TABLE)
-        .upsert(snapshot.payload, { onConflict: "session_id" });
-      const { error } = await request;
-      if (error) throw error;
-      if (!helpBotState.remoteSessionPersisted) {
-        helpBotState.remoteSessionPersisted = true;
-        saveStoredJson(localStorage, STORAGE_HELP_BOT_STATE_KEY, helpBotState);
+      while (true) {
+        helpBotRemoteSyncRequested = false;
+        helpBotRemoteSyncRequestedEndedAt = "";
+
+        const snapshot = buildHelpBotRemoteSessionSnapshot({ endedAt: nextEndedAt });
+        nextEndedAt = "";
+        if (snapshot && snapshot.signature !== helpBotRemoteSyncSignature) {
+          try {
+            await upsertHelpBotRemoteSessionSnapshot(snapshot);
+            if (!helpBotState.remoteSessionPersisted) {
+              helpBotState.remoteSessionPersisted = true;
+              saveStoredJson(localStorage, STORAGE_HELP_BOT_STATE_KEY, helpBotState);
+            }
+            helpBotRemoteSyncSignature = snapshot.signature;
+          } catch {
+            // Ignore remote sync failures so the local chat flow remains stable.
+          }
+        }
+
+        if (!helpBotRemoteSyncRequested) {
+          break;
+        }
+        nextEndedAt = helpBotRemoteSyncRequestedEndedAt;
       }
-      helpBotRemoteSyncSignature = snapshot.signature;
     } catch {
       // Ignore remote sync failures so the local chat flow remains stable.
+    } finally {
+      helpBotRemoteSyncInFlight = false;
     }
   };
 
@@ -6127,7 +6179,34 @@ function setupPortfolioHelpBot() {
     }, HELP_BOT_REMOTE_SYNC_DELAY_MS);
   };
 
+  const flushHelpBotRemoteSessionSync = ({ endedAt = "" } = {}) => {
+    window.clearTimeout(helpBotRemoteSyncTimer);
+    const snapshot = buildHelpBotRemoteSessionSnapshot({ endedAt });
+    if (!snapshot || snapshot.signature === helpBotRemoteSyncSignature) return;
+    void upsertHelpBotRemoteSessionSnapshot(snapshot, { keepalive: true })
+      .then(() => {
+        if (!helpBotState.remoteSessionPersisted) {
+          helpBotState.remoteSessionPersisted = true;
+          saveStoredJson(localStorage, STORAGE_HELP_BOT_STATE_KEY, helpBotState);
+        }
+        helpBotRemoteSyncSignature = snapshot.signature;
+      })
+      .catch(() => {
+        // Ignore final flush failures without interrupting page lifecycle.
+      });
+  };
+
   persistHelpBotState();
+
+  window.addEventListener("pagehide", () => {
+    flushHelpBotRemoteSessionSync();
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") {
+      flushHelpBotRemoteSessionSync();
+    }
+  });
 
   const clearNudgeTimers = () => {
     window.clearTimeout(nudgeHideTimer);
@@ -10594,7 +10673,7 @@ function setupPortfolioHelpBot() {
       });
       persistHelpBotState();
       if (hasConversationBooted || sender === "user" || currentRoleId) {
-        queueHelpBotRemoteSessionSync();
+        queueHelpBotRemoteSessionSync({ immediate: sender === "user" });
       }
     }
     if (root.classList.contains("is-open")) {
