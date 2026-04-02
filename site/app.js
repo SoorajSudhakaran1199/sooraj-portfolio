@@ -6116,54 +6116,26 @@ function setupPortfolioHelpBot() {
     return normalizedNext > normalizedExisting ? normalizedNext : normalizedExisting;
   };
 
-  const upsertHelpBotRemoteSessionSnapshot = async (snapshot, { keepalive = false } = {}) => {
-    try {
-      await fetchSupabaseRest(`${SUPABASE_HELP_BOT_SESSIONS_TABLE}?on_conflict=session_id`, {
-        method: "POST",
-        body: snapshot.payload,
-        prefer: "resolution=merge-duplicates,return=minimal",
-        keepalive: Boolean(keepalive)
-      });
-      return;
-    } catch (upsertError) {
-      const patchPayload = {
-        updated_at: snapshot.payload.updated_at,
-        ended_at: snapshot.payload.ended_at,
-        page_path: snapshot.payload.page_path,
-        role_id: snapshot.payload.role_id,
-        visitor_name: snapshot.payload.visitor_name,
-        visitor_position: snapshot.payload.visitor_position,
-        visitor_organization: snapshot.payload.visitor_organization,
-        student_university: snapshot.payload.student_university,
-        message_count: snapshot.payload.message_count,
-        transcript_json: snapshot.payload.transcript_json
-      };
-
-      try {
-        await fetchSupabaseRest(
-          `${SUPABASE_HELP_BOT_SESSIONS_TABLE}?session_id=eq.${encodeURIComponent(snapshot.payload.session_id)}`,
-          {
-            method: "PATCH",
-            body: patchPayload,
-            prefer: "return=minimal",
-            keepalive: Boolean(keepalive)
-          }
-        );
-        return;
-      } catch (patchError) {
-        if (!helpBotState.remoteSessionPersisted) {
-          await fetchSupabaseRest(SUPABASE_HELP_BOT_SESSIONS_TABLE, {
-            method: "POST",
-            body: snapshot.payload,
-            prefer: "return=minimal",
-            keepalive: Boolean(keepalive)
-          });
-          return;
-        }
-        console.warn("Help bot upsert fallback failed.", upsertError, patchError);
-        throw patchError;
-      }
-    }
+  const saveHelpBotRemoteSessionSnapshot = async (snapshot, { keepalive = false } = {}) => {
+    await fetchSupabaseRest("rpc/portfolio_save_help_bot_session", {
+      method: "POST",
+      body: {
+        p_session_id: snapshot.payload.session_id,
+        p_created_at: snapshot.payload.created_at || null,
+        p_updated_at: snapshot.payload.updated_at,
+        p_ended_at: snapshot.payload.ended_at,
+        p_page_path: snapshot.payload.page_path,
+        p_role_id: snapshot.payload.role_id,
+        p_visitor_name: snapshot.payload.visitor_name,
+        p_visitor_position: snapshot.payload.visitor_position,
+        p_visitor_organization: snapshot.payload.visitor_organization,
+        p_student_university: snapshot.payload.student_university,
+        p_message_count: snapshot.payload.message_count,
+        p_transcript_json: snapshot.payload.transcript_json
+      },
+      prefer: "return=minimal",
+      keepalive: Boolean(keepalive)
+    });
   };
 
   const syncHelpBotRemoteSession = async ({ endedAt = "" } = {}) => {
@@ -6184,7 +6156,7 @@ function setupPortfolioHelpBot() {
         nextEndedAt = "";
         if (snapshot && snapshot.signature !== helpBotRemoteSyncSignature) {
           try {
-            await upsertHelpBotRemoteSessionSnapshot(snapshot);
+            await saveHelpBotRemoteSessionSnapshot(snapshot);
             if (!helpBotState.remoteSessionPersisted) {
               helpBotState.remoteSessionPersisted = true;
               saveStoredJson(localStorage, STORAGE_HELP_BOT_STATE_KEY, helpBotState);
@@ -6223,7 +6195,7 @@ function setupPortfolioHelpBot() {
     window.clearTimeout(helpBotRemoteSyncTimer);
     const snapshot = buildHelpBotRemoteSessionSnapshot({ endedAt });
     if (!snapshot || snapshot.signature === helpBotRemoteSyncSignature) return;
-    void upsertHelpBotRemoteSessionSnapshot(snapshot, { keepalive: true })
+    void saveHelpBotRemoteSessionSnapshot(snapshot, { keepalive: true })
       .then(() => {
         if (!helpBotState.remoteSessionPersisted) {
           helpBotState.remoteSessionPersisted = true;

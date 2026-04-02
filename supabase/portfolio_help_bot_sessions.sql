@@ -1,7 +1,22 @@
 begin;
 
 -- Fresh rebuild for help-bot session storage only.
--- This deletes only help-bot data and recreates a one-row-per-chat session table.
+-- This keeps one row per chat session and uses an RPC upsert for public writes.
+
+drop function if exists public.portfolio_save_help_bot_session(
+  text,
+  timestamptz,
+  timestamptz,
+  timestamptz,
+  text,
+  text,
+  text,
+  text,
+  text,
+  text,
+  integer,
+  jsonb
+);
 
 drop table if exists public.portfolio_help_bot_sessions cascade;
 
@@ -60,47 +75,7 @@ create index portfolio_help_bot_sessions_page_updated_idx
 alter table public.portfolio_help_bot_sessions enable row level security;
 
 grant usage on schema public to anon, authenticated;
-grant insert, update on public.portfolio_help_bot_sessions to anon, authenticated;
 grant select, delete on public.portfolio_help_bot_sessions to authenticated;
-
-create policy "Public can insert chatbot sessions"
-on public.portfolio_help_bot_sessions
-for insert
-to anon, authenticated
-with check (
-  length(trim(coalesce(session_id, ''))) >= 8
-  and length(trim(coalesce(page_path, ''))) >= 1
-  and length(page_path) <= 240
-  and message_count between 0 and 120
-  and jsonb_typeof(transcript_json) = 'array'
-  and jsonb_array_length(transcript_json) = message_count
-  and jsonb_array_length(transcript_json) <= 120
-  and (role_id is null or length(role_id) <= 60)
-  and (visitor_name is null or length(visitor_name) <= 120)
-  and (visitor_position is null or length(visitor_position) <= 160)
-  and (visitor_organization is null or length(visitor_organization) <= 160)
-  and (student_university is null or length(student_university) <= 160)
-);
-
-create policy "Public can update chatbot sessions"
-on public.portfolio_help_bot_sessions
-for update
-to anon, authenticated
-using (true)
-with check (
-  length(trim(coalesce(session_id, ''))) >= 8
-  and length(trim(coalesce(page_path, ''))) >= 1
-  and length(page_path) <= 240
-  and message_count between 0 and 120
-  and jsonb_typeof(transcript_json) = 'array'
-  and jsonb_array_length(transcript_json) = message_count
-  and jsonb_array_length(transcript_json) <= 120
-  and (role_id is null or length(role_id) <= 60)
-  and (visitor_name is null or length(visitor_name) <= 120)
-  and (visitor_position is null or length(visitor_position) <= 160)
-  and (visitor_organization is null or length(visitor_organization) <= 160)
-  and (student_university is null or length(student_university) <= 160)
-);
 
 create policy "Admin can read chatbot sessions"
 on public.portfolio_help_bot_sessions
@@ -113,5 +88,118 @@ on public.portfolio_help_bot_sessions
 for delete
 to authenticated
 using (lower(coalesce(auth.jwt() ->> 'email', '')) = 'soorajsudhakaran4@gmail.com');
+
+create or replace function public.portfolio_save_help_bot_session(
+  p_session_id text,
+  p_created_at timestamptz,
+  p_updated_at timestamptz,
+  p_ended_at timestamptz,
+  p_page_path text,
+  p_role_id text,
+  p_visitor_name text,
+  p_visitor_position text,
+  p_visitor_organization text,
+  p_student_university text,
+  p_message_count integer,
+  p_transcript_json jsonb
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if length(trim(coalesce(p_session_id, ''))) < 8 then
+    raise exception 'Invalid help-bot session id';
+  end if;
+
+  if length(trim(coalesce(p_page_path, ''))) < 1 or length(coalesce(p_page_path, '')) > 240 then
+    raise exception 'Invalid help-bot page path';
+  end if;
+
+  if p_message_count < 0 or p_message_count > 120 then
+    raise exception 'Invalid help-bot message count';
+  end if;
+
+  if jsonb_typeof(coalesce(p_transcript_json, '[]'::jsonb)) <> 'array' then
+    raise exception 'Invalid help-bot transcript payload';
+  end if;
+
+  if jsonb_array_length(coalesce(p_transcript_json, '[]'::jsonb)) <> p_message_count then
+    raise exception 'Help-bot transcript count mismatch';
+  end if;
+
+  insert into public.portfolio_help_bot_sessions (
+    session_id,
+    created_at,
+    updated_at,
+    ended_at,
+    page_path,
+    role_id,
+    visitor_name,
+    visitor_position,
+    visitor_organization,
+    student_university,
+    message_count,
+    transcript_json
+  )
+  values (
+    p_session_id,
+    coalesce(p_created_at, timezone('utc', now())),
+    coalesce(p_updated_at, timezone('utc', now())),
+    p_ended_at,
+    p_page_path,
+    p_role_id,
+    p_visitor_name,
+    p_visitor_position,
+    p_visitor_organization,
+    p_student_university,
+    p_message_count,
+    coalesce(p_transcript_json, '[]'::jsonb)
+  )
+  on conflict (session_id) do update
+  set
+    updated_at = excluded.updated_at,
+    ended_at = excluded.ended_at,
+    page_path = excluded.page_path,
+    role_id = excluded.role_id,
+    visitor_name = excluded.visitor_name,
+    visitor_position = excluded.visitor_position,
+    visitor_organization = excluded.visitor_organization,
+    student_university = excluded.student_university,
+    message_count = excluded.message_count,
+    transcript_json = excluded.transcript_json;
+end;
+$$;
+
+revoke all on function public.portfolio_save_help_bot_session(
+  text,
+  timestamptz,
+  timestamptz,
+  timestamptz,
+  text,
+  text,
+  text,
+  text,
+  text,
+  text,
+  integer,
+  jsonb
+) from public;
+
+grant execute on function public.portfolio_save_help_bot_session(
+  text,
+  timestamptz,
+  timestamptz,
+  timestamptz,
+  text,
+  text,
+  text,
+  text,
+  text,
+  text,
+  integer,
+  jsonb
+) to anon, authenticated;
 
 commit;
