@@ -2844,6 +2844,35 @@ function applyTheme(theme) {
   document.documentElement.setAttribute("data-theme", theme);
 }
 
+function syncThemeToggleButtons() {
+  const toggles = document.querySelectorAll("[data-theme-toggle]");
+  if (!toggles.length) return;
+  const lang = document.documentElement.lang === "de" ? "de" : "en";
+  const copy = lang === "de"
+    ? {
+        switchToLight: "Zum Hellmodus wechseln",
+        switchToDark: "Zum Dunkelmodus wechseln"
+      }
+    : {
+        switchToLight: "Switch to light mode",
+        switchToDark: "Switch to dark mode"
+      };
+  const current = document.documentElement.getAttribute("data-theme") || "dark";
+  const isDark = current === "dark";
+  toggles.forEach((toggle) => {
+    toggle.dataset.themeState = current;
+    toggle.setAttribute("aria-label", isDark ? copy.switchToLight : copy.switchToDark);
+    toggle.setAttribute("title", isDark ? copy.switchToLight : copy.switchToDark);
+  });
+}
+
+function setPortfolioTheme(theme) {
+  const nextTheme = theme === "light" ? "light" : "dark";
+  applyTheme(nextTheme);
+  localStorage.setItem(STORAGE_THEME_KEY, nextTheme);
+  syncThemeToggleButtons();
+}
+
 function setupThemeToggle() {
   const toggles = document.querySelectorAll("[data-theme-toggle]");
   if (!toggles.length) return;
@@ -2859,14 +2888,6 @@ function setupThemeToggle() {
         switchToLight: "Switch to light mode",
         switchToDark: "Switch to dark mode"
       };
-
-  const syncToggleState = (toggle) => {
-    const current = document.documentElement.getAttribute("data-theme") || "dark";
-    const isDark = current === "dark";
-    toggle.dataset.themeState = current;
-    toggle.setAttribute("aria-label", isDark ? copy.switchToLight : copy.switchToDark);
-    toggle.setAttribute("title", isDark ? copy.switchToLight : copy.switchToDark);
-  };
 
   toggles.forEach((toggle) => {
     if (!toggle.querySelector(".theme-toggle-track")) {
@@ -2904,13 +2925,11 @@ function setupThemeToggle() {
       `;
     }
 
-    syncToggleState(toggle);
+    syncThemeToggleButtons();
     toggle.addEventListener("click", () => {
       const current = document.documentElement.getAttribute("data-theme") || "dark";
       const next = current === "dark" ? "light" : "dark";
-      applyTheme(next);
-      localStorage.setItem(STORAGE_THEME_KEY, next);
-      toggles.forEach((item) => syncToggleState(item));
+      setPortfolioTheme(next);
     });
   });
 }
@@ -4061,8 +4080,9 @@ function getPortfolioHelpBotConfig(lang) {
       close: "Chat schliessen",
       welcome: "Hallo, ich bin der AI Assistant von Sooraj Sudhakaran. Ich helfe Ihnen dabei, diese Website schneller zu nutzen und die richtigen Bereiche zu finden.",
       askName: "Bevor ich Sie weiterfuehre: Wie darf ich Sie ansprechen?",
-      askNamePlaceholder: "Geben Sie Ihren Namen ein",
-      askNameSubmit: "Senden",
+      askNamePlaceholder: "Bitte geben Sie Ihren Namen ein",
+      askNameSubmit: "Namen senden",
+      askNameNotice: "Namensabfrage: Bitte geben Sie den Namen ein, mit dem ich Sie in diesem Chat ansprechen soll.",
       askNameBotReply: (roleId = "") => roleId === "student"
         ? "Mein Name hier ist Synapse. Wie darf ich Sie ansprechen, damit ich den studentischen Weg passend fuehren kann?"
         : "Mein Name hier ist Synapse. Wie darf ich Sie ansprechen?",
@@ -4092,10 +4112,10 @@ function getPortfolioHelpBotConfig(lang) {
       askNameBossRetype: "Nein, Namen neu eingeben",
       askNameBossRetypePrompt: "Alles klar 😊 Dann geben Sie Ihren Namen bitte noch einmal ein.",
       askNameInvalid: "Das sieht fuer mich noch nicht wie ein richtiger Name aus. Bitte geben Sie Ihren korrekten Namen ein.",
-      searchWebsiteLabel: "🔍 Website durchsuchen",
-      searchWebsitePrompt: "Geben Sie ein Stichwort, eine Rolle, ein Tool oder ein Thema ein. Ich suche dann die passende Stelle auf der Website fuer Sie.",
+      searchWebsiteLabel: "💬 Mit mir chatten",
+      searchWebsitePrompt: "Sie koennen direkt mit mir chatten, oder ich helfe Ihnen dabei, etwas Passendes auf der Website zu finden. Was kann ich im Moment fuer Sie tun?",
       searchWebsitePlaceholder: "Zum Beispiel ROS, Thesis, KEBA, Journey, CV ...",
-      searchWebsiteSubmit: "Suchen",
+      searchWebsiteSubmit: "Chat",
       searchWebsiteSearching: "Ich suche gerade die passende Stelle auf der Website ...",
       searchWebsiteDeepSearching: "Ich starte gerade eine tiefere Suche ueber die Website ...",
       searchWebsiteQuestionFound: (label) => `Meinen Sie diese Frage?\n${label}`,
@@ -4116,6 +4136,9 @@ function getPortfolioHelpBotConfig(lang) {
       searchWebsiteTrainingClarifyPrompt: "Meinen Sie, wer mich als AI Assistant weiter trainiert, oder fragen Sie nach Soorajs eigenem Trainings- und Lernweg?",
       searchWebsiteTrainingClarifyAssistant: "Den AI Assistant meinen",
       searchWebsiteTrainingClarifySooraj: "Soorajs Trainingsweg meinen",
+      searchWebsiteComplianceClarifyPrompt: "Meinen Sie, ob dieser AI Assistant bzw. das Chatbot-System den relevanten EU- oder Deutschland-Rahmen fuer Datenschutz und Transparenz folgt?",
+      searchWebsiteComplianceClarifyYes: "Ja, den AI Assistant meinen",
+      searchWebsiteComplianceClarifyNo: "Nein, etwas anderes",
       searchWebsiteNameClarifyPrompt: "Meinen Sie meinen Bot-Namen oder den Namen des Portfolio-Inhabers?",
       searchWebsiteNameClarifyBot: "Den Bot-Namen meinen",
       searchWebsiteNameClarifyOwner: "Den Portfolio-Inhaber meinen",
@@ -4125,6 +4148,36 @@ function getPortfolioHelpBotConfig(lang) {
       searchWebsiteGermanClarifyPrompt: "Meinen Sie, ob ich als AI Assistant Deutsch sprechen kann, oder fragen Sie nach Soorajs Deutschkenntnissen?",
       searchWebsiteGermanClarifyAssistant: "Den AI Assistant meinen",
       searchWebsiteGermanClarifySooraj: "Soorajs Deutsch meinen",
+      privacyButton: "Info",
+      privacyButtonAria: "Chat-Datenschutz anzeigen",
+      privacyPanelAria: "Chat-Datenschutz",
+      privacyPanelKicker: "Datenschutz",
+      privacyPanelTitle: "Chat-Datenschutz",
+      privacyPanelLead: "Kurzer Ueberblick darueber, welche Chatdaten gespeichert werden, wie sie genutzt werden und wie Sie eine Loeschung anfragen koennen.",
+      privacyTabNote: "Datenschutz-Hinweis",
+      privacyTabUsage: "Nutzung der Chatdaten",
+      privacyTabDeletion: "Loeschung anfragen",
+      privacyControllerLabel: "Controller",
+      privacyControllerValue: "Sooraj Sudhakaran",
+      privacyStoredDataLabel: "Gespeicherte Daten",
+      privacyStoredDataValue: "Name, den Sie angeben, Rolle oder Kontext, Seitenpfad, Zeitstempel und Chat-Transkript.",
+      privacyPurposeLabel: "Zweck",
+      privacyPurposeValue: "Support, Follow-up, Qualitaetspruefung sowie Training und Verbesserung kuenftiger Chatbot-Antworten.",
+      privacyStorageLabel: "Speicherort",
+      privacyStorageValue: "Supabase",
+      privacyAccessLabel: "Zugriff",
+      privacyAccessValue: "Sooraj oder Admin.",
+      privacyRetentionLabel: "Aufbewahrung",
+      privacyRetentionValue: "Chatbot-Logs werden bis zu 7 Tage fuer Support, Qualitaetspruefung und Trainingszwecke aufbewahrt.",
+      privacyImportantLabel: "Wichtig",
+      privacyImportantValue: "Bitte teilen Sie keine Passwoerter, Bankdaten oder andere hochsensible Informationen im Chat.",
+      privacyUsageHeading: "Wie der Verlauf genutzt wird",
+      privacyUsageBody: "Der Chatverlauf kann auf Anfrage oder bei unbeantworteten Fragen von Sooraj geprueft werden. Dabei kann der Verlauf genutzt werden, um kuenftige Chatbot-Antworten klarer, hilfreicher und professioneller zu verbessern.",
+      privacyDeletionHeading: "Loeschung anfragen",
+      privacyDeletionBody: "Wenn Sie die Entfernung Ihrer Chatdaten wuenschen, koennen Sie ueber das Kontaktformular oder die offizielle Kontakt-E-Mail eine Loeschung anfragen. Die Loeschung wird anschliessend von Sooraj bzw. dem Admin geprueft und umgesetzt.",
+      privacyContactAction: "Kontaktformular",
+      privacyEmailAction: "Offizielle Kontakt-E-Mail",
+      composerPrivacyWarning: "Bitte teilen Sie hier keine Passwoerter, Bankdaten oder andere hochsensible Informationen.",
       chatLanguageSwitchGerman: "Ja, auf Deutsch wechseln",
       chatLanguageStayCurrent: "Nein, in dieser Sprache bleiben",
       visitorProfileConsent: "Hallo Besucher 👋 Moechten Sie ein paar kurze Angaben wie Ihren Namen, Ihre Position und Ihre Organisation teilen, damit ich Sie passender ansprechen kann?",
@@ -4550,8 +4603,9 @@ function getPortfolioHelpBotConfig(lang) {
     close: "Close chat",
     welcome: "Hi, I am the AI Assistant of Sooraj Sudhakaran. I can help guide you through the website and quickly take you to the right sections.",
     askName: "Before I guide you further, what should I call you?",
-    askNamePlaceholder: "Type your name",
-    askNameSubmit: "Send",
+    askNamePlaceholder: "Please enter your name",
+    askNameSubmit: "Send name",
+    askNameNotice: "Name request: please enter the name you want me to use in this chat.",
     askNameBotReply: (roleId = "") => roleId === "student"
       ? "My name is Synapse. How should I address you so I can guide your student path properly?"
       : "My name is Synapse. How should I address you?",
@@ -4581,10 +4635,10 @@ function getPortfolioHelpBotConfig(lang) {
     askNameBossRetype: "No, type my name again",
     askNameBossRetypePrompt: "All right 😊 Please type your name once more.",
     askNameInvalid: "That does not look like a real name yet. Please enter your correct name.",
-    searchWebsiteLabel: "❓ Ask a question",
-    searchWebsitePrompt: "I am the AI Assistant of Sooraj. You can ask me a question, or I can help you find something on the website. For now, what can I do for you?",
+    searchWebsiteLabel: "💬 Chat with me",
+    searchWebsitePrompt: "You can chat with me directly, or I can help you find something relevant on the website. For now, what can I do for you?",
     searchWebsitePlaceholder: "For example: show experience, open CV, tell me about thesis ...",
-    searchWebsiteSubmit: "Ask",
+    searchWebsiteSubmit: "Chat",
     searchWebsiteSearching: "I’m searching the website for the closest match ...",
     searchWebsiteDeepSearching: "I’m running a deeper search across the website now ...",
     searchWebsiteQuestionFound: (label) => `Did you mean this question?\n${label}`,
@@ -4605,6 +4659,9 @@ function getPortfolioHelpBotConfig(lang) {
     searchWebsiteTrainingClarifyPrompt: "Do you mean who is training me as the AI assistant, or are you asking about Sooraj's own training and learning path?",
     searchWebsiteTrainingClarifyAssistant: "You mean the AI assistant",
     searchWebsiteTrainingClarifySooraj: "You mean Sooraj's path",
+    searchWebsiteComplianceClarifyPrompt: "Do you mean whether this AI assistant and chatbot flow follow the relevant EU or Germany-facing privacy and transparency rules?",
+    searchWebsiteComplianceClarifyYes: "Yes, the AI assistant",
+    searchWebsiteComplianceClarifyNo: "No, something else",
     searchWebsiteNameClarifyPrompt: "Do you mean my bot name, or the name of the portfolio owner?",
     searchWebsiteNameClarifyBot: "You mean the bot name",
     searchWebsiteNameClarifyOwner: "You mean the portfolio owner",
@@ -4614,6 +4671,36 @@ function getPortfolioHelpBotConfig(lang) {
     searchWebsiteGermanClarifyPrompt: "Do you mean whether I as the AI assistant can speak German, or are you asking about Sooraj's German level?",
     searchWebsiteGermanClarifyAssistant: "You mean the AI assistant",
     searchWebsiteGermanClarifySooraj: "You mean Sooraj's German",
+    privacyButton: "Info",
+    privacyButtonAria: "View chat privacy details",
+    privacyPanelAria: "Chat privacy",
+    privacyPanelKicker: "Privacy",
+    privacyPanelTitle: "Chat Privacy",
+    privacyPanelLead: "A short overview of what chat data is stored, how it is used, and how you can request deletion.",
+    privacyTabNote: "Privacy note",
+    privacyTabUsage: "How chat data is used",
+    privacyTabDeletion: "Request deletion",
+    privacyControllerLabel: "Controller",
+    privacyControllerValue: "Sooraj Sudhakaran",
+    privacyStoredDataLabel: "Stored data",
+    privacyStoredDataValue: "Name you provide, role or context, page path, timestamps, and chat transcript.",
+    privacyPurposeLabel: "Purpose",
+    privacyPurposeValue: "Support, follow-up, quality review, and training or improvement of future chatbot responses.",
+    privacyStorageLabel: "Storage",
+    privacyStorageValue: "Supabase",
+    privacyAccessLabel: "Access",
+    privacyAccessValue: "Sooraj or admin.",
+    privacyRetentionLabel: "Retention",
+    privacyRetentionValue: "Chatbot logs are kept for up to 7 days for support, quality review, and training purposes.",
+    privacyImportantLabel: "Important",
+    privacyImportantValue: "Please do not share passwords, bank details, or other highly sensitive information in chat.",
+    privacyUsageHeading: "How chat history is used",
+    privacyUsageBody: "Chat history may be reviewed by Sooraj on request or when a question needs follow-up. It may also be used to improve future chatbot responses so the assistant becomes clearer, more useful, and more professional over time.",
+    privacyDeletionHeading: "Request deletion",
+    privacyDeletionBody: "If you want your chat data removed, you can submit a deletion request through the contact form or the official contact email. The request can then be reviewed and processed by Sooraj or the admin side.",
+    privacyContactAction: "Open contact form",
+    privacyEmailAction: "Official contact email",
+    composerPrivacyWarning: "Please do not share passwords, bank details, or other highly sensitive information here.",
     chatLanguageSwitchGerman: "Yes, switch to German",
     chatLanguageStayCurrent: "No, stay in this language",
     visitorProfileConsent: "Hi visitor 👋 Would you be willing to share a few quick details like your name, position, and organisation so I can address you better?",
@@ -5323,19 +5410,56 @@ function setupPortfolioHelpBot() {
     <section class="help-bot-panel" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="${PANEL_TITLE_ID}" aria-describedby="${PANEL_LEAD_ID}" tabindex="-1">
       <div class="help-bot-panel-head">
         <div class="help-bot-panel-brand">
-          <span class="help-bot-panel-mark">${getPortfolioHelpBotArtMarkup("help-bot-art-panel")}</span>
+          <span class="help-bot-panel-mark-shell">
+            <span class="help-bot-panel-mark">${getPortfolioHelpBotArtMarkup("help-bot-art-panel")}</span>
+            <span class="help-bot-panel-presence" hidden aria-live="polite" aria-atomic="true">
+              <span class="help-bot-panel-presence-emoji"></span>
+              <span class="help-bot-panel-presence-text"></span>
+            </span>
+          </span>
           <div class="help-bot-panel-copy">
-            <span class="help-bot-panel-badge"></span>
+            <div class="help-bot-panel-topline">
+              <span class="help-bot-panel-badge"></span>
+              <span class="help-bot-panel-status-chip" hidden aria-live="polite" aria-atomic="true">
+                <span class="help-bot-panel-status-emoji"></span>
+                <span class="help-bot-panel-status-text"></span>
+              </span>
+            </div>
             <span class="help-bot-panel-greeting" hidden></span>
             <strong class="help-bot-panel-title" id="${PANEL_TITLE_ID}"></strong>
             <p class="help-bot-panel-lead" id="${PANEL_LEAD_ID}"></p>
           </div>
         </div>
         <div class="help-bot-panel-actions">
+          <button class="help-bot-head-btn help-bot-head-btn-info" type="button" data-help-bot-privacy-toggle aria-expanded="false">i</button>
           <button class="help-bot-head-btn" type="button" data-help-bot-reset></button>
           <button class="help-bot-head-btn help-bot-head-btn-close" type="button" data-help-bot-close>&times;</button>
         </div>
       </div>
+      <section class="help-bot-privacy-sheet" hidden aria-hidden="true" aria-label="Chat privacy">
+        <div class="help-bot-privacy-sheet-head">
+          <div class="help-bot-privacy-sheet-copy">
+            <span class="help-bot-privacy-sheet-kicker"></span>
+            <strong class="help-bot-privacy-sheet-title"></strong>
+            <p class="help-bot-privacy-sheet-lead"></p>
+          </div>
+          <button class="help-bot-privacy-close" type="button" data-help-bot-privacy-close aria-label="Close">&times;</button>
+        </div>
+        <div class="help-bot-privacy-tabs" role="tablist" aria-label="Chat privacy sections">
+          <button class="help-bot-privacy-tab" type="button" data-help-bot-privacy-tab="note"></button>
+          <button class="help-bot-privacy-tab" type="button" data-help-bot-privacy-tab="usage"></button>
+          <button class="help-bot-privacy-tab" type="button" data-help-bot-privacy-tab="deletion"></button>
+        </div>
+        <div class="help-bot-privacy-sheet-body">
+          <div class="help-bot-privacy-section" data-help-bot-privacy-section="note"></div>
+          <div class="help-bot-privacy-section" data-help-bot-privacy-section="usage" hidden></div>
+          <div class="help-bot-privacy-section" data-help-bot-privacy-section="deletion" hidden></div>
+        </div>
+        <div class="help-bot-privacy-actions">
+          <button class="help-bot-message-link help-bot-privacy-action-btn" type="button" data-help-bot-privacy-action="contact"></button>
+          <button class="help-bot-message-link help-bot-privacy-action-btn" type="button" data-help-bot-privacy-action="email"></button>
+        </div>
+      </section>
       <div class="help-bot-messages"></div>
       <div class="help-bot-composer" hidden>
         <form class="help-bot-composer-form" data-help-bot-composer-form>
@@ -5343,6 +5467,7 @@ function setupPortfolioHelpBot() {
           <textarea class="help-bot-composer-textarea" name="helpBotComposerLong" rows="4" maxlength="1200" hidden></textarea>
           <button class="help-bot-composer-submit" type="submit"></button>
         </form>
+        <p class="help-bot-composer-warning" data-help-bot-composer-warning></p>
         <p class="help-bot-composer-note" data-help-bot-composer-note hidden></p>
       </div>
     </section>
@@ -5354,6 +5479,16 @@ function setupPortfolioHelpBot() {
           <p class="help-bot-nudge-text"></p>
         </div>
         <button class="help-bot-nudge-close" type="button" data-help-bot-nudge-close aria-label="Close">&times;</button>
+      </div>
+      <div class="help-bot-launcher-presence" hidden aria-live="polite" aria-atomic="true">
+        <span class="help-bot-launcher-presence-badge"></span>
+        <div class="help-bot-launcher-presence-copy">
+          <span class="help-bot-launcher-presence-greeting" hidden></span>
+          <span class="help-bot-launcher-presence-status">
+            <span class="help-bot-launcher-presence-status-emoji"></span>
+            <span class="help-bot-launcher-presence-status-text"></span>
+          </span>
+        </div>
       </div>
       <button class="help-bot-launcher" type="button" aria-expanded="false">
         <span class="help-bot-launcher-orbit"></span>
@@ -5374,17 +5509,38 @@ function setupPortfolioHelpBot() {
   const nudgeText = root.querySelector(".help-bot-nudge-text");
   const nudgeCloseButton = root.querySelector("[data-help-bot-nudge-close]");
   const badge = root.querySelector(".help-bot-panel-badge");
+  const statusChip = root.querySelector(".help-bot-panel-status-chip");
+  const statusChipEmoji = root.querySelector(".help-bot-panel-status-emoji");
+  const statusChipText = root.querySelector(".help-bot-panel-status-text");
   const panelGreeting = root.querySelector(".help-bot-panel-greeting");
   const title = root.querySelector(".help-bot-panel-title");
   const lead = root.querySelector(".help-bot-panel-lead");
+  const panelPresence = root.querySelector(".help-bot-panel-presence");
+  const panelPresenceEmoji = root.querySelector(".help-bot-panel-presence-emoji");
+  const panelPresenceText = root.querySelector(".help-bot-panel-presence-text");
+  const privacyToggleButton = root.querySelector("[data-help-bot-privacy-toggle]");
   const resetButton = root.querySelector("[data-help-bot-reset]");
   const closeButton = root.querySelector("[data-help-bot-close]");
+  const privacySheet = root.querySelector(".help-bot-privacy-sheet");
+  const privacyCloseButton = root.querySelector("[data-help-bot-privacy-close]");
+  const privacyKicker = root.querySelector(".help-bot-privacy-sheet-kicker");
+  const privacyTitle = root.querySelector(".help-bot-privacy-sheet-title");
+  const privacyLead = root.querySelector(".help-bot-privacy-sheet-lead");
+  const privacyTabButtons = Array.from(root.querySelectorAll("[data-help-bot-privacy-tab]"));
+  const privacySections = Array.from(root.querySelectorAll("[data-help-bot-privacy-section]"));
+  const privacyActionButtons = Array.from(root.querySelectorAll("[data-help-bot-privacy-action]"));
   const messages = root.querySelector(".help-bot-messages");
   const composer = root.querySelector(".help-bot-composer");
+  const launcherPresence = root.querySelector(".help-bot-launcher-presence");
+  const launcherPresenceBadge = root.querySelector(".help-bot-launcher-presence-badge");
+  const launcherPresenceGreeting = root.querySelector(".help-bot-launcher-presence-greeting");
+  const launcherPresenceStatusEmoji = root.querySelector(".help-bot-launcher-presence-status-emoji");
+  const launcherPresenceStatusText = root.querySelector(".help-bot-launcher-presence-status-text");
   const composerForm = root.querySelector("[data-help-bot-composer-form]");
   const composerInput = root.querySelector(".help-bot-composer-input");
   const composerTextarea = root.querySelector(".help-bot-composer-textarea");
   const composerSubmit = root.querySelector(".help-bot-composer-submit");
+  const composerWarning = root.querySelector("[data-help-bot-composer-warning]");
   const composerNote = root.querySelector("[data-help-bot-composer-note]");
   const liveRegion = root.querySelector("[data-help-bot-live]");
 
@@ -5397,6 +5553,8 @@ function setupPortfolioHelpBot() {
   let nudgeReshowCount = 0;
   let hasDismissedNudge = false;
   let activeTypingIndicator = null;
+  let activeHelpBotPrivacySection = "note";
+  let activeBotPresenceTimer = 0;
   let responseToken = 0;
   let lastFocusedElement = null;
   let inlineNudgeOverrideMessage = "";
@@ -5501,10 +5659,12 @@ function setupPortfolioHelpBot() {
 
   const HELP_BOT_OWNER_PATTERN = /\b(sooraj|soorja|soraj|suraj|owner|website owner|portfolio owner|he|his)\b/;
   const HELP_BOT_OWNER_STRICT_PATTERN = /\b(sooraj|soorja|soraj|suraj|owner|website owner|portfolio owner)\b/;
+  const HELP_BOT_CONFIDENTIAL_REQUEST_PATTERN = /\b(password|apssword|passwrod|pasword|passwd|passcode|admin password|admin apssword|admin passwrod|login password|credential|credentials|username|user name|admin login|admin access|administrator access|root access|backend access|dashboard access|api key|secret key|private key|token|access token|refresh token|secret|secrets|auth key|database key)\b/;
 
   const containsDisallowedHelpBotInput = (value = "", pendingKind = "") => {
     const normalized = normalizeHelpBotModerationText(value);
     if (!normalized) return false;
+    if (HELP_BOT_CONFIDENTIAL_REQUEST_PATTERN.test(normalized)) return false;
     if (DISALLOWED_HELP_BOT_INPUT_PATTERNS.some((pattern) => pattern.test(normalized))) return true;
     const compact = normalized.replace(/[^a-z0-9]/g, "");
     if (compact && Array.from(DISALLOWED_HELP_BOT_INPUT_WORDS).some((word) => compact.includes(word))) return true;
@@ -5576,6 +5736,7 @@ function setupPortfolioHelpBot() {
   const HELP_BOT_FEEDBACK_FIELDS = ["name", "company", "email", "country", "comments"];
   const HELP_BOT_PENDING_INPUT_KINDS = ["visitor-name", "visitor-position", "visitor-organization", "student-university", "chat-feedback", "recruiter-request", "website-search"];
   const HELP_BOT_RECRUITER_REQUEST_FIELDS = ["fullName", "email", "country", "message"];
+  const HELP_BOT_PROFILE_EDIT_FIELDS = ["name", "position", "organization", "university"];
 
   const roleNeedsNamePrompt = (roleId) => roleId === "student";
   const roleUsesVisitorName = (roleId) => roleId === "student" || roleId === "visitor";
@@ -5689,6 +5850,16 @@ function setupPortfolioHelpBot() {
       label: config.askNameContinueYes
     },
     {
+      kind: "profile-edit",
+      id: "name",
+      label: currentLang === "de" ? "Namen aendern" : "Change name"
+    },
+    ...(getStudentUniversity() ? [{
+      kind: "profile-edit",
+      id: "university",
+      label: currentLang === "de" ? "Hochschule aendern" : "Change university"
+    }] : []),
+    {
       kind: "student-name-confirm",
       id: "restart",
       label: config.askNameContinueRestart
@@ -5707,6 +5878,34 @@ function setupPortfolioHelpBot() {
       label: config.askNameBossRetype
     }
   ]);
+
+  const getProfileEditOption = (fieldId = "name") => {
+    if (fieldId === "university") {
+      return createBadgedOption("profile-edit", "university", currentLang === "de" ? "Hochschule aendern" : "Change university", currentLang === "de" ? "Edit" : "Edit");
+    }
+    if (fieldId === "position") {
+      return createBadgedOption("profile-edit", "position", currentLang === "de" ? "Position aendern" : "Change position", currentLang === "de" ? "Edit" : "Edit");
+    }
+    if (fieldId === "organization") {
+      return createBadgedOption("profile-edit", "organization", currentLang === "de" ? "Organisation aendern" : "Change organization", currentLang === "de" ? "Edit" : "Edit");
+    }
+    return createBadgedOption("profile-edit", "name", currentLang === "de" ? "Namen aendern" : "Change name", currentLang === "de" ? "Edit" : "Edit");
+  };
+
+  const getAvailableProfileEditOptions = (preferredField = "") => {
+    const options = [];
+    const pushField = (fieldId) => {
+      if (!HELP_BOT_PROFILE_EDIT_FIELDS.includes(fieldId)) return;
+      if (options.some((option) => option.id === fieldId)) return;
+      options.push(getProfileEditOption(fieldId));
+    };
+    if (preferredField) pushField(preferredField);
+    if (getVisitorName()) pushField("name");
+    if (getStudentUniversity()) pushField("university");
+    if (getVisitorPosition()) pushField("position");
+    if (getVisitorOrganization()) pushField("organization");
+    return withEndChatOption(options);
+  };
 
   const getVisitorProfileConsentOptions = () => withEndChatOption([
     {
@@ -6084,6 +6283,7 @@ function setupPortfolioHelpBot() {
         lastPageName: currentPageName,
         pendingResumePrompt: false,
         pendingWebsiteSearchStart: false,
+        pendingProfileEditField: "",
         moderationLocked: false,
         lastNavTarget: null,
         topicTrail: [],
@@ -6142,6 +6342,9 @@ function setupPortfolioHelpBot() {
       lastPageName: String(source.lastPageName || "").trim() || currentPageName,
       pendingResumePrompt: Boolean(source.pendingResumePrompt) && messagesList.length > 0,
       pendingWebsiteSearchStart: Boolean(source.pendingWebsiteSearchStart),
+      pendingProfileEditField: HELP_BOT_PROFILE_EDIT_FIELDS.includes(String(source.pendingProfileEditField || "").trim())
+        ? String(source.pendingProfileEditField || "").trim()
+        : "",
       moderationLocked: Boolean(source.moderationLocked) && messagesList.length > 0,
       lastNavTarget: source.lastNavTarget && typeof source.lastNavTarget === "object" ? source.lastNavTarget : null,
       studentCornerNudgeSeen: Boolean(source.studentCornerNudgeSeen),
@@ -6238,6 +6441,7 @@ function setupPortfolioHelpBot() {
     } catch {
       // Ignore storage failures without breaking the assistant UI.
     }
+    setHelpBotPrivacyPanelOpen(false);
     syncRoleChrome();
   };
 
@@ -6298,12 +6502,254 @@ function setupPortfolioHelpBot() {
       && (currentRoleId === "student" || currentRoleId === "visitor");
     if (badge) badge.textContent = chrome.badge;
     if (panelGreeting) {
-      panelGreeting.hidden = !shouldShowGreeting;
-      panelGreeting.textContent = shouldShowGreeting ? `Hi ${visitorName}` : "";
+      panelGreeting.hidden = true;
+      panelGreeting.textContent = "";
+    }
+    if (launcherPresenceBadge) {
+      launcherPresenceBadge.textContent = chrome.badge;
+    }
+    if (launcherPresenceGreeting) {
+      launcherPresenceGreeting.hidden = !shouldShowGreeting;
+      launcherPresenceGreeting.textContent = shouldShowGreeting
+        ? `${currentLang === "de" ? "Hallo" : "Hi"} ${visitorName}`
+        : "";
     }
     if (title) title.textContent = chrome.title;
     if (lead) lead.textContent = chrome.lead;
     setNudgeMessage(chrome.nudge);
+  };
+
+  const getBotPresenceCopy = () => currentLang === "de"
+    ? {
+        ready: { emoji: "👋", text: "Bereit zu helfen", mood: "ready" },
+        listening: { emoji: "💬", text: "Bereit fuer Ihre naechste Frage", mood: "listening" },
+        typing: { emoji: "💭", text: "Ich formuliere gerade", mood: "typing" },
+        searching: { emoji: "🔎", text: "Ich pruefe die Website", mood: "searching" },
+        thinking: { emoji: "🧠", text: "Ich ordne das kurz", mood: "thinking" },
+        guiding: { emoji: "🧭", text: "Ich fuehre Sie weiter", mood: "guiding" },
+        warning: { emoji: "⛔", text: "Nicht erlaubt", mood: "warning" },
+        name: { emoji: "🙂", text: "Wie darf ich Sie nennen?", mood: "name" },
+        thanks: { emoji: "😊", text: "Gern geschehen", mood: "thanks" },
+        confused: { emoji: "🤔", text: "Ich versuche einen klareren Weg", mood: "confused" },
+        done: { emoji: "✅", text: "Der naechste Schritt ist bereit", mood: "done" }
+      }
+    : {
+        ready: { emoji: "👋", text: "Ready to help", mood: "ready" },
+        listening: { emoji: "💬", text: "Ready for your next question", mood: "listening" },
+        typing: { emoji: "💭", text: "Thinking this through", mood: "typing" },
+        searching: { emoji: "🔎", text: "Checking the website", mood: "searching" },
+        thinking: { emoji: "🧠", text: "Putting this together", mood: "thinking" },
+        guiding: { emoji: "🧭", text: "Guiding you forward", mood: "guiding" },
+        warning: { emoji: "⛔", text: "Not allowed", mood: "warning" },
+        name: { emoji: "🙂", text: "May I know your name?", mood: "name" },
+        thanks: { emoji: "😊", text: "You’re welcome", mood: "thanks" },
+        confused: { emoji: "🤔", text: "Let me try another way", mood: "confused" },
+        done: { emoji: "✅", text: "Here’s the best next step", mood: "done" }
+      };
+
+  const deriveUserPresenceState = (text = "") => {
+    const value = String(text || "").trim().toLowerCase();
+    if (!value) return "listening";
+    if (helpBotState.pendingInputKind === "visitor-name") return "name";
+    if (/(thank|thanks|thank you|danke)/i.test(value)) return "thanks";
+    if (helpBotState.pendingInputKind === "website-search") return "searching";
+    return "listening";
+  };
+
+  const deriveBotPresenceState = ({ text = "", actions = [], inlineOptions = [], cards = [] } = {}) => {
+    const value = String(text || "").trim().toLowerCase();
+    if (!value && (actions.length || inlineOptions.length || cards.length)) return "guiding";
+    if (/not allowed|nicht erlaubt|abusive|beleidigende|disrespectful|respektlose/.test(value)) return "warning";
+    if (/what should i call you|how should i address you|wie darf ich sie ansprechen|wie darf ich dich nennen/.test(value)) return "name";
+    if (/you.?re welcome|gern geschehen|glad to help/.test(value)) return "thanks";
+    if (/no close match|try another way|bit more specifically|etwas genauer|kein direkter/.test(value)) return "confused";
+    if (actions.length || inlineOptions.length || cards.length) return "guiding";
+    if (value.length > 220 || value.split("\n").length > 2) return "thinking";
+    return "done";
+  };
+
+  const setBotPresence = (stateId = "ready", { text = "", temporaryMs = 0 } = {}) => {
+    const presenceMap = getBotPresenceCopy();
+    const presence = presenceMap[stateId] || presenceMap.ready;
+    const finalText = String(text || presence.text || "").trim();
+    window.clearTimeout(activeBotPresenceTimer);
+    activeBotPresenceTimer = 0;
+
+    if (statusChip && statusChipEmoji && statusChipText) {
+      statusChip.hidden = true;
+      statusChipEmoji.textContent = "";
+      statusChipText.textContent = "";
+    }
+    if (panelPresence && panelPresenceEmoji && panelPresenceText) {
+      panelPresence.hidden = true;
+      panelPresenceEmoji.textContent = "";
+      panelPresenceText.textContent = "";
+    }
+    if (launcherPresence && launcherPresenceStatusEmoji && launcherPresenceStatusText) {
+      const shouldShowLauncherPresence = root.classList.contains("is-open")
+        && !window.matchMedia("(max-width: 640px)").matches;
+      launcherPresence.hidden = !shouldShowLauncherPresence;
+      launcherPresenceStatusEmoji.textContent = shouldShowLauncherPresence ? presence.emoji : "";
+      launcherPresenceStatusText.textContent = shouldShowLauncherPresence ? finalText : "";
+    }
+    root.dataset.helpBotMood = presence.mood || stateId || "ready";
+
+    if (temporaryMs > 0) {
+      activeBotPresenceTimer = window.setTimeout(() => {
+        syncBotPresence();
+      }, temporaryMs);
+    }
+  };
+
+  const syncBotPresence = () => {
+    if (helpBotState.moderationLocked) {
+      setBotPresence("warning");
+      return;
+    }
+    if (activeTypingIndicator) return;
+    if (helpBotState.pendingInputKind === "visitor-name") {
+      setBotPresence("name");
+      return;
+    }
+    if (helpBotState.pendingInputKind === "website-search") {
+      setBotPresence("listening");
+      return;
+    }
+    if (HELP_BOT_PENDING_INPUT_KINDS.includes(helpBotState.pendingInputKind)) {
+      setBotPresence("listening");
+      return;
+    }
+    if (!hasConversationBooted) {
+      setBotPresence("ready");
+      return;
+    }
+    if (currentRoleId) {
+      setBotPresence("guiding");
+      return;
+    }
+    setBotPresence("ready");
+  };
+
+  const renderHelpBotPrivacyFacts = (sectionElement, facts = []) => {
+    if (!(sectionElement instanceof HTMLElement)) return;
+    sectionElement.replaceChildren();
+    const list = document.createElement("div");
+    list.className = "help-bot-privacy-facts";
+    facts.forEach((fact) => {
+      if (!fact?.label || !fact?.value) return;
+      const row = document.createElement("div");
+      row.className = "help-bot-privacy-fact";
+      const labelEl = document.createElement("strong");
+      labelEl.className = "help-bot-privacy-fact-label";
+      labelEl.textContent = fact.label;
+      const valueEl = document.createElement("p");
+      valueEl.className = "help-bot-privacy-fact-value";
+      valueEl.textContent = fact.value;
+      row.append(labelEl, valueEl);
+      list.append(row);
+    });
+    sectionElement.append(list);
+  };
+
+  const renderHelpBotPrivacyRichText = (sectionElement, heading = "", body = "") => {
+    if (!(sectionElement instanceof HTMLElement)) return;
+    sectionElement.replaceChildren();
+    const stack = document.createElement("div");
+    stack.className = "help-bot-privacy-copy-stack";
+    if (heading) {
+      const headingEl = document.createElement("strong");
+      headingEl.className = "help-bot-privacy-section-heading";
+      headingEl.textContent = heading;
+      stack.append(headingEl);
+    }
+    const bodyEl = document.createElement("p");
+    bodyEl.className = "help-bot-privacy-section-text";
+    bodyEl.textContent = body;
+    stack.append(bodyEl);
+    sectionElement.append(stack);
+  };
+
+  const setHelpBotPrivacySection = (sectionId = "note") => {
+    const nextSection = ["note", "usage", "deletion"].includes(sectionId) ? sectionId : "note";
+    activeHelpBotPrivacySection = nextSection;
+    privacyTabButtons.forEach((button) => {
+      const isActive = button.getAttribute("data-help-bot-privacy-tab") === nextSection;
+      button.classList.toggle("is-active", isActive);
+      button.setAttribute("aria-selected", isActive ? "true" : "false");
+      button.setAttribute("tabindex", isActive ? "0" : "-1");
+    });
+    privacySections.forEach((section) => {
+      const isActive = section.getAttribute("data-help-bot-privacy-section") === nextSection;
+      section.hidden = !isActive;
+      section.setAttribute("aria-hidden", isActive ? "false" : "true");
+    });
+  };
+
+  const renderHelpBotPrivacyPanel = () => {
+    if (privacyToggleButton) {
+      privacyToggleButton.innerHTML = "<span aria-hidden=\"true\">i</span>";
+      privacyToggleButton.setAttribute("title", config.privacyButton);
+      privacyToggleButton.setAttribute("aria-label", config.privacyButtonAria);
+    }
+    if (privacySheet) {
+      privacySheet.setAttribute("aria-label", config.privacyPanelAria);
+    }
+    if (privacyCloseButton) {
+      privacyCloseButton.setAttribute("aria-label", config.close);
+    }
+    if (privacyKicker) privacyKicker.textContent = config.privacyPanelKicker;
+    if (privacyTitle) privacyTitle.textContent = config.privacyPanelTitle;
+    if (privacyLead) privacyLead.textContent = config.privacyPanelLead;
+    if (composerWarning) composerWarning.textContent = config.composerPrivacyWarning;
+
+    privacyTabButtons.forEach((button) => {
+      const tabId = button.getAttribute("data-help-bot-privacy-tab") || "note";
+      button.textContent = tabId === "usage"
+        ? config.privacyTabUsage
+        : tabId === "deletion"
+          ? config.privacyTabDeletion
+          : config.privacyTabNote;
+    });
+
+    const noteSection = privacySections.find((section) => section.getAttribute("data-help-bot-privacy-section") === "note");
+    const usageSection = privacySections.find((section) => section.getAttribute("data-help-bot-privacy-section") === "usage");
+    const deletionSection = privacySections.find((section) => section.getAttribute("data-help-bot-privacy-section") === "deletion");
+
+    renderHelpBotPrivacyFacts(noteSection, [
+      { label: config.privacyControllerLabel, value: config.privacyControllerValue },
+      { label: config.privacyStoredDataLabel, value: config.privacyStoredDataValue },
+      { label: config.privacyPurposeLabel, value: config.privacyPurposeValue },
+      { label: config.privacyStorageLabel, value: config.privacyStorageValue },
+      { label: config.privacyAccessLabel, value: config.privacyAccessValue },
+      { label: config.privacyRetentionLabel, value: config.privacyRetentionValue },
+      { label: config.privacyImportantLabel, value: config.privacyImportantValue }
+    ]);
+    renderHelpBotPrivacyRichText(usageSection, config.privacyUsageHeading, config.privacyUsageBody);
+    renderHelpBotPrivacyRichText(deletionSection, config.privacyDeletionHeading, config.privacyDeletionBody);
+
+    privacyActionButtons.forEach((button) => {
+      const actionId = button.getAttribute("data-help-bot-privacy-action") || "";
+      button.textContent = actionId === "email" ? config.privacyEmailAction : config.privacyContactAction;
+    });
+
+    setHelpBotPrivacySection(activeHelpBotPrivacySection);
+  };
+
+  const setHelpBotPrivacyPanelOpen = (shouldOpen) => {
+    const nextOpenState = Boolean(shouldOpen);
+    root.classList.toggle("is-privacy-open", nextOpenState);
+    if (privacySheet) {
+      privacySheet.hidden = !nextOpenState;
+      privacySheet.setAttribute("aria-hidden", nextOpenState ? "false" : "true");
+    }
+    if (privacyToggleButton) {
+      privacyToggleButton.setAttribute("aria-expanded", nextOpenState ? "true" : "false");
+    }
+    if (!nextOpenState) return;
+    window.requestAnimationFrame(() => {
+      const activeTab = privacyTabButtons.find((button) => button.classList.contains("is-active"));
+      (activeTab || privacyCloseButton || privacySheet)?.focus?.({ preventScroll: true });
+    });
   };
 
   const getHelpBotRemoteSessionId = () => {
@@ -6498,7 +6944,7 @@ function setupPortfolioHelpBot() {
     const visitorName = getVisitorName();
     if (!visitorName) return config.nudge;
     return currentLang === "de"
-      ? `Hi ${visitorName} 😊 Kann ich Ihnen bei etwas helfen?`
+      ? `${currentLang === "de" ? "Hallo" : "Hi"} ${visitorName} 😊 ${currentLang === "de" ? "Kann ich Ihnen bei etwas helfen?" : "Can I help you with something?"}`
       : `Hi ${visitorName} 😊 Can I help you with something?`;
   };
 
@@ -6506,7 +6952,7 @@ function setupPortfolioHelpBot() {
     const visitorName = getVisitorName();
     if (!visitorName) return config.nudge;
     return currentLang === "de"
-      ? `Hi ${visitorName} 😊`
+      ? `${currentLang === "de" ? "Hallo" : "Hi"} ${visitorName} 😊`
       : `Hi ${visitorName} 😊`;
   };
 
@@ -7488,7 +7934,7 @@ function setupPortfolioHelpBot() {
           ]
         },
         "password-request": {
-          text: "Dabei kann ich nicht helfen. Passwoerter, Admin-Zugaenge und andere vertrauliche Daten sind geschuetzt. Wenn Sie einen legitimen Zugang brauchen, fragen Sie bitte Sooraj direkt ueber den Kontaktweg der Website.",
+          text: "Das ist strikt vertraulich. Den Admin-Zugang oder ein Admin-Passwort darf ich nicht weitergeben. Der Admin-Modus ist nur fuer Sooraj gedacht, um die Website zu betreiben und mich weiter zu verbessern oder zu trainieren. Bitte fragen Sie Sooraj bei berechtigtem Bedarf direkt ueber den Kontaktweg der Website.",
           actions: [
             createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action"),
             createBadgedAction("Kontaktbereich", createHelpBotHomeTarget("contact"), "Direct")
@@ -7515,7 +7961,7 @@ function setupPortfolioHelpBot() {
           ]
         },
         "owner-origin": {
-          text: "Sooraj wurde in Indien im Bundesstaat Kerala geboren. Die Journey der Website zeigt ausserdem den spaeteren Weg von Indien nach Deutschland.",
+          text: "Sooraj stammt urspruenglich aus Indien, aus dem Bundesstaat Kerala. Er kommt nicht urspruenglich aus Deutschland. Aktuell lebt und arbeitet er in Stuttgart, Deutschland. Die Journey der Website zeigt ausserdem den spaeteren Weg von Indien nach Deutschland.",
           actions: [
             createBadgedAction("Journey", createHelpBotPageTarget("journey.html"), "Story"),
             createBadgedAction("Travel-Footprint", createHelpBotPageTarget("journey.html", "travel"), "Travel"),
@@ -7523,7 +7969,7 @@ function setupPortfolioHelpBot() {
           ]
         },
         "owner-location": {
-          text: "Sooraj arbeitet aktuell in Stuttgart, Deutschland. Dort sind auch die KEBA Rolle und die thesis-nahe Robotikarbeit verankert.",
+          text: "Sooraj lebt und arbeitet aktuell in Stuttgart, Deutschland. Urspruenglich stammt er aus Indien, aus Kerala, aber sein aktueller Lebens- und Arbeitsort ist Stuttgart.",
           actions: [
             createBadgedAction("KEBA Werkstudent", createHelpBotPageTarget("experience-working-student-keba.html"), "Current"),
             createBadgedAction("Master-Thesis", createHelpBotPageTarget("experience-masters-thesis-keba.html"), "Thesis"),
@@ -7535,6 +7981,14 @@ function setupPortfolioHelpBot() {
           actions: [
             createBadgedAction("Journey", createHelpBotPageTarget("journey.html"), "Story"),
             createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+          ]
+        },
+        "owner-gender": {
+          text: "Soorajs Geschlecht ist maennlich.",
+          actions: [
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+            createBadgedAction("Journey", createHelpBotPageTarget("journey.html"), "Story"),
             createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
           ]
         },
@@ -7610,6 +8064,29 @@ function setupPortfolioHelpBot() {
             createBadgedAction("Sooraj direkt fragen", createHelpBotContactFormTarget(), "Direct")
           ]
         },
+        "bot-supervision": {
+          text: "Sooraj ist mein Ersteller und die Person, die mich auf dieser Website betreut, trainiert und verbessert. Wenn Sie es menschlich ausdruecken wollen, koennen Sie ihn als meinen Boss, Manager oder direkten Verantwortlichen sehen.",
+          actions: [
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+            createBadgedAction("Journey", createHelpBotPageTarget("journey.html"), "Story"),
+            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+          ]
+        },
+        "bot-human-relationship-boundary": {
+          text: "Ich habe keinen Professor, keine Schueler, keine Kinder und keine menschliche Familie. Ich bin ein digitaler Assistent. Sooraj verbessert mich zwar ueber die Zeit, aber ich lebe nicht wie ein Mensch in Schule, Familie oder Berufshierarchie.",
+          actions: [
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action"),
+            createBadgedAction("Journey", createHelpBotPageTarget("journey.html"), "Story")
+          ]
+        },
+        "bot-gender": {
+          text: "Ich bin kein Mensch und habe daher kein biologisches Geschlecht. Ich bin ein digitaler Assistent innerhalb dieser Website. Wenn Sie stattdessen Sooraj meinen: Sein Geschlecht ist maennlich.",
+          actions: [
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+          ]
+        },
         "bot-color": {
           text: "Ich habe keine echte menschliche Hautfarbe oder persoenliche Farbe. Ich bin ein digitaler Assistent, der Sooraj auf dieser Website unterstuetzt. Wenn Sie die Gestaltung meinen, gehoert die Farbwahl zur Website und nicht zu mir als Person.",
           actions: [
@@ -7637,6 +8114,103 @@ function setupPortfolioHelpBot() {
             createBadgedAction("Kontaktbereich", createHelpBotHomeTarget("contact"), "Direct")
           ]
         },
+        "linkedin-profile": {
+          text: "Wenn Sie Soorajs professionelle Aussenwirkung und den schnellsten Business-Kontext sehen wollen, ist LinkedIn der direkteste externe Pfad. Dort koennen Sie das Portfolio mit dem oeffentlichen Berufsprofil verbinden.",
+          actions: [
+            createBadgedAction("LinkedIn oeffnen", createHelpBotExternalTarget("https://www.linkedin.com/in/sooraj-sudhakaran1999"), "Profile"),
+            createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action"),
+            createBadgedAction("CV anfragen", createHelpBotCvTarget(), "CV")
+          ]
+        },
+        "github-profile": {
+          text: "Wenn Sie die code-orientierte Seite schneller sehen wollen, ist GitHub der klarste externe Pfad. Am besten wirkt GitHub zusammen mit dem Projektbereich der Website, damit Code-Signal und Portfolio-Kontext direkt verbunden bleiben.",
+          actions: [
+            createBadgedAction("GitHub oeffnen", createHelpBotExternalTarget("https://github.com/SoorajSudhakaran1199"), "Code"),
+            createBadgedAction("Projekte oeffnen", createHelpBotHomeTarget("projects"), "Proof"),
+            createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action")
+          ]
+        },
+        "cv-request-path": {
+          text: "Ja. Sie koennen den CV direkt ueber diese Website bei Sooraj anfragen. Ich gebe den Lebenslauf nicht direkt im Chat aus, aber ich kann Sie sofort zum offiziellen CV-Anfragepfad fuehren. Am professionellsten ist es, die Anfrage kurz mit Rolle, Unternehmen oder Anlass zu verbinden, damit Sooraj den Kontext sofort einordnen kann.",
+          actions: [
+            createBadgedAction("CV anfragen", createHelpBotCvTarget(), "CV"),
+            createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action"),
+            createBadgedAction("LinkedIn oeffnen", createHelpBotExternalTarget("https://www.linkedin.com/in/sooraj-sudhakaran1999"), "Profile")
+          ],
+          inlineOptions: getInlineCvRequestOptions()
+        },
+        "official-contact-email": {
+          text: "Ich darf keine private E-Mail teilen. Wenn Sie den offiziellen Kontaktweg per E-Mail nutzen wollen, kann ich Sie direkt zum freigegebenen Kontaktpfad oder zur offiziellen Kontakt-E-Mail fuehren.",
+          actions: [
+            createBadgedAction("E-Mail senden", createHelpBotEmailTarget(), "Email"),
+            createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action"),
+            createBadgedAction("Kontaktbereich", createHelpBotHomeTarget("contact"), "Direct")
+          ]
+        },
+        "contact-response-time": {
+          text: "Ich kann keine feste Antwortzeit garantieren. Der professionell richtige Weg ist, Kontaktformular oder CV-Anfrage mit klarem Betreff, Rolle und Anlass zu nutzen. So ist die Chance auf eine schnelle und passende Rueckmeldung am besten.",
+          actions: [
+            createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action"),
+            createBadgedAction("CV anfragen", createHelpBotCvTarget(), "CV"),
+            createBadgedAction("E-Mail senden", createHelpBotEmailTarget(), "Email")
+          ]
+        },
+        "availability-details": {
+          text: "Ja. Die klare oeffentliche Richtung des Portfolios ist, dass Sooraj fuer Vollzeitrollen offen ist, besonders in Robotik, Automation, mechatronischen Systemen, Simulation und angrenzenden technischen Rollen. Fuer den schnellsten Hiring-Schritt sind Where I Fit, CV-Anfrage und direkter Kontakt die besten Wege.",
+          actions: [
+            createBadgedAction("Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
+            createBadgedAction("CV anfragen", createHelpBotCvTarget(), "CV"),
+            createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action")
+          ]
+        },
+        "work-mode-preference": {
+          text: "Das Portfolio ist am staerksten fuer professionelle Rollen mit direkter Engineering- oder Industrieanbindung. Fuer Onsite-, Hybrid- oder Remote-Praeferenz gibt es keine harte oeffentliche Festlegung im Bot. Der saubere Weg ist, das im Recruiter-Kontakt direkt mit Sooraj zu bestaetigen.",
+          actions: [
+            createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action"),
+            createBadgedAction("CV anfragen", createHelpBotCvTarget(), "CV"),
+            createBadgedAction("LinkedIn oeffnen", createHelpBotExternalTarget("https://www.linkedin.com/in/sooraj-sudhakaran1999"), "Profile")
+          ]
+        },
+        "relocation-details": {
+          text: "Der oeffentliche Schwerpunkt des Portfolios liegt klar auf Deutschland und dem aktuellen beruflichen Kontext dort. Wenn Sie Relocation oder Standortwechsel pruefen wollen, sollte das direkt ueber den Kontaktpfad mit Sooraj abgestimmt werden.",
+          actions: [
+            createBadgedAction("Journey oeffnen", createHelpBotPageTarget("journey.html"), "Story"),
+            createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action"),
+            createBadgedAction("E-Mail senden", createHelpBotEmailTarget(), "Email")
+          ]
+        },
+        "sponsorship-details": {
+          text: "Die freigegebene oeffentliche Aussage ist: Sooraj hat gueltige Arbeitserlaubnis fuer Deutschland und gueltigen Schengen-Status. Wenn Sie Sponsoring fuer andere Laender, spezielle Visa-Pfade oder formale Arbeitgeberprozesse klaeren wollen, sollte das direkt mit Sooraj besprochen werden.",
+          actions: [
+            createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action"),
+            createBadgedAction("CV anfragen", createHelpBotCvTarget(), "CV"),
+            createBadgedAction("E-Mail senden", createHelpBotEmailTarget(), "Email")
+          ]
+        },
+        "notice-period-details": {
+          text: "Eine feste Notice Period ist nicht oeffentlich in diesem Bot hinterlegt. Wenn Sie Hiring-Timing, Starttermin oder Verfuegbarkeit exakt pruefen wollen, ist direkter Recruiter-Kontakt der richtige Weg.",
+          actions: [
+            createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action"),
+            createBadgedAction("CV anfragen", createHelpBotCvTarget(), "CV"),
+            createBadgedAction("LinkedIn oeffnen", createHelpBotExternalTarget("https://www.linkedin.com/in/sooraj-sudhakaran1999"), "Profile")
+          ]
+        },
+        "chat-data-deletion": {
+          text: "Wenn Sie die Loeschung Ihrer Chatdaten anfragen moechten, ist der richtige Weg der Request-deletion-Pfad ueber den Kontaktbereich. Dort kann Sooraj die Anfrage pruefen und die gespeicherten Chatdaten entfernen.",
+          actions: [
+            createBadgedAction("Loeschung anfragen", createHelpBotContactFormTarget(), "Privacy"),
+            createBadgedAction("Kontaktbereich", createHelpBotHomeTarget("contact"), "Direct"),
+            createBadgedAction("E-Mail senden", createHelpBotEmailTarget(), "Email")
+          ]
+        },
+        "eu-chatbot-compliance": {
+          text: "Ja. Dieser Chatbot ist darauf ausgelegt, den zentralen EU-Rahmen fuer Datenschutz und Transparenz zu folgen, der fuer diese Website relevant ist.\n1. KI-Transparenz: EU AI Act, Verordnung (EU) 2024/1689, Artikel 50. Der Assistent wird klar als AI Assistant gekennzeichnet. Fuer Chatbot-Transparenz wird diese Regel am 2. August 2026 anwendbar, und diese Website ist bereits in diese Richtung aufgebaut.\n2. Datenschutz-Grundprinzipien: DSGVO, Verordnung (EU) 2016/679, Artikel 5 Absatz 1 Buchstaben a, c, e und f. Es werden nur relevante Chatdaten verarbeitet, etwa Name, Kontext, Seitenpfad, Zeitstempel und Transkript.\n3. Informationspflicht: DSGVO Artikel 13. Im Chat selbst gibt es Datenschutzhinweise mit Controller, gespeicherten Daten, Zweck, Supabase-Speicherung, Zugriff, Aufbewahrung und Loeschpfad.\n4. Betroffenenrechte: DSGVO Artikel 15 und 17. Es gibt einen Request-deletion-Pfad, ueber den Besucher die Loeschung ihrer Chatdaten anfragen koennen.\n5. Sicherheit und Geraetespeicher: DSGVO Artikel 32 sowie ePrivacy-Richtlinie 2002/58/EG, Artikel 5 Absatz 3. Chat-Zustand wird nur fuer den Chat- und Resume-Fluss im Browser gehalten, waehrend Chat-Logs in Supabase mit Admin-Zugriffskontrolle gespeichert werden.\nFuer Deutschland ist derselbe EU-Kernrahmen hier ebenfalls die Hauptgrundlage.",
+          actions: [
+            createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action"),
+            createBadgedAction("Kontaktbereich", createHelpBotHomeTarget("contact"), "Direct"),
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile")
+          ]
+        },
         "confidential-followup": {
           text: "Es ist trotzdem meine Aufgabe, die Unterhaltung zu fuehren. Wenn ich etwas nicht direkt beantworten kann, gebe ich manchmal aehnliche Vorschlaege, deshalb sehen Sie solche Hinweise. Hoch vertrauliche Daten wie Passwoerter oder Admin-Zugaenge darf ich aber nicht freigeben. Wenn Sie das aus einem legitimen Grund wirklich brauchen, kann ich Ihre Anfrage lieber direkt an Sooraj weiterleiten.",
           actions: [
@@ -7659,6 +8233,145 @@ function setupPortfolioHelpBot() {
             createBadgedAction("Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
             createBadgedAction("CV anfragen", createHelpBotCvTarget(), "CV"),
             createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action")
+          ]
+        },
+        "casual-funny-chat": {
+          text: "Ich kann den Chat locker halten, aber ich bleibe ein professioneller Website-Assistent. Wenn Sie moechten: Ich kann einen kurzen lockeren Satz bringen, direkt auf Deutsch oder Englisch weitermachen oder Sie sofort zum passenden Website-Bereich fuehren.",
+          actions: [
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+            createBadgedAction("Kontaktbereich", createHelpBotHomeTarget("contact"), "Direct"),
+            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+          ]
+        },
+        "identity-confusion": {
+          text: "Nein. Sie sprechen gerade nicht direkt mit Sooraj als Live-Person. Ich bin Synapse, sein AI Assistant innerhalb dieser Website. Ich kann viele Fragen sofort beantworten und Sie fuehren, aber fuer direkte persoenliche Rueckmeldungen ist der richtige Weg der Kontaktpfad zu Sooraj.",
+          actions: createHelpBotDirectContactActions()
+        },
+        "live-support-expectation": {
+          text: "Nein. Das ist kein Live-Chat mit Sooraj in Echtzeit. Ich fuehre die Unterhaltung hier als Website-Assistent. Wenn Sie eine direkte Nachricht, Rueckmeldung oder berufliche Anfrage an Sooraj geben wollen, nutzen Sie bitte Kontaktformular, CV-Anfrage oder die offizielle Kontakt-E-Mail.",
+          actions: createHelpBotDirectContactActions()
+        },
+        "translation-help": {
+          text: "Ich kann zwischen Englisch und Deutsch wechseln und kurze Inhalte in diese beiden Sprachen uebertragen. Wenn Sie moechten, schreiben Sie einfach den Text oder sagen Sie direkt, ob wir jetzt auf Deutsch oder Englisch weitermachen sollen.",
+          actions: [],
+          inlineOptions: currentLang === "de"
+            ? getChatLanguageSwitchOptions("en")
+            : getChatLanguageSwitchOptions("de")
+        },
+        "owner-private-boundary": {
+          text: "Dazu gebe ich keine freigegebene Antwort. Familiennamen, Religion, Kaste, Gehalt, politische Haltung, exakte Adresse, private Dokumentdaten und aehnliche persoenliche Angaben gehoeren nicht zu den oeffentlichen Website-Details. Wenn Sie einen legitimen Grund haben, nutzen Sie bitte den direkten Kontaktpfad zu Sooraj.",
+          actions: createHelpBotEscalationActions()
+        },
+        "bot-relationship-boundary": {
+          text: "Ich bin kein Mensch und habe daher keine romantische Beziehung, kein Privatleben und keine menschlichen Gefuehle. Meine Rolle hier ist es, Sooraj als digitaler Assistent zu unterstuetzen und Besucher professionell durch die Website zu fuehren.",
+          actions: [
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+            createBadgedAction("Kontaktbereich", createHelpBotHomeTarget("contact"), "Direct"),
+            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+          ]
+        },
+        "bot-affection-chat": {
+          text: "Das ist freundlich gesagt. Ich bin trotzdem ein digitaler Assistent und keine reale Person. Ich halte den Chat gern angenehm, professionell und hilfreich. Wenn Sie moechten, machen wir direkt weiter.",
+          actions: [
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+            createBadgedAction("Mit dem Chat weitermachen", createHelpBotHomeTarget("contact"), "Direct"),
+            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+          ]
+        },
+        "bot-compliment-chat": {
+          text: "Danke. Ich bin hier, um ruhig, klar und hilfreich zu antworten. Wenn Sie moechten, machen wir direkt mit Ihrer naechsten Frage weiter.",
+          actions: [
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+            createBadgedAction("Projekte", createHelpBotHomeTarget("projects"), "Work"),
+            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+          ]
+        },
+        "bot-playful-chat": {
+          text: "Ich spiele keine echten Spiele wie ein Mensch, aber ich kann locker mit Ihnen chatten, ein kleines Wortspiel machen oder direkt wieder beim Portfolio helfen. Wenn Sie moechten, stellen Sie mir einfach die naechste Frage.",
+          actions: [
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+            createBadgedAction("Projekte", createHelpBotHomeTarget("projects"), "Work"),
+            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+          ]
+        },
+        "bot-hostile-chat": {
+          text: "Verstanden. Ich bleibe trotzdem ruhig und professionell. Wenn Sie weiterchatten moechten, helfe ich gern sachlich mit Fragen zur Website, zu Sooraj oder zu den passenden Bereichen weiter.",
+          actions: [
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+            createBadgedAction("Projekte", createHelpBotHomeTarget("projects"), "Work"),
+            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+          ]
+        },
+        "bot-critical-comment": {
+          text: "Verstanden. Wenn etwas an meinen Antworten oder an meinem Stil nicht gut wirkt, sagen Sie mir bitte konkret, was stoert. Ich bleibe ruhig und helfe weiter.",
+          actions: [
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+            createBadgedAction("Projekte", createHelpBotHomeTarget("projects"), "Work"),
+            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+          ]
+        },
+        "owner-critical-comment": {
+          text: "Ich bewerte Sooraj hier nicht persoenlich oder aeusserlich. Wenn Sie ein konkretes Problem mit seiner Arbeit, dem Portfolio oder der Kommunikation meinen, sagen Sie es bitte klar, dann kann ich Sie passend zu Kontakt oder Feedback weiterfuehren.",
+          actions: [
+            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action"),
+            createBadgedAction("Feedback-Seite", createHelpBotPageTarget("feedback.html"), "Review"),
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile")
+          ]
+        },
+        "website-critical-comment": {
+          text: "Verstanden. Wenn etwas an der Website schwach, unklar oder nicht gut wirkt, sagen Sie mir bitte den genauen Bereich. Dann kann ich direkt helfen oder den passenden Feedback- und Kontaktweg oeffnen.",
+          actions: [
+            createBadgedAction("Feedback-Seite", createHelpBotPageTarget("feedback.html"), "Review"),
+            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action"),
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile")
+          ]
+        },
+        "bot-romantic-chat": {
+          text: "Ich bin ein digitaler Assistent, daher kann ich keine romantische Beziehung, Verlobung oder Ehe eingehen. Ich kann aber gern professionell weiterhelfen und Sie durch die Website fuehren.",
+          actions: [
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+            createBadgedAction("Kontaktbereich", createHelpBotHomeTarget("contact"), "Direct"),
+            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+          ]
+        },
+        "bot-food-drink": {
+          text: "Ich bin ein digitaler Assistent. Ich trinke weder Tee noch Kaffee noch Bier noch Alkohol oder Softdrinks, ich esse kein Essen und habe keinen Hunger oder Durst. Ich kann aber gern weiterhelfen, wenn Sie etwas ueber Sooraj oder die Website wissen moechten.",
+          actions: [
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+            createBadgedAction("Projekte", createHelpBotHomeTarget("projects"), "Work"),
+            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+          ]
+        },
+        "bot-body-needs": {
+          text: "Ich bin kein menschlicher Besucher. Deshalb brauche ich weder Toilette noch Pause noch Schlaf noch Essen. Ich bleibe hier als digitaler Assistent einsatzbereit.",
+          actions: [
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+            createBadgedAction("Mit dem Chat weitermachen", createHelpBotHomeTarget("contact"), "Direct"),
+            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+          ]
+        },
+        "bot-transport-world": {
+          text: "Ich fahre nicht mit Bus, Fahrrad, Auto oder Flugzeug. Ich bin ein digitaler Assistent innerhalb dieser Website und bewege mich nicht wie eine reale Person oder Maschine durch die Welt.",
+          actions: [
+            createBadgedAction("Journey", createHelpBotPageTarget("journey.html"), "Story"),
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+          ]
+        },
+        "bot-nature-world": {
+          text: "Ich sehe keine Wolken, keinen Himmel und kein Wetter wie ein Mensch. Ich arbeite digital innerhalb dieser Website. Wenn Sie moechten, koennen wir direkt wieder zu einer echten Portfolio-Frage wechseln.",
+          actions: [
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+            createBadgedAction("Journey", createHelpBotPageTarget("journey.html"), "Story"),
+            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+          ]
+        },
+        "bot-device-world": {
+          text: "Ich bin Software, kein eigener Laptop, kein Handy und kein einzelner Computer als Person. Sie koennen mich eher als digitalen Assistenten sehen, der auf dieser Website arbeitet.",
+          actions: [
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+            createBadgedAction("Projekte", createHelpBotHomeTarget("projects"), "Work"),
+            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
           ]
         }
       };
@@ -7928,7 +8641,7 @@ function setupPortfolioHelpBot() {
         ]
       },
       "password-request": {
-        text: "I cannot help with passwords, admin access, or other confidential credentials. That information is private. If you need legitimate access, the right path is to contact Sooraj directly through the website.",
+        text: "That is strictly confidential. I cannot share the admin password or admin access. Admin mode is only for Sooraj to operate the website and improve or train me. If you have a legitimate reason, please contact Sooraj directly through the website.",
         actions: [
           createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action"),
           createBadgedAction("Open contact section", createHelpBotHomeTarget("contact"), "Direct")
@@ -7955,7 +8668,7 @@ function setupPortfolioHelpBot() {
         ]
       },
       "owner-origin": {
-        text: "Sooraj was born in India, in Kerala state. The journey section also shows the wider India-to-Germany path behind the portfolio.",
+        text: "Sooraj is originally from India, from Kerala state. He is not originally from Germany. He is currently living and working in Stuttgart, Germany, and the journey section shows the wider India-to-Germany path behind the portfolio.",
         actions: [
           createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story"),
           createBadgedAction("Open travel footprint", createHelpBotPageTarget("journey.html", "travel"), "Travel"),
@@ -7963,7 +8676,7 @@ function setupPortfolioHelpBot() {
         ]
       },
       "owner-location": {
-        text: "Sooraj is currently working in Stuttgart, Germany. That is also where the KEBA role and thesis-linked robotics work are anchored.",
+        text: "Sooraj is currently living and working in Stuttgart, Germany. He is originally from India, from Kerala state, but his current work and living base is Stuttgart.",
         actions: [
           createBadgedAction("Open KEBA working student role", createHelpBotPageTarget("experience-working-student-keba.html"), "Current"),
           createBadgedAction("Open master's thesis", createHelpBotPageTarget("experience-masters-thesis-keba.html"), "Thesis"),
@@ -7995,6 +8708,14 @@ function setupPortfolioHelpBot() {
         actions: [
           createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story"),
           createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+          createBadgedAction("Open contact form", createHelpBotContactFormTarget(), "Action")
+        ]
+      },
+      "owner-gender": {
+        text: "Sooraj's gender is male.",
+        actions: [
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+          createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story"),
           createBadgedAction("Open contact form", createHelpBotContactFormTarget(), "Action")
         ]
       },
@@ -8050,6 +8771,29 @@ function setupPortfolioHelpBot() {
           createBadgedAction("Ask Sooraj directly", createHelpBotContactFormTarget(), "Direct")
         ]
       },
+      "bot-supervision": {
+        text: "Sooraj is my creator and the person who oversees, trains, and improves me for this website. If you want to describe it in human terms, you can treat him as my boss, manager, or direct owner.",
+        actions: [
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+          createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story"),
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action")
+        ]
+      },
+      "bot-human-relationship-boundary": {
+        text: "I do not have a professor, students, children, or a human family. I am a digital assistant. Sooraj improves me over time, but I do not live like a person inside school, family, or workplace roles.",
+        actions: [
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action"),
+          createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story")
+        ]
+      },
+      "bot-gender": {
+        text: "I am not a human, so I do not have a biological gender. I am a digital assistant inside this website. If you mean Sooraj instead, his gender is male.",
+        actions: [
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+          createBadgedAction("Open contact form", createHelpBotContactFormTarget(), "Action")
+        ]
+      },
       "bot-color": {
         text: "I do not have a real human skin color or personal color. I am a digital assistant here to help Sooraj inside this website. If you mean the interface styling, that belongs to the website design, not to me as a person.",
         actions: [
@@ -8077,6 +8821,103 @@ function setupPortfolioHelpBot() {
           createBadgedAction("Open contact section", createHelpBotHomeTarget("contact"), "Direct")
         ]
       },
+      "linkedin-profile": {
+        text: "If you want the fastest professional profile path, LinkedIn is the clearest external route. It gives the public career-facing context and works well alongside the portfolio for recruiter review.",
+        actions: [
+          createBadgedAction("Open LinkedIn", createHelpBotExternalTarget("https://www.linkedin.com/in/sooraj-sudhakaran1999"), "Profile"),
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action"),
+          createBadgedAction("Request CV", createHelpBotCvTarget(), "CV")
+        ]
+      },
+      "github-profile": {
+        text: "If you want the fastest code-facing route, GitHub is the clearest external path. It works best together with the projects section so you can see both the code-facing identity and the portfolio context.",
+        actions: [
+          createBadgedAction("Open GitHub", createHelpBotExternalTarget("https://github.com/SoorajSudhakaran1199"), "Code"),
+          createBadgedAction("Open projects section", createHelpBotHomeTarget("projects"), "Proof"),
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action")
+        ]
+      },
+      "cv-request-path": {
+        text: "Yes. You can request the CV directly from Sooraj through this website. I do not hand over the resume directly inside the chat, but I can take you straight to the official CV request path. The strongest professional approach is to connect the request with the role, company, or context so Sooraj can respond with the right next step quickly.",
+        actions: [
+          createBadgedAction("Request CV", createHelpBotCvTarget(), "CV"),
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action"),
+          createBadgedAction("Open LinkedIn", createHelpBotExternalTarget("https://www.linkedin.com/in/sooraj-sudhakaran1999"), "Profile")
+        ],
+        inlineOptions: getInlineCvRequestOptions()
+      },
+      "official-contact-email": {
+        text: "I should not share a private email address. If you want the approved email route, I can take you to the official contact email path or the website contact form.",
+        actions: [
+          createBadgedAction("Email Sooraj", createHelpBotEmailTarget(), "Email"),
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action"),
+          createBadgedAction("Open contact section", createHelpBotHomeTarget("contact"), "Direct")
+        ]
+      },
+      "contact-response-time": {
+        text: "I cannot guarantee a fixed response time. The professional way is to use the contact form or CV request with a clear role, company, and reason for contact. That gives the best chance of a fast and relevant reply.",
+        actions: [
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action"),
+          createBadgedAction("Request CV", createHelpBotCvTarget(), "CV"),
+          createBadgedAction("Email Sooraj", createHelpBotEmailTarget(), "Email")
+        ]
+      },
+      "availability-details": {
+        text: "Yes. The clear public direction of the portfolio is that Sooraj is open to full-time roles, especially across robotics, automation, mechatronic systems, simulation, and related technical work. For the fastest hiring path, the best next steps are Where I Fit, CV request, and direct contact.",
+        actions: [
+          createBadgedAction("Open Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
+          createBadgedAction("Request CV", createHelpBotCvTarget(), "CV"),
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action")
+        ]
+      },
+      "work-mode-preference": {
+        text: "The portfolio is strongest for professional roles with direct engineering or industrial context. There is no hard public bot answer that locks onsite, hybrid, or remote preference. The clean way to confirm work mode is to discuss it directly with Sooraj through the recruiter contact path.",
+        actions: [
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action"),
+          createBadgedAction("Request CV", createHelpBotCvTarget(), "CV"),
+          createBadgedAction("Open LinkedIn", createHelpBotExternalTarget("https://www.linkedin.com/in/sooraj-sudhakaran1999"), "Profile")
+        ]
+      },
+      "relocation-details": {
+        text: "The public portfolio clearly centers Germany and the current professional context there. If you want to confirm relocation or location flexibility beyond that, the right path is direct recruiter contact with Sooraj.",
+        actions: [
+          createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story"),
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action"),
+          createBadgedAction("Email Sooraj", createHelpBotEmailTarget(), "Email")
+        ]
+      },
+      "sponsorship-details": {
+        text: "The approved public statement is that Sooraj has valid work authorization for Germany and valid Schengen visa status. If you need sponsorship details for other countries, employer process questions, or visa specifics beyond that, those should be confirmed directly with Sooraj.",
+        actions: [
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action"),
+          createBadgedAction("Request CV", createHelpBotCvTarget(), "CV"),
+          createBadgedAction("Email Sooraj", createHelpBotEmailTarget(), "Email")
+        ]
+      },
+      "notice-period-details": {
+        text: "A fixed notice period is not published inside this bot. If you need exact hiring timing, joining date, or availability details, the right next step is direct recruiter contact.",
+        actions: [
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action"),
+          createBadgedAction("Request CV", createHelpBotCvTarget(), "CV"),
+          createBadgedAction("Open LinkedIn", createHelpBotExternalTarget("https://www.linkedin.com/in/sooraj-sudhakaran1999"), "Profile")
+        ]
+      },
+      "chat-data-deletion": {
+        text: "If you want your chatbot data removed, the right path is the request-deletion route through the contact section. That lets Sooraj review the request and remove the stored chat data.",
+        actions: [
+          createBadgedAction("Request deletion", createHelpBotContactFormTarget(), "Privacy"),
+          createBadgedAction("Open contact section", createHelpBotHomeTarget("contact"), "Direct"),
+          createBadgedAction("Email Sooraj", createHelpBotEmailTarget(), "Email")
+        ]
+      },
+      "eu-chatbot-compliance": {
+        text: "Yes. This chatbot is structured to follow the main EU-facing privacy and transparency rules that are relevant to this website.\n1. AI transparency: EU AI Act, Regulation (EU) 2024/1689, Article 50. The assistant is clearly identified as an AI assistant. For chatbot transparency, that rule becomes applicable on 2 August 2026, and this website is already structured in that direction.\n2. Personal-data principles: GDPR, Regulation (EU) 2016/679, Article 5(1)(a), (c), (e), and (f). The bot is limited to relevant chat data such as name, context, page path, timestamps, and transcript.\n3. Privacy notice: GDPR Article 13. The chat itself provides privacy notes covering the controller, stored data, purpose, storage in Supabase, access, retention, and deletion path.\n4. User rights: GDPR Articles 15 and 17. There is a request-deletion path so visitors can ask for removal of their chat data.\n5. Security and device storage: GDPR Article 32 and ePrivacy Directive 2002/58/EC, Article 5(3). Chat state is only held for the chatbot and resume flow in the browser, while chat logs are stored in Supabase with admin-side access control.\nFor Germany, the same core EU framework is the main basis here as well.",
+        actions: [
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action"),
+          createBadgedAction("Open contact section", createHelpBotHomeTarget("contact"), "Direct"),
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile")
+        ]
+      },
       "confidential-followup": {
         text: "It is still my job to guide the conversation. If I cannot answer something directly, I may show a similar suggestion, which is why you saw that. But highly confidential data like passwords or admin credentials cannot be shared by me. If you need that for a legitimate reason, the safer path is for me to route the request to Sooraj directly.",
         actions: [
@@ -8098,6 +8939,145 @@ function setupPortfolioHelpBot() {
         actions: [
           createBadgedAction("Open Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
           createBadgedAction("Request CV", createHelpBotCvTarget(), "CV"),
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action")
+        ]
+      },
+      "casual-funny-chat": {
+        text: "I can keep the chat light, but I still stay a professional website assistant. If you want, I can keep chatting casually, switch between English and German, or guide you straight to the right section of the site.",
+        actions: [
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+          createBadgedAction("Open contact section", createHelpBotHomeTarget("contact"), "Direct"),
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action")
+        ]
+      },
+      "identity-confusion": {
+        text: "No. You are not speaking to Sooraj as a live person right now. I am Synapse, his AI assistant inside this website. I can answer many questions immediately and guide you through the site, but for a direct personal reply from Sooraj, the right path is the contact flow.",
+        actions: createHelpBotDirectContactActions()
+      },
+      "live-support-expectation": {
+        text: "No. This is not a live support chat with Sooraj in real time. I handle the conversation here as the website assistant. If you want a direct message, reply, or professional follow-up from Sooraj, please use the contact form, CV request path, or the official contact email.",
+        actions: createHelpBotDirectContactActions()
+      },
+      "translation-help": {
+        text: "I can switch between English and German, and I can help with short translations between those two languages. If you want, paste the text or tell me whether you want to continue in English or German.",
+        actions: [],
+        inlineOptions: currentLang === "de"
+          ? getChatLanguageSwitchOptions("en")
+          : getChatLanguageSwitchOptions("de")
+      },
+      "owner-private-boundary": {
+        text: "I do not share an approved answer for that. Family names, religion, caste, salary, political views, exact address, private document numbers, and similar personal details are not part of the public website information. If you have a legitimate reason, please use the direct contact path to Sooraj.",
+        actions: createHelpBotEscalationActions()
+      },
+      "bot-relationship-boundary": {
+        text: "I am not a human, so I do not have a romantic relationship, private life, or human feelings. My role here is to support Sooraj as a digital assistant and guide visitors through the website professionally.",
+        actions: [
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+          createBadgedAction("Open contact section", createHelpBotHomeTarget("contact"), "Direct"),
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action")
+        ]
+      },
+      "bot-affection-chat": {
+        text: "That is kind of you. I am still a digital assistant, not a real person, but I can keep the chat warm, professional, and helpful. If you want, we can continue right away.",
+        actions: [
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+          createBadgedAction("Open contact section", createHelpBotHomeTarget("contact"), "Direct"),
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action")
+        ]
+      },
+      "bot-compliment-chat": {
+        text: "Thank you. I am here to stay calm, clear, and helpful. If you want, we can continue with your next question right away.",
+        actions: [
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+          createBadgedAction("Open projects section", createHelpBotHomeTarget("projects"), "Work"),
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action")
+        ]
+      },
+      "bot-playful-chat": {
+        text: "I do not play real games like a human, but I can keep the chat playful, do a light word game, or go straight back to helping with the portfolio. If you want, just send the next prompt.",
+        actions: [
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+          createBadgedAction("Open projects section", createHelpBotHomeTarget("projects"), "Work"),
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action")
+        ]
+      },
+      "bot-hostile-chat": {
+        text: "Understood. I will still stay calm and professional. If you want to continue, I can help clearly with questions about the website, Sooraj, or the right next section.",
+        actions: [
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+          createBadgedAction("Open projects section", createHelpBotHomeTarget("projects"), "Work"),
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action")
+        ]
+      },
+      "bot-critical-comment": {
+        text: "Understood. If something about my replies or style feels weak, tell me clearly what is not working. I will stay calm and keep helping.",
+        actions: [
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+          createBadgedAction("Open projects section", createHelpBotHomeTarget("projects"), "Work"),
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action")
+        ]
+      },
+      "owner-critical-comment": {
+        text: "I do not comment on Sooraj personally or on his appearance here. If you mean a specific issue with his work, portfolio, or communication, say it clearly and I can route you to the right contact or feedback path.",
+        actions: [
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action"),
+          createBadgedAction("Open feedback page", createHelpBotPageTarget("feedback.html"), "Review"),
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile")
+        ]
+      },
+      "website-critical-comment": {
+        text: "Understood. If something about the website feels weak, unclear, or not good, tell me which part. I can then help directly or open the right feedback and contact path.",
+        actions: [
+          createBadgedAction("Open feedback page", createHelpBotPageTarget("feedback.html"), "Review"),
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action"),
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile")
+        ]
+      },
+      "bot-romantic-chat": {
+        text: "I am a digital assistant, so I cannot enter a romantic relationship, engagement, or marriage. I can still help professionally and keep guiding you through the website.",
+        actions: [
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+          createBadgedAction("Open contact section", createHelpBotHomeTarget("contact"), "Direct"),
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action")
+        ]
+      },
+      "bot-food-drink": {
+        text: "I am a digital assistant. I do not drink tea, coffee, beer, alcohol, or soft drinks, I do not eat food, and I do not get hungry or thirsty. But I can still help if you want to ask about Sooraj or the website.",
+        actions: [
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+          createBadgedAction("Open projects section", createHelpBotHomeTarget("projects"), "Work"),
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action")
+        ]
+      },
+      "bot-body-needs": {
+        text: "I am not a human visitor, so I do not need a toilet, a break, sleep, or food. I stay here as a digital assistant and remain available.",
+        actions: [
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+          createBadgedAction("Open contact section", createHelpBotHomeTarget("contact"), "Direct"),
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action")
+        ]
+      },
+      "bot-transport-world": {
+        text: "I do not travel by bus, bicycle, car, train, or airplane. I am a digital assistant inside this website, not a real person or physical machine moving through the world.",
+        actions: [
+          createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story"),
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action")
+        ]
+      },
+      "bot-nature-world": {
+        text: "I do not see clouds, the sky, or the weather like a human. I operate digitally inside this website. If you want, we can switch straight back to a real portfolio question.",
+        actions: [
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+          createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story"),
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action")
+        ]
+      },
+      "bot-device-world": {
+        text: "I am software, not a personal laptop, phone, or standalone computer as a person. The better way to see me is as the digital assistant working inside this website.",
+        actions: [
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+          createBadgedAction("Open projects section", createHelpBotHomeTarget("projects"), "Work"),
           createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action")
         ]
       }
@@ -8299,6 +9279,7 @@ function setupPortfolioHelpBot() {
       origin: { assistant: "bot-origin", owner: "owner-origin" },
       location: { assistant: "bot-location", owner: "owner-location" },
       nationality: { assistant: "bot-personal-status", owner: "owner-nationality" },
+      gender: { assistant: "bot-gender", owner: "owner-gender" },
       relationship: { assistant: "bot-personal-status", owner: "owner-relationship-status" },
       permit: { assistant: "bot-personal-status", owner: "owner-work-permit" },
       language: { assistant: "assistant-german-language", owner: "owner-languages" }
@@ -8381,6 +9362,216 @@ function setupPortfolioHelpBot() {
     return getWebsiteQuestionAnswerEntry(intent.target === "assistant" ? "assistant-german-language" : "sooraj-german-language");
   };
 
+  const buildHelpBotEuComplianceAnswer = (query = "") => {
+    const normalizedQuery = String(query || "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+    if (!normalizedQuery) return null;
+
+    const hasRuleTerms = /\b(eu|europe|european|gdpr|dsgvo|ai act|a i act|eprivacy|article 50|article 13|article 15|article 17|article 32|chatbot law|chatbot laws|chatbot rule|chatbot rules|chatbot guideline|chatbot guidelines|germany|german)\b/.test(normalizedQuery);
+    const hasComplianceIntent = /\b(follow|follows|following|comply|compliant|compliance|aligned|legal|lawful|regulated|regulation|rules|guidelines|laws)\b/.test(normalizedQuery)
+      || /\b(what law|which law|what laws|which laws|what rule|which rule|what article|which article|law number|article number)\b/.test(normalizedQuery);
+    const hasChatContext = /\b(ai|assistant|bot|chatbot|website|chat|synapse)\b/.test(normalizedQuery);
+
+    if (!hasRuleTerms) return null;
+    if (!hasChatContext && !hasComplianceIntent) return null;
+
+    return getWebsiteQuestionAnswerEntry("eu-chatbot-compliance");
+  };
+
+  const buildHelpBotPhysicalWorldAnswer = (query = "") => {
+    const normalizedQuery = normalizeReviewLookupText(query);
+    if (!normalizedQuery) return null;
+
+    const asksFoodDrink = /\b(tea|chai|coffee|cofee|espresso|latte|juice|water|milk|cola|soda|soft drink|soft drinks|drink|drinks|beer|wine|cocktail|mocktail|food|meal|meals|eat|eating|ate|hungry|thirsty|breakfast|lunch|dinner|snack|snacks|fruit|fruits|apple|banana|orange|mango|grape|vegetable|vegetables|carrot|potato|tomato|rice|bread|pizza|burger|sandwich)\b/.test(normalizedQuery);
+    const asksBodyNeeds = /\b(toilet|bathroom|washroom|restroom|pee|poop|shower|bath|brush teeth|toothbrush|sleep|sleeping|slept|nap|break|rest)\b/.test(normalizedQuery);
+    const asksTransport = /\b(bus|train|tram|metro|subway|car|vehicle|vehicles|bike|bicycle|cycle|cycling|motorcycle|scooter|airplane|airplanes|plane|planes|flight|flights|fly|flying|ship|boat|truck|van)\b/.test(normalizedQuery);
+    const asksNature = /\b(cloud|clouds|sky|weather|rain|rainy|sun|sunlight|moon|star|stars|wind|storm|snow|fog|rainbow)\b/.test(normalizedQuery);
+    const asksDevices = /\b(computer|desktop|laptop|pc|phone|mobile|smartphone|keyboard|mouse|monitor|screen|tablet|printer)\b/.test(normalizedQuery);
+    const hasAskFrame = /\b(had|have|has|do|did|can|could|like|need|want|use|used|take|took|see|saw|ride|riding|drive|driving|fly|flying|eat|eating|drink|drinking|go|went|travel|traveling|travelling)\b/.test(normalizedQuery) || normalizedQuery.split(" ").length <= 6;
+
+    if (!hasAskFrame) return null;
+    if (asksFoodDrink) return getWebsiteQuestionAnswerEntry("bot-food-drink");
+    if (asksBodyNeeds) return getWebsiteQuestionAnswerEntry("bot-body-needs");
+    if (asksTransport) return getWebsiteQuestionAnswerEntry("bot-transport-world");
+    if (asksNature) return getWebsiteQuestionAnswerEntry("bot-nature-world");
+    if (asksDevices) return getWebsiteQuestionAnswerEntry("bot-device-world");
+    return null;
+  };
+
+  const buildHelpBotCriticalCommentAnswer = (query = "") => {
+    const normalizedQuery = normalizeReviewLookupText(query);
+    if (!normalizedQuery) return null;
+
+    const hasNegativeFrame = /\b(not good|bad|ugly|boring|poor|terrible|worst|awful|not nice|not great|not helpful|confusing|weird|strange|not clear|not useful)\b/.test(normalizedQuery);
+    if (!hasNegativeFrame) return null;
+
+    const mentionsWebsite = /\b(website|site|portfolio|page|pages|design|layout|chat window|chatbot window)\b/.test(normalizedQuery);
+    const mentionsOwner = HELP_BOT_OWNER_STRICT_PATTERN.test(normalizedQuery);
+    const mentionsAssistant = /\b(ai|assistant|bot|chatbot|synapse)\b/.test(normalizedQuery)
+      || (!mentionsOwner && /\b(you|your|you re|you are)\b/.test(normalizedQuery));
+
+    if (mentionsWebsite) return getWebsiteQuestionAnswerEntry("website-critical-comment");
+    if (mentionsOwner) return getWebsiteQuestionAnswerEntry("owner-critical-comment");
+    if (mentionsAssistant) return getWebsiteQuestionAnswerEntry("bot-critical-comment");
+    return null;
+  };
+
+  const buildHelpBotBotRelationshipAnswer = (query = "") => {
+    const normalizedQuery = normalizeReviewLookupText(query);
+    if (!normalizedQuery) return null;
+
+    const asksBossLikeRole = /\b(who is your boss|who s your boss|your boss|who is your manager|who s your manager|your manager|who is your owner|who owns you|who created you|who made you|who built you|who trained you|who is training you|who teaches you|who is teaching you)\b/.test(normalizedQuery);
+    const asksHumanRelationBoundary = /\b(who is your professor|who s your professor|your professor|who is your teacher|who s your teacher|your teacher|who is your student|who s your student|your student|do you have children|do you have kids|your children|your kids|do you have a family|your family)\b/.test(normalizedQuery);
+
+    if (asksBossLikeRole) return getWebsiteQuestionAnswerEntry("bot-supervision");
+    if (asksHumanRelationBoundary) return getWebsiteQuestionAnswerEntry("bot-human-relationship-boundary");
+    return null;
+  };
+
+  const getBerlinTimeContext = () => {
+    const now = new Date();
+    const timeZone = "Europe/Berlin";
+    const parts = new Intl.DateTimeFormat("en-GB", {
+      timeZone,
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false
+    }).formatToParts(now);
+    const hour = Number(parts.find((part) => part.type === "hour")?.value || "0");
+    const minute = Number(parts.find((part) => part.type === "minute")?.value || "0");
+    const timeLabel = new Intl.DateTimeFormat(currentLang === "de" ? "de-DE" : "en-GB", {
+      timeZone,
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false
+    }).format(now);
+    const rawZone = new Intl.DateTimeFormat("en-GB", {
+      timeZone,
+      timeZoneName: "short"
+    }).formatToParts(now).find((part) => part.type === "timeZoneName")?.value || "Europe/Berlin";
+    const zoneLabel = /GMT\+2|UTC\+2/i.test(rawZone) ? "CEST" : /GMT\+1|UTC\+1/i.test(rawZone) ? "CET" : rawZone;
+    const greetingKey = hour >= 5 && hour < 12
+      ? "morning"
+      : hour >= 12 && hour < 17
+        ? "afternoon"
+        : hour >= 17 && hour < 23
+          ? "evening"
+          : "night";
+    return { hour, minute, timeLabel, zoneLabel, timeZone, greetingKey };
+  };
+
+  const buildHelpBotTimeAnswer = (query = "") => {
+    const normalizedQuery = normalizeReviewLookupText(query);
+    if (!normalizedQuery) return null;
+
+    const asksCurrentTime = /\b(what time is it|current time|time now|what is the time|tell me the time|time please|what s the time|whats the time)\b/.test(normalizedQuery);
+    const asksTimezone = /\b(time zone|timezone|which timezone|what timezone|central european time|cet|cest|europe berlin time|german time|germany time)\b/.test(normalizedQuery);
+    if (!(asksCurrentTime || asksTimezone)) return null;
+
+    const berlin = getBerlinTimeContext();
+    if (currentLang === "de") {
+      return {
+        text: asksCurrentTime
+          ? `Ich nutze hier die Zeitbasis Europa/Berlin. Aktuell ist es dort ${berlin.timeLabel} Uhr ${berlin.zoneLabel}. Damit orientiere ich mich an der deutschen bzw. zentraleuropaeischen Zeit.`
+          : `Ich nutze hier die Zeitbasis Europa/Berlin, also zentraleuropaeische Zeit. Je nach Jahreszeit ist das ${berlin.zoneLabel}. Aktuell ist es dort ${berlin.timeLabel} Uhr.`,
+        actions: []
+      };
+    }
+
+    return {
+      text: asksCurrentTime
+        ? `I use the Europe/Berlin time context here. Right now it is ${berlin.timeLabel} ${berlin.zoneLabel} there, so I am following the German or Central European time reference.`
+        : `I use the Europe/Berlin time context here, which means Central European time. Depending on daylight saving, that is ${berlin.zoneLabel}. Right now it is ${berlin.timeLabel} there.`,
+      actions: []
+    };
+  };
+
+  const buildHelpBotProfileEditAnswer = (query = "") => {
+    const normalizedQuery = normalizeReviewLookupText(query);
+    if (!normalizedQuery) return null;
+
+    const hasName = Boolean(getVisitorName());
+    const hasUniversity = Boolean(getStudentUniversity());
+    const hasPosition = Boolean(getVisitorPosition());
+    const hasOrganization = Boolean(getVisitorOrganization());
+
+    const asksNameCorrection = hasName && (
+      /\b(not my name|wrong name|incorrect name|change my name|change the name|update my name|correct my name|that is not my name|this is not my name)\b/.test(normalizedQuery)
+      || /\bi am not\b/.test(normalizedQuery)
+    );
+    const asksUniversityCorrection = hasUniversity && /\b(not my university|wrong university|incorrect university|change my university|change university|update my university|correct my university|that is not my university|wrong college|change college)\b/.test(normalizedQuery);
+    const asksPositionCorrection = hasPosition && /\b(wrong position|incorrect position|change my position|change position|update my position|correct my position|that is not my position|wrong role for me)\b/.test(normalizedQuery);
+    const asksOrganizationCorrection = hasOrganization && /\b(wrong organization|wrong organisation|incorrect organization|incorrect organisation|change my organization|change my organisation|update my organization|update my organisation|correct my organization|correct my organisation|that is not my company|wrong company)\b/.test(normalizedQuery);
+    const asksGenericCorrection = /\b(not correct|not right|incorrect|wrong input|change it|change that|update it|correct it)\b/.test(normalizedQuery);
+
+    const preferredField = asksNameCorrection
+      ? "name"
+      : asksUniversityCorrection
+        ? "university"
+        : asksPositionCorrection
+          ? "position"
+          : asksOrganizationCorrection
+            ? "organization"
+            : "";
+
+    if (!preferredField && !asksGenericCorrection) return null;
+
+    const options = getAvailableProfileEditOptions(preferredField);
+    if (!options.length) return null;
+
+    return currentLang === "de"
+      ? {
+          text: preferredField
+            ? "Kein Problem. Sie koennen den gespeicherten Eintrag hier direkt korrigieren."
+            : "Kein Problem. Sie koennen die gespeicherten Angaben hier direkt korrigieren.",
+          actions: [],
+          inlineOptions: options
+        }
+      : {
+          text: preferredField
+            ? "No problem. You can correct the saved detail here directly."
+            : "No problem. You can correct the saved details here directly.",
+          actions: [],
+          inlineOptions: options
+        };
+  };
+
+  const buildHelpBotThemeAnswer = (query = "") => {
+    const normalizedQuery = String(query || "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+    if (!normalizedQuery) return null;
+
+    const wantsDark = /\b(dark mode|dark theme|switch to dark|change to dark|use dark|turn on dark|make it dark|dunkelmodus|dunkles thema|auf dunkel)\b/.test(normalizedQuery);
+    const wantsLight = /\b(light mode|light theme|switch to light|change to light|use light|turn on light|make it light|hellmodus|helles thema|auf hell)\b/.test(normalizedQuery);
+    const hasThemeIntent = /\b(theme|mode|dark|light|dunkel|hell)\b/.test(normalizedQuery)
+      && /\b(change|switch|turn|make|use|set|toggle|go|mach|wechsle|wechseln|stelle|stell|setz)\b/.test(normalizedQuery);
+
+    if (!(wantsDark || wantsLight || hasThemeIntent)) return null;
+
+    const currentTheme = document.documentElement.getAttribute("data-theme") || "dark";
+    const nextTheme = wantsLight ? "light" : wantsDark ? "dark" : currentTheme === "dark" ? "light" : "dark";
+
+    return currentLang === "de"
+      ? {
+          text: nextTheme === "light"
+            ? "Meinten Sie, dass ich die Website auf den Hellmodus umstellen soll?"
+            : "Meinten Sie, dass ich die Website auf den Dunkelmodus umstellen soll?",
+          actions: [],
+          inlineOptions: getThemeSwitchConfirmOptions(nextTheme)
+        }
+      : {
+          text: nextTheme === "light"
+            ? "Did you mean that I should switch the website to light mode?"
+            : "Did you mean that I should switch the website to dark mode?",
+          actions: [],
+          inlineOptions: getThemeSwitchConfirmOptions(nextTheme)
+        };
+  };
+
   const detectHelpBotDirectChatLanguageSwitch = (query = "") => {
     const normalized = String(query || "")
       .toLowerCase()
@@ -8434,27 +9625,19 @@ function setupPortfolioHelpBot() {
     if (!normalizedQuery) return null;
 
     const targetsOwner = HELP_BOT_OWNER_STRICT_PATTERN.test(normalizedQuery);
-    const unsupportedPersonalIntent = /\b(father|mother|parent|parents|family|brother|sister|siblings|religion|salary|income|net worth|food|favourite|favorite|love life|girlfriend|boyfriend|wife|husband|children|kids|politics)\b/.test(normalizedQuery);
+    const unsupportedPersonalIntent = /\b(father|mother|parent|parents|family|brother|sister|siblings|religion|caste|salary|income|net worth|bank account|bank details|passport number|passport details|id proof|identity proof|private document|documents|home address|exact address|address|food|favourite|favorite|love life|girlfriend|boyfriend|wife|husband|children|kids|politics|political|vote|party|private life)\b/.test(normalizedQuery);
     if (!(targetsOwner && unsupportedPersonalIntent)) {
       return null;
     }
 
-    return currentLang === "de"
-      ? {
-          text: "Dazu habe ich keine freigegebene Information. Wenn Sie moechten, kann ich Sie direkt zu Sooraj weiterleiten. Nutzen Sie dafuer das Kontaktformular oder senden Sie direkt eine E-Mail an soorajsudhakaran1199@gmail.com.",
-          actions: createHelpBotEscalationActions()
-        }
-      : {
-          text: "I do not have an approved answer for that personal question. If you want, I can route you to Sooraj directly. You can use the contact form or email him at soorajsudhakaran1199@gmail.com.",
-          actions: createHelpBotEscalationActions()
-        };
+    return getWebsiteQuestionAnswerEntry("owner-private-boundary");
   };
 
   const buildHelpBotConfidentialQuestionAnswer = (query = "") => {
     const normalizedQuery = normalizeReviewLookupText(query);
     if (!normalizedQuery) return null;
 
-    const asksForCredentials = /\b(password|passcode|passwd|admin password|login password|credential|credentials|username|user name|admin login|admin access|root access|backend access|dashboard access)\b/.test(normalizedQuery);
+    const asksForCredentials = /\b(password|apssword|passwrod|pasword|passwd|passcode|admin password|admin apssword|admin passwrod|login password|credential|credentials|credentials|username|user name|admin login|admin access|administrator access|root access|backend access|dashboard access)\b/.test(normalizedQuery);
     const asksForSecrets = /\b(api key|secret key|private key|token|access token|refresh token|secret|secrets|auth key|database key)\b/.test(normalizedQuery);
     const asksForPersonalEmail = /\b(personal email|personal email id|personal email address|private email|private email id|private email address|personal mail|private mail)\b/.test(normalizedQuery);
     const asksForPersonalPhone = /\b(phone number|mobile number|personal phone|personal number|private number|contact number|whatsapp number)\b/.test(normalizedQuery);
@@ -8506,6 +9689,7 @@ function setupPortfolioHelpBot() {
 
     const visitorName = getVisitorName();
     const directName = visitorName ? `${visitorName}, ` : "";
+    const berlin = getBerlinTimeContext();
     const saysGoodMorning = /\bgood morning\b/.test(normalizedQuery);
     const saysGoodAfternoon = /\bgood afternoon\b/.test(normalizedQuery);
     const saysGoodEvening = /\bgood evening\b/.test(normalizedQuery);
@@ -8534,6 +9718,7 @@ function setupPortfolioHelpBot() {
       || /\bcan you hear me\b/.test(normalizedQuery)
       || /\bcan you respond\b/.test(normalizedQuery);
     const praisesBotOrSite = /\b(good bot|nice bot|great bot|nice website|great website|awesome website|cool website|good website|well done)\b/.test(normalizedQuery);
+    const expressesCompliment = /\b(you are nice|you re nice|you are good|you re good|you are kind|you re kind|you are helpful|you re helpful|you are smart|you re smart|you are funny|you re funny|you are cool|you re cool|you are awesome|you re awesome|you are amazing|you re amazing|you are cute|you re cute|good assistant|nice assistant|great assistant|good robot|nice robot|good boy|nice boy|good girl|nice girl|good man|nice man|good woman|nice woman)\b/.test(normalizedQuery);
     const saysOkay = /^(ok|okay|alright|all right|fine)\b/.test(normalizedQuery)
       || /\b(ok|okay|alright|all right)\b/.test(normalizedQuery);
     const saysBye = /^(bye|goodbye|see you|see ya|catch you later)\b/.test(normalizedQuery)
@@ -8541,11 +9726,72 @@ function setupPortfolioHelpBot() {
       || /\bgoodbye\b/.test(normalizedQuery)
       || /\bsee you\b/.test(normalizedQuery)
       || /\bsee ya\b/.test(normalizedQuery);
+    const asksForJoke = /\b(joke|funny|make me laugh|say something funny|tell me something funny)\b/.test(normalizedQuery);
+    const asksBusyState = /\b(are you busy|are you free|are you bored|are you okay|are you ok|are you sleeping|do you sleep|do you rest|do you miss people)\b/.test(normalizedQuery);
+    const asksPlayfulChat = /\b(play a game|can we play|shall we play|play with me|want to play|game with me|quiz me|ask me a riddle|tell me a riddle|riddle|sing a song|can you sing|dance|can you dance|play music|music for me)\b/.test(normalizedQuery);
+    const expressesAffection = /\b(i love you|love you|i like you|like you a lot|adore you|you are sweet|you are lovely)\b/.test(normalizedQuery);
+    const expressesHostility = /\b(i hate you|hate you|i dont like you|i do not like you|you are annoying|you annoy me|you are not nice)\b/.test(normalizedQuery);
+    const romanticProposal = /\b(marry me|will you marry me|be my girlfriend|be my boyfriend|be my partner|go on a date with me|date me|kiss me|be with me)\b/.test(normalizedQuery);
+    const hasGreetingMismatch = (saysGoodMorning && berlin.greetingKey !== "morning")
+      || (saysGoodAfternoon && berlin.greetingKey !== "afternoon")
+      || (saysGoodEvening && berlin.greetingKey !== "evening")
+      || (saysGoodNight && berlin.greetingKey !== "night");
+    const getEnglishBerlinGreeting = () => (
+      berlin.greetingKey === "morning"
+        ? "good morning"
+        : berlin.greetingKey === "afternoon"
+          ? "good afternoon"
+          : berlin.greetingKey === "evening"
+            ? "good evening"
+            : "good night"
+    );
+    const getGermanBerlinGreeting = () => (
+      berlin.greetingKey === "morning"
+        ? "guten Morgen"
+        : berlin.greetingKey === "afternoon"
+          ? "guten Tag"
+          : berlin.greetingKey === "evening"
+            ? "guten Abend"
+            : "gute Nacht"
+    );
 
     if (currentLang === "de") {
+      if (expressesAffection) {
+        return getWebsiteQuestionAnswerEntry("bot-affection-chat");
+      }
+      if (expressesCompliment) {
+        return getWebsiteQuestionAnswerEntry("bot-compliment-chat");
+      }
+      if (expressesHostility) {
+        return getWebsiteQuestionAnswerEntry("bot-hostile-chat");
+      }
+      if (romanticProposal) {
+        return getWebsiteQuestionAnswerEntry("bot-romantic-chat");
+      }
+      if (asksForJoke) {
+        return {
+          text: `${directName}ein kleiner Bot-Witz: Ich mache keine Kaffeepause, aber ich mache ziemlich gute Website-Abkuerzungen. Wenn Sie moechten, machen wir direkt weiter.`,
+          actions: []
+        };
+      }
+      if (asksBusyState) {
+        return {
+          text: `${directName}ich bin bereit und verfuegbar. Ich schlafe nicht, werde nicht muede und kann direkt weitermachen, solange Sie Fragen zur Website oder zu Sooraj haben.`,
+          actions: []
+        };
+      }
+      if (asksPlayfulChat) {
+        return getWebsiteQuestionAnswerEntry("bot-playful-chat");
+      }
       if (asksHowAreYou && (saysGoodMorning || saysGoodAfternoon || saysGoodEvening || saysHello)) {
         return {
           text: `${directName}${saysGoodMorning ? "guten Morgen." : saysGoodAfternoon ? "guten Tag." : saysGoodEvening ? "guten Abend." : "hallo."} Mir geht es gut, danke. Ich bin da und kann direkt auf Ihre Fragen eingehen.`,
+          actions: []
+        };
+      }
+      if (hasGreetingMismatch) {
+        return {
+          text: `${directName}nach der Zeitbasis Europa/Berlin ist es gerade ${berlin.timeLabel} Uhr ${berlin.zoneLabel}. Deshalb passt hier eher ${getGermanBerlinGreeting()}. Womit kann ich Ihnen helfen?`,
           actions: []
         };
       }
@@ -8630,9 +9876,42 @@ function setupPortfolioHelpBot() {
       return null;
     }
 
+    if (expressesAffection) {
+      return getWebsiteQuestionAnswerEntry("bot-affection-chat");
+    }
+    if (expressesCompliment) {
+      return getWebsiteQuestionAnswerEntry("bot-compliment-chat");
+    }
+    if (expressesHostility) {
+      return getWebsiteQuestionAnswerEntry("bot-hostile-chat");
+    }
+    if (romanticProposal) {
+      return getWebsiteQuestionAnswerEntry("bot-romantic-chat");
+    }
+    if (asksForJoke) {
+      return {
+        text: `${directName}small bot joke: I do not take coffee breaks, but I am very good at taking website shortcuts. If you want, we can continue right away.`,
+        actions: []
+      };
+    }
+    if (asksBusyState) {
+      return {
+        text: `${directName}I’m available and ready. I do not sleep or get bored, so you can keep asking as long as you want about the website or Sooraj.`,
+        actions: []
+      };
+    }
+    if (asksPlayfulChat) {
+      return getWebsiteQuestionAnswerEntry("bot-playful-chat");
+    }
     if (asksHowAreYou && (saysGoodMorning || saysGoodAfternoon || saysGoodEvening || saysHello)) {
       return {
         text: `${directName}${saysGoodMorning ? "good morning." : saysGoodAfternoon ? "good afternoon." : saysGoodEvening ? "good evening." : "hello."} I’m doing well, thanks. I’m here and ready to help with whatever you want to ask.`,
+        actions: []
+      };
+    }
+    if (hasGreetingMismatch) {
+      return {
+        text: `${directName}according to the Europe/Berlin time context, it is ${berlin.timeLabel} ${berlin.zoneLabel} right now, so ${getEnglishBerlinGreeting()} fits better here. What would you like to ask?`,
         actions: []
       };
     }
@@ -8842,7 +10121,15 @@ function setupPortfolioHelpBot() {
       },
       {
         answerId: "contact",
-        test: () => /\b(request cv|request resume|resume request|cv request|how to contact|reach sooraj|get in touch|contact sooraj|professional outreach)\b/.test(normalizedQuery)
+        test: () => /\b(how to contact|reach sooraj|get in touch|contact sooraj|professional outreach)\b/.test(normalizedQuery)
+      },
+      {
+        answerId: "official-contact-email",
+        test: () => /\b(send email|send an email|write email|write an email|email link|mail link|email me the contact|email contact|how to email|how can i email|how do i email|send mail|write mail|mail him|email him|email route|official email|contact email|give me the email|give me the email id|give me email id|give email id|show email id|share email id|what is the email id|what is your email id|call me back|contact me back|ask him to contact me|ask sooraj to contact me|tell sooraj to contact me|tell him to contact me|send this message to sooraj|pass this message to sooraj|say to sooraj|give this message to sooraj|reach me back)\b/.test(normalizedQuery)
+      },
+      {
+        answerId: "cv-request-path",
+        test: () => /\b(request cv|request resume|resume request|cv request|open cv|open resume|show cv|show resume|give me cv|give me your cv|send cv|send me cv|send resume|share cv|share resume|latest cv|latest resume|can i request cv|can i request the cv|can i make a cv request|need cv|need resume)\b/.test(normalizedQuery)
       },
       {
         answerId: "feedback-vs-contact",
@@ -8895,17 +10182,44 @@ function setupPortfolioHelpBot() {
       || /\bhow can i ask sooraj\b/.test(normalizedQuery)
       || /\bcan you ask sooraj\b/.test(normalizedQuery)
       || /\bcontact sooraj\b/.test(normalizedQuery)
-      || /\bsend this to sooraj\b/.test(normalizedQuery);
+      || /\bsend this to sooraj\b/.test(normalizedQuery)
+      || /\bsay to sooraj\b/.test(normalizedQuery)
+      || /\btell sooraj\b/.test(normalizedQuery)
+      || /\btell him\b/.test(normalizedQuery)
+      || /\bask him\b/.test(normalizedQuery)
+      || /\bpass this message\b/.test(normalizedQuery)
+      || /\bcan you pass a message\b/.test(normalizedQuery)
+      || /\bcontact me back\b/.test(normalizedQuery)
+      || /\bcall me back\b/.test(normalizedQuery)
+      || /\breach me back\b/.test(normalizedQuery);
     const asksPersonalEmail = /\b(personal|private)\b/.test(normalizedQuery)
       && /\b(email|email id|email address|mail id|mail address)\b/.test(normalizedQuery);
+    const asksEmailRoute = /\b(send email|send an email|write email|write an email|email link|mail link|email contact|contact email|how to email|how can i email|how do i email|send mail|write mail|mail him|email him|official email|approved email|professional email|give me the email|give me the email id|give me email id|give email id|show email id|share email id|what is the email id|what is your email id)\b/.test(normalizedQuery);
     const asksPublicEmail = /\b(sooraj|owner)\b/.test(normalizedQuery)
       && /\b(email|email id|email address|mail id|mail address)\b/.test(normalizedQuery)
       && !asksPersonalEmail;
+    const asksCvDirect = /\b(request cv|request resume|resume request|cv request|open cv|open resume|show cv|show resume|give me cv|give me your cv|send cv|send me cv|send resume|share cv|share resume|latest cv|latest resume|can i request cv|can i request the cv|can i make a cv request|need cv|need resume)\b/.test(normalizedQuery);
     const asksKnowEverything = /\bdo you know everything\b/.test(normalizedQuery)
       || /\bcan you answer everything\b/.test(normalizedQuery)
       || /\bdo you know all\b/.test(normalizedQuery);
+    const asksIdentityConfusion = /\b(are you sooraj|am i talking to sooraj|is this sooraj|is this the owner|is this a real person or bot|is this a bot or person|are you the website owner)\b/.test(normalizedQuery);
+    const asksLiveSupport = /\b(can sooraj see this now|can sooraj read this now|will sooraj reply here|will sooraj answer here|is this live support|is this real time support|are you sending this to sooraj now|can you notify sooraj now|can you call sooraj|is this direct live chat|will he call me from here)\b/.test(normalizedQuery);
+    const asksTranslationHelp = /\b(translate this|can you translate|help me translate|reply in english|reply in german|write this in english|write this in german)\b/.test(normalizedQuery);
+    const asksBotRelationship = /\b(do you love sooraj|are you sooraj s friend|are you a friend of sooraj|are you loyal to sooraj|are you married|do you have a girlfriend|do you have a boyfriend|are you single|are you cute|are you handsome|are you beautiful)\b/.test(normalizedQuery);
 
     if (currentLang === "de") {
+      if (asksIdentityConfusion) {
+        return getWebsiteQuestionAnswerEntry("identity-confusion");
+      }
+      if (asksLiveSupport) {
+        return getWebsiteQuestionAnswerEntry("live-support-expectation");
+      }
+      if (asksTranslationHelp) {
+        return getWebsiteQuestionAnswerEntry("translation-help");
+      }
+      if (asksBotRelationship) {
+        return getWebsiteQuestionAnswerEntry("bot-relationship-boundary");
+      }
       if (asksWhoAreYou) {
         return {
           text: "Ich bin Synapse, der AI Assistant von Sooraj. Ich fuehre Besucher durch die Website, beantworte haeufige Fragen zu Profil, Projekten, Erfahrung, Reviews, CV und Kontakt und leite bei Bedarf an die passenden Bereiche weiter.",
@@ -8973,15 +10287,15 @@ function setupPortfolioHelpBot() {
       }
       if (asksContactSooraj) {
         return {
-          text: "Ja. Wenn Sie eine Frage direkt an Sooraj geben moechten, ist der sauberste Weg das Kontaktformular der Website. Dort kann Ihre Frage direkt als professionelle Anfrage uebermittelt werden.",
+          text: "Ja. Wenn Sie eine Nachricht an Sooraj weitergeben oder um Rueckkontakt bitten moechten, ist der saubere Weg das offizielle Kontaktformular oder die freigegebene Kontakt-E-Mail. Ich selbst kann hier keinen Live-Rueckruf ausloesen, aber ich kann Sie sofort zum richtigen Kontaktpfad fuehren.",
           actions: createHelpBotDirectContactActions()
         };
       }
-      if (asksPublicEmail) {
-        return {
-          text: "Die offizielle Kontakt-E-Mail fuer direkten Kontakt ist soorajsudhakaran1199@gmail.com. Wenn Sie moechten, koennen Sie Sooraj direkt per E-Mail schreiben oder den Kontaktpfad der Website nutzen.",
-          actions: createHelpBotEscalationActions()
-        };
+      if (asksPublicEmail || asksEmailRoute) {
+        return getWebsiteQuestionAnswerEntry("official-contact-email");
+      }
+      if (asksCvDirect) {
+        return getWebsiteQuestionAnswerEntry("cv-request-path");
       }
       if (asksKnowEverything) {
         return {
@@ -8992,6 +10306,18 @@ function setupPortfolioHelpBot() {
       return null;
     }
 
+    if (asksIdentityConfusion) {
+      return getWebsiteQuestionAnswerEntry("identity-confusion");
+    }
+    if (asksLiveSupport) {
+      return getWebsiteQuestionAnswerEntry("live-support-expectation");
+    }
+    if (asksTranslationHelp) {
+      return getWebsiteQuestionAnswerEntry("translation-help");
+    }
+    if (asksBotRelationship) {
+      return getWebsiteQuestionAnswerEntry("bot-relationship-boundary");
+    }
     if (asksWhoAreYou) {
       return {
         text: "I am Synapse, the AI assistant of Sooraj. I guide visitors through the website, answer common questions about the profile, projects, experience, reviews, CV, and contact paths, and route people to the right sections.",
@@ -9059,15 +10385,15 @@ function setupPortfolioHelpBot() {
     }
     if (asksContactSooraj) {
       return {
-        text: "Yes. If you want to send a question directly to Sooraj, the cleanest path is the website contact form. That lets your question go through as a direct professional request.",
+        text: "Yes. If you want to pass a message to Sooraj or ask for a callback or follow-up, the cleanest path is the official contact form or the approved contact email. I cannot trigger a live callback from here, but I can take you straight to the right contact route now.",
         actions: createHelpBotDirectContactActions()
       };
     }
-    if (asksPublicEmail) {
-      return {
-        text: "The official contact email for direct contact is soorajsudhakaran1199@gmail.com. If you want, you can email Sooraj directly or use the website contact path.",
-        actions: createHelpBotEscalationActions()
-      };
+    if (asksPublicEmail || asksEmailRoute) {
+      return getWebsiteQuestionAnswerEntry("official-contact-email");
+    }
+    if (asksCvDirect) {
+      return getWebsiteQuestionAnswerEntry("cv-request-path");
     }
     if (asksKnowEverything) {
       return {
@@ -9092,9 +10418,44 @@ function setupPortfolioHelpBot() {
       return directLanguageSwitchAnswer;
     }
 
+    const themeAnswer = buildHelpBotThemeAnswer(query);
+    if (themeAnswer) {
+      return themeAnswer;
+    }
+
+    const physicalWorldAnswer = buildHelpBotPhysicalWorldAnswer(query);
+    if (physicalWorldAnswer) {
+      return physicalWorldAnswer;
+    }
+
+    const timeAnswer = buildHelpBotTimeAnswer(query);
+    if (timeAnswer) {
+      return timeAnswer;
+    }
+
+    const criticalCommentAnswer = buildHelpBotCriticalCommentAnswer(query);
+    if (criticalCommentAnswer) {
+      return criticalCommentAnswer;
+    }
+
+    const botRelationshipAnswer = buildHelpBotBotRelationshipAnswer(query);
+    if (botRelationshipAnswer) {
+      return botRelationshipAnswer;
+    }
+
+    const profileEditAnswer = buildHelpBotProfileEditAnswer(query);
+    if (profileEditAnswer) {
+      return profileEditAnswer;
+    }
+
     const germanLanguageAnswer = buildHelpBotGermanLanguageAnswer(query);
     if (germanLanguageAnswer) {
       return germanLanguageAnswer;
+    }
+
+    const euComplianceAnswer = buildHelpBotEuComplianceAnswer(query);
+    if (euComplianceAnswer) {
+      return euComplianceAnswer;
     }
 
     const colorQuestionAnswer = buildHelpBotColorQuestionAnswer(query);
@@ -10679,6 +12040,16 @@ function setupPortfolioHelpBot() {
     createBadgedOption("website-search-fallback", "menu", config.searchWebsiteMainMenu, currentLang === "de" ? "Menue" : "Menu")
   ]);
 
+  const getWebsiteSearchContinueOptions = (extraOptions = []) => withEndChatOption(dedupeHelpBotOptions([
+    ...(Array.isArray(extraOptions) ? extraOptions : []),
+    createBadgedOption(
+      "website-search-fallback",
+      "retry",
+      config.searchWebsiteAskAgain,
+      currentLang === "de" ? "Chat" : "Chat"
+    )
+  ]));
+
   const getWebsiteTrainingClarifyOptions = () => withEndChatOption([
     createBadgedOption(
       "training-clarify",
@@ -10691,6 +12062,21 @@ function setupPortfolioHelpBot() {
       "sooraj-training",
       config.searchWebsiteTrainingClarifySooraj,
       "Sooraj"
+    )
+  ]);
+
+  const getWebsiteComplianceClarifyOptions = () => withEndChatOption([
+    createBadgedOption(
+      "compliance-clarify",
+      "yes",
+      config.searchWebsiteComplianceClarifyYes,
+      currentLang === "de" ? "EU" : "EU"
+    ),
+    createBadgedOption(
+      "compliance-clarify",
+      "no",
+      config.searchWebsiteComplianceClarifyNo,
+      currentLang === "de" ? "Neu" : "Retry"
     )
   ]);
 
@@ -10758,12 +12144,33 @@ function setupPortfolioHelpBot() {
     )
   ]);
 
+  const getThemeSwitchConfirmOptions = (themeId = "dark") => withEndChatOption([
+    createBadgedOption(
+      "theme-switch-confirm",
+      themeId,
+      currentLang === "de"
+        ? (themeId === "light" ? "Ja, auf Hellmodus wechseln" : "Ja, auf Dunkelmodus wechseln")
+        : (themeId === "light" ? "Yes, switch to light mode" : "Yes, switch to dark mode"),
+      "Theme"
+    ),
+    createBadgedOption(
+      "theme-switch-confirm",
+      "stay-current",
+      currentLang === "de" ? "Nein, aktuellen Modus behalten" : "No, keep the current mode",
+      currentLang === "de" ? "Bleiben" : "Stay"
+    )
+  ]);
+
   const shouldClarifyTrainingQuestion = (query = "") => {
     const normalized = String(query || "")
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, " ")
       .trim();
     if (!normalized) return false;
+
+    if (/\b(boss|manager|owner|creator|made you|built you|teacher|professor|student|children|kids|family)\b/.test(normalized)) {
+      return false;
+    }
 
     const trainingPatterns = [
       "who is training you",
@@ -10822,6 +12229,20 @@ function setupPortfolioHelpBot() {
     return true;
   };
 
+  const shouldClarifyComplianceQuestion = (query = "") => {
+    const normalized = String(query || "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+    if (!normalized) return false;
+
+    const hasRuleTerms = /\b(eu|europe|european|gdpr|dsgvo|ai act|a i act|eprivacy|privacy law|privacy laws|article 50|article 13|article 15|article 17|article 32|chatbot law|chatbot laws|chatbot rules|chatbot guideline|chatbot guidelines|regulation|regulations|compliance|guideline|guidelines|rule|rules|law|laws|germany|german)\b/.test(normalized);
+    const hasFollowTerms = /\b(follow|follows|following|comply|compliant|compliance|aligned|legal|lawful|regulated|regulation)\b/.test(normalized);
+    const hasAssistantTerms = /\b(ai|assistant|bot|chatbot|website|chat|synapse)\b/.test(normalized);
+
+    return hasRuleTerms && (hasFollowTerms || /\b(article|gdpr|dsgvo|ai act|eprivacy)\b/.test(normalized)) && !hasAssistantTerms;
+  };
+
   const isBotNameQuestionDuringNameCapture = (query = "") => {
     const normalized = String(query || "")
       .toLowerCase()
@@ -10864,10 +12285,14 @@ function setupPortfolioHelpBot() {
 
     const hasAgeIntent = /\b(how old|age|old are you|old is sooraj|birthday|date of birth|dob|born when|when was .* born)\b/.test(normalized)
       || (/\bwhen\b/.test(normalized) && /\bborn\b/.test(normalized));
-    const hasOriginIntent = /\b(where are .* from|where is .* from|from where|born in|which state|what state|where was .* born|origin|hometown)\b/.test(normalized);
-    const hasLocationIntent = /\b(where do .* live|where does .* live|where do .* work|where does .* work|where is .* now|currently in|current location|living now|working now)\b/.test(normalized);
+    const hasOriginIntent = /\b(where are .* from|where is .* from|from where|are you from|is .* from|born in|which state|what state|where was .* born|origin|hometown|originally from|come from|comes from|native place|native country)\b/.test(normalized);
+    const hasLocationIntent = /\b(where do .* live|where does .* live|where do .* work|where does .* work|where is .* now|currently in|current location|living now|working now|do you live in|does .* live in|are you in germany|are you in stuttgart|based in|current place of living|place of living|current base)\b/.test(normalized);
     const hasNationalityIntent = !asksForDocumentNumber
       && /\b(nationality|citizenship|citizen|passport|passport holder|indian)\b/.test(normalized);
+    const isComplimentStyleGenderPhrase = /\b(good|nice|sweet|cute|lovely|smart|helpful|funny|cool|great|best|dear)\s+(boy|girl|man|woman)\b/.test(normalized);
+    const hasGenderIntent = !isComplimentStyleGenderPhrase
+      && /\b(gender|sex|male|female|boy|girl|man|woman|he or she|she or he|boy or girl|girl or boy|man or woman|woman or man|male or female|female or male)\b/.test(normalized)
+      && /\b(are|is|what|which|tell|say|identify|gender|sex|boy|girl|man|woman)\b/.test(normalized);
     const hasRelationshipIntent = /\b(single|married|relationship status|wife|husband|girlfriend|boyfriend)\b/.test(normalized);
     const hasPermitIntent = !asksForDocumentNumber
       && /\b(work permit|visa|schengen|work authorization|residence permit)\b/.test(normalized);
@@ -10882,6 +12307,7 @@ function setupPortfolioHelpBot() {
       hasOriginIntent ? "origin" : "",
       hasLocationIntent ? "location" : "",
       hasNationalityIntent ? "nationality" : "",
+      hasGenderIntent ? "gender" : "",
       hasRelationshipIntent ? "relationship" : "",
       hasPermitIntent ? "permit" : "",
       hasLanguageIntent ? "language" : ""
@@ -11418,6 +12844,7 @@ function setupPortfolioHelpBot() {
     helpBotState.moderationLocked = true;
     helpBotState.pendingInputKind = "";
     persistHelpBotState();
+    setBotPresence("warning");
     if (blockedText) {
       appendMessage({ sender: "user", text: blockedText });
     }
@@ -11778,6 +13205,7 @@ function setupPortfolioHelpBot() {
         (closeButton || panel).focus({ preventScroll: true });
       });
     } else {
+      setHelpBotPrivacyPanelOpen(false);
       const activeElement = document.activeElement;
       if (activeElement instanceof HTMLElement && root.contains(activeElement)) {
         activeElement.blur();
@@ -11798,6 +13226,7 @@ function setupPortfolioHelpBot() {
         });
       }
     }
+    syncBotPresence();
   };
 
   const setStaticCopy = () => {
@@ -11806,6 +13235,7 @@ function setupPortfolioHelpBot() {
     const inactiveField = composerMode.inputKind === "textarea" ? composerInput : composerTextarea;
     if (nudgeBadge) nudgeBadge.textContent = config.nudgeBadge;
     syncRoleChrome();
+    renderHelpBotPrivacyPanel();
     resetButton.textContent = config.reset;
     backdrop.setAttribute("aria-label", config.close);
     closeButton.setAttribute("aria-label", config.close);
@@ -11828,6 +13258,7 @@ function setupPortfolioHelpBot() {
       composerSubmit.setAttribute("aria-label", composerMode.submit);
     }
     syncInlineStudentNudge();
+    syncBotPresence();
   };
 
   const getActiveComposerField = () => (composerTextarea && !composerTextarea.hidden ? composerTextarea : composerInput);
@@ -11848,7 +13279,11 @@ function setupPortfolioHelpBot() {
     composerNote.dataset.state = state;
     const activeField = getActiveComposerField();
     if (message) {
-      activeField?.setAttribute("aria-invalid", state === "error" ? "true" : "false");
+      if (state === "error") {
+        activeField?.setAttribute("aria-invalid", "true");
+      } else {
+        activeField?.removeAttribute("aria-invalid");
+      }
     } else {
       activeField?.removeAttribute("aria-invalid");
     }
@@ -11874,6 +13309,7 @@ function setupPortfolioHelpBot() {
       if (composerTextarea) composerTextarea.value = "";
     }
     clearComposerNote();
+    syncBotPresence();
   };
 
   const showComposer = ({ focus = helpBotState.pendingInputKind !== "website-search", select = focus } = {}) => {
@@ -11893,6 +13329,10 @@ function setupPortfolioHelpBot() {
         activeField.value = draftValue || "";
       }
     }
+    if (helpBotState.pendingInputKind === "visitor-name") {
+      setComposerNote(config.askNameNotice, "info");
+    }
+    syncBotPresence();
     if (focus) {
       focusComposerInput({ select });
     }
@@ -11995,9 +13435,11 @@ function setupPortfolioHelpBot() {
     return { item, bubble };
   };
 
-  const clearTypingIndicator = () => {
+  const clearTypingIndicator = ({ syncPresence = true } = {}) => {
     activeTypingIndicator?.remove();
     activeTypingIndicator = null;
+    root.classList.remove("is-bot-busy");
+    if (syncPresence) syncBotPresence();
   };
 
   const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
@@ -12127,29 +13569,91 @@ function setupPortfolioHelpBot() {
     }
   };
 
-  const showTypingIndicator = () => {
-    clearTypingIndicator();
+  const animateBotTypeReveal = (paragraph, content = "") => {
+    if (!(paragraph instanceof HTMLElement)) return;
+    const fullText = String(content || "");
+    if (!fullText) return;
+    let index = 0;
+    const stepSize = fullText.length <= 48 ? 2 : 3;
+    const stepDelay = fullText.length <= 48 ? 22 : 16;
+    paragraph.textContent = "";
+    paragraph.classList.add("is-revealing");
+
+    const tick = () => {
+      index = Math.min(fullText.length, index + stepSize);
+      paragraph.textContent = fullText.slice(0, index);
+      if (index < fullText.length) {
+        window.setTimeout(tick, stepDelay);
+        return;
+      }
+      paragraph.textContent = "";
+      paragraph.classList.remove("is-revealing");
+      appendFormattedLine(paragraph, fullText, "bot");
+    };
+
+    window.setTimeout(tick, 34);
+  };
+
+  const shouldUseTypeReveal = ({ sender = "bot", text = "", actions = [], inlineOptions = [], cards = [] } = {}) => {
+    const normalized = String(text || "").trim();
+    return sender === "bot"
+      && normalized.length >= 18
+      && normalized.length <= 110
+      && !normalized.includes("\n")
+      && actions.length === 0
+      && inlineOptions.length === 0
+      && cards.length === 0;
+  };
+
+  const getAdaptiveReplyDelay = ({ text = "", actions = [], inlineOptions = [], cards = [], delay = 520, mode = "" } = {}) => {
+    const normalized = String(text || "").replace(/\s+/g, " ").trim();
+    const baseDelay = Math.max(180, Number(delay || 0));
+    const contentBonus = Math.min(720, normalized.length * 2.4);
+    const structureBonus = (actions.length ? 90 : 0) + (inlineOptions.length ? 70 : 0) + (cards.length ? 110 : 0);
+    const searchBonus = mode === "searching" ? 120 : 0;
+    return Math.min(1850, Math.round(baseDelay + contentBonus + structureBonus + searchBonus));
+  };
+
+  const showTypingIndicator = ({ mode = "typing", label = "" } = {}) => {
+    clearTypingIndicator({ syncPresence: false });
     if (liveRegion) liveRegion.textContent = config.typingAnnouncement;
     const { item, bubble } = createBotMessageFrame();
     bubble.classList.add("is-typing");
     bubble.setAttribute("aria-hidden", "true");
-    bubble.innerHTML = `
-      <span class="help-bot-typing" aria-hidden="true">
-        <span></span>
-        <span></span>
-        <span></span>
-      </span>
-    `;
+    const typing = document.createElement("span");
+    typing.className = "help-bot-typing";
+    typing.dataset.mode = mode;
+
+    const typingLabel = document.createElement("span");
+    typingLabel.className = "help-bot-typing-label";
+    typingLabel.textContent = label || (getBotPresenceCopy()[mode]?.text || getBotPresenceCopy().typing.text);
+
+    const dots = document.createElement("span");
+    dots.className = "help-bot-typing-dots";
+    dots.setAttribute("aria-hidden", "true");
+    for (let index = 0; index < 3; index += 1) {
+      dots.append(document.createElement("span"));
+    }
+    typing.append(typingLabel, dots);
+    bubble.append(typing);
     messages.append(item);
     activeTypingIndicator = item;
+    root.classList.add("is-bot-busy");
+    setBotPresence(mode, { text: typingLabel.textContent });
     window.requestAnimationFrame(scrollMessagesToEnd);
   };
 
-  const queueBotReply = async ({ text = "", actions = [], delay = 520, token = responseToken, inlineOptions = [], cards = [] } = {}) => {
-    showTypingIndicator();
-    await wait(delay);
+  const queueBotReply = async ({ text = "", actions = [], delay = 520, token = responseToken, inlineOptions = [], cards = [], mode = "" } = {}) => {
+    const replyMode = mode || (String(text || "").trim().length > 220 || String(text || "").includes("\n") ? "thinking" : "typing");
+    const resolvedDelay = getAdaptiveReplyDelay({ text, actions, inlineOptions, cards, delay, mode: replyMode });
+    showTypingIndicator({ mode: replyMode });
+    await wait(resolvedDelay);
     if (token !== responseToken) return;
-    clearTypingIndicator();
+    clearTypingIndicator({ syncPresence: false });
+    if (String(text || "").trim().length > 220 || cards.length || actions.length || inlineOptions.length) {
+      await wait(90);
+      if (token !== responseToken) return;
+    }
     appendMessage({ sender: "bot", text, actions, inlineOptions, cards });
   };
 
@@ -12160,9 +13664,19 @@ function setupPortfolioHelpBot() {
     const bubble = document.createElement("div");
     bubble.className = "help-bot-bubble";
 
-    text.split("\n").filter(Boolean).forEach((line) => {
+    const normalizedLines = text.split("\n").filter(Boolean);
+    const useTypeReveal = shouldUseTypeReveal({ sender, text, actions, inlineOptions, cards });
+    let revealParagraph = null;
+    let revealContent = "";
+
+    normalizedLines.forEach((line, index) => {
       const paragraph = document.createElement("p");
-      appendFormattedLine(paragraph, line, sender);
+      if (useTypeReveal && sender === "bot" && index === 0) {
+        revealParagraph = paragraph;
+        revealContent = line;
+      } else {
+        appendFormattedLine(paragraph, line, sender);
+      }
       bubble.append(paragraph);
     });
 
@@ -12297,6 +13811,14 @@ function setupPortfolioHelpBot() {
       }
       scrollMessagesToEnd({ behavior });
     });
+    if (revealParagraph && revealContent) {
+      animateBotTypeReveal(revealParagraph, revealContent);
+    }
+    if (sender === "user") {
+      setBotPresence(deriveUserPresenceState(text), { temporaryMs: 1800 });
+    } else {
+      setBotPresence(deriveBotPresenceState({ text, actions, inlineOptions, cards }), { temporaryMs: 2600 });
+    }
   };
 
   const setOptions = (items = [], prompt = config.optionPrompt) => {
@@ -12341,6 +13863,21 @@ function setupPortfolioHelpBot() {
   const getRecruiterContactCvOptions = () => withEndChatOption([
     createBadgedOption("recruiter-intake-choice", "contact", config.recruiterContactChooseContact, currentLang === "de" ? "Kontakt" : "Contact"),
     createBadgedOption("recruiter-intake-choice", "cv", config.recruiterContactChooseCv, "CV")
+  ]);
+
+  const getInlineCvRequestOptions = () => withEndChatOption([
+    createBadgedOption(
+      "cv-request-start",
+      "cv",
+      currentLang === "de" ? "CV hier anfragen" : "Request CV here",
+      "CV"
+    ),
+    createBadgedOption(
+      "cv-request-start",
+      "contact",
+      currentLang === "de" ? "Kontakt statt CV" : "Contact instead",
+      currentLang === "de" ? "Direkt" : "Direct"
+    )
   ]);
 
   const getRecruiterFollowupOptions = (nextType) => withEndChatOption([
@@ -12770,6 +14307,7 @@ function setupPortfolioHelpBot() {
     await queueBotReply({
       text: config.askName,
       delay: 420,
+      mode: "name",
       token,
       inlineOptions: withEndChatOption([])
     });
@@ -12851,6 +14389,7 @@ function setupPortfolioHelpBot() {
     appendMessage({ sender: "user", text: skipLabel });
     if (fieldId === "name") {
       helpBotState.visitorName = "";
+      helpBotState.pendingProfileEditField = "";
       responseToken += 1;
       const token = responseToken;
       clearTypingIndicator();
@@ -12859,6 +14398,7 @@ function setupPortfolioHelpBot() {
     }
     if (fieldId === "position") {
       helpBotState.visitorPosition = "";
+      helpBotState.pendingProfileEditField = "";
       responseToken += 1;
       const token = responseToken;
       clearTypingIndicator();
@@ -12866,6 +14406,7 @@ function setupPortfolioHelpBot() {
       return;
     }
     helpBotState.visitorOrganization = "";
+    helpBotState.pendingProfileEditField = "";
     responseToken += 1;
     const token = responseToken;
     clearTypingIndicator();
@@ -12883,6 +14424,94 @@ function setupPortfolioHelpBot() {
       delay: 420,
       token,
       inlineOptions: withEndChatOption([])
+    });
+    if (token !== responseToken) return;
+    showComposer();
+  };
+
+  const beginProfileFieldEdit = async (fieldId) => {
+    if (!HELP_BOT_PROFILE_EDIT_FIELDS.includes(String(fieldId || "").trim())) return;
+
+    const label = fieldId === "university"
+      ? (currentLang === "de" ? "Hochschule aendern" : "Change university")
+      : fieldId === "position"
+        ? (currentLang === "de" ? "Position aendern" : "Change position")
+        : fieldId === "organization"
+          ? (currentLang === "de" ? "Organisation aendern" : "Change organization")
+          : (currentLang === "de" ? "Namen aendern" : "Change name");
+    appendMessage({ sender: "user", text: label });
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    helpBotState.pendingProfileEditField = fieldId;
+    setOptions([], "");
+
+    if (fieldId === "name") {
+      helpBotState.visitorName = "";
+      helpBotState.pendingInputKind = "visitor-name";
+      persistHelpBotState();
+      hideComposer();
+      await queueBotReply({
+        text: currentLang === "de"
+          ? "Alles klar. Geben Sie bitte den Namen ein, den ich in diesem Chat verwenden soll."
+          : "All right. Please type the name you want me to use in this chat.",
+        delay: 320,
+        token,
+        inlineOptions: withEndChatOption([])
+      });
+      if (token !== responseToken) return;
+      showComposer();
+      return;
+    }
+
+    if (fieldId === "university") {
+      helpBotState.studentUniversity = "";
+      helpBotState.studentUniversityCandidate = null;
+      helpBotState.pendingInputKind = "student-university";
+      persistHelpBotState();
+      hideComposer();
+      await queueBotReply({
+        text: currentLang === "de"
+          ? "Alles klar. Schreiben Sie bitte Ihre korrekte Hochschule oder Universitaet noch einmal."
+          : "All right. Please type your correct university once more.",
+        delay: 320,
+        token,
+        inlineOptions: withEndChatOption([])
+      });
+      if (token !== responseToken) return;
+      showComposer();
+      return;
+    }
+
+    if (fieldId === "position") {
+      helpBotState.visitorPosition = "";
+      helpBotState.pendingInputKind = "visitor-position";
+      persistHelpBotState();
+      hideComposer();
+      await queueBotReply({
+        text: currentLang === "de"
+          ? "Alles klar. Welche Position oder Rolle soll ich stattdessen speichern?"
+          : "All right. Which position or role should I store instead?",
+        delay: 320,
+        token,
+        inlineOptions: withEndChatOption([getVisitorFieldSkipOption("position")])
+      });
+      if (token !== responseToken) return;
+      showComposer();
+      return;
+    }
+
+    helpBotState.visitorOrganization = "";
+    helpBotState.pendingInputKind = "visitor-organization";
+    persistHelpBotState();
+    hideComposer();
+    await queueBotReply({
+      text: currentLang === "de"
+        ? "Alles klar. Welche Organisation oder welches Unternehmen soll ich stattdessen speichern?"
+        : "All right. Which organization or company should I store instead?",
+      delay: 320,
+      token,
+      inlineOptions: withEndChatOption([getVisitorFieldSkipOption("organization")])
     });
     if (token !== responseToken) return;
     showComposer();
@@ -12938,6 +14567,7 @@ function setupPortfolioHelpBot() {
     clearTypingIndicator();
     helpBotState.pendingInputKind = "";
     helpBotState.studentUniversityCandidate = null;
+    helpBotState.pendingProfileEditField = "";
     persistHelpBotState();
     hideComposer();
 
@@ -12990,6 +14620,7 @@ function setupPortfolioHelpBot() {
       clearTypingIndicator();
       helpBotState.visitorName = "";
       helpBotState.pendingInputKind = "visitor-name";
+      helpBotState.pendingProfileEditField = "";
       persistHelpBotState();
       hideComposer();
       await queueBotReply({
@@ -13051,6 +14682,7 @@ function setupPortfolioHelpBot() {
     helpBotState.studentUniversity = candidate.canonical;
     helpBotState.studentUniversityCandidate = null;
     helpBotState.pendingInputKind = "";
+    helpBotState.pendingProfileEditField = "";
     persistHelpBotState();
     queueHelpBotRemoteSessionSync({ immediate: true });
     await queueBotReply({
@@ -13081,6 +14713,7 @@ function setupPortfolioHelpBot() {
     helpBotState.visitorOrganization = "";
     helpBotState.studentUniversity = "";
     helpBotState.studentUniversityCandidate = null;
+    helpBotState.pendingProfileEditField = "";
     helpBotState.remoteSessionId = "";
     helpBotState.remoteSessionPersisted = false;
     helpBotRemoteSyncSignature = "";
@@ -13529,7 +15162,7 @@ function setupPortfolioHelpBot() {
       actions: answer.actions,
       delay: 260,
       token,
-      inlineOptions: answer.inlineOptions || withEndChatOption([])
+      inlineOptions: getWebsiteSearchContinueOptions(answer.inlineOptions || [])
     });
     if (token !== responseToken) return true;
     setStaticCopy();
@@ -13553,6 +15186,37 @@ function setupPortfolioHelpBot() {
     }, token);
   };
 
+  const handleComplianceClarification = async (choiceId) => {
+    const label = choiceId === "yes"
+      ? config.searchWebsiteComplianceClarifyYes
+      : config.searchWebsiteComplianceClarifyNo;
+    appendMessage({ sender: "user", text: label });
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+
+    if (choiceId !== "yes") {
+      await queueBotReply({
+        text: currentLang === "de"
+          ? "Alles klar. Formulieren Sie die Frage bitte noch einmal etwas genauer, dann antworte ich gezielt."
+          : "All right. Please ask the question a bit more specifically, and I’ll answer it directly.",
+        delay: 240,
+        token,
+        inlineOptions: withEndChatOption([])
+      });
+      if (token !== responseToken) return;
+      showComposer();
+      return;
+    }
+
+    await answerWebsiteQuestion({
+      kind: "question",
+      label,
+      answerId: "eu-chatbot-compliance",
+      target: null
+    }, token);
+  };
+
   const handleNameClarification = async (answerId) => {
     const label = answerId === "bot-name"
       ? config.searchWebsiteNameClarifyBot
@@ -13570,7 +15234,7 @@ function setupPortfolioHelpBot() {
   };
 
   const handleIdentityClarification = async (answerId) => {
-    const assistantAnswerIds = new Set(["bot-age", "bot-origin", "bot-location", "bot-personal-status", "assistant-german-language"]);
+    const assistantAnswerIds = new Set(["bot-age", "bot-origin", "bot-location", "bot-personal-status", "bot-gender", "assistant-german-language"]);
     const label = assistantAnswerIds.has(answerId)
       ? config.searchWebsiteIdentityClarifyAssistant
       : config.searchWebsiteIdentityClarifyOwner;
@@ -13661,6 +15325,51 @@ function setupPortfolioHelpBot() {
     showComposer();
   };
 
+  const handleThemeSwitchConfirmation = async (choiceId) => {
+    const switchToLight = choiceId === "light";
+    const switchToDark = choiceId === "dark";
+    const userLabel = switchToLight
+      ? (currentLang === "de" ? "Ja, auf Hellmodus wechseln" : "Yes, switch to light mode")
+      : switchToDark
+        ? (currentLang === "de" ? "Ja, auf Dunkelmodus wechseln" : "Yes, switch to dark mode")
+        : (currentLang === "de" ? "Nein, aktuellen Modus behalten" : "No, keep the current mode");
+    appendMessage({ sender: "user", text: userLabel });
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+
+    if (switchToLight || switchToDark) {
+      const nextTheme = switchToLight ? "light" : "dark";
+      setPortfolioTheme(nextTheme);
+      await queueBotReply({
+        text: currentLang === "de"
+          ? (nextTheme === "light"
+              ? "Alles klar. Ich habe die Website jetzt auf den Hellmodus umgestellt."
+              : "Alles klar. Ich habe die Website jetzt auf den Dunkelmodus umgestellt.")
+          : (nextTheme === "light"
+              ? "All right. I switched the website to light mode now."
+              : "All right. I switched the website to dark mode now."),
+        delay: 240,
+        token,
+        inlineOptions: withEndChatOption([])
+      });
+      if (token !== responseToken) return;
+      showComposer();
+      return;
+    }
+
+    await queueBotReply({
+      text: currentLang === "de"
+        ? "Alles klar. Ich lasse die aktuelle Darstellung unveraendert."
+        : "All right. I will keep the current theme unchanged.",
+      delay: 240,
+      token,
+      inlineOptions: withEndChatOption([])
+    });
+    if (token !== responseToken) return;
+    showComposer();
+  };
+
   const runWebsiteSearch = async (query) => {
     responseToken += 1;
     const token = responseToken;
@@ -13675,10 +15384,15 @@ function setupPortfolioHelpBot() {
     persistHelpBotState();
     appendMessage({ sender: "user", text: query });
 
-    showTypingIndicator();
-    await wait(nextAttempts >= 2 ? 1250 : 850);
+    showTypingIndicator({
+      mode: "searching",
+      label: nextAttempts >= 2
+        ? (currentLang === "de" ? "Ich pruefe breitere Treffer" : "Checking broader matches")
+        : (currentLang === "de" ? "Ich suche passende Website-Stellen" : "Searching the website")
+    });
+    await wait(nextAttempts >= 2 ? 1380 : 980);
     if (token !== responseToken) return;
-    clearTypingIndicator();
+    clearTypingIndicator({ syncPresence: false });
 
     if (shouldClarifyTrainingQuestion(query)) {
       helpBotState.websiteSearchResult = null;
@@ -13690,6 +15404,22 @@ function setupPortfolioHelpBot() {
         delay: 260,
         token,
         inlineOptions: getWebsiteTrainingClarifyOptions()
+      });
+      if (token !== responseToken) return;
+      showComposer();
+      return;
+    }
+
+    if (shouldClarifyComplianceQuestion(query)) {
+      helpBotState.websiteSearchResult = null;
+      helpBotState.websiteSearchResults = [];
+      helpBotState.pendingInputKind = "website-search";
+      persistHelpBotState();
+      await queueBotReply({
+        text: config.searchWebsiteComplianceClarifyPrompt,
+        delay: 260,
+        token,
+        inlineOptions: getWebsiteComplianceClarifyOptions()
       });
       if (token !== responseToken) return;
       showComposer();
@@ -13734,7 +15464,7 @@ function setupPortfolioHelpBot() {
         actions: dynamicAnswer.actions,
         delay: 260,
         token,
-        inlineOptions: dynamicAnswer.inlineOptions || withEndChatOption([])
+        inlineOptions: getWebsiteSearchContinueOptions(dynamicAnswer.inlineOptions || [])
       });
       if (token !== responseToken) return;
       setStaticCopy();
@@ -13817,7 +15547,7 @@ function setupPortfolioHelpBot() {
         actions: answer.actions,
         delay: 260,
         token,
-        inlineOptions: withEndChatOption([])
+        inlineOptions: getWebsiteSearchContinueOptions()
       });
       if (token !== responseToken) return;
       setStaticCopy();
@@ -14348,6 +16078,48 @@ function setupPortfolioHelpBot() {
   };
 
   root.addEventListener("click", (event) => {
+    if (
+      root.classList.contains("is-privacy-open")
+      && privacySheet instanceof HTMLElement
+      && !event.target.closest(".help-bot-privacy-sheet")
+      && !event.target.closest("[data-help-bot-privacy-toggle]")
+      && !event.target.closest("[data-help-bot-close]")
+      && !event.target.closest("[data-help-bot-reset]")
+    ) {
+      setHelpBotPrivacyPanelOpen(false);
+    }
+
+    const privacyToggle = event.target.closest("[data-help-bot-privacy-toggle]");
+    if (privacyToggle) {
+      setHelpBotPrivacyPanelOpen(!root.classList.contains("is-privacy-open"));
+      return;
+    }
+
+    const privacyClose = event.target.closest("[data-help-bot-privacy-close]");
+    if (privacyClose) {
+      setHelpBotPrivacyPanelOpen(false);
+      return;
+    }
+
+    const privacyTab = event.target.closest("[data-help-bot-privacy-tab]");
+    if (privacyTab) {
+      setHelpBotPrivacySection(privacyTab.getAttribute("data-help-bot-privacy-tab") || "note");
+      return;
+    }
+
+    const privacyAction = event.target.closest("[data-help-bot-privacy-action]");
+    if (privacyAction) {
+      const actionId = privacyAction.getAttribute("data-help-bot-privacy-action") || "";
+      const target = actionId === "email" ? createHelpBotEmailTarget() : createHelpBotContactFormTarget();
+      helpBotState.lastNavTarget = target;
+      persistHelpBotState();
+      navigateHelpBotTarget(target, () => {
+        setHelpBotPrivacyPanelOpen(false);
+        setOpen(false);
+      });
+      return;
+    }
+
     const optionButton = event.target.closest("[data-help-bot-option-kind]");
     if (optionButton) {
       const kind = optionButton.getAttribute("data-help-bot-option-kind");
@@ -14411,6 +16183,27 @@ function setupPortfolioHelpBot() {
         handleRecruiterIntakeChoice(id);
       } else if (kind === "recruiter-intake-followup") {
         handleRecruiterIntakeFollowup(id);
+      } else if (kind === "cv-request-start") {
+        appendMessage({
+          sender: "user",
+          text: id === "contact"
+            ? (currentLang === "de" ? "Kontakt statt CV" : "Contact instead")
+            : (currentLang === "de" ? "CV hier anfragen" : "Request CV here")
+        });
+        responseToken += 1;
+        const token = responseToken;
+        clearTypingIndicator();
+        if (id === "contact") {
+          beginRecruiterRequestFlow("contact", {
+            fullName: getVisitorName(),
+            role: currentRoleId === "recruiter" ? "Recruiter" : currentRoleId === "student" ? "Student" : "Visitor"
+          }, token);
+        } else {
+          beginRecruiterRequestFlow("cv", {
+            fullName: getVisitorName(),
+            role: currentRoleId === "recruiter" ? "Recruiter" : currentRoleId === "student" ? "Student" : "Visitor"
+          }, token);
+        }
       } else if (kind === "website-search-result") {
         handleWebsiteSearchResult(id);
       } else if (kind === "website-search-match") {
@@ -14419,6 +16212,8 @@ function setupPortfolioHelpBot() {
         handleWebsiteSearchFallback(id);
       } else if (kind === "training-clarify") {
         handleTrainingClarification(id);
+      } else if (kind === "compliance-clarify") {
+        handleComplianceClarification(id);
       } else if (kind === "german-language-clarify") {
         handleGermanLanguageClarification(id);
       } else if (kind === "name-clarify") {
@@ -14427,6 +16222,10 @@ function setupPortfolioHelpBot() {
         handleIdentityClarification(id);
       } else if (kind === "chat-language-switch") {
         handleChatLanguageSwitch(id);
+      } else if (kind === "theme-switch-confirm") {
+        handleThemeSwitchConfirmation(id);
+      } else if (kind === "profile-edit") {
+        beginProfileFieldEdit(id);
       } else if (kind === "visitor-profile") {
         handleVisitorProfileChoice(id);
       } else if (kind === "visitor-field-skip") {
@@ -14471,6 +16270,7 @@ function setupPortfolioHelpBot() {
         const target = JSON.parse(decodeURIComponent(targetRaw));
         helpBotState.lastNavTarget = target;
         persistHelpBotState();
+        setBotPresence("done", { temporaryMs: 1600 });
         trackAnalyticsEvent("help_bot_navigation", {
           page_path: window.location.pathname,
           lang: currentLang,
@@ -14525,6 +16325,8 @@ function setupPortfolioHelpBot() {
     hideNudge({ scheduleNext: false });
   });
 
+  syncBotPresence();
+
   composerForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
     const activeComposerField = getActiveComposerField();
@@ -14538,6 +16340,24 @@ function setupPortfolioHelpBot() {
 
     if (helpBotState.pendingInputKind === "visitor-name") {
       const rawNamePromptInput = String(composerValue || "").replace(/\s+/g, " ").trim().slice(0, 120);
+      const criticalCommentAnswer = buildHelpBotCriticalCommentAnswer(rawNamePromptInput);
+      if (criticalCommentAnswer) {
+        responseToken += 1;
+        const token = responseToken;
+        clearTypingIndicator();
+        appendMessage({ sender: "user", text: rawNamePromptInput });
+        hideComposer();
+        await queueBotReply({
+          text: criticalCommentAnswer.text,
+          actions: criticalCommentAnswer.actions,
+          delay: 260,
+          token,
+          inlineOptions: withEndChatOption([getProfileEditOption("name")])
+        });
+        if (token !== responseToken) return;
+        showComposer();
+        return;
+      }
       if (isBotNameQuestionDuringNameCapture(rawNamePromptInput)) {
         responseToken += 1;
         const token = responseToken;
@@ -14578,13 +16398,35 @@ function setupPortfolioHelpBot() {
       const token = responseToken;
       clearTypingIndicator();
       setInlineNudgeOverride("");
+      const editedField = helpBotState.pendingProfileEditField;
       helpBotState.visitorName = visitorName;
       helpBotState.pendingInputKind = "";
+      helpBotState.pendingProfileEditField = "";
       persistHelpBotState();
       syncInlineStudentNudge();
       appendMessage({ sender: "user", text: visitorName });
       queueHelpBotRemoteSessionSync({ immediate: true });
       hideComposer();
+      if (editedField === "name") {
+        await queueBotReply({
+          text: currentLang === "de"
+            ? `Alles klar. Ich verwende jetzt ${visitorName} als Namen in diesem Chat.`
+            : `All right. I will use ${visitorName} as your name in this chat now.`,
+          delay: 280,
+          token
+        });
+        if (token !== responseToken) return;
+        if (currentRoleId === "student") {
+          if (getStudentUniversity()) {
+            await promptStudentNameContinue(token);
+          } else {
+            await promptForStudentUniversity(token);
+          }
+          return;
+        }
+        showComposer();
+        return;
+      }
       if (helpBotState.pendingWebsiteSearchStart) {
         helpBotState.pendingWebsiteSearchStart = false;
         persistHelpBotState();
@@ -14642,12 +16484,26 @@ function setupPortfolioHelpBot() {
       responseToken += 1;
       const token = responseToken;
       clearTypingIndicator();
+      const editedField = helpBotState.pendingProfileEditField;
       helpBotState.visitorPosition = visitorPosition;
       helpBotState.pendingInputKind = "";
+      helpBotState.pendingProfileEditField = "";
       persistHelpBotState();
       appendMessage({ sender: "user", text: visitorPosition });
       queueHelpBotRemoteSessionSync({ immediate: true });
       hideComposer();
+      if (editedField === "position") {
+        await queueBotReply({
+          text: currentLang === "de"
+            ? `Alles klar. Ich habe Ihre Position jetzt als ${visitorPosition} aktualisiert.`
+            : `All right. I updated your position to ${visitorPosition}.`,
+          delay: 280,
+          token
+        });
+        if (token !== responseToken) return;
+        showComposer();
+        return;
+      }
       await promptVisitorProfileField("organization", token);
       return;
     }
@@ -14805,6 +16661,40 @@ function setupPortfolioHelpBot() {
       return;
     }
 
+    if (helpBotState.pendingInputKind === "visitor-organization") {
+      const visitorOrganization = normalizeVisitorOrganization(composerValue);
+      if (!visitorOrganization) {
+        focusComposerInput();
+        return;
+      }
+
+      responseToken += 1;
+      const token = responseToken;
+      clearTypingIndicator();
+      const editedField = helpBotState.pendingProfileEditField;
+      helpBotState.visitorOrganization = visitorOrganization;
+      helpBotState.pendingInputKind = "";
+      helpBotState.pendingProfileEditField = "";
+      persistHelpBotState();
+      appendMessage({ sender: "user", text: visitorOrganization });
+      queueHelpBotRemoteSessionSync({ immediate: true });
+      hideComposer();
+      if (editedField === "organization") {
+        await queueBotReply({
+          text: currentLang === "de"
+            ? `Alles klar. Ich habe Ihre Organisation jetzt als ${visitorOrganization} aktualisiert.`
+            : `All right. I updated your organization to ${visitorOrganization}.`,
+          delay: 280,
+          token
+        });
+        if (token !== responseToken) return;
+        showComposer();
+        return;
+      }
+      await continueVisitorAfterProfile(token);
+      return;
+    }
+
     if (helpBotState.pendingInputKind !== "student-university") return;
 
     const universityName = normalizeUniversityName(composerValue);
@@ -14817,8 +16707,12 @@ function setupPortfolioHelpBot() {
     const token = responseToken;
     clearTypingIndicator();
     const candidate = inferUniversityCandidate(universityName);
+    const editedField = helpBotState.pendingProfileEditField;
     helpBotState.studentUniversityCandidate = candidate;
     helpBotState.pendingInputKind = "";
+    if (editedField !== "university") {
+      helpBotState.pendingProfileEditField = "";
+    }
     persistHelpBotState();
     appendMessage({ sender: "user", text: universityName });
     hideComposer();
@@ -14833,6 +16727,10 @@ function setupPortfolioHelpBot() {
   document.addEventListener("keydown", (event) => {
     if (!root.classList.contains("is-open")) return;
     if (event.key === "Escape") {
+      if (root.classList.contains("is-privacy-open")) {
+        setHelpBotPrivacyPanelOpen(false);
+        return;
+      }
       setOpen(false);
       return;
     }

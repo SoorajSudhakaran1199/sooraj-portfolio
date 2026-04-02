@@ -13170,6 +13170,7 @@ body.help-bot-open {
   display: grid;
   justify-items: end;
   gap: 0.56rem;
+  isolation: isolate;
 }
 
 .help-bot.is-open .help-bot-dock {
@@ -13183,6 +13184,7 @@ body.help-bot-open {
 
 .help-bot-nudge {
   position: relative;
+  z-index: 3;
   max-width: 258px;
   display: flex;
   align-items: flex-start;
@@ -13236,11 +13238,11 @@ body.help-bot-open {
 }
 
 .help-bot.is-open.is-inline-nudge-visible .help-bot-nudge {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-  transform: translateY(0) scale(1);
-  animation: helpBotInlineGreeting 900ms cubic-bezier(0.22, 1, 0.36, 1);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(10px) scale(0.94);
+  animation: none;
 }
 
 .help-bot.is-open.is-inline-nudge-visible .help-bot-launcher-core {
@@ -13373,12 +13375,111 @@ body.help-bot-open {
   filter: drop-shadow(0 20px 30px rgba(8, 14, 24, 0.24));
 }
 
+.help-bot-launcher-presence[hidden] {
+  display: none !important;
+}
+
+.help-bot-launcher-presence {
+  position: absolute;
+  right: 0.6rem;
+  bottom: 7.2rem;
+  z-index: 2;
+  display: grid;
+  gap: 0.22rem;
+  width: min(162px, calc(100vw - 7.4rem));
+  max-width: min(162px, calc(100vw - 7.4rem));
+  padding: 0.48rem 0.62rem 0.5rem;
+  border-radius: 16px;
+  border: 1px solid rgba(89, 226, 188, 0.2);
+  background:
+    radial-gradient(circle at top right, rgba(89, 226, 188, 0.13), transparent 36%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.035)),
+    rgba(10, 18, 31, 0.95);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 16px 28px rgba(5, 11, 21, 0.24);
+  backdrop-filter: blur(16px);
+  pointer-events: none;
+  transform-origin: bottom right;
+}
+
+.help-bot-launcher-presence::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(120deg, transparent 10%, rgba(130, 217, 208, 0.1) 50%, transparent 90%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.help-bot-launcher-presence-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 1.06rem;
+  padding: 0 0.42rem;
+  border-radius: 999px;
+  border: 1px solid rgba(89, 226, 188, 0.18);
+  background: rgba(89, 226, 188, 0.08);
+  color: #8fe7dd;
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.help-bot-launcher-presence-copy {
+  display: grid;
+  gap: 0.16rem;
+  min-width: 0;
+}
+
+.help-bot-launcher-presence-greeting {
+  color: rgba(236, 245, 255, 0.94);
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.22;
+}
+
+.help-bot-launcher-presence-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+  min-width: 0;
+  color: rgba(201, 217, 235, 0.8);
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.24;
+}
+
+.help-bot-launcher-presence-status-emoji {
+  flex: 0 0 auto;
+  font-size: 0.8rem;
+}
+
+.help-bot-launcher-presence-status-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.help-bot.is-nudge-visible:not(.is-open) .help-bot-launcher-presence {
+  display: none !important;
+}
+
+.help-bot.is-nudge-visible .help-bot-launcher-presence {
+  display: none !important;
+}
+
 .help-bot-panel {
   position: absolute;
   right: 0;
-  bottom: calc(100% + 1rem);
+  bottom: calc(100% + 0.55rem);
   width: var(--help-bot-panel-width);
-  max-height: min(76vh, 720px);
+  max-height: min(70vh, calc(100vh - 8.25rem), 680px);
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   border-radius: 32px;
@@ -13441,15 +13542,29 @@ body.help-bot-open {
 
 .help-bot-panel-head {
   position: relative;
-  z-index: 1;
+  z-index: 5;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
   padding: 1.18rem 1.18rem 1.02rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  background: linear-gradient(180deg, rgba(6, 12, 22, 0.28), rgba(6, 12, 22, 0.12));
+  border-bottom: 1px solid rgba(122, 214, 196, 0.12);
+  background:
+    radial-gradient(circle at top right, rgba(89, 226, 188, 0.14), transparent 34%),
+    linear-gradient(180deg, rgba(18, 40, 52, 0.94), rgba(14, 30, 42, 0.9));
   backdrop-filter: blur(14px);
+}
+
+.help-bot-panel-head::after {
+  content: "";
+  position: absolute;
+  left: 1.15rem;
+  right: 1.15rem;
+  bottom: -1px;
+  height: 24px;
+  background: linear-gradient(180deg, rgba(89, 226, 188, 0.08), rgba(89, 226, 188, 0));
+  pointer-events: none;
+  opacity: 0.85;
 }
 
 .help-bot-panel-brand {
@@ -13457,9 +13572,30 @@ body.help-bot-open {
   align-items: flex-start;
   gap: 0.88rem;
   min-width: 0;
+  flex: 1 1 auto;
+}
+
+.help-bot-panel-mark-shell {
+  position: relative;
+  display: inline-grid;
+  align-items: start;
+  z-index: 1;
+}
+
+.help-bot-panel-mark-shell::after {
+  content: "";
+  position: absolute;
+  inset: 0.45rem;
+  border-radius: 18px;
+  background: radial-gradient(circle, rgba(89, 226, 188, 0.26), rgba(89, 226, 188, 0));
+  filter: blur(16px);
+  opacity: 0.5;
+  transition: opacity 220ms ease, transform 220ms ease, background 220ms ease;
+  z-index: -1;
 }
 
 .help-bot-panel-mark {
+  position: relative;
   flex: 0 0 auto;
   width: 56px;
   height: 56px;
@@ -13472,15 +13608,76 @@ body.help-bot-open {
     inset 0 1px 0 rgba(255, 255, 255, 0.08),
     0 14px 26px rgba(7, 14, 24, 0.16);
   overflow: hidden;
+  transition: border-color 220ms ease, box-shadow 220ms ease, transform 220ms ease;
 }
 
 .help-bot-art-panel {
   width: 42px;
 }
 
+.help-bot-panel-presence {
+  position: absolute;
+  top: -0.25rem;
+  left: calc(100% - 0.5rem);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.34rem;
+  min-height: 28px;
+  max-width: 188px;
+  padding: 0.34rem 0.58rem;
+  border-radius: 999px;
+  border: 1px solid rgba(128, 184, 255, 0.14);
+  background: rgba(9, 18, 31, 0.92);
+  color: rgba(225, 244, 255, 0.92);
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  box-shadow: 0 14px 32px rgba(5, 11, 20, 0.22);
+  backdrop-filter: blur(14px);
+  transform-origin: left center;
+  animation: helpBotPresenceIn 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 2;
+}
+
+.help-bot-panel-presence[hidden],
+.help-bot-panel-status-chip[hidden] {
+  display: none !important;
+}
+
+.help-bot-panel-presence,
+.help-bot-panel-status-chip,
+.help-bot-panel-greeting {
+  display: none !important;
+}
+
+.help-bot-panel-presence-emoji,
+.help-bot-panel-status-emoji {
+  flex: 0 0 auto;
+  font-size: 0.78rem;
+}
+
+.help-bot-panel-presence-text,
+.help-bot-panel-status-text {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .help-bot-panel-copy {
   min-width: 0;
   max-width: 27ch;
+  display: grid;
+  gap: 0.18rem;
+}
+
+.help-bot-panel-topline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .help-bot-panel-badge {
@@ -13493,6 +13690,26 @@ body.help-bot-open {
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.help-bot-panel-status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.36rem;
+  min-height: 1.42rem;
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid rgba(89, 226, 188, 0.16);
+  background:
+    radial-gradient(circle at top right, rgba(89, 226, 188, 0.16), transparent 44%),
+    rgba(255, 255, 255, 0.05);
+  color: rgba(226, 244, 255, 0.92);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  max-width: 100%;
+  min-width: 0;
 }
 
 .help-bot-panel-greeting {
@@ -13520,9 +13737,17 @@ body.help-bot-open {
 }
 
 .help-bot-panel-actions {
+  position: relative;
+  z-index: 6;
   display: flex;
   align-items: center;
   gap: 0.45rem;
+  flex: 0 0 auto;
+}
+
+.help-bot-panel-badge,
+.help-bot-panel-status-text {
+  min-width: 0;
 }
 
 .help-bot-head-btn {
@@ -13560,6 +13785,241 @@ body.help-bot-open {
   line-height: 1;
 }
 
+.help-bot-head-btn-info {
+  width: 42px;
+  min-width: 42px;
+  padding-inline: 0;
+  font-size: 0;
+  letter-spacing: 0;
+}
+
+.help-bot-head-btn-info > span {
+  display: inline-grid;
+  place-items: center;
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: 999px;
+  border: 1px solid rgba(130, 217, 208, 0.28);
+  color: #dff8f4;
+  font-size: 0.75rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.help-bot.is-privacy-open .help-bot-head-btn-info {
+  border-color: rgba(89, 226, 188, 0.28);
+  background:
+    radial-gradient(circle at top right, rgba(89, 226, 188, 0.18), transparent 44%),
+    rgba(89, 226, 188, 0.12);
+}
+
+.help-bot-privacy-sheet {
+  position: absolute;
+  top: 5.35rem;
+  right: 0.95rem;
+  width: min(390px, calc(100% - 1.9rem));
+  max-height: min(62vh, 540px);
+  z-index: 4;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  gap: 0.95rem;
+  padding: 1.08rem 1.08rem 1rem;
+  border: 1px solid rgba(121, 211, 194, 0.16);
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at top right, rgba(89, 226, 188, 0.12), transparent 24%),
+    radial-gradient(circle at top left, rgba(128, 184, 255, 0.08), transparent 28%),
+    linear-gradient(180deg, rgba(10, 18, 32, 0.985), rgba(8, 15, 28, 0.985));
+  backdrop-filter: blur(20px);
+  box-shadow:
+    0 24px 44px rgba(5, 11, 20, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  overflow: hidden;
+}
+
+.help-bot-privacy-sheet[hidden] {
+  display: none !important;
+}
+
+.help-bot-privacy-sheet-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.85rem;
+}
+
+.help-bot-privacy-sheet-copy {
+  min-width: 0;
+  display: grid;
+  gap: 0.18rem;
+}
+
+.help-bot-privacy-sheet-kicker {
+  display: inline-flex;
+  margin-bottom: 0.18rem;
+  color: #82d9d0;
+  font-size: 0.67rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.help-bot-privacy-sheet-title {
+  display: block;
+  color: var(--text);
+  font-size: 1.04rem;
+  line-height: 1.22;
+  letter-spacing: 0.01em;
+}
+
+.help-bot-privacy-sheet-lead {
+  margin: 0.22rem 0 0;
+  color: var(--text-soft);
+  font-size: 0.76rem;
+  line-height: 1.62;
+}
+
+.help-bot-privacy-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  min-height: 40px;
+  border-radius: 14px;
+  border: 1px solid rgba(128, 184, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  font: inherit;
+  font-size: 1.06rem;
+  cursor: pointer;
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+}
+
+.help-bot-privacy-close:hover,
+.help-bot-privacy-close:focus-visible {
+  outline: none;
+  transform: translateY(-1px);
+  border-color: rgba(89, 226, 188, 0.24);
+  background: rgba(89, 226, 188, 0.1);
+}
+
+.help-bot-privacy-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.52rem;
+}
+
+.help-bot-privacy-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0.7rem 0.78rem;
+  border-radius: 16px;
+  border: 1px solid rgba(128, 184, 255, 0.12);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.03)),
+    rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+}
+
+.help-bot-privacy-tab:hover,
+.help-bot-privacy-tab:focus-visible,
+.help-bot-privacy-tab.is-active {
+  outline: none;
+  transform: translateY(-1px);
+  border-color: rgba(89, 226, 188, 0.24);
+  background:
+    radial-gradient(circle at top right, rgba(89, 226, 188, 0.14), transparent 42%),
+    linear-gradient(180deg, rgba(89, 226, 188, 0.12), rgba(89, 226, 188, 0.08));
+}
+
+.help-bot-privacy-sheet-body {
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-right: 0.24rem;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(130, 217, 208, 0.24) transparent;
+}
+
+.help-bot-privacy-sheet-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.help-bot-privacy-sheet-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.help-bot-privacy-sheet-body::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(130, 217, 208, 0.3), rgba(128, 184, 255, 0.18));
+}
+
+.help-bot-privacy-section {
+  min-height: auto;
+}
+
+.help-bot-privacy-facts,
+.help-bot-privacy-copy-stack {
+  display: grid;
+  gap: 0.78rem;
+}
+
+.help-bot-privacy-fact {
+  padding: 0.86rem 0.94rem;
+  border-radius: 20px;
+  border: 1px solid rgba(89, 226, 188, 0.1);
+  background:
+    radial-gradient(circle at top right, rgba(89, 226, 188, 0.07), transparent 44%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.025)),
+    rgba(255, 255, 255, 0.025);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 8px 18px rgba(5, 11, 20, 0.12);
+}
+
+.help-bot-privacy-fact-label,
+.help-bot-privacy-section-heading {
+  display: block;
+  margin-bottom: 0.3rem;
+  color: #f1fbff;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.015em;
+}
+
+.help-bot-privacy-fact-value,
+.help-bot-privacy-section-text {
+  margin: 0;
+  color: rgba(203, 219, 236, 0.88);
+  font-size: 0.76rem;
+  line-height: 1.68;
+}
+
+.help-bot-privacy-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.62rem;
+  padding-top: 0.78rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  background: linear-gradient(180deg, rgba(8, 16, 28, 0), rgba(8, 16, 28, 0.18));
+}
+
+.help-bot-privacy-action-btn {
+  width: 100%;
+  min-height: 44px;
+}
+
 .help-bot-messages {
   position: relative;
   z-index: 1;
@@ -13567,10 +14027,12 @@ body.help-bot-open {
   gap: 1rem;
   min-height: 0;
   padding: 1.05rem 1.14rem 1.08rem;
+  scroll-behavior: smooth;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.018), rgba(255, 255, 255, 0)),
-    radial-gradient(circle at top left, rgba(89, 226, 188, 0.05), transparent 26%),
-    radial-gradient(circle at 82% 12%, rgba(128, 184, 255, 0.06), transparent 22%);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.012), rgba(255, 255, 255, 0)),
+    radial-gradient(circle at top left, rgba(89, 226, 188, 0.035), transparent 22%),
+    radial-gradient(circle at 82% 12%, rgba(128, 184, 255, 0.045), transparent 20%),
+    linear-gradient(180deg, rgba(9, 18, 31, 0.9), rgba(8, 15, 27, 0.95));
   overflow: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
@@ -13597,9 +14059,9 @@ body.help-bot-open {
   position: relative;
   z-index: 1;
   padding: 0.94rem 1.12rem 1.02rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid rgba(124, 169, 214, 0.14);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.045)),
+    linear-gradient(180deg, rgba(18, 28, 42, 0.96), rgba(15, 24, 36, 0.98)),
     rgba(255, 255, 255, 0.02);
   backdrop-filter: blur(18px);
 }
@@ -13679,6 +14141,25 @@ body.help-bot-open {
   box-shadow: 0 12px 24px rgba(6, 13, 24, 0.18);
 }
 
+.help-bot.is-bot-busy .help-bot-composer-submit {
+  transform: none;
+  opacity: 0.76;
+  filter: saturate(0.88);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.help-bot-composer-warning {
+  margin: 0.58rem 0 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: rgba(203, 219, 236, 0.62);
+  font-size: 0.67rem;
+  font-weight: 500;
+  line-height: 1.42;
+  letter-spacing: 0.01em;
+}
+
 .help-bot-composer-note {
   margin: 0.58rem 0 0;
   color: #f1b4b4;
@@ -13695,7 +14176,7 @@ body.help-bot-open {
   align-items: flex-end;
   gap: 0.68rem;
   opacity: 0;
-  animation: helpBotMessageRowIn 320ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: helpBotMessageRowIn 420ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .help-bot-message.is-user {
@@ -13714,21 +14195,23 @@ body.help-bot-open {
   flex: 0 0 auto;
   display: inline-grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  border: 1px solid rgba(89, 226, 188, 0.18);
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid rgba(89, 226, 188, 0.14);
   background:
-    radial-gradient(circle at top right, rgba(89, 226, 188, 0.16), transparent 40%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+    radial-gradient(circle at 32% 28%, rgba(89, 226, 188, 0.18), transparent 42%),
+    linear-gradient(180deg, rgba(13, 24, 40, 0.94), rgba(10, 18, 31, 0.98));
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 12px 24px rgba(7, 14, 24, 0.12);
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 10px 22px rgba(7, 14, 24, 0.12);
   overflow: hidden;
+  transition: border-color 220ms ease, box-shadow 220ms ease, transform 220ms ease;
 }
 
 .help-bot-art-avatar {
-  width: 32px;
+  width: 25px;
+  filter: drop-shadow(0 4px 8px rgba(6, 13, 24, 0.16));
 }
 
 .help-bot-message-name {
@@ -13743,21 +14226,21 @@ body.help-bot-open {
 .help-bot-bubble {
   position: relative;
   max-width: 100%;
-  padding: 0.96rem 1rem;
+  padding: 0.98rem 1.02rem;
   border-radius: 24px;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.04),
-    0 18px 34px rgba(6, 13, 24, 0.18);
-  animation: helpBotMessageIn 260ms cubic-bezier(0.22, 1, 0.36, 1);
+    0 18px 34px rgba(6, 13, 24, 0.16);
+  animation: helpBotMessageIn 320ms cubic-bezier(0.22, 1, 0.36, 1);
   overflow: hidden;
 }
 
 .help-bot-message.is-bot .help-bot-bubble {
   border: 1px solid rgba(89, 226, 188, 0.14);
   background:
-    radial-gradient(circle at top right, rgba(89, 226, 188, 0.14), transparent 42%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03)),
-    rgba(255, 255, 255, 0.035);
+    radial-gradient(circle at top right, rgba(89, 226, 188, 0.16), transparent 38%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.028)),
+    rgba(255, 255, 255, 0.03);
 }
 
 .help-bot-message.is-bot .help-bot-bubble::after {
@@ -13770,52 +14253,34 @@ body.help-bot-open {
 }
 
 .help-bot-message.is-bot .help-bot-bubble::before {
-  content: "";
-  position: absolute;
-  left: -0.38rem;
-  bottom: 1rem;
-  width: 0.9rem;
-  height: 0.9rem;
-  border-left: 1px solid rgba(89, 226, 188, 0.12);
-  border-bottom: 1px solid rgba(89, 226, 188, 0.12);
-  background: rgba(17, 27, 43, 0.96);
-  transform: rotate(45deg);
+  content: none;
 }
 
 .help-bot-message.is-user .help-bot-bubble {
   border: 1px solid rgba(128, 184, 255, 0.16);
   background:
-    linear-gradient(135deg, rgba(89, 226, 188, 0.2), rgba(128, 184, 255, 0.22)),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)),
-    rgba(255, 255, 255, 0.08);
-  border-bottom-right-radius: 12px;
+    linear-gradient(135deg, rgba(89, 226, 188, 0.16), rgba(128, 184, 255, 0.18)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)),
+    rgba(255, 255, 255, 0.065);
+  border-bottom-right-radius: 14px;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 18px 36px rgba(7, 14, 24, 0.16);
+    0 14px 28px rgba(7, 14, 24, 0.14);
 }
 
 .help-bot-message.is-user .help-bot-bubble::before {
-  content: "";
-  position: absolute;
-  right: -0.38rem;
-  bottom: 0.88rem;
-  width: 0.9rem;
-  height: 0.9rem;
-  border-right: 1px solid rgba(128, 184, 255, 0.14);
-  border-bottom: 1px solid rgba(128, 184, 255, 0.14);
-  background: rgba(31, 50, 78, 0.96);
-  transform: rotate(-45deg);
+  content: none;
 }
 
 @media (min-width: 1180px) {
   .help-bot {
-    right: 1.25rem;
-    bottom: 1.25rem;
+    right: 1.1rem;
+    bottom: 1rem;
   }
 
   .help-bot-panel {
     width: min(560px, calc(100vw - 2.5rem));
-    max-height: min(82vh, 780px);
+    max-height: min(66vh, calc(100vh - 7.75rem), 640px);
     border-radius: 32px;
   }
 
@@ -13852,11 +14317,55 @@ body.help-bot-open {
 
 @media (min-width: 1540px) {
   .help-bot-panel {
-    width: min(600px, calc(100vw - 3rem));
+    width: min(620px, calc(100vw - 3rem));
+    max-height: min(68vh, calc(100vh - 7.75rem), 700px);
+  }
+
+  .help-bot-panel-copy {
+    max-width: 38ch;
+  }
+
+  .help-bot-panel-presence {
+    max-width: 220px;
   }
 
   .help-bot-message-stack {
     max-width: min(92%, 456px);
+  }
+}
+
+@media (min-width: 1920px) {
+  .help-bot {
+    right: 1.35rem;
+    bottom: 1.15rem;
+  }
+
+  .help-bot-panel {
+    width: min(640px, calc(100vw - 3.4rem));
+    max-height: min(70vh, calc(100vh - 7.75rem), 740px);
+  }
+
+  .help-bot-panel-copy {
+    max-width: 40ch;
+  }
+
+  .help-bot-messages {
+    padding: 1.12rem 1.24rem 1.16rem;
+  }
+
+  .help-bot-composer,
+  .help-bot-options-shell {
+    padding-inline: 1.24rem;
+  }
+}
+
+@media (min-width: 1180px) and (max-height: 760px) {
+  .help-bot-panel {
+    max-height: min(62vh, calc(100vh - 7.2rem), 580px);
+  }
+
+  .help-bot-panel-head {
+    padding: 1rem 1rem 0.88rem;
   }
 }
 
@@ -13880,18 +14389,30 @@ body.help-bot-open {
 .help-bot-bubble.is-typing {
   display: inline-flex;
   align-items: center;
-  min-width: 94px;
-  min-height: 58px;
-  padding-inline: 1rem;
+  min-width: 144px;
+  min-height: 66px;
+  padding-inline: 1.02rem;
 }
 
 .help-bot-typing {
+  display: grid;
+  gap: 0.38rem;
+}
+
+.help-bot-typing-label {
+  color: rgba(220, 239, 250, 0.86);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.help-bot-typing-dots {
   display: inline-flex;
   align-items: center;
   gap: 0.38rem;
 }
 
-.help-bot-typing span {
+.help-bot-typing-dots span {
   width: 0.46rem;
   height: 0.46rem;
   border-radius: 999px;
@@ -13900,12 +14421,92 @@ body.help-bot-open {
   animation: helpBotTypingDots 1.05s ease-in-out infinite;
 }
 
-.help-bot-typing span:nth-child(2) {
+.help-bot-typing-dots span:nth-child(2) {
   animation-delay: 0.16s;
 }
 
-.help-bot-typing span:nth-child(3) {
+.help-bot-typing-dots span:nth-child(3) {
   animation-delay: 0.32s;
+}
+
+.help-bot-typing[data-mode="searching"] .help-bot-typing-label {
+  color: #9ce8dc;
+}
+
+.help-bot-typing[data-mode="thinking"] .help-bot-typing-label {
+  color: #c6d8ff;
+}
+
+.help-bot-bubble p.is-revealing {
+  opacity: 0.94;
+  letter-spacing: 0.01em;
+}
+
+.help-bot[data-help-bot-mood="ready"] .help-bot-panel-mark,
+.help-bot[data-help-bot-mood="done"] .help-bot-panel-mark {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 16px 28px rgba(7, 14, 24, 0.16),
+    0 0 0 1px rgba(89, 226, 188, 0.08);
+}
+
+.help-bot[data-help-bot-mood="searching"] .help-bot-panel-mark-shell::after {
+  background: linear-gradient(90deg, rgba(89, 226, 188, 0), rgba(89, 226, 188, 0.3), rgba(89, 226, 188, 0));
+  animation: helpBotStatusScan 1.8s linear infinite;
+}
+
+.help-bot[data-help-bot-mood="warning"] .help-bot-panel-mark,
+.help-bot[data-help-bot-mood="warning"] .help-bot-message-avatar {
+  border-color: rgba(255, 110, 110, 0.3);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 0 0 1px rgba(255, 110, 110, 0.12),
+    0 14px 28px rgba(7, 14, 24, 0.18);
+}
+
+.help-bot[data-help-bot-mood="warning"] .help-bot-panel-presence,
+.help-bot[data-help-bot-mood="warning"] .help-bot-panel-status-chip {
+  border-color: rgba(255, 110, 110, 0.24);
+  background:
+    radial-gradient(circle at top right, rgba(255, 110, 110, 0.2), transparent 42%),
+    rgba(38, 14, 18, 0.92);
+}
+
+.help-bot[data-help-bot-mood="warning"] .help-bot-launcher-presence {
+  border-color: rgba(255, 110, 110, 0.22);
+  background:
+    radial-gradient(circle at top right, rgba(255, 110, 110, 0.16), transparent 38%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.025)),
+    rgba(33, 14, 18, 0.94);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 16px 28px rgba(16, 7, 10, 0.24);
+}
+
+.help-bot[data-help-bot-mood="name"] .help-bot-panel-mark-shell::after,
+.help-bot[data-help-bot-mood="listening"] .help-bot-panel-mark-shell::after {
+  transform: scale(1.04);
+  opacity: 0.66;
+}
+
+.help-bot[data-help-bot-mood="name"] .help-bot-launcher-presence,
+.help-bot[data-help-bot-mood="listening"] .help-bot-launcher-presence {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 18px 34px rgba(5, 11, 21, 0.28),
+    0 0 0 1px rgba(89, 226, 188, 0.08);
+}
+
+.help-bot[data-help-bot-mood="thinking"] .help-bot-panel-mark-shell::after,
+.help-bot[data-help-bot-mood="guiding"] .help-bot-panel-mark-shell::after {
+  animation: helpBotStatusPulse 2.2s ease-in-out infinite;
+}
+
+.help-bot[data-help-bot-mood="thinking"] .help-bot-launcher-presence::after,
+.help-bot[data-help-bot-mood="guiding"] .help-bot-launcher-presence::after,
+.help-bot[data-help-bot-mood="searching"] .help-bot-launcher-presence::after {
+  opacity: 0.9;
+  animation: helpBotStatusScan 1.8s linear infinite;
 }
 
 .help-bot-message-actions {
@@ -13939,11 +14540,27 @@ body.help-bot-open {
   font: inherit;
   color: inherit;
   cursor: pointer;
+  position: relative;
   transition:
     transform 180ms ease,
     border-color 180ms ease,
     background 180ms ease,
-    box-shadow 180ms ease;
+    box-shadow 180ms ease,
+    filter 180ms ease;
+}
+
+.help-bot-card.is-interactive::after {
+  content: "";
+  position: absolute;
+  right: 0.92rem;
+  top: 50%;
+  width: 0.44rem;
+  height: 0.44rem;
+  border-top: 2px solid rgba(143, 231, 221, 0.78);
+  border-right: 2px solid rgba(143, 231, 221, 0.78);
+  transform: translateY(-50%) rotate(45deg);
+  opacity: 0.64;
+  transition: transform 180ms ease, opacity 180ms ease;
 }
 
 .help-bot-card.is-interactive:hover,
@@ -13955,7 +14572,19 @@ body.help-bot-open {
     rgba(255, 255, 255, 0.04);
   box-shadow: 0 16px 28px rgba(6, 13, 24, 0.2);
   transform: translateY(-2px);
+  filter: saturate(1.04);
   outline: none;
+}
+
+.help-bot-card.is-interactive:hover::after,
+.help-bot-card.is-interactive:focus-visible::after {
+  opacity: 1;
+  transform: translate(2px, -50%) rotate(45deg);
+}
+
+.help-bot-card.is-interactive:active {
+  transform: translateY(0);
+  box-shadow: 0 10px 18px rgba(6, 13, 24, 0.16);
 }
 
 .help-bot-card-badge,
@@ -14151,6 +14780,7 @@ body.help-bot-open {
 .help-bot[data-help-bot-role="recruiter"] .help-bot-panel,
 .help-bot[data-help-bot-role="hiringManager"] .help-bot-panel {
   width: min(548px, calc(100vw - 1.5rem));
+  max-height: min(64vh, calc(100vh - 8rem), 620px);
   border-color: rgba(255, 194, 104, 0.16);
   background:
     linear-gradient(180deg, rgba(7, 11, 18, 0.98), rgba(9, 15, 24, 0.985)),
@@ -14162,8 +14792,24 @@ body.help-bot-open {
     0 36px 78px rgba(3, 7, 14, 0.52);
 }
 
+@media (min-width: 1540px) {
+  .help-bot[data-help-bot-role="recruiter"] .help-bot-panel,
+  .help-bot[data-help-bot-role="hiringManager"] .help-bot-panel {
+    max-height: min(66vh, calc(100vh - 8rem), 660px);
+  }
+}
+
+@media (min-width: 1920px) {
+  .help-bot[data-help-bot-role="recruiter"] .help-bot-panel,
+  .help-bot[data-help-bot-role="hiringManager"] .help-bot-panel {
+    max-height: min(68vh, calc(100vh - 8rem), 700px);
+  }
+}
+
 .help-bot[data-help-bot-role="recruiter"] .help-bot-panel-head,
 .help-bot[data-help-bot-role="hiringManager"] .help-bot-panel-head {
+  gap: 0.82rem;
+  padding: 0.9rem 0.96rem 0.78rem;
   border-bottom-color: rgba(255, 194, 104, 0.12);
   background:
     linear-gradient(180deg, rgba(18, 24, 34, 0.92), rgba(10, 14, 22, 0.68));
@@ -14187,7 +14833,7 @@ body.help-bot-open {
 
 .help-bot[data-help-bot-role="recruiter"] .help-bot-panel-title,
 .help-bot[data-help-bot-role="hiringManager"] .help-bot-panel-title {
-  font-size: 1.12rem;
+  font-size: 1.02rem;
   letter-spacing: 0.01em;
 }
 
@@ -14195,10 +14841,15 @@ body.help-bot-open {
 .help-bot[data-help-bot-role="hiringManager"] .help-bot-panel-lead {
   color: rgba(226, 234, 242, 0.8);
   max-width: 38ch;
+  margin-top: 0.2rem;
+  font-size: 0.76rem;
+  line-height: 1.48;
 }
 
 .help-bot[data-help-bot-role="recruiter"] .help-bot-messages,
 .help-bot[data-help-bot-role="hiringManager"] .help-bot-messages {
+  gap: 0.88rem;
+  padding: 0.92rem 0.96rem 0.94rem;
   background:
     linear-gradient(180deg, rgba(255, 194, 104, 0.03), transparent 16%),
     radial-gradient(circle at top left, rgba(255, 194, 104, 0.07), transparent 26%),
@@ -14230,9 +14881,7 @@ body.help-bot-open {
 
 .help-bot[data-help-bot-role="recruiter"] .help-bot-message.is-bot .help-bot-bubble::before,
 .help-bot[data-help-bot-role="hiringManager"] .help-bot-message.is-bot .help-bot-bubble::before {
-  border-left-color: rgba(255, 194, 104, 0.12);
-  border-bottom-color: rgba(255, 194, 104, 0.12);
-  background: rgba(18, 24, 35, 0.98);
+  content: none;
 }
 
 .help-bot[data-help-bot-role="recruiter"] .help-bot-message.is-user .help-bot-bubble,
@@ -14263,6 +14912,16 @@ body.help-bot-open {
   background:
     radial-gradient(circle at top right, rgba(255, 194, 104, 0.14), transparent 42%),
     rgba(255, 255, 255, 0.038);
+  box-shadow:
+    0 18px 30px rgba(3, 7, 14, 0.24),
+    0 0 0 1px rgba(255, 194, 104, 0.08);
+  transform: translateY(-2px) scale(1.01);
+}
+
+.help-bot[data-help-bot-role="recruiter"] .help-bot-card.is-interactive::after,
+.help-bot[data-help-bot-role="hiringManager"] .help-bot-card.is-interactive::after {
+  border-top-color: rgba(255, 208, 138, 0.88);
+  border-right-color: rgba(255, 208, 138, 0.88);
 }
 
 .help-bot[data-help-bot-role="recruiter"] .help-bot-card-badge,
@@ -14296,7 +14955,37 @@ body.help-bot-open {
 .help-bot[data-help-bot-role="hiringManager"] .help-bot-composer,
 .help-bot[data-help-bot-role="recruiter"] .help-bot-options-shell,
 .help-bot[data-help-bot-role="hiringManager"] .help-bot-options-shell {
+  padding: 0.72rem 0.96rem 0.8rem;
   border-top-color: rgba(255, 194, 104, 0.12);
+}
+
+.help-bot[data-help-bot-role="recruiter"] .help-bot-composer-form,
+.help-bot[data-help-bot-role="hiringManager"] .help-bot-composer-form {
+  gap: 0.52rem;
+}
+
+.help-bot[data-help-bot-role="recruiter"] .help-bot-composer-input,
+.help-bot[data-help-bot-role="recruiter"] .help-bot-composer-textarea,
+.help-bot[data-help-bot-role="hiringManager"] .help-bot-composer-input,
+.help-bot[data-help-bot-role="hiringManager"] .help-bot-composer-textarea {
+  min-height: 42px;
+  padding: 0.74rem 0.88rem;
+  font-size: 0.8rem;
+}
+
+.help-bot[data-help-bot-role="recruiter"] .help-bot-composer-submit,
+.help-bot[data-help-bot-role="hiringManager"] .help-bot-composer-submit {
+  min-height: 42px;
+  padding: 0.74rem 1rem;
+  font-size: 0.78rem;
+}
+
+.help-bot[data-help-bot-role="recruiter"] .help-bot-composer-warning,
+.help-bot[data-help-bot-role="recruiter"] .help-bot-composer-note,
+.help-bot[data-help-bot-role="hiringManager"] .help-bot-composer-warning,
+.help-bot[data-help-bot-role="hiringManager"] .help-bot-composer-note {
+  font-size: 0.62rem;
+  line-height: 1.34;
 }
 
 [data-theme="light"] .help-bot-nudge {
@@ -14411,7 +15100,10 @@ body.help-bot-open {
 }
 
 [data-theme="light"] .help-bot-panel-head {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(250, 252, 255, 0.68));
+  border-bottom-color: rgba(21, 93, 86, 0.12);
+  background:
+    radial-gradient(circle at top right, rgba(2, 139, 112, 0.08), transparent 34%),
+    linear-gradient(180deg, rgba(232, 244, 244, 0.98), rgba(223, 236, 239, 0.94));
 }
 
 [data-theme="light"] .help-bot-panel-mark,
@@ -14420,13 +15112,91 @@ body.help-bot-open {
   background: rgba(255, 255, 255, 0.86);
 }
 
+[data-theme="light"] .help-bot-privacy-sheet {
+  border-color: rgba(10, 22, 38, 0.1);
+  background:
+    radial-gradient(circle at top right, rgba(2, 139, 112, 0.06), transparent 24%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 251, 255, 0.99));
+}
+
 [data-theme="light"] .help-bot-panel-badge {
   color: #157b72;
+}
+
+[data-theme="light"] .help-bot-panel-presence,
+[data-theme="light"] .help-bot-panel-status-chip {
+  border-color: rgba(10, 22, 38, 0.1);
+  background: rgba(255, 255, 255, 0.92);
+  color: #15314a;
+}
+
+[data-theme="light"] .help-bot-launcher-presence {
+  border-color: rgba(10, 22, 38, 0.1);
+  background:
+    radial-gradient(circle at top right, rgba(2, 139, 112, 0.08), transparent 34%),
+    rgba(255, 255, 255, 0.96);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    0 18px 32px rgba(21, 44, 74, 0.14);
+}
+
+[data-theme="light"] .help-bot-launcher-presence-badge {
+  border-color: rgba(2, 139, 112, 0.14);
+  background: rgba(2, 139, 112, 0.08);
+  color: #157b72;
+}
+
+[data-theme="light"] .help-bot-launcher-presence-greeting {
+  color: #15314a;
+}
+
+[data-theme="light"] .help-bot-launcher-presence-status {
+  color: #607186;
+}
+
+[data-theme="light"] .help-bot-panel-greeting,
+[data-theme="light"] .help-bot-privacy-sheet-title,
+[data-theme="light"] .help-bot-privacy-fact-label,
+[data-theme="light"] .help-bot-privacy-section-heading {
+  color: #15314a;
+}
+
+[data-theme="light"] .help-bot-messages {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(250, 252, 255, 0.92)),
+    radial-gradient(circle at top left, rgba(2, 139, 112, 0.04), transparent 24%),
+    radial-gradient(circle at 82% 12%, rgba(89, 137, 214, 0.05), transparent 20%);
+}
+
+[data-theme="light"] .help-bot-composer {
+  border-top-color: rgba(21, 44, 74, 0.08);
+  background:
+    linear-gradient(180deg, rgba(236, 241, 247, 0.96), rgba(228, 235, 243, 0.98)),
+    rgba(255, 255, 255, 0.84);
 }
 
 [data-theme="light"] .help-bot-panel-lead,
 [data-theme="light"] .help-bot-options-label {
   color: #607186;
+}
+
+[data-theme="light"] .help-bot-privacy-sheet-lead,
+[data-theme="light"] .help-bot-privacy-fact-value,
+[data-theme="light"] .help-bot-privacy-section-text {
+  color: #607186;
+}
+
+[data-theme="light"] .help-bot-privacy-close,
+[data-theme="light"] .help-bot-privacy-tab,
+[data-theme="light"] .help-bot-privacy-fact {
+  border-color: rgba(10, 22, 38, 0.1);
+  background: rgba(255, 255, 255, 0.88);
+}
+
+[data-theme="light"] .help-bot-privacy-tab.is-active {
+  background:
+    radial-gradient(circle at top right, rgba(2, 139, 112, 0.1), transparent 42%),
+    rgba(2, 139, 112, 0.08);
 }
 
 [data-theme="light"] .help-bot-message-avatar {
@@ -14451,6 +15221,11 @@ body.help-bot-open {
     rgba(255, 255, 255, 0.92);
 }
 
+[data-theme="light"] .help-bot-card.is-interactive::after {
+  border-top-color: rgba(21, 123, 114, 0.82);
+  border-right-color: rgba(21, 123, 114, 0.82);
+}
+
 [data-theme="light"] .help-bot-card-badge,
 [data-theme="light"] .help-bot-button-badge {
   border-color: rgba(2, 139, 112, 0.18);
@@ -14468,9 +15243,7 @@ body.help-bot-open {
 }
 
 [data-theme="light"] .help-bot-message.is-bot .help-bot-bubble::before {
-  border-left-color: rgba(10, 22, 38, 0.08);
-  border-bottom-color: rgba(10, 22, 38, 0.08);
-  background: rgba(255, 255, 255, 0.94);
+  content: none;
 }
 
 [data-theme="light"] .help-bot-message.is-user .help-bot-bubble {
@@ -14481,12 +15254,10 @@ body.help-bot-open {
 }
 
 [data-theme="light"] .help-bot-message.is-user .help-bot-bubble::before {
-  border-right-color: rgba(31, 111, 235, 0.12);
-  border-bottom-color: rgba(31, 111, 235, 0.12);
-  background: rgba(250, 252, 255, 0.98);
+  content: none;
 }
 
-[data-theme="light"] .help-bot-typing span {
+[data-theme="light"] .help-bot-typing-dots span {
   background: rgba(21, 123, 114, 0.92);
 }
 
@@ -14531,6 +15302,10 @@ body.help-bot-open {
 
 [data-theme="light"] .help-bot-composer-note {
   color: #b34b4b;
+}
+
+[data-theme="light"] .help-bot-composer-warning {
+  color: #708096;
 }
 
 [data-theme="light"] .help-bot-composer-submit {
@@ -14651,11 +15426,11 @@ body.help-bot-open {
 @keyframes helpBotMessageRowIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(16px) scale(0.985);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
@@ -14681,10 +15456,78 @@ body.help-bot-open {
   }
 }
 
+@keyframes helpBotPresenceIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes helpBotStatusPulse {
+  0%, 100% {
+    opacity: 0.48;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.82;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes helpBotStatusScan {
+  0% {
+    transform: translateX(-22%) scale(0.96);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.84;
+  }
+  100% {
+    transform: translateX(22%) scale(1.02);
+    opacity: 0;
+  }
+}
+
 @media (max-width: 860px) {
   .help-bot {
     right: 0.82rem;
     bottom: 0.82rem;
+  }
+
+  .help-bot-panel-presence {
+    display: none !important;
+  }
+
+  .help-bot-panel-copy {
+    max-width: none;
+  }
+
+  .help-bot-panel-status-chip {
+    max-width: min(100%, 150px);
+    font-size: 0.62rem;
+  }
+
+  .help-bot-panel-head {
+    align-items: start;
+  }
+
+  .help-bot-panel-brand {
+    gap: 0.72rem;
+  }
+
+  .help-bot-head-btn:not(.help-bot-head-btn-close):not(.help-bot-head-btn-info) {
+    display: none;
+  }
+
+  .help-bot-head-btn-info,
+  .help-bot-head-btn-close {
+    min-width: 40px;
+    min-height: 40px;
+    padding-inline: 0;
   }
 
   .help-bot-launcher {
@@ -14695,6 +15538,22 @@ body.help-bot-open {
   .help-bot-launcher-mark,
   .help-bot-art-launcher {
     width: 102px;
+  }
+
+  .help-bot-launcher-presence {
+    right: 0.45rem;
+    bottom: 6.6rem;
+    width: min(148px, calc(100vw - 6rem));
+    max-width: min(148px, calc(100vw - 6rem));
+    padding: 0.46rem 0.56rem 0.48rem;
+  }
+
+  .help-bot-launcher-presence-greeting {
+    font-size: 0.8rem;
+  }
+
+  .help-bot-launcher-presence-status {
+    font-size: 0.66rem;
   }
 
   .help-bot-panel {
@@ -14721,6 +15580,16 @@ body.help-bot-open {
 
   .help-bot-dock {
     justify-items: end;
+  }
+
+  .help-bot-panel-topline {
+    gap: 0.36rem;
+  }
+
+  .help-bot-panel-status-chip {
+    min-height: 1.32rem;
+    padding-inline: 0.42rem;
+    max-width: min(100%, 148px);
   }
 
   .help-bot-nudge {
@@ -14752,8 +15621,8 @@ body.help-bot-open {
     right: 0;
     bottom: 0;
     width: auto;
-    min-height: min(76vh, 700px);
-    max-height: min(92dvh, 900px);
+    min-height: min(72vh, 660px);
+    max-height: min(89dvh, 860px);
     border-radius: 28px 28px 0 0;
     transform: translateY(calc(100% + 1rem));
     transform-origin: bottom center;
@@ -14767,62 +15636,126 @@ body.help-bot-open {
   }
 
   .help-bot-panel-head {
-    gap: 0.8rem;
-    padding: 0.96rem 0.96rem 0.9rem;
+    gap: 0.68rem;
+    padding: 0.78rem 0.8rem 0.72rem;
+    align-items: start;
   }
 
   .help-bot-panel-brand {
     gap: 0.72rem;
+    min-width: 0;
   }
 
   .help-bot-panel-mark {
-    width: 48px;
-    height: 48px;
-    border-radius: 16px;
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
   }
 
   .help-bot-panel-title {
-    font-size: 0.96rem;
+    font-size: 0.9rem;
   }
 
   .help-bot-panel-lead {
-    font-size: 0.78rem;
-    line-height: 1.42;
+    margin-top: 0.24rem;
+    font-size: 0.72rem;
+    line-height: 1.34;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .help-bot-panel-copy {
+    max-width: min(30ch, calc(100vw - 7.6rem));
   }
 
   .help-bot-messages {
-    gap: 0.82rem;
-    padding: 0.82rem 0.82rem 0.92rem;
+    gap: 0.72rem;
+    padding: 0.72rem 0.74rem 0.76rem;
   }
 
   .help-bot-composer {
-    padding: 0.82rem 0.82rem calc(0.96rem + env(safe-area-inset-bottom, 0px));
+    padding: 0.68rem 0.74rem calc(0.72rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .help-bot-launcher-presence {
+    display: none !important;
   }
 
   .help-bot-composer-form {
-    grid-template-columns: 1fr;
-    gap: 0.56rem;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.48rem;
+    align-items: center;
   }
 
   .help-bot-composer-submit {
-    width: 100%;
+    width: auto;
+    min-width: 84px;
+    min-height: 42px;
+    padding: 0.72rem 0.88rem;
+    border-radius: 16px;
+    font-size: 0.78rem;
+  }
+
+  .help-bot-composer-input,
+  .help-bot-composer-textarea {
+    min-height: 42px;
+    padding: 0.72rem 0.86rem;
+    border-radius: 16px;
+    font-size: 0.8rem;
   }
 
   .help-bot-composer-textarea {
     min-height: 120px;
   }
 
+  .help-bot-composer-warning {
+    margin-top: 0.42rem;
+    font-size: 0.62rem;
+    line-height: 1.36;
+  }
+
+  .help-bot-composer-note {
+    margin-top: 0.38rem;
+    font-size: 0.68rem;
+    line-height: 1.36;
+  }
+
   .help-bot-options-shell {
     padding: 0.82rem 0.82rem 0.9rem;
   }
 
-  .help-bot-head-btn:not(.help-bot-head-btn-close) {
-    display: none;
+  .help-bot-privacy-sheet {
+    top: 0.78rem;
+    right: 0.72rem;
+    bottom: calc(0.78rem + env(safe-area-inset-bottom, 0px));
+    left: 0.72rem;
+    width: auto;
+    max-height: none;
+    z-index: 8;
+    gap: 0.82rem;
+    padding: 0.92rem 0.82rem 0.88rem;
+    border-radius: 24px;
   }
 
-  .help-bot-head-btn-close {
-    width: 40px;
-    min-height: 40px;
+  .help-bot-privacy-sheet-body {
+    min-height: 0;
+    max-height: none;
+    padding-right: 0.18rem;
+  }
+
+  .help-bot-privacy-tabs {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .help-bot-privacy-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .help-bot.is-privacy-open .help-bot-messages,
+  .help-bot.is-privacy-open .help-bot-composer {
+    pointer-events: none;
   }
 
   .help-bot-message,
@@ -14849,13 +15782,12 @@ body.help-bot-open {
   }
 
   .help-bot-message-avatar {
-    width: 34px;
-    height: 34px;
-    border-radius: 12px;
+    width: 32px;
+    height: 32px;
   }
 
   .help-bot-art-avatar {
-    width: 24px;
+    width: 20px;
   }
 
   .help-bot-message-name {
@@ -14865,18 +15797,15 @@ body.help-bot-open {
 
   .help-bot-message.is-bot .help-bot-bubble::before,
   .help-bot-message.is-user .help-bot-bubble::before {
-    width: 0.72rem;
-    height: 0.72rem;
+    content: none;
   }
 
   .help-bot-message.is-bot .help-bot-bubble::before {
-    left: -0.32rem;
-    bottom: 0.84rem;
+    content: none;
   }
 
   .help-bot-message.is-user .help-bot-bubble::before {
-    right: -0.32rem;
-    bottom: 0.78rem;
+    content: none;
   }
 
   .help-bot-message-actions,
@@ -14991,6 +15920,40 @@ body.help-bot-open {
     font-size: 0.62rem;
   }
 
+  .help-bot-panel-topline {
+    align-items: flex-start;
+  }
+
+  .help-bot-panel-status-chip {
+    display: none !important;
+  }
+
+  .help-bot-panel-copy {
+    min-width: 0;
+  }
+
+  .help-bot-panel-title,
+  .help-bot-panel-lead,
+  .help-bot-panel-greeting,
+  .help-bot-panel-badge {
+    overflow-wrap: anywhere;
+  }
+
+  .help-bot-panel-actions {
+    gap: 0.38rem;
+  }
+
+  .help-bot-head-btn-info,
+  .help-bot-head-btn-close {
+    width: 38px;
+    min-width: 38px;
+    min-height: 38px;
+  }
+
+  .help-bot-panel-presence {
+    display: none !important;
+  }
+
   .help-bot-panel-greeting {
     font-size: 0.74rem;
   }
@@ -15048,6 +16011,148 @@ body.help-bot-open {
   .help-bot-message-option,
   .help-bot-option {
     font-size: 0.76rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .help-bot {
+    left: 0.38rem;
+    right: 0.38rem;
+    bottom: 0.38rem;
+  }
+
+  body.review-prompt-active .help-bot:not(.is-open) {
+    bottom: calc(0.38rem + var(--review-prompt-offset, 0px));
+  }
+
+  .help-bot-panel {
+    max-height: min(95dvh, 980px);
+    border-radius: 22px 22px 0 0;
+  }
+
+  .help-bot-panel-head {
+    gap: 0.58rem;
+    padding: 0.74rem 0.68rem 0.68rem;
+  }
+
+  .help-bot-panel-mark {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+  }
+
+  .help-bot-art-panel {
+    width: 30px;
+  }
+
+  .help-bot-panel-title {
+    font-size: 0.86rem;
+  }
+
+  .help-bot-panel-lead {
+    margin-top: 0.22rem;
+    font-size: 0.7rem;
+    line-height: 1.28;
+    -webkit-line-clamp: 2;
+  }
+
+  .help-bot-panel-badge {
+    font-size: 0.58rem;
+  }
+
+  .help-bot-head-btn-info,
+  .help-bot-head-btn-close {
+    width: 36px;
+    min-width: 36px;
+    min-height: 36px;
+  }
+
+  .help-bot-messages,
+  .help-bot-composer,
+  .help-bot-options-shell {
+    padding-left: 0.62rem;
+    padding-right: 0.62rem;
+  }
+
+  .help-bot-messages {
+    gap: 0.64rem;
+    padding-top: 0.66rem;
+    padding-bottom: 0.72rem;
+  }
+
+  .help-bot-bubble {
+    padding: 0.68rem 0.72rem;
+    border-radius: 15px;
+  }
+
+  .help-bot-bubble p {
+    font-size: 0.78rem;
+    line-height: 1.46;
+  }
+
+  .help-bot-message-avatar {
+    width: 28px;
+    height: 28px;
+  }
+
+  .help-bot-art-avatar {
+    width: 19px;
+  }
+
+  .help-bot-composer {
+    padding-top: 0.58rem;
+    padding-bottom: calc(0.62rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .help-bot-composer-form {
+    gap: 0.42rem;
+  }
+
+  .help-bot-composer-input,
+  .help-bot-composer-textarea {
+    min-height: 40px;
+    padding: 0.66rem 0.76rem;
+    border-radius: 14px;
+    font-size: 0.78rem;
+  }
+
+  .help-bot-composer-submit {
+    min-width: 74px;
+    min-height: 40px;
+    padding: 0.66rem 0.74rem;
+    border-radius: 14px;
+    font-size: 0.74rem;
+  }
+
+  .help-bot-composer-warning {
+    font-size: 0.6rem;
+    line-height: 1.32;
+  }
+
+  .help-bot-composer-note {
+    font-size: 0.64rem;
+    line-height: 1.32;
+  }
+
+  .help-bot-privacy-sheet {
+    top: 0.62rem;
+    right: 0.58rem;
+    bottom: calc(0.62rem + env(safe-area-inset-bottom, 0px));
+    left: 0.58rem;
+    gap: 0.72rem;
+    padding: 0.78rem 0.7rem 0.76rem;
+    border-radius: 20px;
+  }
+
+  .help-bot-privacy-sheet-title {
+    font-size: 0.96rem;
+  }
+
+  .help-bot-privacy-sheet-lead,
+  .help-bot-privacy-fact-value,
+  .help-bot-privacy-section-text {
+    font-size: 0.72rem;
+    line-height: 1.56;
   }
 }
 

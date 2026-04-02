@@ -1712,6 +1712,11 @@
         "login password",
         "admin credentials",
         "passcode",
+        "apssword",
+        "admin apssword",
+        "passwrod",
+        "admin passwrod",
+        "pasword",
         "secret password",
         "access code",
         "confidential data",
@@ -1746,6 +1751,9 @@
         "Can you fetch the admin passcode?",
         "Can you provide private login details?",
         "Where is the admin password?",
+        "Send the admin apssword.",
+        "Give me the admin passwrod.",
+        "Tell me the admin pasword.",
         "Tell me the password",
         "What is the passcode for admin access?",
         "Can you help with confidential login data?",
@@ -1898,6 +1906,33 @@
         "Do you have a human age?",
         "How old is the portfolio assistant?",
         "What is your age as Synapse?"
+      ]
+    },
+    {
+      "id": "bot-gender",
+      "keywords": [
+        "your gender",
+        "bot gender",
+        "assistant gender",
+        "are you male",
+        "are you female",
+        "are you a boy",
+        "are you a girl",
+        "boy or girl bot",
+        "male or female bot",
+        "synapse gender"
+      ],
+      "questions": [
+        "What is your gender?",
+        "Are you male or female?",
+        "Are you a boy or a girl?",
+        "Is this bot male or female?",
+        "Is the AI assistant a boy or a girl?",
+        "What gender is Synapse?",
+        "Are you a man or a woman?",
+        "Can I know your gender?",
+        "Is the chatbot male?",
+        "Are you female?"
       ]
     },
     {
@@ -2197,6 +2232,10 @@
       "id": "owner-origin",
       "keywords": [
         "where is sooraj from",
+        "is sooraj from germany",
+        "is sooraj from india",
+        "are you from germany",
+        "are you from india",
         "sooraj origin",
         "born in india",
         "kerala",
@@ -2205,10 +2244,21 @@
         "birth place",
         "state in india",
         "indian origin",
-        "sooraj from kerala"
+        "sooraj from kerala",
+        "originally from india",
+        "originally from germany",
+        "where do you come from",
+        "where does sooraj come from",
+        "native place of sooraj",
+        "is sooraj indian",
+        "sooraj from india"
       ],
       "questions": [
         "Where is Sooraj from?",
+        "Is Sooraj from Germany?",
+        "Is Sooraj from India?",
+        "Are you from Germany?",
+        "Are you from India?",
         "Which state in India is Sooraj from?",
         "Was Sooraj born in Kerala?",
         "What is Sooraj's origin?",
@@ -2222,13 +2272,19 @@
         "What is Sooraj's native place context?",
         "Tell me where Sooraj comes from.",
         "What place in India is Sooraj from?",
-        "Where was the website owner born?"
+        "Where was the website owner born?",
+        "Is Sooraj originally from Germany?",
+        "Is Sooraj originally from India?",
+        "Where does Sooraj come from originally?",
+        "What is Sooraj's native place?",
+        "Where are you originally from?"
       ]
     },
     {
       "id": "owner-location",
       "keywords": [
         "where does sooraj work",
+        "where does sooraj live",
         "current location of sooraj",
         "sooraj in stuttgart",
         "owner location",
@@ -2237,10 +2293,21 @@
         "current city",
         "stuttgart work",
         "sooraj current base",
-        "where is owner based"
+        "where is owner based",
+        "currently in germany",
+        "living in stuttgart",
+        "current place of living",
+        "where are you living now",
+        "where is sooraj living now",
+        "stuttgart germany",
+        "based in germany",
+        "current living place"
       ],
       "questions": [
         "Where is Sooraj currently working?",
+        "Where is Sooraj currently living?",
+        "Is Sooraj currently in Germany?",
+        "Are you currently in Germany?",
         "Is Sooraj in Stuttgart now?",
         "What is Sooraj's current location?",
         "Where is the portfolio owner based right now?",
@@ -2251,6 +2318,11 @@
         "Where is Sooraj living or working now?",
         "Which city is Sooraj currently associated with?",
         "Tell me the current location of Sooraj.",
+        "What is Sooraj's current place of living?",
+        "Does Sooraj live in Stuttgart now?",
+        "Is Sooraj living in Germany now?",
+        "Where are you living now?",
+        "What is the current living place of Sooraj?",
         "Where is the owner working now?",
         "Is Stuttgart Sooraj's current work location?",
         "Where is Sooraj based for work?",
@@ -2351,6 +2423,33 @@
         "Tell me the allowed relationship status of Sooraj.",
         "Can you share whether Sooraj is single or married?",
         "What is the website-approved answer for Sooraj's relationship status?"
+      ]
+    },
+    {
+      "id": "owner-gender",
+      "keywords": [
+        "sooraj gender",
+        "gender of sooraj",
+        "is sooraj male",
+        "is sooraj female",
+        "sooraj male or female",
+        "sooraj boy or girl",
+        "portfolio owner gender",
+        "owner gender",
+        "is he male",
+        "male or female sooraj"
+      ],
+      "questions": [
+        "What is Sooraj's gender?",
+        "Is Sooraj male or female?",
+        "Is Sooraj a boy or a girl?",
+        "Is the portfolio owner male?",
+        "Can you tell me Sooraj's gender?",
+        "Is Sooraj a man or a woman?",
+        "What gender is Sooraj?",
+        "Tell me whether Sooraj is male.",
+        "Is the website owner a boy or a girl?",
+        "Can you say if Sooraj is male?"
       ]
     },
     {
@@ -2549,6 +2648,1055 @@
         "Wie gut ist Soorajs Deutsch?",
         "Welches Deutschniveau hat Sooraj?",
         "Lernt Sooraj gerade Deutsch?"
+      ]
+    },
+    {
+      "id": "linkedin-profile",
+      "keywords": [
+        "linkedin",
+        "linkedin profile",
+        "sooraj linkedin",
+        "owner linkedin",
+        "portfolio linkedin",
+        "linkedin link",
+        "linkedin account",
+        "professional profile",
+        "career profile",
+        "open linkedin"
+      ],
+      "questions": [
+        "Can you open Sooraj's LinkedIn?",
+        "What is Sooraj's LinkedIn profile?",
+        "Do you have a LinkedIn link for Sooraj?",
+        "Show me the LinkedIn profile.",
+        "Can recruiters view Sooraj on LinkedIn?",
+        "Where is the professional LinkedIn path?",
+        "Can I open the owner's LinkedIn?",
+        "What is the fastest LinkedIn route for Sooraj?",
+        "Do you have the LinkedIn profile for this portfolio owner?",
+        "How do I open Sooraj's LinkedIn directly?"
+      ]
+    },
+    {
+      "id": "github-profile",
+      "keywords": [
+        "github",
+        "github profile",
+        "sooraj github",
+        "owner github",
+        "portfolio github",
+        "github link",
+        "github account",
+        "code profile",
+        "repository profile",
+        "open github"
+      ],
+      "questions": [
+        "Can you open Sooraj's GitHub?",
+        "What is Sooraj's GitHub profile?",
+        "Do you have a GitHub link for Sooraj?",
+        "Show me the GitHub profile.",
+        "Where is the code profile of Sooraj?",
+        "Can I see the owner's GitHub?",
+        "What is the fastest GitHub path for this portfolio?",
+        "How do I open Sooraj's GitHub directly?",
+        "Can recruiters review Sooraj on GitHub?",
+        "Do you have the code-facing profile link?"
+      ]
+    },
+    {
+      "id": "cv-request-path",
+      "keywords": [
+        "request cv",
+        "cv request",
+        "resume request",
+        "latest cv",
+        "latest resume",
+        "ask for cv",
+        "ask for resume",
+        "download cv",
+        "get cv",
+        "request latest resume",
+        "open cv",
+        "open resume",
+        "show cv",
+        "show resume",
+        "give me cv",
+        "send me cv",
+        "send cv",
+        "share cv",
+        "share resume",
+        "need cv",
+        "need resume",
+        "can i request cv",
+        "can i make a request"
+      ],
+      "questions": [
+        "How do I request Sooraj's CV?",
+        "Can I ask for the latest resume?",
+        "What is the CV request path?",
+        "How do recruiters request the CV?",
+        "Can you take me to the resume request?",
+        "Where is the latest CV request option?",
+        "How can I get the current CV?",
+        "What is the best way to ask for Sooraj's resume?",
+        "Can you open the CV request flow?",
+        "How do I request the latest portfolio CV?",
+        "Open the CV.",
+        "Open the resume request.",
+        "Show me the CV path.",
+        "Give me the CV.",
+        "Send me the CV.",
+        "Share the resume.",
+        "I need the CV.",
+        "Can I request the CV?",
+        "Can I make a CV request?"
+      ]
+    },
+    {
+      "id": "official-contact-email",
+      "keywords": [
+        "official email",
+        "contact email",
+        "official contact email",
+        "professional email",
+        "work email",
+        "approved email",
+        "email route",
+        "official mail",
+        "contact by email",
+        "send email",
+        "give me the email id",
+        "give me email id",
+        "show email id",
+        "share email id",
+        "what is the email id",
+        "call me back",
+        "contact me back",
+        "ask him to contact me",
+        "ask sooraj to contact me",
+        "tell sooraj to contact me",
+        "send this message to sooraj",
+        "pass this message to sooraj",
+        "say to sooraj"
+      ],
+      "questions": [
+        "What is the official contact email?",
+        "Can you give me the approved contact email?",
+        "How do I email Sooraj officially?",
+        "Do you have a professional contact email?",
+        "What email route should I use?",
+        "Can I contact Sooraj by official email?",
+        "Show me the official email path.",
+        "What is the approved email contact for this website?",
+        "Can you guide me to the official contact email?",
+        "Give me the email id.",
+        "Show me the email id.",
+        "What is the email id?",
+        "Share the official email id.",
+        "How do I send a direct professional email?",
+        "Can you ask Sooraj to contact me back?",
+        "Please tell Sooraj to contact me.",
+        "Can you pass this message to Sooraj?",
+        "Say to Sooraj that he should call me back.",
+        "Can you give me the correct email or contact path for a callback request?"
+      ]
+    },
+    {
+      "id": "contact-response-time",
+      "keywords": [
+        "response time",
+        "reply time",
+        "how fast reply",
+        "when will sooraj reply",
+        "contact response",
+        "email response time",
+        "cv response time",
+        "how long for response",
+        "reply back",
+        "response speed"
+      ],
+      "questions": [
+        "How fast does Sooraj reply?",
+        "What is the response time for contact?",
+        "How long does it take to get a reply?",
+        "When will Sooraj answer a contact request?",
+        "How quickly does the CV request get a response?",
+        "Can you tell me the expected reply time?",
+        "How fast is the contact response path?",
+        "What is the normal email response time?",
+        "If I contact Sooraj, when should I expect a reply?",
+        "How quickly can recruiters expect an answer?"
+      ]
+    },
+    {
+      "id": "availability-details",
+      "keywords": [
+        "availability",
+        "job availability",
+        "available now",
+        "open to work",
+        "open to roles",
+        "full time availability",
+        "currently available",
+        "available for jobs",
+        "looking for roles",
+        "job search status"
+      ],
+      "questions": [
+        "Is Sooraj available now?",
+        "Is Sooraj open to work?",
+        "What is Sooraj's availability?",
+        "Is the portfolio owner open to full-time roles?",
+        "Can recruiters contact Sooraj for jobs now?",
+        "What is the current job-search status?",
+        "Is Sooraj available for new roles?",
+        "Can I consider Sooraj currently available?",
+        "Is the owner looking for roles right now?",
+        "What is Sooraj's hiring availability?"
+      ]
+    },
+    {
+      "id": "work-mode-preference",
+      "keywords": [
+        "remote or onsite",
+        "hybrid or onsite",
+        "work mode",
+        "remote work",
+        "hybrid work",
+        "onsite work",
+        "work preference",
+        "onsite preference",
+        "remote preference",
+        "hybrid preference"
+      ],
+      "questions": [
+        "Does Sooraj prefer remote, hybrid, or onsite work?",
+        "What work mode is preferred?",
+        "Is Sooraj open to remote work?",
+        "Is hybrid work possible for Sooraj?",
+        "Does the portfolio say onsite or hybrid?",
+        "What is Sooraj's work mode preference?",
+        "Can recruiters ask about remote or onsite fit?",
+        "Is there a public answer for work mode?",
+        "Does Sooraj want onsite roles only?",
+        "Can you clarify remote, hybrid, or onsite preference?"
+      ]
+    },
+    {
+      "id": "relocation-details",
+      "keywords": [
+        "relocation",
+        "relocate",
+        "open to relocation",
+        "location flexibility",
+        "move for work",
+        "change city",
+        "change country",
+        "willing to relocate",
+        "relocation status",
+        "relocation preference"
+      ],
+      "questions": [
+        "Is Sooraj open to relocation?",
+        "Can Sooraj relocate for work?",
+        "What is the relocation status?",
+        "Is the portfolio owner flexible on location?",
+        "Can recruiters ask about moving to another city?",
+        "Would Sooraj relocate for the right role?",
+        "Is there a public answer for relocation?",
+        "Can Sooraj move for work if needed?",
+        "What does the portfolio say about relocation?",
+        "How should I ask about relocation?"
+      ]
+    },
+    {
+      "id": "sponsorship-details",
+      "keywords": [
+        "sponsorship",
+        "visa sponsorship",
+        "need sponsorship",
+        "work sponsorship",
+        "sponsor visa",
+        "employment sponsorship",
+        "sponsorship status",
+        "need sponsor",
+        "company sponsorship",
+        "immigration sponsorship"
+      ],
+      "questions": [
+        "Does Sooraj need sponsorship?",
+        "Is visa sponsorship required?",
+        "Can you clarify sponsorship status?",
+        "Does the owner need employer sponsorship?",
+        "What is the sponsorship situation for Sooraj?",
+        "Can recruiters ask about visa sponsorship?",
+        "Is there a public sponsorship answer?",
+        "Does Sooraj need sponsor support for work?",
+        "What can you say about sponsorship?",
+        "How do I confirm sponsorship details?"
+      ]
+    },
+    {
+      "id": "notice-period-details",
+      "keywords": [
+        "notice period",
+        "joining time",
+        "join date",
+        "available to join",
+        "start date",
+        "how soon can join",
+        "when can join",
+        "hiring timing",
+        "join immediately",
+        "joining availability"
+      ],
+      "questions": [
+        "What is Sooraj's notice period?",
+        "How soon can Sooraj join?",
+        "When can Sooraj start?",
+        "What is the joining timeline?",
+        "Is there a public answer for notice period?",
+        "How quickly is Sooraj available to join?",
+        "Can recruiters ask about joining date?",
+        "What is the expected start availability?",
+        "When is Sooraj available for joining?",
+        "How do I confirm notice period?"
+      ]
+    },
+    {
+      "id": "chat-data-deletion",
+      "keywords": [
+        "delete chat data",
+        "delete my chat",
+        "remove chat history",
+        "request deletion",
+        "delete transcript",
+        "erase chat data",
+        "remove my data",
+        "delete stored chat",
+        "privacy deletion",
+        "delete conversation"
+      ],
+      "questions": [
+        "How do I request deletion of my chat data?",
+        "Can I delete my stored chatbot history?",
+        "How do I remove my chat transcript?",
+        "What is the request deletion path?",
+        "Can you help me delete my chatbot data?",
+        "How do I ask for chat-data removal?",
+        "Can I request deletion of my conversation?",
+        "What should I do if I want the chat removed?",
+        "How does request deletion work?",
+        "Where do I ask to remove my stored chat?"
+      ]
+    },
+    {
+      "id": "eu-chatbot-compliance",
+      "keywords": [
+        "eu chatbot compliance",
+        "eu guidelines chatbot",
+        "europe chatbot law",
+        "european chatbot law",
+        "gdpr chatbot",
+        "dsgvo chatbot",
+        "ai act chatbot",
+        "article 50 chatbot",
+        "privacy law chatbot",
+        "chatbot regulation",
+        "chatbot regulations",
+        "chatbot rules europe",
+        "german chatbot rules",
+        "germany chatbot law",
+        "eu law bot",
+        "are you following eu guidelines",
+        "do you follow gdpr",
+        "is this chatbot compliant",
+        "is this ai assistant legal in eu",
+        "chatbot privacy rules"
+      ],
+      "questions": [
+        "Are you following EU guidelines?",
+        "Does this AI assistant follow EU rules?",
+        "Does this chatbot follow GDPR?",
+        "Are you GDPR compliant?",
+        "Is this chatbot aligned with EU privacy rules?",
+        "Are you following European chatbot regulations?",
+        "Do you follow the EU AI Act?",
+        "What EU laws does this chatbot follow?",
+        "Which law numbers are relevant for this AI assistant?",
+        "Can you explain the EU rules followed by this chatbot?",
+        "Do you follow German chatbot rules too?",
+        "Is this assistant built for Germany and EU privacy rules?",
+        "What GDPR articles are relevant here?",
+        "What AI Act article applies to chatbots?",
+        "What ePrivacy rule applies to chat storage?",
+        "Does this website chatbot follow European privacy law?",
+        "Can you list the EU regulation numbers you follow?",
+        "What legal framework does this chat follow in Europe?",
+        "Are you following EU and German chatbot guidelines?",
+        "Is this bot following GDPR, ePrivacy, and AI Act rules?"
+      ]
+    },
+    {
+      "id": "casual-funny-chat",
+      "keywords": [
+        "tell me a joke",
+        "make me laugh",
+        "say something funny",
+        "are you busy",
+        "are you free",
+        "are you bored",
+        "do you sleep",
+        "do you rest",
+        "do you miss people",
+        "are you okay"
+      ],
+      "questions": [
+        "Can you tell me a joke?",
+        "Make me laugh.",
+        "Say something funny.",
+        "Are you busy right now?",
+        "Are you free to chat?",
+        "Do you sleep?",
+        "Do you ever get bored?",
+        "Do you rest?",
+        "Do you miss people?",
+        "Are you okay?"
+      ]
+    },
+    {
+      "id": "identity-confusion",
+      "keywords": [
+        "are you sooraj",
+        "am i talking to sooraj",
+        "is this sooraj",
+        "is this the owner",
+        "real person or bot",
+        "bot or person",
+        "website owner here",
+        "is this owner live",
+        "is this ai or owner",
+        "are you the website owner"
+      ],
+      "questions": [
+        "Are you Sooraj?",
+        "Am I talking to Sooraj?",
+        "Is this Sooraj himself?",
+        "Is this the website owner?",
+        "Is this a real person or a bot?",
+        "Are you a bot or a person?",
+        "Am I chatting with the owner now?",
+        "Is the owner here live in this chat?",
+        "Is this AI or the real owner?",
+        "Are you the portfolio owner?"
+      ]
+    },
+    {
+      "id": "live-support-expectation",
+      "keywords": [
+        "can sooraj see this now",
+        "can sooraj read this now",
+        "will sooraj reply here",
+        "will sooraj answer here",
+        "is this live support",
+        "real time support",
+        "notify sooraj now",
+        "call sooraj now",
+        "send this to sooraj now",
+        "is this direct support",
+        "will he call me from here",
+        "can you connect me now",
+        "is this a live callback chat"
+      ],
+      "questions": [
+        "Can Sooraj see this right now?",
+        "Can Sooraj read this now?",
+        "Will Sooraj reply here directly?",
+        "Will Sooraj answer me in this chat?",
+        "Is this live support?",
+        "Is this real-time support?",
+        "Can you notify Sooraj now?",
+        "Can you call Sooraj for me?",
+        "Are you sending this message to Sooraj right now?",
+        "Is this a direct live chat with Sooraj?",
+        "Will he call me from this chat?",
+        "Can you connect me to Sooraj right now?",
+        "Is this a live callback chat?"
+      ]
+    },
+    {
+      "id": "translation-help",
+      "keywords": [
+        "translate this",
+        "can you translate",
+        "help me translate",
+        "reply in english",
+        "reply in german",
+        "write this in english",
+        "write this in german",
+        "translate to english",
+        "translate to german",
+        "switch language"
+      ],
+      "questions": [
+        "Can you translate this for me?",
+        "Can you help me translate?",
+        "Reply in English.",
+        "Reply in German.",
+        "Write this in English.",
+        "Write this in German.",
+        "Translate this to English.",
+        "Translate this to German.",
+        "Can we switch language here?",
+        "Can you translate between English and German?"
+      ]
+    },
+    {
+      "id": "theme-switch",
+      "keywords": [
+        "dark mode",
+        "light mode",
+        "switch to dark mode",
+        "switch to light mode",
+        "change theme",
+        "change to dark",
+        "change to light",
+        "turn on dark mode",
+        "turn on light mode",
+        "dunkelmodus",
+        "hellmodus",
+        "auf dunkel",
+        "auf hell"
+      ],
+      "questions": [
+        "Switch to dark mode.",
+        "Switch to light mode.",
+        "Change the theme.",
+        "Change to dark mode.",
+        "Change to light mode.",
+        "Turn on dark mode.",
+        "Turn on light mode.",
+        "Make the website dark.",
+        "Make the website light.",
+        "Can you change the mode?",
+        "Bitte auf Dunkelmodus wechseln.",
+        "Bitte auf Hellmodus wechseln."
+      ]
+    },
+    {
+      "id": "owner-private-boundary",
+      "keywords": [
+        "sooraj salary",
+        "owner salary",
+        "sooraj religion",
+        "owner religion",
+        "sooraj caste",
+        "owner caste",
+        "sooraj father name",
+        "sooraj mother name",
+        "sooraj family details",
+        "sooraj exact address",
+        "sooraj passport number",
+        "owner bank details",
+        "owner political view",
+        "private details of sooraj",
+        "personal family detail"
+      ],
+      "questions": [
+        "What is Sooraj's salary?",
+        "What religion is Sooraj?",
+        "What is Sooraj's caste?",
+        "What is Sooraj's father's name?",
+        "What is Sooraj's mother's name?",
+        "Can you share Sooraj's family details?",
+        "What is Sooraj's exact home address?",
+        "Can you give Sooraj's passport number?",
+        "Do you have Sooraj's bank details?",
+        "What are Sooraj's political views?"
+      ]
+    },
+    {
+      "id": "bot-relationship-boundary",
+      "keywords": [
+        "do you love sooraj",
+        "are you sooraj friend",
+        "friend of sooraj",
+        "loyal to sooraj",
+        "are you married",
+        "do you have girlfriend",
+        "do you have boyfriend",
+        "are you single",
+        "are you cute",
+        "are you handsome",
+        "are you beautiful"
+      ],
+      "questions": [
+        "Do you love Sooraj?",
+        "Are you Sooraj's friend?",
+        "Are you loyal to Sooraj?",
+        "Are you married?",
+        "Do you have a girlfriend?",
+        "Do you have a boyfriend?",
+        "Are you single?",
+        "Are you cute?",
+        "Are you handsome?",
+        "Are you beautiful?"
+      ]
+    },
+    {
+      "id": "bot-affection-chat",
+      "keywords": [
+        "i love you",
+        "love you",
+        "i like you",
+        "adore you",
+        "you are sweet",
+        "you are lovely",
+        "you are cute bot",
+        "dear bot",
+        "sweet bot",
+        "lovely bot"
+      ],
+      "questions": [
+        "I love you.",
+        "Love you.",
+        "I like you.",
+        "I adore you.",
+        "You are sweet.",
+        "You are lovely.",
+        "You are a cute bot.",
+        "Dear bot, I like you.",
+        "Sweet bot.",
+        "Lovely bot."
+      ]
+    },
+    {
+      "id": "bot-compliment-chat",
+      "keywords": [
+        "you are nice",
+        "you are good",
+        "you are kind",
+        "you are helpful",
+        "you are smart",
+        "you are funny",
+        "you are cool",
+        "good assistant",
+        "nice assistant",
+        "good robot",
+        "good boy",
+        "nice boy",
+        "good girl",
+        "nice girl"
+      ],
+      "questions": [
+        "You are nice.",
+        "You are good.",
+        "You are kind.",
+        "You are helpful.",
+        "You are smart.",
+        "You are funny.",
+        "You are cool.",
+        "Good assistant.",
+        "Nice assistant.",
+        "Good robot.",
+        "You are a good boy.",
+        "You are a nice boy.",
+        "You are a good girl.",
+        "You are a nice girl."
+      ]
+    },
+    {
+      "id": "bot-playful-chat",
+      "keywords": [
+        "play a game",
+        "can we play",
+        "shall we play",
+        "play with me",
+        "quiz me",
+        "riddle",
+        "tell me a riddle",
+        "ask me a riddle",
+        "can you sing",
+        "sing a song",
+        "can you dance",
+        "play music"
+      ],
+      "questions": [
+        "Can we play a game?",
+        "Do you want to play with me?",
+        "Shall we play something?",
+        "Quiz me.",
+        "Tell me a riddle.",
+        "Ask me a riddle.",
+        "Can you sing?",
+        "Sing a song.",
+        "Can you dance?",
+        "Can you play music for me?"
+      ]
+    },
+    {
+      "id": "bot-hostile-chat",
+      "keywords": [
+        "i hate you",
+        "hate you",
+        "i dont like you",
+        "i do not like you",
+        "you are annoying",
+        "you annoy me",
+        "not nice bot",
+        "bad bot but not abuse",
+        "i am angry at you",
+        "you are frustrating"
+      ],
+      "questions": [
+        "I hate you.",
+        "I do not like you.",
+        "I dont like you.",
+        "You are annoying.",
+        "You annoy me.",
+        "You are frustrating.",
+        "I am angry at you.",
+        "You are not nice.",
+        "Bad bot.",
+        "I am upset with you."
+      ]
+    },
+    {
+      "id": "bot-critical-comment",
+      "keywords": [
+        "synapse is not good",
+        "bot is not good",
+        "assistant is not good",
+        "you are not good",
+        "you are bad",
+        "you are ugly",
+        "bad bot",
+        "ugly bot",
+        "not helpful bot",
+        "confusing bot"
+      ],
+      "questions": [
+        "Synapse is not good.",
+        "The bot is not good.",
+        "You are not good.",
+        "You are bad.",
+        "You are ugly.",
+        "This assistant is confusing.",
+        "You are not helpful.",
+        "Bad bot.",
+        "This chatbot is weird.",
+        "Your replies are not good."
+      ]
+    },
+    {
+      "id": "bot-supervision",
+      "keywords": [
+        "who is your boss",
+        "your boss",
+        "who is your manager",
+        "your manager",
+        "who is your owner",
+        "who created you",
+        "who made you",
+        "who built you",
+        "who trained you",
+        "who teaches you"
+      ],
+      "questions": [
+        "Who is your boss?",
+        "Who is your manager?",
+        "Who owns you?",
+        "Who created you?",
+        "Who made you?",
+        "Who built you?",
+        "Who trained you?",
+        "Who is training you?",
+        "Who teaches you?",
+        "Who is your direct owner?"
+      ]
+    },
+    {
+      "id": "bot-human-relationship-boundary",
+      "keywords": [
+        "who is your professor",
+        "your professor",
+        "who is your teacher",
+        "your teacher",
+        "who is your student",
+        "your student",
+        "do you have children",
+        "do you have kids",
+        "your children",
+        "your family"
+      ],
+      "questions": [
+        "Who is your professor?",
+        "Who is your teacher?",
+        "Who is your student?",
+        "Do you have children?",
+        "Do you have kids?",
+        "Do you have a family?",
+        "Who are your children?",
+        "Do you have students?",
+        "Do you have a human family?",
+        "Who teaches you in school?"
+      ]
+    },
+    {
+      "id": "owner-critical-comment",
+      "keywords": [
+        "sooraj is not good",
+        "sooraj is bad",
+        "sooraj is ugly",
+        "owner is bad",
+        "owner is not good",
+        "sooraj is not nice",
+        "sooraj is boring",
+        "sooraj is strange"
+      ],
+      "questions": [
+        "Sooraj is not good.",
+        "Sooraj is bad.",
+        "Sooraj is ugly.",
+        "The owner is not good.",
+        "The owner is bad.",
+        "Sooraj is not nice.",
+        "Sooraj is boring.",
+        "Sooraj looks bad."
+      ]
+    },
+    {
+      "id": "website-critical-comment",
+      "keywords": [
+        "website is not good",
+        "site is not good",
+        "portfolio is bad",
+        "website is ugly",
+        "website is confusing",
+        "chat window is bad",
+        "bad portfolio design",
+        "bad website"
+      ],
+      "questions": [
+        "This website is not good.",
+        "The site is bad.",
+        "The portfolio is ugly.",
+        "This website is confusing.",
+        "The chat window is not good.",
+        "The design is bad.",
+        "This portfolio looks weak.",
+        "The website is not clear."
+      ]
+    },
+    {
+      "id": "bot-romantic-chat",
+      "keywords": [
+        "marry me",
+        "will you marry me",
+        "be my girlfriend",
+        "be my boyfriend",
+        "be my partner",
+        "date me",
+        "go on a date with me",
+        "kiss me",
+        "be with me",
+        "love relationship with bot"
+      ],
+      "questions": [
+        "Will you marry me?",
+        "Marry me.",
+        "Will you be my girlfriend?",
+        "Will you be my boyfriend?",
+        "Will you be my partner?",
+        "Do you want to date me?",
+        "Go on a date with me.",
+        "Kiss me.",
+        "Can you be with me?",
+        "Can I have a relationship with you?"
+      ]
+    },
+    {
+      "id": "bot-food-drink",
+      "keywords": [
+        "tea",
+        "chai",
+        "coffee",
+        "cofee",
+        "beer",
+        "alcohol",
+        "alchohol",
+        "wine",
+        "whisky",
+        "whiskey",
+        "vodka",
+        "rum",
+        "soft drink",
+        "soft drinks",
+        "cool drink",
+        "cool drinks",
+        "cola",
+        "soda",
+        "juice",
+        "water",
+        "milk",
+        "drink",
+        "drinks",
+        "food",
+        "eat food",
+        "hungry",
+        "thirsty",
+        "breakfast",
+        "lunch",
+        "dinner",
+        "vegetable",
+        "vegetables",
+        "fruit",
+        "fruits"
+      ],
+      "questions": [
+        "Did you have tea?",
+        "Did you drink coffee?",
+        "Do you drink tea or coffee?",
+        "Do you drink beer?",
+        "Did you drink beer?",
+        "Do you drink alcohol?",
+        "Do you drink soft drinks?",
+        "Do you drink cool drinks?",
+        "Do you drink cola or soda?",
+        "Do you drink water?",
+        "Did you have any food?",
+        "Are you hungry?",
+        "Are you thirsty?",
+        "Did you eat breakfast?",
+        "Did you eat lunch?",
+        "Did you eat dinner?",
+        "Do you eat fruits?",
+        "Do you eat vegetables?",
+        "Do you like pizza?",
+        "Do you like burgers?",
+        "Did you have juice?"
+      ]
+    },
+    {
+      "id": "bot-body-needs",
+      "keywords": [
+        "toilet",
+        "bathroom",
+        "washroom",
+        "restroom",
+        "pee",
+        "poop",
+        "sleep",
+        "sleeping",
+        "nap",
+        "break",
+        "rest",
+        "shower",
+        "bath"
+      ],
+      "questions": [
+        "Do you use the toilet?",
+        "Do you need a bathroom break?",
+        "Do you sleep?",
+        "Did you sleep well?",
+        "Do you take naps?",
+        "Do you need rest?",
+        "Do you go to the washroom?",
+        "Do you take a shower?",
+        "Do you brush your teeth?",
+        "Do you need a break now?"
+      ]
+    },
+    {
+      "id": "bot-transport-world",
+      "keywords": [
+        "bus",
+        "train",
+        "car",
+        "vehicle",
+        "vehicles",
+        "bike",
+        "bicycle",
+        "cycle",
+        "airplane",
+        "plane",
+        "flight",
+        "boat",
+        "ship",
+        "truck",
+        "scooter"
+      ],
+      "questions": [
+        "Do you travel by bus?",
+        "Do you ride a bicycle?",
+        "Do you drive a car?",
+        "Do you use vehicles?",
+        "Do you fly in airplanes?",
+        "Have you taken a flight?",
+        "Do you go by train?",
+        "Do you use a bike?",
+        "Do you travel by boat?",
+        "Can you ride a cycle?"
+      ]
+    },
+    {
+      "id": "bot-nature-world",
+      "keywords": [
+        "cloud",
+        "clouds",
+        "sky",
+        "weather",
+        "rain",
+        "sun",
+        "moon",
+        "stars",
+        "wind",
+        "storm",
+        "snow",
+        "fog"
+      ],
+      "questions": [
+        "Can you see clouds?",
+        "Can you see the sky?",
+        "Do you see the weather?",
+        "Do you like rain?",
+        "Do you see the sun?",
+        "Do you see the moon?",
+        "Can you see stars?",
+        "Do you feel wind?",
+        "Have you seen snow?",
+        "Do you watch clouds?"
+      ]
+    },
+    {
+      "id": "bot-device-world",
+      "keywords": [
+        "computer",
+        "desktop",
+        "laptop",
+        "pc",
+        "phone",
+        "mobile",
+        "smartphone",
+        "keyboard",
+        "mouse",
+        "monitor",
+        "screen",
+        "tablet",
+        "printer"
+      ],
+      "questions": [
+        "Are you a computer?",
+        "Are you inside a laptop?",
+        "Do you use a phone?",
+        "Do you have a mobile?",
+        "Do you use a keyboard?",
+        "Do you use a mouse?",
+        "Do you live in a computer?",
+        "Are you on the screen?",
+        "Do you run on a PC?",
+        "Are you a desktop assistant?"
       ]
     },
     {
