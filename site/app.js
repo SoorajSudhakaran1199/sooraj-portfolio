@@ -586,17 +586,14 @@ function normalizeHelpBotSessionTranscriptEntry(entry) {
   return { sender, text };
 }
 
-function normalizeHelpBotSessionEntry(entry) {
+function normalizeHelpBotSessionEventEntry(entry) {
   if (!entry || typeof entry !== "object") return null;
   const sessionId = String(entry.session_id || entry.sessionId || "").trim();
   if (!sessionId) return null;
-  const transcript = Array.isArray(entry.transcript_json || entry.transcriptJson)
-    ? (entry.transcript_json || entry.transcriptJson).map(normalizeHelpBotSessionTranscriptEntry).filter(Boolean)
-    : [];
   return {
     sessionId,
+    eventIndex: Math.max(0, Number.parseInt(String(entry.event_index || entry.eventIndex || 0), 10) || 0),
     createdAt: entry.created_at || entry.createdAt || "",
-    updatedAt: entry.updated_at || entry.updatedAt || "",
     endedAt: entry.ended_at || entry.endedAt || "",
     pagePath: String(entry.page_path || entry.pagePath || "").trim(),
     roleId: String(entry.role_id || entry.roleId || "").trim(),
@@ -604,9 +601,77 @@ function normalizeHelpBotSessionEntry(entry) {
     visitorPosition: String(entry.visitor_position || entry.visitorPosition || "").trim(),
     visitorOrganization: String(entry.visitor_organization || entry.visitorOrganization || "").trim(),
     studentUniversity: String(entry.student_university || entry.studentUniversity || "").trim(),
-    messageCount: Math.max(0, Number.parseInt(String(entry.message_count || entry.messageCount || transcript.length || 0), 10) || 0),
-    transcript
+    sender: entry.sender === "user" ? "user" : entry.sender === "bot" ? "bot" : "",
+    messageText: String(entry.message_text || entry.messageText || "").trim(),
+    eventType: entry.event_type === "session_end" ? "session_end" : "message",
+    messageCount: Math.max(0, Number.parseInt(String(entry.message_count || entry.messageCount || 0), 10) || 0)
   };
+}
+
+function buildHelpBotSessions(entries = []) {
+  const sessions = new Map();
+  const normalizedEntries = entries
+    .map(normalizeHelpBotSessionEventEntry)
+    .filter(Boolean)
+    .sort((left, right) => {
+      if (left.sessionId !== right.sessionId) {
+        return left.sessionId.localeCompare(right.sessionId);
+      }
+      if (left.eventIndex !== right.eventIndex) {
+        return left.eventIndex - right.eventIndex;
+      }
+      return new Date(left.createdAt || 0).getTime() - new Date(right.createdAt || 0).getTime();
+    });
+
+  normalizedEntries.forEach((entry) => {
+    const existing = sessions.get(entry.sessionId) || {
+      sessionId: entry.sessionId,
+      createdAt: entry.createdAt || "",
+      updatedAt: entry.createdAt || "",
+      endedAt: entry.endedAt || "",
+      pagePath: entry.pagePath || "",
+      roleId: entry.roleId || "",
+      visitorName: entry.visitorName || "",
+      visitorPosition: entry.visitorPosition || "",
+      visitorOrganization: entry.visitorOrganization || "",
+      studentUniversity: entry.studentUniversity || "",
+      messageCount: 0,
+      transcript: []
+    };
+
+    const createdAtMs = new Date(existing.createdAt || entry.createdAt || 0).getTime();
+    const entryCreatedAtMs = new Date(entry.createdAt || 0).getTime();
+    const updatedAtMs = new Date(existing.updatedAt || 0).getTime();
+    const endedAtMs = new Date(existing.endedAt || 0).getTime();
+    const entryEndedAtMs = new Date(entry.endedAt || 0).getTime();
+
+    if (!existing.createdAt || (Number.isFinite(entryCreatedAtMs) && entryCreatedAtMs < createdAtMs)) {
+      existing.createdAt = entry.createdAt || existing.createdAt;
+    }
+    if (!existing.updatedAt || (Number.isFinite(entryCreatedAtMs) && entryCreatedAtMs >= updatedAtMs)) {
+      existing.updatedAt = entry.createdAt || existing.updatedAt;
+      existing.pagePath = entry.pagePath || existing.pagePath;
+      existing.roleId = entry.roleId || existing.roleId;
+      existing.visitorName = entry.visitorName || existing.visitorName;
+      existing.visitorPosition = entry.visitorPosition || existing.visitorPosition;
+      existing.visitorOrganization = entry.visitorOrganization || existing.visitorOrganization;
+      existing.studentUniversity = entry.studentUniversity || existing.studentUniversity;
+    }
+    if (entry.endedAt && (!existing.endedAt || entryEndedAtMs >= endedAtMs)) {
+      existing.endedAt = entry.endedAt;
+    }
+    if (entry.eventType === "message" && entry.sender && entry.messageText) {
+      existing.transcript.push({
+        sender: entry.sender,
+        text: entry.messageText
+      });
+    }
+    existing.messageCount = Math.max(existing.messageCount, entry.messageCount, existing.transcript.length);
+    sessions.set(entry.sessionId, existing);
+  });
+
+  return Array.from(sessions.values())
+    .sort((left, right) => new Date(right.updatedAt || 0).getTime() - new Date(left.updatedAt || 0).getTime());
 }
 
 function buildSubmissionStats(submissions = []) {
@@ -5894,6 +5959,8 @@ function setupPortfolioHelpBot() {
         websiteSearchResults: [],
         remoteSessionId: "",
         remoteSessionPersisted: false,
+        remoteSessionCursor: 0,
+        remoteSessionEndedAt: "",
         pendingInputKind: "",
         pendingTopicId: "",
         pendingTourStepId: "",
@@ -5948,6 +6015,8 @@ function setupPortfolioHelpBot() {
         : [],
       remoteSessionId: String(source.remoteSessionId || "").trim(),
       remoteSessionPersisted: Boolean(source.remoteSessionPersisted),
+      remoteSessionCursor: Math.max(0, Number.parseInt(String(source.remoteSessionCursor || 0), 10) || 0),
+      remoteSessionEndedAt: String(source.remoteSessionEndedAt || "").trim(),
       pendingInputKind: HELP_BOT_PENDING_INPUT_KINDS.includes(String(source.pendingInputKind || "").trim())
         ? String(source.pendingInputKind || "").trim()
         : "",
@@ -6020,6 +6089,8 @@ function setupPortfolioHelpBot() {
       : [];
     helpBotState.remoteSessionId = String(helpBotState.remoteSessionId || "").trim();
     helpBotState.remoteSessionPersisted = Boolean(helpBotState.remoteSessionPersisted) && Boolean(helpBotState.remoteSessionId);
+    helpBotState.remoteSessionCursor = Math.max(0, Number.parseInt(String(helpBotState.remoteSessionCursor || 0), 10) || 0);
+    helpBotState.remoteSessionEndedAt = String(helpBotState.remoteSessionEndedAt || "").trim();
     helpBotState.pendingInputKind = HELP_BOT_PENDING_INPUT_KINDS.includes(helpBotState.pendingInputKind)
       ? helpBotState.pendingInputKind
       : "";
@@ -6047,7 +6118,7 @@ function setupPortfolioHelpBot() {
   };
 
   let helpBotRemoteSyncTimer = 0;
-  let helpBotRemoteSyncSignature = "";
+  let helpBotRemoteSyncCursor = Math.max(0, Number(helpBotState.remoteSessionCursor || 0));
   let helpBotRemoteSyncInFlight = false;
   let helpBotRemoteSyncRequested = false;
   let helpBotRemoteSyncRequestedEndedAt = "";
@@ -6063,10 +6134,9 @@ function setupPortfolioHelpBot() {
     return nextId;
   };
 
-  const buildHelpBotRemoteSessionSnapshot = ({ endedAt = "" } = {}) => {
+  const buildHelpBotRemoteSessionEvents = ({ endedAt = "" } = {}) => {
     const normalizedEndedAt = String(endedAt || "").trim();
     const transcript = helpBotState.messages
-      .slice(-HELP_BOT_REMOTE_MAX_MESSAGES)
       .map((message) => normalizeHelpBotSessionTranscriptEntry({
         sender: message.sender,
         text: message.text
@@ -6074,42 +6144,47 @@ function setupPortfolioHelpBot() {
       .filter(Boolean);
     if (!transcript.some((entry) => entry.sender === "user")) return null;
 
+    const cursor = Math.max(0, Math.min(helpBotRemoteSyncCursor, transcript.length));
+    const unsentTranscript = transcript.slice(cursor);
+    const shouldWriteEndEvent = normalizedEndedAt && normalizedEndedAt !== String(helpBotState.remoteSessionEndedAt || "").trim();
+    if (!unsentTranscript.length && !shouldWriteEndEvent) return null;
+
     const sessionId = getHelpBotRemoteSessionId();
-    const nowIso = new Date().toISOString();
-    const snapshot = {
+    const pagePath = window.location.pathname || `/${currentPageName}`;
+    const basePayload = {
       session_id: sessionId,
-      updated_at: nowIso,
-      page_path: window.location.pathname || `/${currentPageName}`,
+      page_path: pagePath,
       role_id: currentRoleId || null,
       visitor_name: getVisitorName() || null,
       visitor_position: getVisitorPosition() || null,
       visitor_organization: getVisitorOrganization() || null,
-      student_university: getStudentUniversity() || null,
-      message_count: transcript.length,
-      transcript_json: transcript
+      student_university: getStudentUniversity() || null
     };
-    if (!helpBotState.remoteSessionPersisted) {
-      snapshot.created_at = nowIso;
-    }
-    if (normalizedEndedAt) {
-      snapshot.ended_at = normalizedEndedAt;
+    const payload = unsentTranscript.map((entry, index) => ({
+      ...basePayload,
+      event_index: cursor + index + 1,
+      event_type: "message",
+      sender: entry.sender,
+      message_text: entry.text,
+      message_count: cursor + index + 1
+    }));
+
+    if (shouldWriteEndEvent) {
+      payload.push({
+        ...basePayload,
+        event_index: cursor + unsentTranscript.length + 1,
+        event_type: "session_end",
+        sender: null,
+        message_text: null,
+        ended_at: normalizedEndedAt,
+        message_count: cursor + unsentTranscript.length
+      });
     }
 
     return {
-      payload: snapshot,
-      signature: JSON.stringify({
-        session_id: snapshot.session_id,
-        remoteSessionPersisted: Boolean(helpBotState.remoteSessionPersisted),
-        page_path: snapshot.page_path,
-        role_id: snapshot.role_id,
-        visitor_name: snapshot.visitor_name,
-        visitor_position: snapshot.visitor_position,
-        visitor_organization: snapshot.visitor_organization,
-        student_university: snapshot.student_university,
-        message_count: snapshot.message_count,
-        transcript_json: snapshot.transcript_json,
-        ended_at: snapshot.ended_at
-      })
+      payload,
+      nextCursor: cursor + unsentTranscript.length,
+      endedAt: shouldWriteEndEvent ? normalizedEndedAt : ""
     };
   };
 
@@ -6121,11 +6196,11 @@ function setupPortfolioHelpBot() {
     return normalizedNext > normalizedExisting ? normalizedNext : normalizedExisting;
   };
 
-  const upsertHelpBotRemoteSessionSnapshot = async (snapshot, { keepalive = false } = {}) => {
-    await fetchSupabaseRest(`${SUPABASE_HELP_BOT_SESSIONS_TABLE}?on_conflict=session_id`, {
+  const insertHelpBotRemoteSessionEvents = async (events, { keepalive = false } = {}) => {
+    await fetchSupabaseRest(SUPABASE_HELP_BOT_SESSIONS_TABLE, {
       method: "POST",
-      body: snapshot.payload,
-      prefer: "resolution=merge-duplicates,return=minimal",
+      body: events.payload,
+      prefer: "return=minimal",
       keepalive: Boolean(keepalive)
     });
   };
@@ -6144,16 +6219,20 @@ function setupPortfolioHelpBot() {
         helpBotRemoteSyncRequested = false;
         helpBotRemoteSyncRequestedEndedAt = "";
 
-        const snapshot = buildHelpBotRemoteSessionSnapshot({ endedAt: nextEndedAt });
+        const snapshot = buildHelpBotRemoteSessionEvents({ endedAt: nextEndedAt });
         nextEndedAt = "";
-        if (snapshot && snapshot.signature !== helpBotRemoteSyncSignature) {
+        if (snapshot?.payload?.length) {
           try {
-            await upsertHelpBotRemoteSessionSnapshot(snapshot);
+            await insertHelpBotRemoteSessionEvents(snapshot);
             if (!helpBotState.remoteSessionPersisted) {
               helpBotState.remoteSessionPersisted = true;
-              saveStoredJson(localStorage, STORAGE_HELP_BOT_STATE_KEY, helpBotState);
             }
-            helpBotRemoteSyncSignature = snapshot.signature;
+            helpBotRemoteSyncCursor = snapshot.nextCursor;
+            helpBotState.remoteSessionCursor = helpBotRemoteSyncCursor;
+            if (snapshot.endedAt) {
+              helpBotState.remoteSessionEndedAt = snapshot.endedAt;
+            }
+            saveStoredJson(localStorage, STORAGE_HELP_BOT_STATE_KEY, helpBotState);
             window.dispatchEvent(new CustomEvent("portfoliohelpbotsessionschange"));
           } catch (error) {
             console.warn("Help bot remote session sync failed.", error);
@@ -6185,15 +6264,19 @@ function setupPortfolioHelpBot() {
 
   const flushHelpBotRemoteSessionSync = ({ endedAt = "" } = {}) => {
     window.clearTimeout(helpBotRemoteSyncTimer);
-    const snapshot = buildHelpBotRemoteSessionSnapshot({ endedAt });
-    if (!snapshot || snapshot.signature === helpBotRemoteSyncSignature) return;
-    void upsertHelpBotRemoteSessionSnapshot(snapshot, { keepalive: true })
+    const snapshot = buildHelpBotRemoteSessionEvents({ endedAt });
+    if (!snapshot?.payload?.length) return;
+    void insertHelpBotRemoteSessionEvents(snapshot, { keepalive: true })
       .then(() => {
         if (!helpBotState.remoteSessionPersisted) {
           helpBotState.remoteSessionPersisted = true;
-          saveStoredJson(localStorage, STORAGE_HELP_BOT_STATE_KEY, helpBotState);
         }
-        helpBotRemoteSyncSignature = snapshot.signature;
+        helpBotRemoteSyncCursor = snapshot.nextCursor;
+        helpBotState.remoteSessionCursor = helpBotRemoteSyncCursor;
+        if (snapshot.endedAt) {
+          helpBotState.remoteSessionEndedAt = snapshot.endedAt;
+        }
+        saveStoredJson(localStorage, STORAGE_HELP_BOT_STATE_KEY, helpBotState);
         window.dispatchEvent(new CustomEvent("portfoliohelpbotsessionschange"));
       })
       .catch((error) => {
@@ -11475,6 +11558,9 @@ function setupPortfolioHelpBot() {
     helpBotState.studentUniversityCandidate = null;
     helpBotState.remoteSessionId = "";
     helpBotState.remoteSessionPersisted = false;
+    helpBotState.remoteSessionCursor = 0;
+    helpBotState.remoteSessionEndedAt = "";
+    helpBotRemoteSyncCursor = 0;
     helpBotState.websiteSearchQuery = "";
     helpBotState.websiteSearchAttempts = 0;
     helpBotState.websiteSearchResult = null;
@@ -17127,15 +17213,14 @@ async function fetchHelpBotSessions({ limit = 20 } = {}) {
   try {
     const accessToken = await getSupabaseAccessToken();
     const safeLimit = Math.max(1, Math.min(50, Number(limit) || 20));
+    const rowLimit = Math.max(40, safeLimit * 24);
     const data = await fetchSupabaseRest(
-      `${SUPABASE_HELP_BOT_SESSIONS_TABLE}?select=session_id,created_at,updated_at,ended_at,page_path,role_id,visitor_name,visitor_position,visitor_organization,student_university,message_count,transcript_json&order=updated_at.desc&limit=${safeLimit}`,
+      `${SUPABASE_HELP_BOT_SESSIONS_TABLE}?select=session_id,event_index,event_type,created_at,ended_at,page_path,role_id,visitor_name,visitor_position,visitor_organization,student_university,sender,message_text,message_count&order=created_at.desc&limit=${rowLimit}`,
       { authToken: accessToken }
     );
 
     return {
-      sessions: Array.isArray(data)
-        ? data.map(normalizeHelpBotSessionEntry).filter(Boolean)
-        : [],
+      sessions: buildHelpBotSessions(Array.isArray(data) ? data : []).slice(0, safeLimit),
       error: null
     };
   } catch (error) {
