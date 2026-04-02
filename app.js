@@ -5291,7 +5291,7 @@ function setupPortfolioHelpBot() {
   const HELP_BOT_NUDGE_AUTO_HIDE_MS = 5200;
   const HELP_BOT_NUDGE_RESHOW_MS = 28000;
   const HELP_BOT_NUDGE_MAX_RESHOWS = 1;
-  const HELP_BOT_STATE_VERSION = 10;
+  const HELP_BOT_STATE_VERSION = 11;
   const HELP_BOT_STATE_TTL_MS = 1000 * 60 * 60 * 24 * 7;
   const HELP_BOT_REMOTE_MAX_MESSAGES = 60;
   const HELP_BOT_REMOTE_SYNC_DELAY_MS = 1200;
@@ -5404,6 +5404,70 @@ function setupPortfolioHelpBot() {
     "a", "aa", "aaa", "ab", "abc", "bot", "chat", "ello", "hallo", "hello", "hey", "hi",
     "hola", "hii", "hlo", "me", "name", "no", "ok", "s", "sa", "ss", "srj", "test", "user", "yo"
   ]);
+
+  const DISALLOWED_HELP_BOT_NAME_WORDS = new Set([
+    "admin", "ai", "boyfriend", "brother", "dad", "daddy", "father", "girlfriend", "husband",
+    "mam", "mama", "mom", "mommy", "mother", "parent", "parents", "sister", "soorajsfather",
+    "soorajsmother", "wife"
+  ]);
+
+  const DISALLOWED_HELP_BOT_INPUT_PATTERNS = [
+    /\bass\s*hole\b/i,
+    /\bbastard\b/i,
+    /\bbiatch\b/i,
+    /\bbitch(?:es|y)?\b/i,
+    /\bblow\s*job\b/i,
+    /\bboobs?\b/i,
+    /\bbull\s*shit\b/i,
+    /\bcock\b/i,
+    /\bcunt\b/i,
+    /\bdick(?:head)?\b/i,
+    /\bdumb\s*ass\b/i,
+    /\bfuck(?:er|ers|ing|ed|s)?\b/i,
+    /\bfuk(?:er|ers|ing|ed|s)?\b/i,
+    /\bhell\s*no\b/i,
+    /\bidiot\b/i,
+    /\bjerk\b/i,
+    /\bkill\s*yourself\b/i,
+    /\bloser\b/i,
+    /\bmoron\b/i,
+    /\bmother\s*fuck(?:er|ers|ing|ed)?\b/i,
+    /\bnaked\b/i,
+    /\bpervert\b/i,
+    /\bpiss\s*off\b/i,
+    /\bporn(?:hub)?\b/i,
+    /\bpussy\b/i,
+    /\bscumbag\b/i,
+    /\bsex(?:chat|talk)?\b/i,
+    /\bshit(?:ty)?\b/i,
+    /\bslut\b/i,
+    /\bstfu\b/i,
+    /\bstupid\b/i,
+    /\bsuck\s+my\b/i,
+    /\bwhore\b/i,
+    /\bwtf\b/i
+  ];
+
+  const normalizeHelpBotModerationText = (value) => String(value || "")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const containsDisallowedHelpBotInput = (value = "", pendingKind = "") => {
+    const normalized = normalizeHelpBotModerationText(value);
+    if (!normalized) return false;
+    if (DISALLOWED_HELP_BOT_INPUT_PATTERNS.some((pattern) => pattern.test(normalized))) return true;
+
+    if (pendingKind === "visitor-name") {
+      const compact = normalized.replace(/[^a-z]/g, "");
+      if (DISALLOWED_HELP_BOT_NAME_WORDS.has(compact)) return true;
+      if (/\b(?:sooraj(?:'s)?\s+)?(?:father|mother|dad|mom|parents?|brother|sister|wife|husband|girlfriend|boyfriend)\b/i.test(normalized)) {
+        return true;
+      }
+    }
+
+    return false;
+  };
 
   const isPlausibleVisitorName = (value = "") => {
     const normalized = normalizeVisitorName(value);
@@ -5969,6 +6033,7 @@ function setupPortfolioHelpBot() {
         lastPageName: currentPageName,
         pendingResumePrompt: false,
         pendingWebsiteSearchStart: false,
+        moderationLocked: false,
         lastNavTarget: null,
         topicTrail: [],
         studentCornerNudgeSeen: false,
@@ -6026,6 +6091,7 @@ function setupPortfolioHelpBot() {
       lastPageName: String(source.lastPageName || "").trim() || currentPageName,
       pendingResumePrompt: Boolean(source.pendingResumePrompt) && messagesList.length > 0,
       pendingWebsiteSearchStart: Boolean(source.pendingWebsiteSearchStart),
+      moderationLocked: Boolean(source.moderationLocked) && messagesList.length > 0,
       lastNavTarget: source.lastNavTarget && typeof source.lastNavTarget === "object" ? source.lastNavTarget : null,
       studentCornerNudgeSeen: Boolean(source.studentCornerNudgeSeen),
       preferredLanguage: source.preferredLanguage === "de" || source.preferredLanguage === "en" ? source.preferredLanguage : "",
@@ -6103,6 +6169,7 @@ function setupPortfolioHelpBot() {
     helpBotState.messages = helpBotState.messages.slice(-HELP_BOT_STATE_MAX_MESSAGES);
     helpBotState.topicTrail = Array.isArray(helpBotState.topicTrail) ? helpBotState.topicTrail.slice(-12) : [];
     helpBotState.studentCornerNudgeSeen = Boolean(helpBotState.studentCornerNudgeSeen);
+    helpBotState.moderationLocked = Boolean(helpBotState.moderationLocked) && helpBotState.messages.length > 0;
     helpBotState.hasConversationBooted = hasConversationBooted && helpBotState.messages.length > 0;
     helpBotState.lastPageName = currentPageName;
     helpBotState.pendingWebsiteSearchStart = Boolean(helpBotState.pendingWebsiteSearchStart);
@@ -11122,6 +11189,38 @@ function setupPortfolioHelpBot() {
     { kind: "end-chat", id: "end-chat", label: config.endChat }
   ]);
 
+  const getDisallowedLanguageOptions = () => ([
+    createBadgedOption("start-over", "start-over", config.startFresh, currentLang === "de" ? "Reset" : "Reset"),
+    createBadgedOption("end-chat", "end-chat", config.endChat, currentLang === "de" ? "Ende" : "End")
+  ]);
+
+  const getDisallowedLanguageReply = () => (currentLang === "de"
+    ? "Diese Sprache ist in diesem Chat nicht erlaubt. Beleidigende oder respektlose Eingaben beenden den aktuellen Verlauf. Starten Sie bitte respektvoll neu oder beenden Sie den Chat. Auf Wiedersehen."
+    : "That language is not permitted in this chat. Abusive or disrespectful wording will stop the current session. Please start over respectfully or end the chat. See you again.");
+
+  const handleDisallowedComposerInput = async (rawValue = "") => {
+    const blockedText = String(rawValue || "").replace(/\s+/g, " ").trim().slice(0, 200);
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    setInlineNudgeOverride("");
+    clearComposerNote();
+    helpBotState.moderationLocked = true;
+    helpBotState.pendingInputKind = "";
+    persistHelpBotState();
+    if (blockedText) {
+      appendMessage({ sender: "user", text: blockedText });
+    }
+    hideComposer();
+    await queueBotReply({
+      text: getDisallowedLanguageReply(),
+      delay: 180,
+      token,
+      inlineOptions: getDisallowedLanguageOptions()
+    });
+    queueHelpBotRemoteSessionSync({ immediate: true });
+  };
+
   const getTopicPromptOptions = () => {
     const topicId = helpBotState.pendingTopicId;
     const copy = getTopicDeeperCopy(currentRoleId, topicId);
@@ -11569,6 +11668,10 @@ function setupPortfolioHelpBot() {
 
   const showComposer = ({ focus = helpBotState.pendingInputKind !== "website-search", select = focus } = {}) => {
     if (!composer) return;
+    if (helpBotState.moderationLocked) {
+      hideComposer();
+      return;
+    }
     composer.hidden = false;
     root.classList.add("is-composer-visible");
     clearComposerNote();
@@ -11586,6 +11689,10 @@ function setupPortfolioHelpBot() {
   };
 
   const syncComposerState = () => {
+    if (helpBotState.moderationLocked) {
+      hideComposer();
+      return;
+    }
     if (HELP_BOT_PENDING_INPUT_KINDS.includes(helpBotState.pendingInputKind)) {
       showComposer({ focus: true });
       return;
@@ -12768,6 +12875,7 @@ function setupPortfolioHelpBot() {
     helpBotState.websiteSearchResult = null;
     helpBotState.websiteSearchResults = [];
     helpBotState.pendingWebsiteSearchStart = false;
+    helpBotState.moderationLocked = false;
     clearChatFeedbackDraft();
     clearRecruiterRequestDraft();
     helpBotState.pendingInputKind = "";
@@ -14014,6 +14122,10 @@ function setupPortfolioHelpBot() {
     if (optionButton) {
       const kind = optionButton.getAttribute("data-help-bot-option-kind");
       const id = optionButton.getAttribute("data-help-bot-option-id") || "";
+      if (helpBotState.moderationLocked && kind !== "start-over" && kind !== "end-chat") {
+        event.preventDefault();
+        return;
+      }
       if (kind === "role") {
         selectRole(id);
       } else if (kind === "website-search-start") {
@@ -14119,6 +14231,7 @@ function setupPortfolioHelpBot() {
 
     const navButton = event.target.closest("[data-help-bot-nav]");
     if (navButton) {
+      if (helpBotState.moderationLocked) return;
       const targetRaw = navButton.getAttribute("data-help-bot-target") || "";
       try {
         const target = JSON.parse(decodeURIComponent(targetRaw));
@@ -14183,6 +14296,11 @@ function setupPortfolioHelpBot() {
     const activeComposerField = getActiveComposerField();
     const composerValue = activeComposerField?.value || "";
     clearComposerNote();
+
+    if (containsDisallowedHelpBotInput(composerValue, helpBotState.pendingInputKind)) {
+      await handleDisallowedComposerInput(composerValue);
+      return;
+    }
 
     if (helpBotState.pendingInputKind === "visitor-name") {
       const visitorName = normalizeVisitorName(composerValue);
