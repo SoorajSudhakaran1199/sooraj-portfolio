@@ -6117,36 +6117,12 @@ function setupPortfolioHelpBot() {
   };
 
   const upsertHelpBotRemoteSessionSnapshot = async (snapshot, { keepalive = false } = {}) => {
-    if (!helpBotState.remoteSessionPersisted) {
-      await fetchSupabaseRest(SUPABASE_HELP_BOT_SESSIONS_TABLE, {
-        method: "POST",
-        body: snapshot.payload,
-        prefer: "return=minimal",
-        keepalive: Boolean(keepalive)
-      });
-      return;
-    }
-
-    await fetchSupabaseRest(
-      `${SUPABASE_HELP_BOT_SESSIONS_TABLE}?session_id=eq.${encodeURIComponent(snapshot.payload.session_id)}`,
-      {
-        method: "PATCH",
-        body: {
-          updated_at: snapshot.payload.updated_at,
-          ended_at: snapshot.payload.ended_at,
-          page_path: snapshot.payload.page_path,
-          role_id: snapshot.payload.role_id,
-          visitor_name: snapshot.payload.visitor_name,
-          visitor_position: snapshot.payload.visitor_position,
-          visitor_organization: snapshot.payload.visitor_organization,
-          student_university: snapshot.payload.student_university,
-          message_count: snapshot.payload.message_count,
-          transcript_json: snapshot.payload.transcript_json
-        },
-        prefer: "return=minimal",
-        keepalive: Boolean(keepalive)
-      }
-    );
+    await fetchSupabaseRest(`${SUPABASE_HELP_BOT_SESSIONS_TABLE}?on_conflict=session_id`, {
+      method: "POST",
+      body: snapshot.payload,
+      prefer: "resolution=merge-duplicates,return=minimal",
+      keepalive: Boolean(keepalive)
+    });
   };
 
   const syncHelpBotRemoteSession = async ({ endedAt = "" } = {}) => {
@@ -10697,7 +10673,7 @@ function setupPortfolioHelpBot() {
       });
       persistHelpBotState();
       if (hasConversationBooted || sender === "user" || currentRoleId) {
-        queueHelpBotRemoteSessionSync({ immediate: sender === "user" });
+        queueHelpBotRemoteSessionSync({ immediate: true });
       }
     }
     if (root.classList.contains("is-open")) {
