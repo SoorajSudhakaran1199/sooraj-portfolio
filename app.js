@@ -12836,9 +12836,9 @@ function setupPortfolioHelpBot() {
       helpBotState.visitorName = visitorName;
       helpBotState.pendingInputKind = "";
       persistHelpBotState();
-      queueHelpBotRemoteSessionSync({ immediate: true });
       syncInlineStudentNudge();
       appendMessage({ sender: "user", text: visitorName });
+      queueHelpBotRemoteSessionSync({ immediate: true });
       hideComposer();
       if (helpBotState.pendingWebsiteSearchStart) {
         helpBotState.pendingWebsiteSearchStart = false;
@@ -12901,6 +12901,7 @@ function setupPortfolioHelpBot() {
       helpBotState.pendingInputKind = "";
       persistHelpBotState();
       appendMessage({ sender: "user", text: visitorPosition });
+      queueHelpBotRemoteSessionSync({ immediate: true });
       hideComposer();
       await promptVisitorProfileField("organization", token);
       return;
@@ -12983,6 +12984,7 @@ function setupPortfolioHelpBot() {
       helpBotState.pendingInputKind = "";
       persistHelpBotState();
       appendMessage({ sender: "user", text: visitorOrganization });
+      queueHelpBotRemoteSessionSync({ immediate: true });
       hideComposer();
       await continueVisitorAfterProfile(token);
       return;
