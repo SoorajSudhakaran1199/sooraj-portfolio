@@ -2066,8 +2066,18 @@ body.admin-modal-open {
   font-size: 0.8rem;
 }
 
+.admin-help-bot-session-summary-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
 .admin-help-bot-session-action {
   font-weight: 700;
+  white-space: nowrap;
+}
+
+.admin-help-bot-session-delete {
   white-space: nowrap;
 }
 
@@ -13485,6 +13495,15 @@ body.help-bot-open {
   text-transform: uppercase;
 }
 
+.help-bot-panel-greeting {
+  display: block;
+  margin: 0 0 0.24rem;
+  color: rgba(226, 244, 255, 0.92);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
 .help-bot-panel-title {
   display: block;
   color: var(--text);
@@ -14970,6 +14989,10 @@ body.help-bot-open {
 
   .help-bot-panel-badge {
     font-size: 0.62rem;
+  }
+
+  .help-bot-panel-greeting {
+    font-size: 0.74rem;
   }
 
   .help-bot-panel-title {

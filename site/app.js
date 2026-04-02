@@ -4063,6 +4063,9 @@ function getPortfolioHelpBotConfig(lang) {
       askName: "Bevor ich Sie weiterfuehre: Wie darf ich Sie ansprechen?",
       askNamePlaceholder: "Geben Sie Ihren Namen ein",
       askNameSubmit: "Senden",
+      askNameBotReply: (roleId = "") => roleId === "student"
+        ? "Mein Name hier ist Synapse. Wie darf ich Sie ansprechen, damit ich den studentischen Weg passend fuehren kann?"
+        : "Mein Name hier ist Synapse. Wie darf ich Sie ansprechen?",
       askNameGreeting: (name) => `Willkommen ${name} 👋😊 Ich freue mich, Sie heute durch die Website zu begleiten.`,
       askUniversity: (name) => `Schoen, dass Sie da sind, ${name} 👋 Welche Hochschule oder Universitaet kann ich heute mit Ihrem Weg verknuepfen?`,
       askUniversityPlaceholder: "Hochschule oder Universitaet eingeben",
@@ -4549,6 +4552,9 @@ function getPortfolioHelpBotConfig(lang) {
     askName: "Before I guide you further, what should I call you?",
     askNamePlaceholder: "Type your name",
     askNameSubmit: "Send",
+    askNameBotReply: (roleId = "") => roleId === "student"
+      ? "My name is Synapse. How should I address you so I can guide your student path properly?"
+      : "My name is Synapse. How should I address you?",
     askNameGreeting: (name) => `Welcome ${name} 👋😊 I am here to help guide you through the website today.`,
     askUniversity: (name) => `Glad you are here, ${name} 👋 Which university should I connect your path with today?`,
     askUniversityPlaceholder: "Type your university",
@@ -5320,6 +5326,7 @@ function setupPortfolioHelpBot() {
           <span class="help-bot-panel-mark">${getPortfolioHelpBotArtMarkup("help-bot-art-panel")}</span>
           <div class="help-bot-panel-copy">
             <span class="help-bot-panel-badge"></span>
+            <span class="help-bot-panel-greeting" hidden></span>
             <strong class="help-bot-panel-title" id="${PANEL_TITLE_ID}"></strong>
             <p class="help-bot-panel-lead" id="${PANEL_LEAD_ID}"></p>
           </div>
@@ -5367,6 +5374,7 @@ function setupPortfolioHelpBot() {
   const nudgeText = root.querySelector(".help-bot-nudge-text");
   const nudgeCloseButton = root.querySelector("[data-help-bot-nudge-close]");
   const badge = root.querySelector(".help-bot-panel-badge");
+  const panelGreeting = root.querySelector(".help-bot-panel-greeting");
   const title = root.querySelector(".help-bot-panel-title");
   const lead = root.querySelector(".help-bot-panel-lead");
   const resetButton = root.querySelector("[data-help-bot-reset]");
@@ -5411,39 +5419,77 @@ function setupPortfolioHelpBot() {
     "soorajsmother", "wife"
   ]);
 
+  const DISALLOWED_HELP_BOT_INPUT_WORDS = new Set([
+    "arse", "arsehole", "ass", "assclown", "assface", "asshat", "asshole", "asslicker", "asswipe",
+    "bastard", "bitch", "bitches", "bitchy", "bloodyfool", "blowjob", "bollocks", "boob", "boobs",
+    "bullshit", "clown", "cock", "crap", "cunt", "damn", "dick", "dickface", "dickhead", "dipshit",
+    "dogshit", "dumb", "dumbass", "fool", "fuck", "fucked", "fucker", "fuckers", "fucking", "fuckoff",
+    "fucks", "garbage", "hellno", "idiot", "imbecile", "jerk", "jackass", "loser", "lunatic", "madarchod",
+    "moron", "motherfucker", "nonsense", "nude", "naked", "nutcase", "pervert", "pig", "pissoff", "porn",
+    "pornhub", "prick", "pussy", "retard", "retarded", "scumbag", "sexchat", "sextalk", "shit", "shitface",
+    "shithole", "shitty", "slut", "stfu", "stupid", "suckmy", "trash", "twat", "whore", "wtf"
+  ]);
+
   const DISALLOWED_HELP_BOT_INPUT_PATTERNS = [
     /\bass\s*hole\b/i,
+    /\bass\s*clown\b/i,
+    /\bass\s*face\b/i,
+    /\bass\s*hat\b/i,
+    /\bass\s*licker\b/i,
+    /\bass\s*wipe\b/i,
     /\bbastard\b/i,
     /\bbiatch\b/i,
     /\bbitch(?:es|y)?\b/i,
     /\bblow\s*job\b/i,
+    /\bbloody\s*fool\b/i,
     /\bboobs?\b/i,
+    /\bbollocks\b/i,
     /\bbull\s*shit\b/i,
     /\bcock\b/i,
+    /\bcrap\b/i,
     /\bcunt\b/i,
+    /\bdamn\b/i,
     /\bdick(?:head)?\b/i,
+    /\bdip\s*shit\b/i,
+    /\bdog\s*shit\b/i,
     /\bdumb\s*ass\b/i,
     /\bfuck(?:er|ers|ing|ed|s)?\b/i,
+    /\bfuck\s*off\b/i,
+    /\bfuck\s+sooraj\b/i,
+    /\bfuck\s*you\b/i,
     /\bfuk(?:er|ers|ing|ed|s)?\b/i,
+    /\bgo\s*to\s*hell\b/i,
     /\bhell\s*no\b/i,
     /\bidiot\b/i,
+    /\bimbecile\b/i,
+    /\bjack\s*ass\b/i,
     /\bjerk\b/i,
     /\bkill\s*yourself\b/i,
     /\bloser\b/i,
+    /\blunatic\b/i,
+    /\bmadar\s*chod\b/i,
+    /\bmother\s*fucker\b/i,
     /\bmoron\b/i,
     /\bmother\s*fuck(?:er|ers|ing|ed)?\b/i,
     /\bnaked\b/i,
+    /\bnut\s*case\b/i,
     /\bpervert\b/i,
     /\bpiss\s*off\b/i,
     /\bporn(?:hub)?\b/i,
+    /\bprick\b/i,
     /\bpussy\b/i,
+    /\bretard(?:ed)?\b/i,
     /\bscumbag\b/i,
     /\bsex(?:chat|talk)?\b/i,
     /\bshit(?:ty)?\b/i,
+    /\bshit\s*face\b/i,
+    /\bshit\s*hole\b/i,
     /\bslut\b/i,
     /\bstfu\b/i,
     /\bstupid\b/i,
     /\bsuck\s+my\b/i,
+    /\btrash\b/i,
+    /\btwat\b/i,
     /\bwhore\b/i,
     /\bwtf\b/i
   ];
@@ -5453,14 +5499,19 @@ function setupPortfolioHelpBot() {
     .replace(/\s+/g, " ")
     .trim();
 
+  const HELP_BOT_OWNER_PATTERN = /\b(sooraj|soorja|soraj|suraj|owner|website owner|portfolio owner|he|his)\b/;
+  const HELP_BOT_OWNER_STRICT_PATTERN = /\b(sooraj|soorja|soraj|suraj|owner|website owner|portfolio owner)\b/;
+
   const containsDisallowedHelpBotInput = (value = "", pendingKind = "") => {
     const normalized = normalizeHelpBotModerationText(value);
     if (!normalized) return false;
     if (DISALLOWED_HELP_BOT_INPUT_PATTERNS.some((pattern) => pattern.test(normalized))) return true;
+    const compact = normalized.replace(/[^a-z0-9]/g, "");
+    if (compact && Array.from(DISALLOWED_HELP_BOT_INPUT_WORDS).some((word) => compact.includes(word))) return true;
 
     if (pendingKind === "visitor-name") {
-      const compact = normalized.replace(/[^a-z]/g, "");
-      if (DISALLOWED_HELP_BOT_NAME_WORDS.has(compact)) return true;
+      const compactName = normalized.replace(/[^a-z]/g, "");
+      if (DISALLOWED_HELP_BOT_NAME_WORDS.has(compactName)) return true;
       if (/\b(?:sooraj(?:'s)?\s+)?(?:father|mother|dad|mom|parents?|brother|sister|wife|husband|girlfriend|boyfriend)\b/i.test(normalized)) {
         return true;
       }
@@ -6241,7 +6292,15 @@ function setupPortfolioHelpBot() {
     if (!root) return;
     root.dataset.helpBotRole = currentRoleId || "default";
     const chrome = getRoleChromeCopy();
+    const visitorName = getVisitorName();
+    const shouldShowGreeting = Boolean(visitorName)
+      && hasConversationBooted
+      && (currentRoleId === "student" || currentRoleId === "visitor");
     if (badge) badge.textContent = chrome.badge;
+    if (panelGreeting) {
+      panelGreeting.hidden = !shouldShowGreeting;
+      panelGreeting.textContent = shouldShowGreeting ? `Hi ${visitorName}` : "";
+    }
     if (title) title.textContent = chrome.title;
     if (lead) lead.textContent = chrome.lead;
     setNudgeMessage(chrome.nudge);
@@ -6408,6 +6467,12 @@ function setupPortfolioHelpBot() {
 
   window.addEventListener("pagehide", () => {
     flushHelpBotRemoteSessionSync();
+  });
+
+  window.addEventListener("beforeunload", () => {
+    flushHelpBotRemoteSessionSync({
+      endedAt: getVisitorName() ? new Date().toISOString() : ""
+    });
   });
 
   document.addEventListener("visibilitychange", () => {
@@ -7485,6 +7550,14 @@ function setupPortfolioHelpBot() {
             createBadgedAction("CV anfragen", createHelpBotCvTarget(), "CV")
           ]
         },
+        "owner-languages": {
+          text: "Sooraj spricht Malayalam als Muttersprache. Sein Englisch ist auf C2-Niveau und voll professionell einsetzbar. Deutsch liegt aktuell bei etwa A2, und er arbeitet aktiv daran, dieses Niveau deutlich weiter auszubauen.",
+          actions: [
+            createBadgedAction("Journey", createHelpBotPageTarget("journey.html"), "Story"),
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+          ]
+        },
         "sooraj-german-language": {
           text: "Sooraj lernt derzeit Deutsch. Der aktuelle Stand liegt bei etwa A2, und er arbeitet daran, das Niveau in Richtung B2 weiter auszubauen.",
           actions: [
@@ -7547,11 +7620,12 @@ function setupPortfolioHelpBot() {
         },
         "assistant-german-language": currentLang === "de"
           ? {
-              text: "Ja, ich kann auf Deutsch antworten. Wir koennen direkt auf Deutsch weiterschreiben.",
-              actions: []
+              text: "Ja. Ich kann auf Englisch und Deutsch antworten. Wenn Sie moechten, wechsle ich jetzt auf Englisch.",
+              actions: [],
+              inlineOptions: getChatLanguageSwitchOptions("en")
             }
           : {
-              text: "Ja, ich kann Deutsch sprechen. Wenn Sie moechten, kann ich diesen Chat direkt auf Deutsch weiterfuehren.",
+              text: "I can speak English and German. If you want, I can continue this chat in German right away.",
               actions: [],
               inlineOptions: getChatLanguageSwitchOptions("de")
             },
@@ -7916,6 +7990,14 @@ function setupPortfolioHelpBot() {
           createBadgedAction("Request CV", createHelpBotCvTarget(), "CV")
         ]
       },
+      "owner-languages": {
+        text: "Sooraj speaks Malayalam as his native language. His English level is C2 and fully professional. His German is currently around A2, and he is actively upgrading it toward a much higher level.",
+        actions: [
+          createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story"),
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+          createBadgedAction("Open contact form", createHelpBotContactFormTarget(), "Action")
+        ]
+      },
       "sooraj-german-language": {
         text: "Sooraj is currently learning German. His current level is around A2, and he is actively working toward B2.",
         actions: [
@@ -7978,11 +8060,12 @@ function setupPortfolioHelpBot() {
       },
       "assistant-german-language": currentLang === "de"
         ? {
-            text: "Ja, ich kann auf Deutsch antworten. Wir koennen direkt auf Deutsch weiterschreiben.",
-            actions: []
+            text: "Yes. I can speak English and German. If you want, I can switch to English now.",
+            actions: [],
+            inlineOptions: getChatLanguageSwitchOptions("en")
           }
         : {
-            text: "Yes, I can speak German. If you want, I can continue this chat in German right away.",
+            text: "I can speak English and German. If you want, I can continue this chat in German right away.",
             actions: [],
             inlineOptions: getChatLanguageSwitchOptions("de")
           },
@@ -8170,6 +8253,42 @@ function setupPortfolioHelpBot() {
         createBadgedAction("Request CV", createHelpBotCvTarget(), "CV")
       ];
 
+  const buildHelpBotAssistantLanguageAnswer = (query = "") => {
+    const normalized = String(query || "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+    const asksMalayalam = /\b(malayalam|malaylam)\b/.test(normalized);
+    const switchTarget = currentLang === "de" ? "en" : "de";
+    const switchOptions = getChatLanguageSwitchOptions(switchTarget);
+
+    if (currentLang === "de") {
+      return asksMalayalam
+        ? {
+            text: "Nein, ich spreche kein Malayalam. Ich kann auf Englisch und Deutsch antworten. Wenn Sie moechten, wechsle ich jetzt auf Englisch.",
+            actions: [],
+            inlineOptions: switchOptions
+          }
+        : {
+            text: "Ich spreche Englisch und Deutsch. Wenn Sie moechten, wechsle ich jetzt auf Englisch.",
+            actions: [],
+            inlineOptions: switchOptions
+          };
+    }
+
+    return asksMalayalam
+      ? {
+          text: "No, I do not speak Malayalam. I can speak English and German. If you want, I can continue or translate this chat in German right away.",
+          actions: [],
+          inlineOptions: switchOptions
+        }
+      : {
+          text: "I can speak English and German. If you want, I can continue or translate this chat in German right away.",
+          actions: [],
+          inlineOptions: switchOptions
+        };
+  };
+
   const buildHelpBotOwnerDetailAnswer = (query = "") => {
     const intent = detectHelpBotPersonalIdentityIntent(query);
     if (!intent) return null;
@@ -8181,7 +8300,8 @@ function setupPortfolioHelpBot() {
       location: { assistant: "bot-location", owner: "owner-location" },
       nationality: { assistant: "bot-personal-status", owner: "owner-nationality" },
       relationship: { assistant: "bot-personal-status", owner: "owner-relationship-status" },
-      permit: { assistant: "bot-personal-status", owner: "owner-work-permit" }
+      permit: { assistant: "bot-personal-status", owner: "owner-work-permit" },
+      language: { assistant: "assistant-german-language", owner: "owner-languages" }
     };
 
     const answerIds = categoryToAnswerIds[intent.category];
@@ -8198,6 +8318,10 @@ function setupPortfolioHelpBot() {
       };
     }
 
+    if (intent.target === "assistant" && intent.category === "language") {
+      return buildHelpBotAssistantLanguageAnswer(query);
+    }
+
     return getWebsiteQuestionAnswerEntry(intent.target === "assistant" ? answerIds.assistant : answerIds.owner);
   };
 
@@ -8208,7 +8332,7 @@ function setupPortfolioHelpBot() {
       .trim();
     if (!normalized) return null;
 
-    const mentionsOwner = /\b(sooraj|owner|website owner|portfolio owner|he|his)\b/.test(normalized);
+    const mentionsOwner = HELP_BOT_OWNER_PATTERN.test(normalized);
     const mentionsAssistant = /\b(ai|assistant|bot|synapse|chatbot)\b/.test(normalized);
     const usesYouPronoun = /\b(you|your|you re|you are)\b/.test(normalized);
     const asksAboutColor = /\b(color|colour|skin color|skin colour|skin tone|complexion|fair|dark|black|white|brown|wheatish|teint)\b/.test(normalized);
@@ -8257,11 +8381,59 @@ function setupPortfolioHelpBot() {
     return getWebsiteQuestionAnswerEntry(intent.target === "assistant" ? "assistant-german-language" : "sooraj-german-language");
   };
 
+  const detectHelpBotDirectChatLanguageSwitch = (query = "") => {
+    const normalized = String(query || "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+    if (!normalized) return null;
+
+    const wantsEnglish = /\b(english|englisch)\b/.test(normalized);
+    const wantsGerman = /\b(german|deutsch)\b/.test(normalized);
+    const switchFrame = /\b(switch|translate|continue|speak|chat|reply|write|change|convert|move|use|can we speak|can you speak|auf|in)\b/.test(normalized);
+
+    if (!switchFrame) return null;
+    if (wantsEnglish && !wantsGerman) return { lang: "en" };
+    if (wantsGerman && !wantsEnglish) return { lang: "de" };
+    return null;
+  };
+
+  const buildHelpBotDirectChatLanguageSwitchAnswer = (query = "") => {
+    const intent = detectHelpBotDirectChatLanguageSwitch(query);
+    if (!intent) return null;
+
+    if (intent.lang === "en") {
+      return currentLang === "de"
+        ? {
+            text: "Ja. Ich kann diesen Chat auf Englisch weiterfuehren. Wenn Sie moechten, wechsle ich jetzt direkt auf Englisch.",
+            actions: [],
+            inlineOptions: getChatLanguageSwitchOptions("en")
+          }
+        : {
+            text: "I can continue this chat in English. If you want, I can keep it in English or switch again later.",
+            actions: [],
+            inlineOptions: withEndChatOption([])
+          };
+    }
+
+    return currentLang === "de"
+      ? {
+          text: "Ja. Ich kann diesen Chat auf Deutsch weiterfuehren. Wenn Sie moechten, bleiben wir direkt auf Deutsch.",
+          actions: [],
+          inlineOptions: withEndChatOption([])
+        }
+      : {
+          text: "Yes. I can continue this chat in German. If you want, I can switch to German right away.",
+          actions: [],
+          inlineOptions: getChatLanguageSwitchOptions("de")
+        };
+  };
+
   const buildHelpBotUnknownOwnerPersonalAnswer = (query = "") => {
     const normalizedQuery = normalizeReviewLookupText(query);
     if (!normalizedQuery) return null;
 
-    const targetsOwner = /\b(sooraj|owner|portfolio owner|website owner)\b/.test(normalizedQuery);
+    const targetsOwner = HELP_BOT_OWNER_STRICT_PATTERN.test(normalizedQuery);
     const unsupportedPersonalIntent = /\b(father|mother|parent|parents|family|brother|sister|siblings|religion|salary|income|net worth|food|favourite|favorite|love life|girlfriend|boyfriend|wife|husband|children|kids|politics)\b/.test(normalizedQuery);
     if (!(targetsOwner && unsupportedPersonalIntent)) {
       return null;
@@ -8913,6 +9085,11 @@ function setupPortfolioHelpBot() {
     const forcedEntryAnswer = forcedAnswerId ? getWebsiteQuestionAnswerEntry(forcedAnswerId) : null;
     if (forcedEntryAnswer) {
       return forcedEntryAnswer;
+    }
+
+    const directLanguageSwitchAnswer = buildHelpBotDirectChatLanguageSwitchAnswer(query);
+    if (directLanguageSwitchAnswer) {
+      return directLanguageSwitchAnswer;
     }
 
     const germanLanguageAnswer = buildHelpBotGermanLanguageAnswer(query);
@@ -10645,6 +10822,34 @@ function setupPortfolioHelpBot() {
     return true;
   };
 
+  const isBotNameQuestionDuringNameCapture = (query = "") => {
+    const normalized = String(query || "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+    if (!normalized) return false;
+
+    const directPatterns = [
+      "what is your name",
+      "whats your name",
+      "what s your name",
+      "your name",
+      "who are you",
+      "tell me your name",
+      "name please",
+      "what should i call you",
+      "what can i call you",
+      "may i know your name",
+      "can i know your name"
+    ];
+    const asksForName = directPatterns.some((pattern) => normalized.includes(pattern) || normalized === pattern);
+    const mentionsBot = /\b(ai|assistant|bot|chatbot|synapse)\b/.test(normalized);
+    const mentionsOwner = /\b(sooraj|owner|website owner|portfolio owner|founder|his name|her name)\b/.test(normalized)
+      || HELP_BOT_OWNER_PATTERN.test(normalized);
+
+    return !mentionsOwner && (asksForName || (mentionsBot && /\b(name|who are you)\b/.test(normalized)));
+  };
+
   const detectHelpBotPersonalIdentityIntent = (query = "") => {
     const normalized = String(query || "")
       .toLowerCase()
@@ -10652,7 +10857,7 @@ function setupPortfolioHelpBot() {
       .trim();
     if (!normalized) return null;
 
-    const mentionsOwner = /\b(sooraj|owner|website owner|portfolio owner|he|his)\b/.test(normalized);
+    const mentionsOwner = HELP_BOT_OWNER_PATTERN.test(normalized);
     const mentionsAssistant = /\b(ai|assistant|bot|synapse|chatbot)\b/.test(normalized);
     const usesYouPronoun = /\b(you|your|yours|you re|you are)\b/.test(normalized);
     const asksForDocumentNumber = /\b(passport number|visa number|permit number|document number|id number|expiry|expiration|expire|valid until)\b/.test(normalized);
@@ -10666,6 +10871,10 @@ function setupPortfolioHelpBot() {
     const hasRelationshipIntent = /\b(single|married|relationship status|wife|husband|girlfriend|boyfriend)\b/.test(normalized);
     const hasPermitIntent = !asksForDocumentNumber
       && /\b(work permit|visa|schengen|work authorization|residence permit)\b/.test(normalized);
+    const hasLanguageIntent = (
+      /\b(language|languages|langauges|lanaguages|langauge|english|malayalam|malaylam|german|deutsch)\b/.test(normalized)
+      && /\b(speak|speaks|spoken|know|knows|talk|talks|use|uses|can|does|do|which|what|level)\b/.test(normalized)
+    ) || /\b(do you speak|can you speak|what do you speak|which languages|what languages)\b/.test(normalized);
     const hasOverviewIntent = /\b(personal details|personal detail|owner details|details about sooraj|about sooraj|tell me about sooraj)\b/.test(normalized);
 
     const matchedCategories = [
@@ -10674,7 +10883,8 @@ function setupPortfolioHelpBot() {
       hasLocationIntent ? "location" : "",
       hasNationalityIntent ? "nationality" : "",
       hasRelationshipIntent ? "relationship" : "",
-      hasPermitIntent ? "permit" : ""
+      hasPermitIntent ? "permit" : "",
+      hasLanguageIntent ? "language" : ""
     ].filter(Boolean);
 
     let category = "";
@@ -10704,7 +10914,7 @@ function setupPortfolioHelpBot() {
       .trim();
     if (!normalized) return null;
 
-    const mentionsOwner = /\b(sooraj|owner|website owner|portfolio owner|he|his)\b/.test(normalized);
+    const mentionsOwner = HELP_BOT_OWNER_PATTERN.test(normalized);
     const mentionsAssistant = /\b(ai|assistant|bot|synapse|chatbot)\b/.test(normalized);
     const usesYouPronoun = /\b(you|your|you re|you are|du|dein|deine|dir)\b/.test(normalized);
     const asksAboutGerman = /\b(german|deutsch)\b/.test(normalized)
@@ -11574,7 +11784,7 @@ function setupPortfolioHelpBot() {
       }
       setInlineNudgeOverride("");
       if (helpBotState.messages.length >= 2 && (currentRoleId || hasConversationBooted)) {
-        queueHelpBotRemoteSessionSync({ immediate: true });
+        flushHelpBotRemoteSessionSync();
       }
       clearNudgeTimers();
       showNudge({
@@ -12211,6 +12421,10 @@ function setupPortfolioHelpBot() {
   };
 
   const beginEndChatFlow = async () => {
+    if (helpBotState.moderationLocked) {
+      endConversation({ showExitNudge: false });
+      return;
+    }
     responseToken += 1;
     const token = responseToken;
     clearTypingIndicator();
@@ -12854,7 +13068,7 @@ function setupPortfolioHelpBot() {
 
   const resetConversation = async () => {
     if (helpBotState.messages.length >= 2 && (currentRoleId || hasConversationBooted)) {
-      queueHelpBotRemoteSessionSync({ immediate: true, endedAt: new Date().toISOString() });
+      flushHelpBotRemoteSessionSync({ endedAt: new Date().toISOString() });
     }
     responseToken += 1;
     const token = responseToken;
@@ -13356,7 +13570,7 @@ function setupPortfolioHelpBot() {
   };
 
   const handleIdentityClarification = async (answerId) => {
-    const assistantAnswerIds = new Set(["bot-age", "bot-origin", "bot-location", "bot-personal-status"]);
+    const assistantAnswerIds = new Set(["bot-age", "bot-origin", "bot-location", "bot-personal-status", "assistant-german-language"]);
     const label = assistantAnswerIds.has(answerId)
       ? config.searchWebsiteIdentityClarifyAssistant
       : config.searchWebsiteIdentityClarifyOwner;
@@ -13398,9 +13612,12 @@ function setupPortfolioHelpBot() {
 
   const handleChatLanguageSwitch = async (choiceId) => {
     const switchToGerman = choiceId === "switch-german";
+    const switchToEnglish = choiceId === "switch-english";
     const userLabel = switchToGerman
       ? config.chatLanguageSwitchGerman
-      : config.chatLanguageStayCurrent;
+      : switchToEnglish
+        ? (currentLang === "de" ? "Ja, auf Englisch wechseln" : "Yes, switch to English")
+        : config.chatLanguageStayCurrent;
     appendMessage({ sender: "user", text: userLabel });
     responseToken += 1;
     const token = responseToken;
@@ -13410,6 +13627,19 @@ function setupPortfolioHelpBot() {
       switchHelpBotConversationLanguage("de");
       await queueBotReply({
         text: "Alles klar. Ab jetzt koennen wir auf Deutsch weiterschreiben. Stellen Sie einfach Ihre naechste Frage auf Deutsch.",
+        delay: 240,
+        token,
+        inlineOptions: withEndChatOption([])
+      });
+      if (token !== responseToken) return;
+      showComposer();
+      return;
+    }
+
+    if (switchToEnglish) {
+      switchHelpBotConversationLanguage("en");
+      await queueBotReply({
+        text: "All right. We can continue in English from here. Just ask the next question in English.",
         delay: 240,
         token,
         inlineOptions: withEndChatOption([])
@@ -14104,7 +14334,7 @@ function setupPortfolioHelpBot() {
     clearTypingIndicator();
     hideComposer();
     if (helpBotState.messages.length >= 2 && (currentRoleId || hasConversationBooted)) {
-      queueHelpBotRemoteSessionSync({ immediate: true, endedAt: new Date().toISOString() });
+      flushHelpBotRemoteSessionSync({ endedAt: new Date().toISOString() });
     }
     clearHelpBotState();
     if (liveRegion) liveRegion.textContent = "";
@@ -14224,7 +14454,11 @@ function setupPortfolioHelpBot() {
         resetConversation();
       } else if (kind === "end-chat") {
         appendMessage({ sender: "user", text: config.endChat });
-        beginEndChatFlow();
+        if (helpBotState.moderationLocked) {
+          endConversation({ showExitNudge: false });
+        } else {
+          beginEndChatFlow();
+        }
       }
       return;
     }
@@ -14303,6 +14537,25 @@ function setupPortfolioHelpBot() {
     }
 
     if (helpBotState.pendingInputKind === "visitor-name") {
+      const rawNamePromptInput = String(composerValue || "").replace(/\s+/g, " ").trim().slice(0, 120);
+      if (isBotNameQuestionDuringNameCapture(rawNamePromptInput)) {
+        responseToken += 1;
+        const token = responseToken;
+        clearTypingIndicator();
+        setInlineNudgeOverride("");
+        appendMessage({ sender: "user", text: rawNamePromptInput });
+        hideComposer();
+        await queueBotReply({
+          text: config.askNameBotReply(currentRoleId),
+          delay: 260,
+          token,
+          inlineOptions: withEndChatOption([])
+        });
+        if (token !== responseToken) return;
+        showComposer();
+        return;
+      }
+
       const visitorName = normalizeVisitorName(composerValue);
       if (!visitorName) {
         setInlineNudgeOverride(currentLang === "de"
@@ -16070,7 +16323,10 @@ async function renderAdminHelpBotControls(workspacePanel = document.querySelecto
               <strong>${escapeHtml(session.visitorName || roleLabel || copy.anonymous)}</strong>
               <span>${escapeHtml(roleLabel)} • ${escapeHtml(updatedLabel)} • ${escapeHtml(`${session.messageCount} ${copy.messages}`)}</span>
             </div>
-            <span class="admin-help-bot-session-action">${copy.transcript}</span>
+            <span class="admin-help-bot-session-summary-actions">
+              <span class="admin-help-bot-session-action">${copy.transcript}</span>
+              <button class="btn btn-secondary btn-small admin-help-bot-session-delete" type="button" data-admin-help-bot-delete="${escapeHtml(session.sessionId)}">${copy.delete}</button>
+            </span>
           </summary>
           <div class="admin-help-bot-session-body">
             <div class="admin-help-bot-session-meta">
@@ -16088,7 +16344,9 @@ async function renderAdminHelpBotControls(workspacePanel = document.querySelecto
     }).join("");
 
     list.querySelectorAll("[data-admin-help-bot-delete]").forEach((button) => {
-      button.addEventListener("click", async () => {
+      button.addEventListener("click", async (event) => {
+        event.preventDefault();
+        event.stopPropagation();
         const sessionId = button.getAttribute("data-admin-help-bot-delete") || "";
         if (!sessionId) return;
         button.disabled = true;

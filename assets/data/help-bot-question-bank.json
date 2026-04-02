@@ -2453,6 +2453,11 @@
       "id": "assistant-german-language",
       "keywords": [
         "speak german",
+        "which languages do you speak",
+        "what languages do you speak",
+        "what language do you speak",
+        "languages you speak",
+        "speak english and german",
         "can you speak german",
         "do you speak german",
         "talk in german",
@@ -2464,6 +2469,10 @@
         "auf deutsch"
       ],
       "questions": [
+        "Which languages do you speak?",
+        "What languages do you speak?",
+        "What language can you speak?",
+        "Can you speak English and German?",
         "Can you speak German?",
         "Do you speak German?",
         "Can we chat in German?",
@@ -2482,9 +2491,38 @@
       ]
     },
     {
+      "id": "owner-languages",
+      "keywords": [
+        "which languages sooraj speak",
+        "what languages sooraj speak",
+        "what language does sooraj speak",
+        "sooraj languages",
+        "soorja languages",
+        "soraj languages",
+        "suraj languages",
+        "sooraj language skills",
+        "portfolio owner languages",
+        "owner language"
+      ],
+      "questions": [
+        "Which languages does Sooraj speak?",
+        "What languages does Sooraj speak?",
+        "What language does Sooraj speak?",
+        "Can Sooraj speak English?",
+        "Can Sooraj speak Malayalam?",
+        "What are Sooraj's language skills?",
+        "Which languages can the portfolio owner speak?",
+        "What languages can Soorja speak?",
+        "What languages can Soraj speak?",
+        "Tell me the languages spoken by Sooraj."
+      ]
+    },
+    {
       "id": "sooraj-german-language",
       "keywords": [
         "sooraj german",
+        "soorja german",
+        "soraj german",
         "sooraj deutsch",
         "does sooraj speak german",
         "can sooraj speak german",
