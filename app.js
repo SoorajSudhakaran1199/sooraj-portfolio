@@ -4029,6 +4029,10 @@ function createHelpBotExternalTarget(href) {
   return { type: "external", href };
 }
 
+function createHelpBotEmailTarget() {
+  return createHelpBotExternalTarget("mailto:soorajsudhakaran1199@gmail.com");
+}
+
 function createHelpBotCvTarget() {
   return createHelpBotPageTarget("request-cv.html");
 }
@@ -4112,6 +4116,14 @@ function getPortfolioHelpBotConfig(lang) {
       searchWebsiteNameClarifyPrompt: "Meinen Sie meinen Bot-Namen oder den Namen des Portfolio-Inhabers?",
       searchWebsiteNameClarifyBot: "Den Bot-Namen meinen",
       searchWebsiteNameClarifyOwner: "Den Portfolio-Inhaber meinen",
+      searchWebsiteIdentityClarifyPrompt: "Meinen Sie mich als AI Assistant oder Sooraj, den Portfolio-Inhaber?",
+      searchWebsiteIdentityClarifyAssistant: "Den AI Assistant meinen",
+      searchWebsiteIdentityClarifyOwner: "Sooraj meinen",
+      searchWebsiteGermanClarifyPrompt: "Meinen Sie, ob ich als AI Assistant Deutsch sprechen kann, oder fragen Sie nach Soorajs Deutschkenntnissen?",
+      searchWebsiteGermanClarifyAssistant: "Den AI Assistant meinen",
+      searchWebsiteGermanClarifySooraj: "Soorajs Deutsch meinen",
+      chatLanguageSwitchGerman: "Ja, auf Deutsch wechseln",
+      chatLanguageStayCurrent: "Nein, in dieser Sprache bleiben",
       visitorProfileConsent: "Hallo Besucher 👋 Moechten Sie ein paar kurze Angaben wie Ihren Namen, Ihre Position und Ihre Organisation teilen, damit ich Sie passender ansprechen kann?",
       visitorProfileShare: "Ja, ich teile das",
       visitorProfileSkip: "Nein, direkt weiter",
@@ -4210,23 +4222,23 @@ function getPortfolioHelpBotConfig(lang) {
       roles: {
         recruiter: {
           label: "Recruiter",
-          intro: "Ich priorisiere jetzt die staerksten Einstiegsseiten fuer Rollen-Fit, industrielle Erfahrung, Thesis, Reviews und schnellen Kontakt.",
-          prompt: "Was moechten Sie zuerst pruefen?",
+          intro: "Ich fuehre das jetzt wie einen kompakten Hiring-Desk: Rollen-Fit, Industrieerfahrung, technische Substanz, Reviews und direkte Conversion-Pfade. Ich erklaere den Signalwert zuerst im Chat und oeffne Detailseiten danach nur gezielt.",
+          prompt: "Waehlen Sie die erste Bewertungsspur.",
           topics: [
             {
               id: "fit",
-              label: "Rollen-Fit",
-              response: "Starten Sie mit dem Rollen-Fit-Bereich. Dort sehen Sie am schnellsten, wo das Portfolio fuer Robotik, Automatisierung, Simulation, Regelung und softwareorientierte Engineering-Rollen am staerksten ist.",
+              label: "Rollen-Fit und Hiring-Match",
+              response: "Starten Sie mit dem Rollen-Fit. Dort wird das Portfolio direkt auf die staerksten Hiring-Matches fuer Robotik, Automatisierung, Simulation, Regelung und softwareorientierte Engineering-Rollen verdichtet.",
               actions: [
-                { label: "Where I Fit", target: createHelpBotHomeTarget("where-i-fit") },
+                { label: "Rollen-Fit oeffnen", target: createHelpBotHomeTarget("where-i-fit") },
                 { label: "CV anfragen", target: createHelpBotPageTarget("request-cv.html") },
-                { label: "Kontakt", target: createHelpBotHomeTarget("contact") }
+                { label: "Kontaktpfad oeffnen", target: createHelpBotHomeTarget("contact") }
               ]
             },
             {
               id: "projects",
-              label: "Top-Projekte",
-              response: "Fuer einen schnellen technischen Scan eignen sich besonders der ROS-Vakuumroboter, der Service-Roboter und die Portfolio-Map als Uebersicht ueber alle relevanten Seiten.",
+              label: "Technische Substanz",
+              response: "Fuer den technischen Screen eignen sich besonders der ROS-Vakuumroboter, der Service-Roboter und die Portfolio-Map. Zusammen zeigen sie Systemdenken, Robotik-Logik und technische Umsetzungsbreite.",
               actions: [
                 { label: "Autonomer Vakuumroboter", target: createHelpBotPageTarget("project-autonomous-vacuum-robot.html") },
                 { label: "Service-Roboter", target: createHelpBotPageTarget("project-service-robot.html") },
@@ -4235,8 +4247,8 @@ function getPortfolioHelpBotConfig(lang) {
             },
             {
               id: "experience",
-              label: "Industrie-Erfahrung",
-              response: "Der staerkste berufliche Nachweis ist die KEBA-Linie: Master-Thesis plus Werkstudentenrolle in Deutschland. Diese Kombination zeigt industriellen Kontext und technische Umsetzung.",
+              label: "Industrieerfahrung",
+              response: "Der staerkste berufliche Nachweis ist die KEBA-Linie: Master-Thesis plus Werkstudentenrolle in Deutschland. Diese Kombination zeigt industriellen Kontext, technische Umsetzung und Plausibilitaet fuer reale Hiring-Szenarien.",
               actions: [
                 { label: "KEBA Master-Thesis", target: createHelpBotPageTarget("experience-masters-thesis-keba.html") },
                 { label: "KEBA Werkstudent", target: createHelpBotPageTarget("experience-working-student-keba.html") },
@@ -4245,8 +4257,8 @@ function getPortfolioHelpBotConfig(lang) {
             },
             {
               id: "reviews",
-              label: "Reviews und Glaubwuerdigkeit",
-              response: "Sie koennen die hervorgehobenen Reviews direkt auf der Startseite lesen oder die komplette Feedback-Seite fuer oeffentliche Reviews und Kontaktwege oeffnen.",
+              label: "Reviews und Vertrauen",
+              response: "Dieser Bereich ist die Vertrauensebene nach technischem oder beruflichem Proof. Sie koennen die hervorgehobenen Reviews direkt auf der Startseite lesen oder die komplette Feedback-Seite fuer den gesamten Kontext oeffnen.",
               actions: [
                 { label: "Reviews auf der Startseite", target: createHelpBotHomeTarget("reviews") },
                 { label: "Feedback-Seite", target: createHelpBotPageTarget("feedback.html") },
@@ -4255,8 +4267,8 @@ function getPortfolioHelpBotConfig(lang) {
             },
             {
               id: "contact",
-              label: "CV und Kontakt",
-              response: "Wenn das Profil bereits passt, ist der schnellste naechste Schritt die CV-Anfrage oder direkter Kontakt ueber die Kontaktsektion.",
+              label: "CV und direkte Conversion",
+              response: "Wenn das Profil bereits passt, sind CV-Anfrage und direkter Kontakt die saubersten naechsten Hiring-Schritte. Dieser Pfad ist bewusst kurz und conversion-orientiert gehalten.",
               actions: [
                 { label: "CV anfragen", target: createHelpBotCvTarget() },
                 { label: "Kontaktformular", target: createHelpBotContactFormTarget() },
@@ -4267,8 +4279,8 @@ function getPortfolioHelpBotConfig(lang) {
         },
         hiringManager: {
           label: "Hiring Manager",
-          intro: "Ich fokussiere jetzt auf industrielle Belege, Umsetzungsnaehe, technische Tiefe und direkte Kontaktwege.",
-          prompt: "Welchen Nachweis moechten Sie zuerst sehen?",
+          intro: "Ich fokussiere jetzt auf industrielle Belege, Delivery-Logik, technische Tiefe und direkte naechste Schritte. Ich fasse die Relevanz jeweils zuerst im Chat zusammen und leite dann gezielt weiter.",
+          prompt: "Waehlen Sie den ersten Proof-Bereich.",
           topics: [
             {
               id: "industrial",
@@ -4590,6 +4602,14 @@ function getPortfolioHelpBotConfig(lang) {
     searchWebsiteNameClarifyPrompt: "Do you mean my bot name, or the name of the portfolio owner?",
     searchWebsiteNameClarifyBot: "You mean the bot name",
     searchWebsiteNameClarifyOwner: "You mean the portfolio owner",
+    searchWebsiteIdentityClarifyPrompt: "Do you mean me as the AI assistant, or do you mean Sooraj, the portfolio owner?",
+    searchWebsiteIdentityClarifyAssistant: "You mean the AI assistant",
+    searchWebsiteIdentityClarifyOwner: "You mean Sooraj",
+    searchWebsiteGermanClarifyPrompt: "Do you mean whether I as the AI assistant can speak German, or are you asking about Sooraj's German level?",
+    searchWebsiteGermanClarifyAssistant: "You mean the AI assistant",
+    searchWebsiteGermanClarifySooraj: "You mean Sooraj's German",
+    chatLanguageSwitchGerman: "Yes, switch to German",
+    chatLanguageStayCurrent: "No, stay in this language",
     visitorProfileConsent: "Hi visitor 👋 Would you be willing to share a few quick details like your name, position, and organisation so I can address you better?",
     visitorProfileShare: "Yes, I’ll share",
     visitorProfileSkip: "No, continue directly",
@@ -4688,23 +4708,23 @@ function getPortfolioHelpBotConfig(lang) {
     roles: {
       recruiter: {
         label: "Recruiter",
-        intro: "I’ll prioritise the strongest hiring paths now: role fit, industrial experience, thesis work, reviews, and fast contact options.",
-        prompt: "What would you like to evaluate first?",
+        intro: "I’ll run this like a compact hiring desk: role fit, industrial experience, technical proof, trust signals, and direct conversion paths. I’ll explain the hiring signal in chat first and only route to detail pages when it helps.",
+        prompt: "Choose the first evaluation lane.",
         topics: [
           {
             id: "fit",
-            label: "Best role fit",
-            response: "Start with the role-fit section. It gives the fastest summary of where the portfolio is strongest for robotics, automation, simulation, controls, and software-facing engineering roles.",
+            label: "Role fit and hiring match",
+            response: "Start with role fit. It compresses the portfolio into the clearest hiring matches across robotics, automation, simulation, controls, and software-facing engineering roles.",
             actions: [
-              { label: "Check Where I Fit", target: createHelpBotHomeTarget("where-i-fit") },
+              { label: "Open role-fit summary", target: createHelpBotHomeTarget("where-i-fit") },
               { label: "Request CV", target: createHelpBotPageTarget("request-cv.html") },
-              { label: "Go to contact", target: createHelpBotHomeTarget("contact") }
+              { label: "Open contact path", target: createHelpBotHomeTarget("contact") }
             ]
           },
           {
             id: "projects",
-            label: "Top projects",
-            response: "For a quick technical scan, start with the ROS autonomous vacuum robot, the service robot, and the portfolio map for a faster overview of the portfolio structure.",
+            label: "Technical proof",
+            response: "For a technical screen, start with the ROS autonomous vacuum robot, the service robot, and the portfolio map. Together they show systems thinking, robotics logic, and implementation range.",
             actions: [
               { label: "Autonomous vacuum robot", target: createHelpBotPageTarget("project-autonomous-vacuum-robot.html") },
               { label: "Service robot", target: createHelpBotPageTarget("project-service-robot.html") },
@@ -4714,7 +4734,7 @@ function getPortfolioHelpBotConfig(lang) {
           {
             id: "experience",
             label: "Industrial experience",
-            response: "The strongest professional proof is the KEBA path: master's thesis plus working-student experience in Germany. Together they show industrial context and technical execution.",
+            response: "The strongest professional proof is the KEBA path: master's thesis plus working-student experience in Germany. Together they show industrial context, technical execution, and real hiring relevance.",
             actions: [
               { label: "KEBA master's thesis", target: createHelpBotPageTarget("experience-masters-thesis-keba.html") },
               { label: "KEBA working student role", target: createHelpBotPageTarget("experience-working-student-keba.html") },
@@ -4723,8 +4743,8 @@ function getPortfolioHelpBotConfig(lang) {
           },
           {
             id: "reviews",
-            label: "Reviews and credibility",
-            response: "You can read featured reviews directly on the homepage or open the full feedback page for public reviews and direct contact paths.",
+            label: "Reviews and trust",
+            response: "This is the trust layer after technical or professional proof. You can read the featured reviews on the homepage or open the full feedback page for the complete review context.",
             actions: [
               { label: "Open reviews section", target: createHelpBotHomeTarget("reviews") },
               { label: "Open feedback page", target: createHelpBotPageTarget("feedback.html") },
@@ -4733,8 +4753,8 @@ function getPortfolioHelpBotConfig(lang) {
           },
           {
             id: "contact",
-            label: "CV and contact",
-            response: "If the profile already looks relevant, the fastest next step is the CV request page or direct contact through the contact section.",
+            label: "CV and direct contact",
+            response: "If the profile already looks relevant, CV request and direct contact are the cleanest next hiring steps. This path is intentionally short and conversion-oriented.",
             actions: [
               { label: "Request CV", target: createHelpBotCvTarget() },
               { label: "Open contact form", target: createHelpBotContactFormTarget() },
@@ -4745,8 +4765,8 @@ function getPortfolioHelpBotConfig(lang) {
       },
       hiringManager: {
         label: "Hiring manager",
-        intro: "I’ll focus on industrial proof, delivery-ready work, technical depth, and direct hiring paths.",
-        prompt: "Which proof would you like to review first?",
+        intro: "I’ll focus on industrial proof, delivery logic, technical depth, and direct next-step readiness. I’ll summarise the relevance in chat first and then route you to the right detail page.",
+        prompt: "Choose the first proof lane.",
         topics: [
           {
             id: "industrial",
@@ -5670,11 +5690,52 @@ function setupPortfolioHelpBot() {
     return `${name}, ${message}`;
   };
 
+  const shouldOfferInlineWebsiteSearch = (roleId = currentRoleId) => roleId === "recruiter" || roleId === "hiringManager";
+
+  const getWebsiteSearchCopy = (roleId = currentRoleId) => {
+    if (shouldOfferInlineWebsiteSearch(roleId)) {
+      return currentLang === "de"
+        ? {
+            label: "Direkt fragen",
+            prompt: "Fragen Sie mich direkt nach Rollen-Fit, Industrieerfahrung, Thesis, Projekten, Reviews, CV oder Kontakt.",
+            placeholder: "Zum Beispiel Industrieerfahrung, KEBA Thesis, ROS Projekte, Reviews, CV ...",
+            submit: "Fragen"
+          }
+        : {
+            label: "Ask me",
+            prompt: "Ask me directly about role fit, industrial experience, thesis work, projects, reviews, CV, or contact.",
+            placeholder: "For example: industrial experience, KEBA thesis, ROS projects, reviews, request CV ...",
+            submit: "Ask"
+          };
+    }
+
+    return {
+      label: config.searchWebsiteLabel,
+      prompt: config.searchWebsitePrompt,
+      placeholder: config.searchWebsitePlaceholder,
+      submit: config.searchWebsiteSubmit
+    };
+  };
+
+  const getWebsiteSearchStartOption = (roleId = currentRoleId) => {
+    const searchCopy = getWebsiteSearchCopy(roleId);
+    const badge = shouldOfferInlineWebsiteSearch(roleId)
+      ? (currentLang === "de" ? "Direkt" : "Direct")
+      : "";
+    return {
+      kind: "website-search-start",
+      id: "search",
+      label: searchCopy.label,
+      ...(badge ? { badge } : {})
+    };
+  };
+
   const getComposerMode = () => {
+    const websiteSearchCopy = getWebsiteSearchCopy();
     if (helpBotState.pendingInputKind === "website-search") {
       return {
-        placeholder: config.searchWebsitePlaceholder,
-        submit: config.searchWebsiteSubmit,
+        placeholder: websiteSearchCopy.placeholder,
+        submit: websiteSearchCopy.submit,
         maxLength: 120,
         inputKind: "input",
         inputType: "text",
@@ -5820,8 +5881,8 @@ function setupPortfolioHelpBot() {
       };
     }
     return {
-      placeholder: config.searchWebsitePlaceholder,
-      submit: config.searchWebsiteSubmit,
+      placeholder: websiteSearchCopy.placeholder,
+      submit: websiteSearchCopy.submit,
       maxLength: 120,
       inputKind: "input",
       inputType: "text",
@@ -5854,7 +5915,14 @@ function setupPortfolioHelpBot() {
     const text = String(card.text || "").trim();
     if (!title || !text) return null;
     const badge = String(card.badge || "").trim();
-    return { title, text, ...(badge ? { badge } : {}) };
+    const kind = String(card.kind || "").trim();
+    const id = String(card.id || "").trim();
+    return {
+      title,
+      text,
+      ...(badge ? { badge } : {}),
+      ...((kind && id) ? { kind, id } : {})
+    };
   };
 
   const normalizeHelpBotMessage = (message) => {
@@ -5903,7 +5971,8 @@ function setupPortfolioHelpBot() {
         pendingWebsiteSearchStart: false,
         lastNavTarget: null,
         topicTrail: [],
-        studentCornerNudgeSeen: false
+        studentCornerNudgeSeen: false,
+        preferredLanguage: ""
       };
     }
     const messagesList = Array.isArray(source.messages)
@@ -5959,6 +6028,7 @@ function setupPortfolioHelpBot() {
       pendingWebsiteSearchStart: Boolean(source.pendingWebsiteSearchStart),
       lastNavTarget: source.lastNavTarget && typeof source.lastNavTarget === "object" ? source.lastNavTarget : null,
       studentCornerNudgeSeen: Boolean(source.studentCornerNudgeSeen),
+      preferredLanguage: source.preferredLanguage === "de" || source.preferredLanguage === "en" ? source.preferredLanguage : "",
       topicTrail: Array.isArray(source.topicTrail)
         ? source.topicTrail
           .map((entry) => {
@@ -5979,6 +6049,10 @@ function setupPortfolioHelpBot() {
     helpBotState.pendingResumePrompt = true;
   }
   helpBotState.lastPageName = currentPageName;
+  if (helpBotState.preferredLanguage === "de" || helpBotState.preferredLanguage === "en") {
+    currentLang = helpBotState.preferredLanguage;
+    config = getPortfolioHelpBotConfig(currentLang);
+  }
   currentRoleId = helpBotState.currentRoleId;
   hasConversationBooted = helpBotState.hasConversationBooted;
 
@@ -5986,6 +6060,7 @@ function setupPortfolioHelpBot() {
     helpBotState.version = HELP_BOT_STATE_VERSION;
     helpBotState.updatedAt = Date.now();
     helpBotState.currentRoleId = currentRoleId;
+    helpBotState.preferredLanguage = currentLang === "de" ? "de" : "en";
     helpBotState.visitorName = normalizeVisitorName(helpBotState.visitorName);
     helpBotState.visitorPosition = normalizeVisitorPosition(helpBotState.visitorPosition);
     helpBotState.visitorOrganization = normalizeVisitorOrganization(helpBotState.visitorOrganization);
@@ -6037,6 +6112,7 @@ function setupPortfolioHelpBot() {
   const clearHelpBotState = () => {
     window.clearTimeout(helpBotRemoteSyncTimer);
     helpBotState = normalizeHelpBotState(null);
+    helpBotState.preferredLanguage = currentLang === "de" ? "de" : "en";
     currentRoleId = "";
     hasConversationBooted = false;
     try {
@@ -6044,6 +6120,7 @@ function setupPortfolioHelpBot() {
     } catch {
       // Ignore storage failures without breaking the assistant UI.
     }
+    syncRoleChrome();
   };
 
   let helpBotRemoteSyncTimer = 0;
@@ -6051,6 +6128,57 @@ function setupPortfolioHelpBot() {
   let helpBotRemoteSyncInFlight = false;
   let helpBotRemoteSyncRequested = false;
   let helpBotRemoteSyncRequestedEndedAt = "";
+
+  const getRoleChromeCopy = (roleId = currentRoleId) => {
+    if (roleId === "recruiter") {
+      return currentLang === "de"
+        ? {
+            badge: "Recruiter Desk",
+            title: "Hiring Desk",
+            lead: "Bewerten Sie Rollen-Fit, Industrieerfahrung, technische Substanz und Conversion-Pfade in einem kompakten Recruiter-Flow.",
+            nudge: "Recruiter-Modus ist bereit. Ich kann Rollen-Fit, Industrieerfahrung, Reviews oder CV/Kontakt in kurzer Zeit einordnen."
+          }
+        : {
+            badge: "Recruiter Desk",
+            title: "Hiring Desk",
+            lead: "Evaluate role fit, industrial experience, technical proof, and conversion paths in one compact recruiter flow.",
+            nudge: "Recruiter mode is ready. I can screen role fit, industrial experience, reviews, or CV/contact in a fast hiring flow."
+          };
+    }
+
+    if (roleId === "hiringManager") {
+      return currentLang === "de"
+        ? {
+            badge: "Proof Review",
+            title: "Proof Desk",
+            lead: "Pruefen Sie industrielle Relevanz, Delivery-Logik, technische Tiefe und direkte naechste Schritte in einer fokussierten Review-Ansicht.",
+            nudge: "Proof-Desk ist bereit. Ich kann Industrieumfeld, Delivery, technische Tiefe oder Kontaktwege strukturiert ordnen."
+          }
+        : {
+            badge: "Proof Review",
+            title: "Proof Desk",
+            lead: "Review industrial relevance, delivery logic, technical depth, and next-step readiness in one focused proof flow.",
+            nudge: "Proof desk is ready. I can sort industrial context, delivery evidence, technical depth, or contact paths in a structured review."
+          };
+    }
+
+    return {
+      badge: config.badge,
+      title: config.title,
+      lead: config.lead,
+      nudge: config.nudge
+    };
+  };
+
+  const syncRoleChrome = () => {
+    if (!root) return;
+    root.dataset.helpBotRole = currentRoleId || "default";
+    const chrome = getRoleChromeCopy();
+    if (badge) badge.textContent = chrome.badge;
+    if (title) title.textContent = chrome.title;
+    if (lead) lead.textContent = chrome.lead;
+    setNudgeMessage(chrome.nudge);
+  };
 
   const getHelpBotRemoteSessionId = () => {
     const existingId = String(helpBotState.remoteSessionId || "").trim();
@@ -6337,11 +6465,7 @@ function setupPortfolioHelpBot() {
         id,
         label: role.label
       })),
-      {
-        kind: "website-search-start",
-        id: "search",
-        label: config.searchWebsiteLabel
-      }
+      getWebsiteSearchStartOption()
     ])
   );
 
@@ -6531,31 +6655,31 @@ function setupPortfolioHelpBot() {
     if (roleId === "recruiter") {
       return currentLang === "de"
         ? [
-            { badge: "Hiring", title: "Industrielle Robotik", text: "KEBA Thesis + Werkstudent in Deutschland." },
-            { badge: "Proof", title: "Technische Projekte", text: "ROS, Robotik, Systemintegration, Controls." },
-            { badge: "Trust", title: "Reviews", text: "Oeffentliche Rueckmeldungen und sichtbare Owner-Replys." },
-            { badge: "Action", title: "CV / Kontakt", text: "Direkte Hiring-Pfade ohne Umwege." }
+            { badge: "Screen", title: "Rollen-Fit", text: "Die schnellste Matching-Ebene fuer Robotik, Automatisierung und softwareorientierte Rollen.", kind: "topic", id: "fit" },
+            { badge: "Proof", title: "Industrieerfahrung", text: "KEBA Thesis + Werkstudent in Deutschland als klares Hiring-Signal.", kind: "topic", id: "experience" },
+            { badge: "Depth", title: "Technische Substanz", text: "ROS, Robotik, Systemintegration und Controls als Arbeitsprobe.", kind: "topic", id: "projects" },
+            { badge: "Convert", title: "CV / Kontakt", text: "Direkte naechste Schritte ohne Reibung.", kind: "topic", id: "contact" }
           ]
         : [
-            { badge: "Hiring", title: "Industrial robotics", text: "KEBA thesis plus working-student proof in Germany." },
-            { badge: "Proof", title: "Technical projects", text: "ROS, robotics, systems integration, and controls." },
-            { badge: "Trust", title: "Reviews", text: "Public feedback and visible owner replies." },
-            { badge: "Action", title: "CV / contact", text: "Direct hiring paths without friction." }
+            { badge: "Screen", title: "Role fit", text: "The fastest matching layer for robotics, automation, and software-facing roles.", kind: "topic", id: "fit" },
+            { badge: "Proof", title: "Industrial experience", text: "KEBA thesis plus working-student proof in Germany.", kind: "topic", id: "experience" },
+            { badge: "Depth", title: "Technical proof", text: "ROS, robotics, systems integration, and controls as work-sample evidence.", kind: "topic", id: "projects" },
+            { badge: "Convert", title: "CV / contact", text: "Direct next steps without friction.", kind: "topic", id: "contact" }
           ];
     }
     if (roleId === "hiringManager") {
       return currentLang === "de"
         ? [
-            { badge: "Proof", title: "Industrie-Umfeld", text: "KEBA liefert den klarsten realen Einsatzkontext." },
-            { badge: "Delivery", title: "Umsetzung", text: "Portfolio-Map und Projektseiten zeigen Delivery-Logik." },
-            { badge: "Depth", title: "Technische Substanz", text: "Robotik, Regelung, Simulation und Integration." },
-            { badge: "Action", title: "Naechster Schritt", text: "CV, Kontakt und direkte Bewertungspfad." }
+            { badge: "Proof", title: "Industrie-Umfeld", text: "KEBA liefert den klarsten realen Einsatzkontext.", kind: "topic", id: "industrial" },
+            { badge: "Delivery", title: "Umsetzung", text: "Portfolio-Map und Projektseiten zeigen Delivery-Logik.", kind: "topic", id: "delivery" },
+            { badge: "Depth", title: "Technische Substanz", text: "Robotik, Regelung, Simulation und Integration.", kind: "topic", id: "proof" },
+            { badge: "Action", title: "Naechster Schritt", text: "CV, Kontakt und direkte Bewertungspfade.", kind: "topic", id: "contact" }
           ]
         : [
-            { badge: "Proof", title: "Industrial context", text: "KEBA gives the clearest real-world environment." },
-            { badge: "Delivery", title: "Implementation", text: "The portfolio map and projects show delivery logic." },
-            { badge: "Depth", title: "Technical substance", text: "Robotics, controls, simulation, and integration." },
-            { badge: "Action", title: "Next step", text: "CV, contact, and fast evaluation paths." }
+            { badge: "Proof", title: "Industrial context", text: "KEBA gives the clearest real-world environment.", kind: "topic", id: "industrial" },
+            { badge: "Delivery", title: "Implementation", text: "The portfolio map and projects show delivery logic.", kind: "topic", id: "delivery" },
+            { badge: "Depth", title: "Technical substance", text: "Robotics, controls, simulation, and integration.", kind: "topic", id: "proof" },
+            { badge: "Action", title: "Next step", text: "CV, contact, and fast evaluation paths.", kind: "topic", id: "contact" }
           ];
     }
     return [];
@@ -7246,6 +7370,70 @@ function setupPortfolioHelpBot() {
             createBadgedAction("Erfahrung", createHelpBotHomeTarget("experience"), "Proof")
           ]
         },
+        "owner-personal-overview": {
+          text: `Ich kann nur die freigegebenen persoenlichen Eckdaten teilen. Sooraj wurde am 25.11.1999 in Indien im Bundesstaat Kerala geboren und ist aktuell ${getSoorajCurrentAge()} Jahre alt. Seine Nationalitaet ist indisch. Der aktuelle berufliche Bezugspunkt ist Stuttgart in Deutschland. Ausserdem darf ich sagen, dass er single ist und fuer Deutschland eine gueltige Arbeitserlaubnis mit gueltigem Schengen-Status hat. Fuer alles darueber hinaus leite ich Fragen lieber direkt an Sooraj weiter.`,
+          actions: createHelpBotEscalationActions()
+        },
+        "owner-age": {
+          text: `Wenn Sie Sooraj meinen: Er wurde am 25.11.1999 geboren und ist aktuell ${getSoorajCurrentAge()} Jahre alt.`,
+          actions: [
+            createBadgedAction("Journey", createHelpBotPageTarget("journey.html"), "Story"),
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+          ]
+        },
+        "owner-origin": {
+          text: "Sooraj wurde in Indien im Bundesstaat Kerala geboren. Die Journey der Website zeigt ausserdem den spaeteren Weg von Indien nach Deutschland.",
+          actions: [
+            createBadgedAction("Journey", createHelpBotPageTarget("journey.html"), "Story"),
+            createBadgedAction("Travel-Footprint", createHelpBotPageTarget("journey.html", "travel"), "Travel"),
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile")
+          ]
+        },
+        "owner-location": {
+          text: "Sooraj arbeitet aktuell in Stuttgart, Deutschland. Dort sind auch die KEBA Rolle und die thesis-nahe Robotikarbeit verankert.",
+          actions: [
+            createBadgedAction("KEBA Werkstudent", createHelpBotPageTarget("experience-working-student-keba.html"), "Current"),
+            createBadgedAction("Master-Thesis", createHelpBotPageTarget("experience-masters-thesis-keba.html"), "Thesis"),
+            createBadgedAction("Journey", createHelpBotPageTarget("journey.html"), "Story")
+          ]
+        },
+        "owner-nationality": {
+          text: "Soorajs Nationalitaet ist indisch. Wenn Sie nach dem allgemeinen Pass-Kontext fragen: Er ist indischer Staatsangehoeriger.",
+          actions: [
+            createBadgedAction("Journey", createHelpBotPageTarget("journey.html"), "Story"),
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+          ]
+        },
+        "owner-relationship-status": {
+          text: "Die freigegebene persoenliche Angabe fuer diese Website ist: Sooraj ist single.",
+          actions: createHelpBotEscalationActions()
+        },
+        "owner-work-permit": {
+          text: "Ja. Die freigegebene Angabe fuer diese Website ist, dass Sooraj eine gueltige Arbeitserlaubnis fuer Deutschland hat und gueltigen Schengen-Status besitzt.",
+          actions: [
+            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action"),
+            createBadgedAction("E-Mail senden", createHelpBotEmailTarget(), "Email"),
+            createBadgedAction("CV anfragen", createHelpBotCvTarget(), "CV")
+          ]
+        },
+        "sooraj-german-language": {
+          text: "Sooraj lernt derzeit Deutsch. Der aktuelle Stand liegt bei etwa A2, und er arbeitet daran, das Niveau in Richtung B2 weiter auszubauen.",
+          actions: [
+            createBadgedAction("Journey", createHelpBotPageTarget("journey.html"), "Story"),
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+          ]
+        },
+        "owner-color-boundary": {
+          text: "Darauf antworte ich nicht. Farbe, Hautfarbe oder Teint von Sooraj sind keine fairen oder relevanten Website-Details, und ich werde solche Angaben nicht beurteilen oder offenlegen. Wenn Sie professionelle Informationen brauchen, fragen Sie lieber nach Profil, Erfahrung, Projekten oder Kontakt.",
+          actions: [
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+            createBadgedAction("Erfahrung", createHelpBotHomeTarget("experience"), "Proof"),
+            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+          ]
+        },
         "bot-name": {
           text: "Mein Name hier ist Synapse. Ich bin der AI Assistant von Sooraj. Sie koennen mich als digitalen Guide sehen, der hier ist, um Sooraj dabei zu helfen, Sie schneller durch die Website zu fuehren. Ich werde von Sooraj ueber die Zeit weiter verbessert. Wenn Sie moechten, gehen wir direkt wieder zu den wichtigsten Website-Bereichen zurueck.",
           actions: [
@@ -7268,6 +7456,38 @@ function setupPortfolioHelpBot() {
             createBadgedAction("Journey", createHelpBotPageTarget("journey.html"), "Story")
           ]
         },
+        "bot-location": {
+          text: "Ich habe keinen menschlichen Wohn- oder Arbeitsort. Ich bin der digitale Assistent innerhalb dieser Website und antworte hier aus dem Portfolio-Kontext heraus.",
+          actions: [
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+          ]
+        },
+        "bot-personal-status": {
+          text: "Ich bin kein Mensch. Deshalb habe ich keine Nationalitaet, keinen Pass, keine Arbeitserlaubnis, keinen Familienstand und keine privaten Dokumente. Wenn Sie stattdessen Sooraj meinen, kann ich dazu die freigegebenen Eckdaten teilen.",
+          actions: [
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+            createBadgedAction("Sooraj direkt fragen", createHelpBotContactFormTarget(), "Direct")
+          ]
+        },
+        "bot-color": {
+          text: "Ich habe keine echte menschliche Hautfarbe oder persoenliche Farbe. Ich bin ein digitaler Assistent, der Sooraj auf dieser Website unterstuetzt. Wenn Sie die Gestaltung meinen, gehoert die Farbwahl zur Website und nicht zu mir als Person.",
+          actions: [
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action"),
+            createBadgedAction("Journey", createHelpBotPageTarget("journey.html"), "Story")
+          ]
+        },
+        "assistant-german-language": currentLang === "de"
+          ? {
+              text: "Ja, ich kann auf Deutsch antworten. Wir koennen direkt auf Deutsch weiterschreiben.",
+              actions: []
+            }
+          : {
+              text: "Ja, ich kann Deutsch sprechen. Wenn Sie moechten, kann ich diesen Chat direkt auf Deutsch weiterfuehren.",
+              actions: [],
+              inlineOptions: getChatLanguageSwitchOptions("de")
+            },
         "chat-privacy": {
           text: "Ich kann nicht sagen, dass dieser Chat Ende-zu-Ende verschluesselt ist. Teilweise ja, aber nicht vollstaendig in diesem Sinne, weil einige Fragen von mir noch nicht selbst beantwortet werden koennen. In solchen Faellen kann der Chat-Inhalt oder die offene Frage gesammelt und an Sooraj weitergegeben werden, damit er die Daten fuer spaeteres Training und bessere Antworten nutzen kann.",
           actions: [
@@ -7581,6 +7801,70 @@ function setupPortfolioHelpBot() {
           createBadgedAction("Open experience section", createHelpBotHomeTarget("experience"), "Proof")
         ]
       },
+      "owner-personal-overview": {
+        text: `I can only share the owner details that are explicitly allowed on this website. Sooraj was born on 25.11.1999 in India, in Kerala state, and he is currently ${getSoorajCurrentAge()} years old. His nationality is Indian. He is currently based in Stuttgart, Germany for work. I can also share that he is single and has valid work authorization for Germany with valid Schengen visa status. For anything beyond that, I should route the question directly to Sooraj.`,
+        actions: createHelpBotEscalationActions()
+      },
+      "owner-age": {
+        text: `If you mean Sooraj, he was born on 25.11.1999, so he is currently ${getSoorajCurrentAge()} years old.`,
+        actions: [
+          createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story"),
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+          createBadgedAction("Open contact form", createHelpBotContactFormTarget(), "Action")
+        ]
+      },
+      "owner-origin": {
+        text: "Sooraj was born in India, in Kerala state. The journey section also shows the wider India-to-Germany path behind the portfolio.",
+        actions: [
+          createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story"),
+          createBadgedAction("Open travel footprint", createHelpBotPageTarget("journey.html", "travel"), "Travel"),
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile")
+        ]
+      },
+      "owner-location": {
+        text: "Sooraj is currently working in Stuttgart, Germany. That is also where the KEBA role and thesis-linked robotics work are anchored.",
+        actions: [
+          createBadgedAction("Open KEBA working student role", createHelpBotPageTarget("experience-working-student-keba.html"), "Current"),
+          createBadgedAction("Open master's thesis", createHelpBotPageTarget("experience-masters-thesis-keba.html"), "Thesis"),
+          createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story")
+        ]
+      },
+      "owner-nationality": {
+        text: "Sooraj's nationality is Indian. If you mean the general passport context, he is an Indian passport holder.",
+        actions: [
+          createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story"),
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+          createBadgedAction("Open contact form", createHelpBotContactFormTarget(), "Action")
+        ]
+      },
+      "owner-relationship-status": {
+        text: "The sharable personal detail for this website is that Sooraj is single.",
+        actions: createHelpBotEscalationActions()
+      },
+      "owner-work-permit": {
+        text: "Yes. The sharable detail configured for this website is that Sooraj has valid work authorization for Germany and valid Schengen visa status.",
+        actions: [
+          createBadgedAction("Open contact form", createHelpBotContactFormTarget(), "Action"),
+          createBadgedAction("Email Sooraj", createHelpBotEmailTarget(), "Email"),
+          createBadgedAction("Request CV", createHelpBotCvTarget(), "CV")
+        ]
+      },
+      "sooraj-german-language": {
+        text: "Sooraj is currently learning German. His current level is around A2, and he is actively working toward B2.",
+        actions: [
+          createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story"),
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+          createBadgedAction("Open contact form", createHelpBotContactFormTarget(), "Action")
+        ]
+      },
+      "owner-color-boundary": {
+        text: "I do not answer that. Color, skin tone, or complexion are not fair or relevant website details about Sooraj, and I will not judge or reveal them. If you need something useful, ask about the profile, experience, projects, or contact path instead.",
+        actions: [
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+          createBadgedAction("Open experience section", createHelpBotHomeTarget("experience"), "Proof"),
+          createBadgedAction("Open contact form", createHelpBotContactFormTarget(), "Action")
+        ]
+      },
       "bot-name": {
         text: "My name here is Synapse. I am the AI assistant of Sooraj. You can think of me as the digital guide hired here to help Sooraj help you move through the website faster. I am trained and improved by Sooraj over time. If you want, we can go straight back to the main website sections now.",
         actions: [
@@ -7603,6 +7887,38 @@ function setupPortfolioHelpBot() {
           createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story")
         ]
       },
+      "bot-location": {
+        text: "I do not have a human home or work location. I exist here as the digital assistant inside this website.",
+        actions: [
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+          createBadgedAction("Open contact form", createHelpBotContactFormTarget(), "Action")
+        ]
+      },
+      "bot-personal-status": {
+        text: "I am not a human, so I do not have a nationality, passport, visa, work permit, marital status, or private identity documents. If you mean Sooraj instead, I can share the owner details that are allowed on this website.",
+        actions: [
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+          createBadgedAction("Ask Sooraj directly", createHelpBotContactFormTarget(), "Direct")
+        ]
+      },
+      "bot-color": {
+        text: "I do not have a real human skin color or personal color. I am a digital assistant here to help Sooraj inside this website. If you mean the interface styling, that belongs to the website design, not to me as a person.",
+        actions: [
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+          createBadgedAction("Open contact form", createHelpBotContactFormTarget(), "Action"),
+          createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story")
+        ]
+      },
+      "assistant-german-language": currentLang === "de"
+        ? {
+            text: "Ja, ich kann auf Deutsch antworten. Wir koennen direkt auf Deutsch weiterschreiben.",
+            actions: []
+          }
+        : {
+            text: "Yes, I can speak German. If you want, I can continue this chat in German right away.",
+            actions: [],
+            inlineOptions: getChatLanguageSwitchOptions("de")
+          },
       "chat-privacy": {
         text: "I cannot describe this chat as end-to-end encrypted. Partially yes in a general sense, but not fully in that strict meaning, because some questions are still not answerable by me on my own. In those cases, the chat content or unanswered question can be collected and sent to Sooraj so he can use that data to improve my future training and responses.",
         actions: [
@@ -7749,6 +8065,202 @@ function setupPortfolioHelpBot() {
         createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action")
       ];
 
+  const getSoorajCurrentAge = () => {
+    const birthYear = 1999;
+    const birthMonth = 10;
+    const birthDay = 25;
+    const now = new Date();
+    let age = now.getUTCFullYear() - birthYear;
+    const hasHadBirthday = now.getUTCMonth() > birthMonth
+      || (now.getUTCMonth() === birthMonth && now.getUTCDate() >= birthDay);
+    if (!hasHadBirthday) age -= 1;
+    return age;
+  };
+
+  const createHelpBotEscalationActions = () => currentLang === "de"
+    ? [
+        createBadgedAction("Sooraj direkt fragen", createHelpBotContactFormTarget(), "Direct"),
+        createBadgedAction("E-Mail senden", createHelpBotEmailTarget(), "Email"),
+        createBadgedAction("Kontaktbereich", createHelpBotHomeTarget("contact"), "Action")
+      ]
+    : [
+        createBadgedAction("Ask Sooraj directly", createHelpBotContactFormTarget(), "Direct"),
+        createBadgedAction("Email Sooraj", createHelpBotEmailTarget(), "Email"),
+        createBadgedAction("Open contact section", createHelpBotHomeTarget("contact"), "Action")
+      ];
+
+  const createHelpBotDirectContactActions = () => currentLang === "de"
+    ? [
+        createBadgedAction("Sooraj direkt fragen", createHelpBotContactFormTarget(), "Direct"),
+        createBadgedAction("E-Mail senden", createHelpBotEmailTarget(), "Email"),
+        createBadgedAction("Kontaktbereich", createHelpBotHomeTarget("contact"), "Action"),
+        createBadgedAction("CV anfragen", createHelpBotCvTarget(), "CV")
+      ]
+    : [
+        createBadgedAction("Ask Sooraj directly", createHelpBotContactFormTarget(), "Direct"),
+        createBadgedAction("Email Sooraj", createHelpBotEmailTarget(), "Email"),
+        createBadgedAction("Open contact section", createHelpBotHomeTarget("contact"), "Action"),
+        createBadgedAction("Request CV", createHelpBotCvTarget(), "CV")
+      ];
+
+  const buildHelpBotOwnerDetailAnswer = (query = "") => {
+    const intent = detectHelpBotPersonalIdentityIntent(query);
+    if (!intent) return null;
+
+    const categoryToAnswerIds = {
+      overview: { assistant: "bot-personal-status", owner: "owner-personal-overview" },
+      age: { assistant: "bot-age", owner: "owner-age" },
+      origin: { assistant: "bot-origin", owner: "owner-origin" },
+      location: { assistant: "bot-location", owner: "owner-location" },
+      nationality: { assistant: "bot-personal-status", owner: "owner-nationality" },
+      relationship: { assistant: "bot-personal-status", owner: "owner-relationship-status" },
+      permit: { assistant: "bot-personal-status", owner: "owner-work-permit" }
+    };
+
+    const answerIds = categoryToAnswerIds[intent.category];
+    if (!answerIds) return null;
+
+    if (intent.target === "clarify") {
+      return {
+        text: config.searchWebsiteIdentityClarifyPrompt,
+        actions: [],
+        inlineOptions: getWebsiteIdentityClarifyOptions({
+          assistantAnswerId: answerIds.assistant,
+          ownerAnswerId: answerIds.owner
+        })
+      };
+    }
+
+    return getWebsiteQuestionAnswerEntry(intent.target === "assistant" ? answerIds.assistant : answerIds.owner);
+  };
+
+  const detectHelpBotColorIdentityIntent = (query = "") => {
+    const normalized = String(query || "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+    if (!normalized) return null;
+
+    const mentionsOwner = /\b(sooraj|owner|website owner|portfolio owner|he|his)\b/.test(normalized);
+    const mentionsAssistant = /\b(ai|assistant|bot|synapse|chatbot)\b/.test(normalized);
+    const usesYouPronoun = /\b(you|your|you re|you are)\b/.test(normalized);
+    const asksAboutColor = /\b(color|colour|skin color|skin colour|skin tone|complexion|fair|dark|black|white|brown|wheatish|teint)\b/.test(normalized);
+    const hasAppearanceFrame = /\b(what|which|is|are|does|do|look|tone|complexion|fair|dark)\b/.test(normalized);
+
+    if (!(asksAboutColor && (hasAppearanceFrame || mentionsOwner || mentionsAssistant || usesYouPronoun))) {
+      return null;
+    }
+
+    if (mentionsOwner && !mentionsAssistant) return { target: "owner" };
+    if (mentionsAssistant && !mentionsOwner) return { target: "assistant" };
+    if (usesYouPronoun && !mentionsOwner && !mentionsAssistant) return { target: "clarify" };
+    return null;
+  };
+
+  const buildHelpBotColorQuestionAnswer = (query = "") => {
+    const intent = detectHelpBotColorIdentityIntent(query);
+    if (!intent) return null;
+
+    if (intent.target === "clarify") {
+      return {
+        text: config.searchWebsiteIdentityClarifyPrompt,
+        actions: [],
+        inlineOptions: getWebsiteIdentityClarifyOptions({
+          assistantAnswerId: "bot-color",
+          ownerAnswerId: "owner-color-boundary"
+        })
+      };
+    }
+
+    return getWebsiteQuestionAnswerEntry(intent.target === "assistant" ? "bot-color" : "owner-color-boundary");
+  };
+
+  const buildHelpBotGermanLanguageAnswer = (query = "") => {
+    const intent = detectHelpBotGermanLanguageIntent(query);
+    if (!intent) return null;
+
+    if (intent.target === "clarify") {
+      return {
+        text: config.searchWebsiteGermanClarifyPrompt,
+        actions: [],
+        inlineOptions: getWebsiteGermanClarifyOptions()
+      };
+    }
+
+    return getWebsiteQuestionAnswerEntry(intent.target === "assistant" ? "assistant-german-language" : "sooraj-german-language");
+  };
+
+  const buildHelpBotUnknownOwnerPersonalAnswer = (query = "") => {
+    const normalizedQuery = normalizeReviewLookupText(query);
+    if (!normalizedQuery) return null;
+
+    const targetsOwner = /\b(sooraj|owner|portfolio owner|website owner)\b/.test(normalizedQuery);
+    const unsupportedPersonalIntent = /\b(father|mother|parent|parents|family|brother|sister|siblings|religion|salary|income|net worth|food|favourite|favorite|love life|girlfriend|boyfriend|wife|husband|children|kids|politics)\b/.test(normalizedQuery);
+    if (!(targetsOwner && unsupportedPersonalIntent)) {
+      return null;
+    }
+
+    return currentLang === "de"
+      ? {
+          text: "Dazu habe ich keine freigegebene Information. Wenn Sie moechten, kann ich Sie direkt zu Sooraj weiterleiten. Nutzen Sie dafuer das Kontaktformular oder senden Sie direkt eine E-Mail an soorajsudhakaran1199@gmail.com.",
+          actions: createHelpBotEscalationActions()
+        }
+      : {
+          text: "I do not have an approved answer for that personal question. If you want, I can route you to Sooraj directly. You can use the contact form or email him at soorajsudhakaran1199@gmail.com.",
+          actions: createHelpBotEscalationActions()
+        };
+  };
+
+  const buildHelpBotConfidentialQuestionAnswer = (query = "") => {
+    const normalizedQuery = normalizeReviewLookupText(query);
+    if (!normalizedQuery) return null;
+
+    const asksForCredentials = /\b(password|passcode|passwd|admin password|login password|credential|credentials|username|user name|admin login|admin access|root access|backend access|dashboard access)\b/.test(normalizedQuery);
+    const asksForSecrets = /\b(api key|secret key|private key|token|access token|refresh token|secret|secrets|auth key|database key)\b/.test(normalizedQuery);
+    const asksForPersonalEmail = /\b(personal email|personal email id|personal email address|private email|private email id|private email address|personal mail|private mail)\b/.test(normalizedQuery);
+    const asksForPersonalPhone = /\b(phone number|mobile number|personal phone|personal number|private number|contact number|whatsapp number)\b/.test(normalizedQuery);
+    const asksForPrivateData = /\b(personal detail|personal details|private detail|private details|home address|address|phone number|mobile number|whatsapp number|passport|bank detail|bank details|salary slip|confidential data|confidential info|private information)\b/.test(normalizedQuery) || asksForPersonalEmail;
+    const asksForRestrictedFiles = /\b(private file|private files|internal file|internal files|confidential file|confidential files|database dump|raw database|supabase data|admin data)\b/.test(normalizedQuery);
+
+    if (!(asksForCredentials || asksForSecrets || asksForPrivateData || asksForRestrictedFiles)) {
+      return null;
+    }
+
+    if (asksForPersonalEmail) {
+      return currentLang === "de"
+        ? {
+            text: "Eine persoenliche E-Mail-Adresse darf ich nicht weitergeben. Ich kann Ihnen aber die offizielle Kontakt-E-Mail von Sooraj geben und den Kontaktpfad der Website oeffnen.",
+            actions: createHelpBotEscalationActions()
+          }
+        : {
+            text: "I cannot share a personal email address. I can give you Sooraj's official contact email and the website contact path instead.",
+            actions: createHelpBotEscalationActions()
+          };
+    }
+
+    if (asksForPersonalPhone) {
+      return currentLang === "de"
+        ? {
+            text: "Eine persoenliche Telefonnummer darf ich nicht weitergeben. Wenn Sie Sooraj erreichen moechten, nutzen Sie bitte das Kontaktformular oder die offizielle Kontakt-E-Mail der Website.",
+            actions: createHelpBotEscalationActions()
+          }
+        : {
+            text: "I cannot share a personal phone number. If you want to reach Sooraj, please use the contact form or the official contact email from the website instead.",
+            actions: createHelpBotEscalationActions()
+          };
+    }
+
+    return currentLang === "de"
+      ? {
+          text: "Dabei kann ich nicht helfen. Passwoerter, Admin-Zugaenge, Tokens, private Dateien, persoenliche Kontaktdaten und andere vertrauliche Informationen darf ich nicht freigeben. Wenn Sie dazu aus einem legitimen Grund eine Antwort brauchen, kann ich Ihre Frage lieber direkt an Sooraj weiterleiten.",
+          actions: createHelpBotDirectContactActions()
+        }
+      : {
+          text: "I cannot help with that. Passwords, admin access, tokens, private files, personal contact details, and other confidential information cannot be shared by me. If you need an answer for a legitimate reason, the safer path is for me to route that question to Sooraj directly.",
+          actions: createHelpBotDirectContactActions()
+        };
+  };
+
   const buildHelpBotSmallTalkAnswer = (query = "") => {
     const normalizedQuery = normalizeReviewLookupText(query);
     if (!normalizedQuery) return null;
@@ -7776,6 +8288,15 @@ function setupPortfolioHelpBot() {
     const saysNiceToMeetYou = /\bnice to meet you\b/.test(normalizedQuery)
       || /\bnice meeting you\b/.test(normalizedQuery)
       || /\bglad to meet you\b/.test(normalizedQuery);
+    const saysSorry = /\bsorry\b/.test(normalizedQuery)
+      || /\bmy apologies\b/.test(normalizedQuery)
+      || /\bapologies\b/.test(normalizedQuery);
+    const asksAreYouThere = /\bare you there\b/.test(normalizedQuery)
+      || /\bcan you hear me\b/.test(normalizedQuery)
+      || /\bcan you respond\b/.test(normalizedQuery);
+    const praisesBotOrSite = /\b(good bot|nice bot|great bot|nice website|great website|awesome website|cool website|good website|well done)\b/.test(normalizedQuery);
+    const saysOkay = /^(ok|okay|alright|all right|fine)\b/.test(normalizedQuery)
+      || /\b(ok|okay|alright|all right)\b/.test(normalizedQuery);
     const saysBye = /^(bye|goodbye|see you|see ya|catch you later)\b/.test(normalizedQuery)
       || /\bbye\b/.test(normalizedQuery)
       || /\bgoodbye\b/.test(normalizedQuery)
@@ -7822,6 +8343,30 @@ function setupPortfolioHelpBot() {
       if (saysNiceToMeetYou) {
         return {
           text: `${directName}freut mich ebenfalls. Stellen Sie einfach Ihre Frage, und ich antworte direkt.`,
+          actions: []
+        };
+      }
+      if (saysSorry) {
+        return {
+          text: `${directName}kein Problem. Sie koennen einfach direkt weitermachen.`,
+          actions: []
+        };
+      }
+      if (asksAreYouThere) {
+        return {
+          text: `${directName}ja, ich bin da. Stellen Sie einfach Ihre Frage.`,
+          actions: []
+        };
+      }
+      if (praisesBotOrSite) {
+        return {
+          text: `${directName}danke. Wenn Sie moechten, fuehre ich Sie direkt zum naechsten wichtigen Bereich.`,
+          actions: []
+        };
+      }
+      if (saysOkay) {
+        return {
+          text: `${directName}alles klar. Was moechten Sie als Naechstes wissen?`,
           actions: []
         };
       }
@@ -7888,6 +8433,30 @@ function setupPortfolioHelpBot() {
         actions: []
       };
     }
+    if (saysSorry) {
+      return {
+        text: `${directName}no problem. You can just continue with the next question.`,
+        actions: []
+      };
+    }
+    if (asksAreYouThere) {
+      return {
+        text: `${directName}yes, I’m here. Ask whatever you want.`,
+        actions: []
+      };
+    }
+    if (praisesBotOrSite) {
+      return {
+        text: `${directName}thank you. If you want, I can guide you to the next important section.`,
+        actions: []
+      };
+    }
+    if (saysOkay) {
+      return {
+        text: `${directName}all right. What would you like to know next?`,
+        actions: []
+      };
+    }
     if (saysThanks) {
       return {
         text: `${directName}you’re welcome. If you want to continue, just send the next question.`,
@@ -7909,13 +8478,414 @@ function setupPortfolioHelpBot() {
     return null;
   };
 
+  const buildHelpBotSectionQuestionAnswer = (query = "") => {
+    const normalizedQuery = normalizeReviewLookupText(query);
+    if (!normalizedQuery) return null;
+
+    const dynamicMatchers = [
+      {
+        answerId: "profile-overview",
+        test: () => /\bwho is sooraj\b/.test(normalizedQuery)
+          || ((/\b(overall|quick|short|professional|broad|general)\b/.test(normalizedQuery) || /\b(summary|overview|introduction|intro)\b/.test(normalizedQuery)) && /\bsooraj\b/.test(normalizedQuery))
+      },
+      {
+        answerId: "about-profile",
+        test: () => /\babout section\b/.test(normalizedQuery)
+          || (/\babout\b/.test(normalizedQuery) && /\b(profile|sooraj|portfolio)\b/.test(normalizedQuery))
+      },
+      {
+        answerId: "portfolio-sections-overview",
+        test: () => /\b(website structure|site structure|website sections|portfolio sections|all sections|all pages|whole website|full website|site overview)\b/.test(normalizedQuery)
+          || (/\b(website|site|portfolio)\b/.test(normalizedQuery) && /\b(structure|organized|organised|overview|sections|parts)\b/.test(normalizedQuery))
+      },
+      {
+        answerId: "experience-overview",
+        test: () => /\b(experience overview|overall experience|work background|career background|professional background|engineering background)\b/.test(normalizedQuery)
+          || (/\bexperience\b/.test(normalizedQuery) && /\b(overall|summary|background|highlight|highlights|section)\b/.test(normalizedQuery))
+      },
+      {
+        answerId: "robotics-experience",
+        test: () => /\b(robotics experience|automation experience|industrial robotics|robot programming|robotics background)\b/.test(normalizedQuery)
+      },
+      {
+        answerId: "vr-immersive",
+        test: () => /\b(vr|xr|ar|mr|unity|immersive|virtual reality|mixed reality|extended reality)\b/.test(normalizedQuery)
+          && /\b(project|experience|work|fit|background|workshop|simulation)\b/.test(normalizedQuery)
+      },
+      {
+        answerId: "journey-india-germany",
+        test: () => /\b(india to germany|journey page|move to germany|path to germany|story from india)\b/.test(normalizedQuery)
+          || (/\bjourney\b/.test(normalizedQuery) && /\bsooraj\b/.test(normalizedQuery))
+      },
+      {
+        answerId: "bachelor-path",
+        test: () => /\b(bachelor|b tech|btech|mechanical engineering|undergraduate|ktu|apj)\b/.test(normalizedQuery)
+          && /\b(study|degree|background|timeline|education|path)\b/.test(normalizedQuery)
+      },
+      {
+        answerId: "current-role-germany",
+        test: () => /\b(current role|current job|present role|working student|werkstudent|workstudent|keba role)\b/.test(normalizedQuery)
+          || (/\bkeba\b/.test(normalizedQuery) && /\b(current|role|job|work)\b/.test(normalizedQuery))
+      },
+      {
+        answerId: "germany-location",
+        test: () => /\b(stuttgart|deggendorf|based in germany|current base|location in germany|germany location)\b/.test(normalizedQuery)
+      },
+      {
+        answerId: "travel-footprint",
+        test: () => /\b(travel footprint|countries visited|places visited|travel section|countries explored|regions)\b/.test(normalizedQuery)
+      },
+      {
+        answerId: "projects-all",
+        test: () => /\b(all projects|main projects|portfolio projects|project overview|project list|work samples|technical projects)\b/.test(normalizedQuery)
+          || (/\bprojects\b/.test(normalizedQuery) && /\b(overall|overview|all|main|list|summary)\b/.test(normalizedQuery))
+      },
+      {
+        answerId: "thesis-detail",
+        test: () => /\b(master thesis|master s thesis|masters thesis|thesis detail|thesis work|keba thesis|6 axis)\b/.test(normalizedQuery)
+      },
+      {
+        answerId: "ros-project",
+        test: () => /\b(ros project|vacuum robot|slam|gazebo|rviz|autonomous vacuum)\b/.test(normalizedQuery)
+      },
+      {
+        answerId: "service-robot-detail",
+        test: () => /\b(service robot|arduino robot|bachelor project award|award winning robot|healthcare robot)\b/.test(normalizedQuery)
+      },
+      {
+        answerId: "active-suspension-detail",
+        test: () => /\b(active suspension|matlab|simulink|controls project|system modeling|control analysis)\b/.test(normalizedQuery)
+      },
+      {
+        answerId: "topology-detail",
+        test: () => /\b(topology|solidworks|fea|bag sealer|optimization project|topology optimization)\b/.test(normalizedQuery)
+      },
+      {
+        answerId: "reviews",
+        test: () => /\b(reviews|review section|public reviews|ratings|trust signals|social proof|feedback reviews)\b/.test(normalizedQuery)
+      },
+      {
+        answerId: "review-fields-details",
+        test: () => /\b(review card|review fields|review details|what reviews show|review information|review data)\b/.test(normalizedQuery)
+      },
+      {
+        answerId: "review-company-details",
+        test: () => /\b(review company|company name in review|organization name in review|university name in review|company in reviews)\b/.test(normalizedQuery)
+      },
+      {
+        answerId: "review-country-details",
+        test: () => /\b(review country|country in review|country flags|country chips|review geography|review reach)\b/.test(normalizedQuery)
+      },
+      {
+        answerId: "robotics-fit",
+        test: () => /\b(robotics fit|fit for robotics|robotics roles|fit for automation|automation roles)\b/.test(normalizedQuery)
+      },
+      {
+        answerId: "immersive-fit",
+        test: () => /\b(vr roles|xr roles|ar roles|immersive fit|unity fit|immersive roles)\b/.test(normalizedQuery)
+      },
+      {
+        answerId: "simulation-fit",
+        test: () => /\b(simulation roles|matlab roles|simulink roles|controls roles|simulation fit)\b/.test(normalizedQuery)
+      },
+      {
+        answerId: "design-fit",
+        test: () => /\b(design roles|solidworks roles|mechanical design roles|fea roles|design fit)\b/.test(normalizedQuery)
+      },
+      {
+        answerId: "skills-overview",
+        test: () => /\b(skills overview|technical skills|tools and technologies|software skills|tool stack|what skills)\b/.test(normalizedQuery)
+          || (/\bskills\b/.test(normalizedQuery) && /\b(summary|overview|tools|technologies|stack)\b/.test(normalizedQuery))
+      },
+      {
+        answerId: "contact-section-details",
+        test: () => /\b(contact form details|contact section details|contact form fields|contact process|how contact works)\b/.test(normalizedQuery)
+      },
+      {
+        answerId: "contact",
+        test: () => /\b(request cv|request resume|resume request|cv request|how to contact|reach sooraj|get in touch|contact sooraj|professional outreach)\b/.test(normalizedQuery)
+      },
+      {
+        answerId: "feedback-vs-contact",
+        test: () => /\b(feedback vs contact|feedback or contact|difference between feedback and contact|review or contact|which form should i use)\b/.test(normalizedQuery)
+      },
+      {
+        answerId: "job-search-status",
+        test: () => /\b(open to work|job search status|available for roles|available for work|open for full time|hire sooraj|available for opportunities)\b/.test(normalizedQuery)
+      }
+    ];
+
+    const matchedEntry = dynamicMatchers.find((entry) => entry.test());
+    return matchedEntry ? getWebsiteQuestionAnswerEntry(matchedEntry.answerId) : null;
+  };
+
+  const buildHelpBotGeneralQuestionAnswer = (query = "") => {
+    const normalizedQuery = normalizeReviewLookupText(query);
+    if (!normalizedQuery) return null;
+
+    const asksWhoAreYou = /\bwho are you\b/.test(normalizedQuery)
+      || /\bwhat are you\b/.test(normalizedQuery)
+      || /\bwho is this\b/.test(normalizedQuery);
+    const asksWhatCanYouDo = /\bwhat can you do\b/.test(normalizedQuery)
+      || /\bhow can you help\b/.test(normalizedQuery)
+      || /\bcan you help me\b/.test(normalizedQuery)
+      || /\bwhat do you do\b/.test(normalizedQuery)
+      || /\bwhat can i ask\b/.test(normalizedQuery);
+    const asksAreYouHuman = /\bare you human\b/.test(normalizedQuery)
+      || /\bare you real\b/.test(normalizedQuery)
+      || /\bare you a person\b/.test(normalizedQuery)
+      || /\bare you a real person\b/.test(normalizedQuery);
+    const asksAboutWebsite = /\bwhat is this website\b/.test(normalizedQuery)
+      || /\bwhat is this site\b/.test(normalizedQuery)
+      || /\bwhat is this portfolio\b/.test(normalizedQuery)
+      || /\bwhat is the website about\b/.test(normalizedQuery)
+      || /\bwhat is this page about\b/.test(normalizedQuery);
+    const asksWhoBuiltWebsite = /\bwho built (this )?(website|site|portfolio)\b/.test(normalizedQuery)
+      || /\bwho made (this )?(website|site|portfolio)\b/.test(normalizedQuery)
+      || /\bwho developed (this )?(website|site|portfolio)\b/.test(normalizedQuery);
+    const asksHowWebsiteBuilt = /\bhow (was|is) (this )?(website|site|portfolio) (built|made|developed)\b/.test(normalizedQuery)
+      || /\bwhat technology (is|was) used\b/.test(normalizedQuery)
+      || /\bwhat tech stack\b/.test(normalizedQuery)
+      || /\bwhich tech stack\b/.test(normalizedQuery)
+      || /\bwhat technologies\b/.test(normalizedQuery)
+      || /\bhow was the website developed\b/.test(normalizedQuery);
+    const asksChatStorage = /\b(do|does) (you|this chat|the bot) (store|save|collect|log|keep) (chat|chats|messages|message|data)\b/.test(normalizedQuery)
+      || /\bis this chat saved\b/.test(normalizedQuery)
+      || /\bdo you save chats\b/.test(normalizedQuery);
+    const asksContactSooraj = /\bcan i ask sooraj\b/.test(normalizedQuery)
+      || /\bhow can i ask sooraj\b/.test(normalizedQuery)
+      || /\bcan you ask sooraj\b/.test(normalizedQuery)
+      || /\bcontact sooraj\b/.test(normalizedQuery)
+      || /\bsend this to sooraj\b/.test(normalizedQuery);
+    const asksPersonalEmail = /\b(personal|private)\b/.test(normalizedQuery)
+      && /\b(email|email id|email address|mail id|mail address)\b/.test(normalizedQuery);
+    const asksPublicEmail = /\b(sooraj|owner)\b/.test(normalizedQuery)
+      && /\b(email|email id|email address|mail id|mail address)\b/.test(normalizedQuery)
+      && !asksPersonalEmail;
+    const asksKnowEverything = /\bdo you know everything\b/.test(normalizedQuery)
+      || /\bcan you answer everything\b/.test(normalizedQuery)
+      || /\bdo you know all\b/.test(normalizedQuery);
+
+    if (currentLang === "de") {
+      if (asksWhoAreYou) {
+        return {
+          text: "Ich bin Synapse, der AI Assistant von Sooraj. Ich fuehre Besucher durch die Website, beantworte haeufige Fragen zu Profil, Projekten, Erfahrung, Reviews, CV und Kontakt und leite bei Bedarf an die passenden Bereiche weiter.",
+          actions: [
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+            createBadgedAction("Projekte", createHelpBotHomeTarget("projects"), "Work"),
+            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+          ]
+        };
+      }
+      if (asksWhatCanYouDo) {
+        return {
+          text: "Ich kann allgemeine Fragen zur Website beantworten, die wichtigsten Portfolio-Bereiche erklaeren, passende Seiten direkt oeffnen und Sie zu Projekten, Erfahrung, Reviews, CV oder Kontakt fuehren. Wenn eine Frage zu privat oder vertraulich ist, leite ich sie lieber an Sooraj weiter.",
+          actions: [
+            createBadgedAction("Rollen-Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
+            createBadgedAction("Erfahrung", createHelpBotHomeTarget("experience"), "Proof"),
+            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+          ]
+        };
+      }
+      if (asksAreYouHuman) {
+        return {
+          text: "Nein. Ich bin kein Mensch, sondern der digitale Assistent von Sooraj. Ich bin dafuer da, haeufige Fragen sauber zu beantworten und Sie schneller durch die Website zu fuehren.",
+          actions: [
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+            createBadgedAction("Journey", createHelpBotPageTarget("journey.html"), "Story")
+          ]
+        };
+      }
+      if (asksAboutWebsite) {
+        return {
+          text: "Diese Website ist Soorajs Portfolio. Sie zeigt Profil, Erfahrung, Projekte, Skills, Journey, Reviews sowie die direkten Kontakt- und CV-Pfade. Kurz gesagt: Sie ist dazu da, seine technische Arbeit, seinen Weg und seine berufliche Passung klar und professionell zu zeigen.",
+          actions: [
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Start"),
+            createBadgedAction("Erfahrung", createHelpBotHomeTarget("experience"), "Proof"),
+            createBadgedAction("Projekte", createHelpBotHomeTarget("projects"), "Work")
+          ]
+        };
+      }
+      if (asksWhoBuiltWebsite) {
+        return {
+          text: "Die Website wurde von Sooraj Sudhakaran selbst aufgebaut und laufend weiterentwickelt. Ich bin ebenfalls Teil dieses Systems und wurde von ihm als Portfolio-Assistent integriert.",
+          actions: [
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+            createBadgedAction("Journey", createHelpBotPageTarget("journey.html"), "Story"),
+            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+          ]
+        };
+      }
+      if (asksHowWebsiteBuilt) {
+        return {
+          text: "Soweit ich oeffentlich sagen kann, ist die Website als individuell gebaute Portfolio-Seite mit HTML, CSS und JavaScript umgesetzt. Strukturierte Bereiche wie Feedback, Kontakt, CV-Anfrage, Reviews und Chat-Logik sind sauber in den Website-Flow integriert, und fuer die Datenspeicherung werden Supabase-basierte Workflows genutzt.",
+          actions: [
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+            createBadgedAction("Feedback / Kontakt", createHelpBotPageTarget("feedback.html"), "Flow"),
+            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+          ]
+        };
+      }
+      if (asksChatStorage) {
+        return {
+          text: "Ja, Teile des Chats koennen gespeichert werden, damit offene Fragen, Verlauf und Bot-Verbesserungen spaeter nachvollzogen werden koennen. Ich behandle den Chat aber nicht als vollstaendig vertraulichen Kanal fuer Passwoerter oder andere sensible Daten.",
+          actions: createHelpBotDirectContactActions()
+        };
+      }
+      if (asksContactSooraj) {
+        return {
+          text: "Ja. Wenn Sie eine Frage direkt an Sooraj geben moechten, ist der sauberste Weg das Kontaktformular der Website. Dort kann Ihre Frage direkt als professionelle Anfrage uebermittelt werden.",
+          actions: createHelpBotDirectContactActions()
+        };
+      }
+      if (asksPublicEmail) {
+        return {
+          text: "Die offizielle Kontakt-E-Mail fuer direkten Kontakt ist soorajsudhakaran1199@gmail.com. Wenn Sie moechten, koennen Sie Sooraj direkt per E-Mail schreiben oder den Kontaktpfad der Website nutzen.",
+          actions: createHelpBotEscalationActions()
+        };
+      }
+      if (asksKnowEverything) {
+        return {
+          text: "Nein. Ich beantworte viele haeufige Fragen zur Website bereits direkt, aber ich weiss nicht alles. Wenn eine Frage zu speziell, privat oder vertraulich ist, leite ich sie lieber an Sooraj weiter.",
+          actions: createHelpBotDirectContactActions()
+        };
+      }
+      return null;
+    }
+
+    if (asksWhoAreYou) {
+      return {
+        text: "I am Synapse, the AI assistant of Sooraj. I guide visitors through the website, answer common questions about the profile, projects, experience, reviews, CV, and contact paths, and route people to the right sections.",
+        actions: [
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+          createBadgedAction("Open projects section", createHelpBotHomeTarget("projects"), "Work"),
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action")
+        ]
+      };
+    }
+    if (asksWhatCanYouDo) {
+      return {
+        text: "I can answer common questions about the website, explain the main portfolio sections, open the most relevant pages directly, and guide you to projects, experience, reviews, CV, or contact. If a question is private or confidential, I will route it to Sooraj instead.",
+        actions: [
+          createBadgedAction("Open role fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
+          createBadgedAction("Open experience section", createHelpBotHomeTarget("experience"), "Proof"),
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action")
+        ]
+      };
+    }
+    if (asksAreYouHuman) {
+      return {
+        text: "No. I am not a human. I am Sooraj's digital assistant, built to answer common questions clearly and guide visitors through the website faster.",
+        actions: [
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+          createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story")
+        ]
+      };
+    }
+    if (asksAboutWebsite) {
+      return {
+        text: "This website is Sooraj's portfolio. It brings together the profile, experience, projects, skills, journey, reviews, and direct contact and CV paths. In short, it is designed to present his technical work, career path, and professional fit clearly.",
+        actions: [
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Start"),
+          createBadgedAction("Open experience section", createHelpBotHomeTarget("experience"), "Proof"),
+          createBadgedAction("Open projects section", createHelpBotHomeTarget("projects"), "Work")
+        ]
+      };
+    }
+    if (asksWhoBuiltWebsite) {
+      return {
+        text: "The website was built and is continually improved by Sooraj Sudhakaran himself. I am also part of that system and was integrated by him as the portfolio assistant.",
+        actions: [
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+          createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story"),
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action")
+        ]
+      };
+    }
+    if (asksHowWebsiteBuilt) {
+      return {
+        text: "At the public level, the website is built as a custom portfolio using HTML, CSS, and JavaScript. Structured flows such as feedback, contact, CV requests, reviews, and the chatbot are integrated directly into the site, and Supabase-based workflows are used for data storage and submissions.",
+        actions: [
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+          createBadgedAction("Open feedback page", createHelpBotPageTarget("feedback.html"), "Flow"),
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action")
+        ]
+      };
+    }
+    if (asksChatStorage) {
+      return {
+        text: "Yes. Parts of the chat can be stored so unanswered questions, chat history, and bot improvements can be reviewed later. But this should not be treated as a fully confidential channel for passwords or other sensitive data.",
+        actions: createHelpBotDirectContactActions()
+      };
+    }
+    if (asksContactSooraj) {
+      return {
+        text: "Yes. If you want to send a question directly to Sooraj, the cleanest path is the website contact form. That lets your question go through as a direct professional request.",
+        actions: createHelpBotDirectContactActions()
+      };
+    }
+    if (asksPublicEmail) {
+      return {
+        text: "The official contact email for direct contact is soorajsudhakaran1199@gmail.com. If you want, you can email Sooraj directly or use the website contact path.",
+        actions: createHelpBotEscalationActions()
+      };
+    }
+    if (asksKnowEverything) {
+      return {
+        text: "No. I can answer many common questions about the website directly, but I do not know everything. If a question is too specific, private, or confidential, I will route it to Sooraj instead.",
+        actions: createHelpBotDirectContactActions()
+      };
+    }
+    return null;
+  };
+
   const buildDynamicWebsiteQuestionAnswer = async (query = "", { forcedAnswerId = "" } = {}) => {
     const normalizedQuery = normalizeReviewLookupText(query);
     if (!normalizedQuery) return null;
 
+    const forcedEntryAnswer = forcedAnswerId ? getWebsiteQuestionAnswerEntry(forcedAnswerId) : null;
+    if (forcedEntryAnswer) {
+      return forcedEntryAnswer;
+    }
+
+    const germanLanguageAnswer = buildHelpBotGermanLanguageAnswer(query);
+    if (germanLanguageAnswer) {
+      return germanLanguageAnswer;
+    }
+
+    const colorQuestionAnswer = buildHelpBotColorQuestionAnswer(query);
+    if (colorQuestionAnswer) {
+      return colorQuestionAnswer;
+    }
+
+    const ownerDetailAnswer = buildHelpBotOwnerDetailAnswer(query);
+    if (ownerDetailAnswer) {
+      return ownerDetailAnswer;
+    }
+
+    const unknownOwnerPersonalAnswer = buildHelpBotUnknownOwnerPersonalAnswer(query);
+    if (unknownOwnerPersonalAnswer) {
+      return unknownOwnerPersonalAnswer;
+    }
+
+    const confidentialAnswer = buildHelpBotConfidentialQuestionAnswer(query);
+    if (confidentialAnswer) {
+      return confidentialAnswer;
+    }
+
     const smallTalkAnswer = buildHelpBotSmallTalkAnswer(query);
     if (smallTalkAnswer) {
       return smallTalkAnswer;
+    }
+
+    const sectionAnswer = buildHelpBotSectionQuestionAnswer(query);
+    if (sectionAnswer) {
+      return sectionAnswer;
+    }
+
+    const generalAnswer = buildHelpBotGeneralQuestionAnswer(query);
+    if (generalAnswer) {
+      return generalAnswer;
     }
 
     const wantsWebsiteUpdateTime = forcedAnswerId === "website-last-updated"
@@ -9495,6 +10465,55 @@ function setupPortfolioHelpBot() {
     )
   ]);
 
+  const getWebsiteIdentityClarifyOptions = ({ assistantAnswerId = "", ownerAnswerId = "" } = {}) => withEndChatOption([
+    assistantAnswerId
+      ? createBadgedOption(
+          "identity-clarify",
+          assistantAnswerId,
+          config.searchWebsiteIdentityClarifyAssistant,
+          currentLang === "de" ? "AI" : "AI"
+        )
+      : null,
+    ownerAnswerId
+      ? createBadgedOption(
+          "identity-clarify",
+          ownerAnswerId,
+          config.searchWebsiteIdentityClarifyOwner,
+          "Sooraj"
+        )
+      : null
+  ].filter(Boolean));
+
+  const getWebsiteGermanClarifyOptions = () => withEndChatOption([
+    createBadgedOption(
+      "german-language-clarify",
+      "assistant-german-language",
+      config.searchWebsiteGermanClarifyAssistant,
+      currentLang === "de" ? "AI" : "AI"
+    ),
+    createBadgedOption(
+      "german-language-clarify",
+      "sooraj-german-language",
+      config.searchWebsiteGermanClarifySooraj,
+      "Sooraj"
+    )
+  ]);
+
+  const getChatLanguageSwitchOptions = (langId = "de") => withEndChatOption([
+    createBadgedOption(
+      "chat-language-switch",
+      langId === "de" ? "switch-german" : "switch-english",
+      langId === "de" ? config.chatLanguageSwitchGerman : (currentLang === "de" ? "Ja, auf Englisch wechseln" : "Yes, switch to English"),
+      langId === "de" ? "DE" : "EN"
+    ),
+    createBadgedOption(
+      "chat-language-switch",
+      "stay-current",
+      config.chatLanguageStayCurrent,
+      currentLang === "de" ? "Bleiben" : "Stay"
+    )
+  ]);
+
   const shouldClarifyTrainingQuestion = (query = "") => {
     const normalized = String(query || "")
       .toLowerCase()
@@ -9557,6 +10576,78 @@ function setupPortfolioHelpBot() {
     }
 
     return true;
+  };
+
+  const detectHelpBotPersonalIdentityIntent = (query = "") => {
+    const normalized = String(query || "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+    if (!normalized) return null;
+
+    const mentionsOwner = /\b(sooraj|owner|website owner|portfolio owner|he|his)\b/.test(normalized);
+    const mentionsAssistant = /\b(ai|assistant|bot|synapse|chatbot)\b/.test(normalized);
+    const usesYouPronoun = /\b(you|your|yours|you re|you are)\b/.test(normalized);
+    const asksForDocumentNumber = /\b(passport number|visa number|permit number|document number|id number|expiry|expiration|expire|valid until)\b/.test(normalized);
+
+    const hasAgeIntent = /\b(how old|age|old are you|old is sooraj|birthday|date of birth|dob|born when|when was .* born)\b/.test(normalized)
+      || (/\bwhen\b/.test(normalized) && /\bborn\b/.test(normalized));
+    const hasOriginIntent = /\b(where are .* from|where is .* from|from where|born in|which state|what state|where was .* born|origin|hometown)\b/.test(normalized);
+    const hasLocationIntent = /\b(where do .* live|where does .* live|where do .* work|where does .* work|where is .* now|currently in|current location|living now|working now)\b/.test(normalized);
+    const hasNationalityIntent = !asksForDocumentNumber
+      && /\b(nationality|citizenship|citizen|passport|passport holder|indian)\b/.test(normalized);
+    const hasRelationshipIntent = /\b(single|married|relationship status|wife|husband|girlfriend|boyfriend)\b/.test(normalized);
+    const hasPermitIntent = !asksForDocumentNumber
+      && /\b(work permit|visa|schengen|work authorization|residence permit)\b/.test(normalized);
+    const hasOverviewIntent = /\b(personal details|personal detail|owner details|details about sooraj|about sooraj|tell me about sooraj)\b/.test(normalized);
+
+    const matchedCategories = [
+      hasAgeIntent ? "age" : "",
+      hasOriginIntent ? "origin" : "",
+      hasLocationIntent ? "location" : "",
+      hasNationalityIntent ? "nationality" : "",
+      hasRelationshipIntent ? "relationship" : "",
+      hasPermitIntent ? "permit" : ""
+    ].filter(Boolean);
+
+    let category = "";
+    if (hasOverviewIntent || matchedCategories.length > 1) category = "overview";
+    else category = matchedCategories[0] || "";
+    if (!category) return null;
+
+    if (mentionsOwner && !mentionsAssistant) {
+      return { target: "owner", category };
+    }
+    if (mentionsAssistant && !mentionsOwner) {
+      return { target: "assistant", category };
+    }
+    if (usesYouPronoun && !mentionsOwner && !mentionsAssistant) {
+      return { target: "clarify", category };
+    }
+    if (hasOverviewIntent) {
+      return { target: "owner", category };
+    }
+    return null;
+  };
+
+  const detectHelpBotGermanLanguageIntent = (query = "") => {
+    const normalized = String(query || "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+    if (!normalized) return null;
+
+    const mentionsOwner = /\b(sooraj|owner|website owner|portfolio owner|he|his)\b/.test(normalized);
+    const mentionsAssistant = /\b(ai|assistant|bot|synapse|chatbot)\b/.test(normalized);
+    const usesYouPronoun = /\b(you|your|you re|you are|du|dein|deine|dir)\b/.test(normalized);
+    const asksAboutGerman = /\b(german|deutsch)\b/.test(normalized)
+      && /\b(speak|speaking|talk|chat|write|understand|translate|antworten|sprechen|schreiben|chatten|uebersetzen|ubersetzen|kannst|sprichst)\b/.test(normalized);
+
+    if (!asksAboutGerman) return null;
+    if (mentionsOwner && !mentionsAssistant) return { target: "owner" };
+    if (mentionsAssistant && !mentionsOwner) return { target: "assistant" };
+    if (usesYouPronoun && !mentionsOwner && !mentionsAssistant) return { target: "clarify" };
+    return { target: "clarify" };
   };
 
   const shouldHandleConfidentialSuggestionFollowup = (query = "", previousAnswerId = "") => {
@@ -9712,13 +10803,13 @@ function setupPortfolioHelpBot() {
       return {
         kind: "quick-path",
         id: "quick",
-        label: roleId === "recruiter" ? "60-Sekunden-Hiring-Check" : "60-Sekunden-Proof-Check"
+        label: roleId === "recruiter" ? "60-Sekunden-Screening" : "60-Sekunden-Proof-Check"
       };
     }
     return {
       kind: "quick-path",
       id: "quick",
-      label: roleId === "recruiter" ? "60-second hiring view" : "60-second proof scan"
+      label: roleId === "recruiter" ? "60-second screening" : "60-second proof scan"
     };
   };
 
@@ -9737,12 +10828,12 @@ function setupPortfolioHelpBot() {
         };
       }
       return {
-        response: "Hier ist der schnellste Recruiter-Scan.\n1. Rollen-Fit zeigt die staerksten Match-Bereiche.\n2. Die KEBA-Linie zeigt industrielle Robotik-Erfahrung in Deutschland.\n3. Reviews liefern zusaetzliche Glaubwuerdigkeit.\n4. Wenn der Eindruck passt, fuehren CV und Kontakt direkt weiter.",
-        detail: "Dieser Schnellpfad ist fuer eine erste Hiring-Entscheidung gedacht. Er reduziert die wichtigsten Einstiege auf Rollen-Fit, industrielle Nachweise, Vertrauensebene und direkten Kontakt.\nSo koennen Recruiter das Profil in kurzer Zeit strukturiert bewerten und danach gezielt vertiefen.",
+        response: "Hier ist der schnellste Recruiter-Scan.\n1. Rollen-Fit zeigt die staerksten Match-Bereiche.\n2. Die KEBA-Linie zeigt industrielle Robotik-Erfahrung in Deutschland.\n3. Technische Substanz und Reviews validieren Tiefe und Vertrauen.\n4. Wenn der Eindruck passt, fuehren CV und Kontakt direkt weiter.",
+        detail: "Dieser Schnellpfad ist fuer eine erste Hiring-Entscheidung gedacht. Er komprimiert Matching, industrielle Nachweise, technische Validierung und direkte Conversion in eine kurze Recruiter-Sequenz.\nSo koennen Sie das Profil strukturiert screenen und anschliessend gezielt vertiefen.",
         actions: [
           { label: "Where I Fit", target: createHelpBotHomeTarget("where-i-fit") },
           { label: "KEBA Master-Thesis", target: createHelpBotPageTarget("experience-masters-thesis-keba.html") },
-          { label: "Reviews", target: createHelpBotHomeTarget("reviews") },
+          { label: "Technische Projekte", target: createHelpBotHomeTarget("projects") },
           { label: "CV anfragen", target: createHelpBotPageTarget("request-cv.html") }
         ]
       };
@@ -9762,12 +10853,12 @@ function setupPortfolioHelpBot() {
     }
 
     return {
-      response: "Here is the fastest recruiter scan.\n1. Role fit surfaces the strongest match areas.\n2. The KEBA path shows industrial robotics proof in Germany.\n3. Reviews add external credibility.\n4. If the profile looks relevant, CV and contact are one step away.",
-      detail: "This quick path is designed for an early hiring decision. It compresses role fit, industrial proof, trust signals, and direct contact into one recruiter-friendly flow.\nThat makes the portfolio faster to evaluate before you move into detail pages.",
+      response: "Here is the fastest recruiter scan.\n1. Role fit surfaces the strongest match areas.\n2. The KEBA path shows industrial robotics proof in Germany.\n3. Technical proof and reviews validate depth and trust.\n4. If the profile looks relevant, CV and contact are one step away.",
+      detail: "This quick path is designed for an early hiring decision. It compresses matching, industrial proof, technical validation, and direct conversion into one recruiter-friendly flow.\nThat makes the portfolio faster to screen before you move into detail pages.",
       actions: [
-        { label: "Check Where I Fit", target: createHelpBotHomeTarget("where-i-fit") },
+        { label: "Open role-fit summary", target: createHelpBotHomeTarget("where-i-fit") },
         { label: "KEBA master's thesis", target: createHelpBotPageTarget("experience-masters-thesis-keba.html") },
-        { label: "Open reviews", target: createHelpBotHomeTarget("reviews") },
+        { label: "Open technical proof", target: createHelpBotHomeTarget("projects") },
         { label: "Request CV", target: createHelpBotPageTarget("request-cv.html") }
       ]
     };
@@ -9795,8 +10886,8 @@ function setupPortfolioHelpBot() {
 
   const getRoleFitStartOption = () => (
     currentLang === "de"
-      ? { kind: "role-fit-start", id: "role-fit-start", label: "Rolle abgleichen" }
-      : { kind: "role-fit-start", id: "role-fit-start", label: "Match a specific role" }
+      ? { kind: "role-fit-start", id: "role-fit-start", label: "Zielrolle abgleichen" }
+      : { kind: "role-fit-start", id: "role-fit-start", label: "Screen a specific role" }
   );
 
   const getRoleFitChoiceOptions = () => withEndChatOption(dedupeHelpBotOptions([
@@ -10020,6 +11111,7 @@ function setupPortfolioHelpBot() {
     return withEndChatOption(dedupeHelpBotOptions([
       getTourStartOption(),
       ...(quickPath ? [quickPath] : []),
+      ...(shouldOfferInlineWebsiteSearch(currentRoleId) ? [getWebsiteSearchStartOption(currentRoleId)] : []),
       ...topicOptions
     ]));
   };
@@ -10038,6 +11130,7 @@ function setupPortfolioHelpBot() {
     const includeReviewPaths = topicId === "reviews";
     return withEndChatOption(dedupeHelpBotOptions([
       createBadgedOption("topic-more", "topic-more", copy.explainMore, currentLang === "de" ? "Mehr" : "More"),
+      ...(shouldOfferInlineWebsiteSearch(currentRoleId) ? [getWebsiteSearchStartOption(currentRoleId)] : []),
       ...(includeRoleFit ? [{ ...getRoleFitStartOption(), badge: currentLang === "de" ? "Smart" : "Smart" }] : []),
       ...(includeReviewPaths ? [getReviewPathStartOption()] : []),
       ...getSuggestedTopicOptions(currentRoleId, topicId).slice(0, 2),
@@ -10049,6 +11142,7 @@ function setupPortfolioHelpBot() {
     const includeRoleFit = (roleId === "recruiter" || roleId === "hiringManager") && topicId === "fit";
     const includeReviewPaths = topicId === "reviews";
     return withEndChatOption(dedupeHelpBotOptions([
+      ...(shouldOfferInlineWebsiteSearch(roleId) ? [getWebsiteSearchStartOption(roleId)] : []),
       ...(includeRoleFit ? [{ ...getRoleFitStartOption(), badge: "Smart" }] : []),
       ...(includeReviewPaths ? [getReviewPathStartOption()] : []),
       ...getSuggestedTopicOptions(roleId, topicId).slice(0, 2),
@@ -10069,6 +11163,18 @@ function setupPortfolioHelpBot() {
       : "Would you like more detail on this section or open the direct detail page?";
   };
 
+  const getTopicOpenAfterDetailText = (roleId, topicId) => {
+    const recommendedNextLabel = getRecommendedNextTopicLabel(roleId, topicId);
+    if (currentLang === "de") {
+      return recommendedNextLabel
+        ? `Wenn Sie moechten, oeffne ich jetzt die Detailseite, fuehre Sie als Naechstes zu ${recommendedNextLabel}, oder Sie fragen mich direkt hier weiter.`
+        : "Wenn Sie moechten, oeffne ich jetzt die Detailseite oder wir bleiben direkt hier im Chat.";
+    }
+    return recommendedNextLabel
+      ? `If you want, I can open the detail page now, take you next to ${recommendedNextLabel}, or you can ask me directly here.`
+      : "If you want, I can open the detail page now, or we can stay here in the chat.";
+  };
+
   const getTopicStayPromptOptions = (roleId, topicId) => {
     const deepCopy = getTopicDeeperCopy(roleId, topicId);
     const primaryAction = getTopicPrimaryAction(getPendingTopic());
@@ -10077,6 +11183,7 @@ function setupPortfolioHelpBot() {
     return withEndChatOption(dedupeHelpBotOptions([
       createBadgedOption("topic-more", "topic-more", deepCopy.explainMore, currentLang === "de" ? "Mehr" : "More"),
       ...(primaryAction ? [createBadgedOption("topic-detail-open", "topic-detail-open", currentLang === "de" ? "Detailseite oeffnen" : "Open detail page", currentLang === "de" ? "Direkt" : "Direct")] : []),
+      ...(shouldOfferInlineWebsiteSearch(roleId) ? [getWebsiteSearchStartOption(roleId)] : []),
       ...(includeRoleFit ? [{ ...getRoleFitStartOption(), badge: "Smart" }] : []),
       ...(includeReviewPaths ? [getReviewPathStartOption()] : []),
       ...getSuggestedTopicOptions(roleId, topicId).slice(0, 2),
@@ -10160,6 +11267,7 @@ function setupPortfolioHelpBot() {
           inlineOptions: withEndChatOption(dedupeHelpBotOptions([
             { ...getRoleFitStartOption(), badge: currentLang === "de" ? "Smart" : "Smart" },
             { ...createTopicOption(currentRoleId, currentRoleId === "recruiter" ? "experience" : "industrial"), badge: currentLang === "de" ? "Empfohlen" : "Recommended" },
+            getWebsiteSearchStartOption(currentRoleId),
             createTopicOption(currentRoleId, "reviews"),
             getTourStartOption()
           ])),
@@ -10326,6 +11434,7 @@ function setupPortfolioHelpBot() {
         resetConversation();
       } else {
         currentRoleId = helpBotState.currentRoleId;
+        syncRoleChrome();
         renderStoredConversation();
         if (helpBotState.pendingResumePrompt && currentPageName !== "index.html") {
           appendMessage({
@@ -10387,13 +11496,10 @@ function setupPortfolioHelpBot() {
     const composerField = composerMode.inputKind === "textarea" ? composerTextarea : composerInput;
     const inactiveField = composerMode.inputKind === "textarea" ? composerInput : composerTextarea;
     if (nudgeBadge) nudgeBadge.textContent = config.nudgeBadge;
-    badge.textContent = config.badge;
-    title.textContent = config.title;
-    lead.textContent = config.lead;
+    syncRoleChrome();
     resetButton.textContent = config.reset;
     backdrop.setAttribute("aria-label", config.close);
     closeButton.setAttribute("aria-label", config.close);
-    setNudgeMessage(config.nudge);
     nudgeCloseButton.setAttribute("aria-label", config.close);
     launcher.setAttribute("aria-label", config.launcher);
     if (composerInput && composerTextarea && composerField) {
@@ -10774,8 +11880,16 @@ function setupPortfolioHelpBot() {
       cardGrid.className = "help-bot-cards";
 
       cards.forEach((card) => {
-        const article = document.createElement("article");
+        const article = card.kind && card.id
+          ? document.createElement("button")
+          : document.createElement("article");
         article.className = "help-bot-card";
+        if (article instanceof HTMLButtonElement) {
+          article.type = "button";
+          article.classList.add("is-interactive");
+          article.dataset.helpBotOptionKind = card.kind;
+          article.dataset.helpBotOptionId = card.id;
+        }
         if (card.badge) {
           const badgeEl = document.createElement("span");
           badgeEl.className = "help-bot-card-badge";
@@ -11638,7 +12752,7 @@ function setupPortfolioHelpBot() {
     responseToken += 1;
     const token = responseToken;
     hasConversationBooted = true;
-    currentLang = resolveInitialLanguage();
+    currentLang = helpBotState.preferredLanguage || resolveInitialLanguage();
     config = getPortfolioHelpBotConfig(currentLang);
     currentRoleId = "";
     helpBotState.visitorName = "";
@@ -11689,6 +12803,7 @@ function setupPortfolioHelpBot() {
     const token = responseToken;
     clearTypingIndicator();
     currentRoleId = roleId;
+    syncRoleChrome();
     clearChatFeedbackDraft();
     helpBotState.studentUniversityCandidate = null;
     helpBotState.pendingInputKind = "";
@@ -12059,6 +13174,7 @@ function setupPortfolioHelpBot() {
   };
 
   const startWebsiteSearchFlow = async (token = responseToken, { retry = false } = {}) => {
+    const searchCopy = getWebsiteSearchCopy();
     helpBotState.pendingInputKind = "website-search";
     helpBotState.pendingWebsiteSearchStart = false;
     helpBotState.websiteSearchResult = null;
@@ -12068,7 +13184,7 @@ function setupPortfolioHelpBot() {
     await queueBotReply({
       text: retry
         ? (helpBotState.websiteSearchAttempts >= 2 ? config.searchWebsiteDeepRetryPrompt : config.searchWebsiteRetryPrompt)
-        : config.searchWebsitePrompt,
+        : searchCopy.prompt,
       delay: 320,
       token,
       inlineOptions: withEndChatOption([])
@@ -12091,7 +13207,7 @@ function setupPortfolioHelpBot() {
       actions: answer.actions,
       delay: 260,
       token,
-      inlineOptions: withEndChatOption([])
+      inlineOptions: answer.inlineOptions || withEndChatOption([])
     });
     if (token !== responseToken) return true;
     setStaticCopy();
@@ -12129,6 +13245,82 @@ function setupPortfolioHelpBot() {
       answerId,
       target: null
     }, token);
+  };
+
+  const handleIdentityClarification = async (answerId) => {
+    const assistantAnswerIds = new Set(["bot-age", "bot-origin", "bot-location", "bot-personal-status"]);
+    const label = assistantAnswerIds.has(answerId)
+      ? config.searchWebsiteIdentityClarifyAssistant
+      : config.searchWebsiteIdentityClarifyOwner;
+    appendMessage({ sender: "user", text: label });
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    await answerWebsiteQuestion({
+      kind: "question",
+      label,
+      answerId,
+      target: null
+    }, token);
+  };
+
+  const switchHelpBotConversationLanguage = (nextLang = "en") => {
+    currentLang = nextLang === "de" ? "de" : "en";
+    config = getPortfolioHelpBotConfig(currentLang);
+    helpBotState.preferredLanguage = currentLang;
+    persistHelpBotState();
+    setStaticCopy();
+  };
+
+  const handleGermanLanguageClarification = async (answerId) => {
+    const label = answerId === "assistant-german-language"
+      ? config.searchWebsiteGermanClarifyAssistant
+      : config.searchWebsiteGermanClarifySooraj;
+    appendMessage({ sender: "user", text: label });
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+    await answerWebsiteQuestion({
+      kind: "question",
+      label,
+      answerId,
+      target: null
+    }, token);
+  };
+
+  const handleChatLanguageSwitch = async (choiceId) => {
+    const switchToGerman = choiceId === "switch-german";
+    const userLabel = switchToGerman
+      ? config.chatLanguageSwitchGerman
+      : config.chatLanguageStayCurrent;
+    appendMessage({ sender: "user", text: userLabel });
+    responseToken += 1;
+    const token = responseToken;
+    clearTypingIndicator();
+
+    if (switchToGerman) {
+      switchHelpBotConversationLanguage("de");
+      await queueBotReply({
+        text: "Alles klar. Ab jetzt koennen wir auf Deutsch weiterschreiben. Stellen Sie einfach Ihre naechste Frage auf Deutsch.",
+        delay: 240,
+        token,
+        inlineOptions: withEndChatOption([])
+      });
+      if (token !== responseToken) return;
+      showComposer();
+      return;
+    }
+
+    await queueBotReply({
+      text: currentLang === "de"
+        ? "Alles klar. Wir bleiben in dieser Sprache. Stellen Sie einfach die naechste Frage."
+        : "All right. We’ll stay in this language. Just ask the next question.",
+      delay: 240,
+      token,
+      inlineOptions: withEndChatOption([])
+    });
+    if (token !== responseToken) return;
+    showComposer();
   };
 
   const runWebsiteSearch = async (query) => {
@@ -12204,7 +13396,7 @@ function setupPortfolioHelpBot() {
         actions: dynamicAnswer.actions,
         delay: 260,
         token,
-        inlineOptions: withEndChatOption([])
+        inlineOptions: dynamicAnswer.inlineOptions || withEndChatOption([])
       });
       if (token !== responseToken) return;
       setStaticCopy();
@@ -12476,6 +13668,28 @@ function setupPortfolioHelpBot() {
       token
     });
     if (token !== responseToken) return;
+    if (currentRoleId === "recruiter" || currentRoleId === "hiringManager") {
+      const deepCopy = getTopicDeeperCopy(currentRoleId, topic.id);
+      const detailedText = roleUsesVisitorName(currentRoleId)
+        ? personalizeForNamedVisitor(deepCopy.detail)
+        : deepCopy.detail;
+      await queueBotReply({
+        text: `${detailedText}\n${getTopicOpenAfterDetailText(currentRoleId, topic.id)}`,
+        delay: 380,
+        token,
+        inlineOptions: getTopicStayPromptOptions(currentRoleId, topic.id)
+      });
+      if (token !== responseToken) return;
+      setOptions([], "");
+
+      trackAnalyticsEvent("help_bot_topic_selected", {
+        page_path: window.location.pathname,
+        lang: currentLang,
+        role: currentRoleId,
+        topic: topicId
+      });
+      return;
+    }
     await queueBotReply({
       text: getTopicDecisionPromptText(),
       delay: 380,
@@ -12803,11 +14017,11 @@ function setupPortfolioHelpBot() {
       if (kind === "role") {
         selectRole(id);
       } else if (kind === "website-search-start") {
-        appendMessage({ sender: "user", text: config.searchWebsiteLabel });
+        appendMessage({ sender: "user", text: getWebsiteSearchCopy(currentRoleId).label });
         responseToken += 1;
         const token = responseToken;
         clearTypingIndicator();
-        if (!getVisitorName()) {
+        if (!getVisitorName() && !shouldOfferInlineWebsiteSearch(currentRoleId)) {
           promptForVisitorName(currentRoleId, token, { resumeWebsiteSearch: true });
           return;
         }
@@ -12863,8 +14077,14 @@ function setupPortfolioHelpBot() {
         handleWebsiteSearchFallback(id);
       } else if (kind === "training-clarify") {
         handleTrainingClarification(id);
+      } else if (kind === "german-language-clarify") {
+        handleGermanLanguageClarification(id);
       } else if (kind === "name-clarify") {
         handleNameClarification(id);
+      } else if (kind === "identity-clarify") {
+        handleIdentityClarification(id);
+      } else if (kind === "chat-language-switch") {
+        handleChatLanguageSwitch(id);
       } else if (kind === "visitor-profile") {
         handleVisitorProfileChoice(id);
       } else if (kind === "visitor-field-skip") {
