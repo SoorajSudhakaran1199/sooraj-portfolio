@@ -7749,9 +7749,174 @@ function setupPortfolioHelpBot() {
         createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action")
       ];
 
+  const buildHelpBotSmallTalkAnswer = (query = "") => {
+    const normalizedQuery = normalizeReviewLookupText(query);
+    if (!normalizedQuery) return null;
+
+    const visitorName = getVisitorName();
+    const directName = visitorName ? `${visitorName}, ` : "";
+    const saysGoodMorning = /\bgood morning\b/.test(normalizedQuery);
+    const saysGoodAfternoon = /\bgood afternoon\b/.test(normalizedQuery);
+    const saysGoodEvening = /\bgood evening\b/.test(normalizedQuery);
+    const saysGoodNight = /\bgood night\b/.test(normalizedQuery);
+    const saysHello = /^(hi|hello|hey|heya|hiya)\b/.test(normalizedQuery)
+      || /\b(hi|hello|hey)\b/.test(normalizedQuery);
+    const asksHowAreYou = /\bhow are you\b/.test(normalizedQuery)
+      || /\bhow are you doing\b/.test(normalizedQuery)
+      || /\bhow do you do\b/.test(normalizedQuery)
+      || /\bhows it going\b/.test(normalizedQuery)
+      || /\bhow is it going\b/.test(normalizedQuery)
+      || /\bhow have you been\b/.test(normalizedQuery)
+      || /\bwhat s up\b/.test(normalizedQuery)
+      || /\bwhats up\b/.test(normalizedQuery);
+    const saysThanks = /\bthank you\b/.test(normalizedQuery)
+      || /\bthanks\b/.test(normalizedQuery)
+      || /\bthx\b/.test(normalizedQuery)
+      || /\bthankyou\b/.test(normalizedQuery);
+    const saysNiceToMeetYou = /\bnice to meet you\b/.test(normalizedQuery)
+      || /\bnice meeting you\b/.test(normalizedQuery)
+      || /\bglad to meet you\b/.test(normalizedQuery);
+    const saysBye = /^(bye|goodbye|see you|see ya|catch you later)\b/.test(normalizedQuery)
+      || /\bbye\b/.test(normalizedQuery)
+      || /\bgoodbye\b/.test(normalizedQuery)
+      || /\bsee you\b/.test(normalizedQuery)
+      || /\bsee ya\b/.test(normalizedQuery);
+
+    if (currentLang === "de") {
+      if (asksHowAreYou && (saysGoodMorning || saysGoodAfternoon || saysGoodEvening || saysHello)) {
+        return {
+          text: `${directName}${saysGoodMorning ? "guten Morgen." : saysGoodAfternoon ? "guten Tag." : saysGoodEvening ? "guten Abend." : "hallo."} Mir geht es gut, danke. Ich bin da und kann direkt auf Ihre Fragen eingehen.`,
+          actions: []
+        };
+      }
+      if (asksHowAreYou) {
+        return {
+          text: `${directName}mir geht es gut, danke. Ich bin bereit und kann direkt auf Ihre Fragen eingehen.`,
+          actions: []
+        };
+      }
+      if (saysGoodMorning) {
+        return {
+          text: `${directName}guten Morgen. Schoen, dass Sie hier sind. Womit kann ich Ihnen helfen?`,
+          actions: []
+        };
+      }
+      if (saysGoodAfternoon) {
+        return {
+          text: `${directName}guten Tag. Schoen, dass Sie hier sind. Womit kann ich Ihnen helfen?`,
+          actions: []
+        };
+      }
+      if (saysGoodEvening) {
+        return {
+          text: `${directName}guten Abend. Ich bin hier und helfe gern weiter. Was moechten Sie wissen?`,
+          actions: []
+        };
+      }
+      if (saysGoodNight) {
+        return {
+          text: `${directName}gute Nacht. Wenn Sie noch eine letzte Frage haben, bleibe ich kurz da.`,
+          actions: []
+        };
+      }
+      if (saysNiceToMeetYou) {
+        return {
+          text: `${directName}freut mich ebenfalls. Stellen Sie einfach Ihre Frage, und ich antworte direkt.`,
+          actions: []
+        };
+      }
+      if (saysThanks) {
+        return {
+          text: `${directName}gern. Wenn Sie noch etwas wissen moechten, koennen Sie direkt weiterschreiben.`,
+          actions: []
+        };
+      }
+      if (saysBye) {
+        return {
+          text: `${directName}alles klar. Auf Wiedersehen.`,
+          actions: []
+        };
+      }
+      if (saysHello) {
+        return {
+          text: `${directName}hallo. Was moechten Sie wissen?`,
+          actions: []
+        };
+      }
+      return null;
+    }
+
+    if (asksHowAreYou && (saysGoodMorning || saysGoodAfternoon || saysGoodEvening || saysHello)) {
+      return {
+        text: `${directName}${saysGoodMorning ? "good morning." : saysGoodAfternoon ? "good afternoon." : saysGoodEvening ? "good evening." : "hello."} I’m doing well, thanks. I’m here and ready to help with whatever you want to ask.`,
+        actions: []
+      };
+    }
+    if (asksHowAreYou) {
+      return {
+        text: `${directName}I’m doing well, thanks. I’m here and ready to help with whatever you want to ask.`,
+        actions: []
+      };
+    }
+    if (saysGoodMorning) {
+      return {
+        text: `${directName}good morning. I’m here and ready. What would you like to ask?`,
+        actions: []
+      };
+    }
+    if (saysGoodAfternoon) {
+      return {
+        text: `${directName}good afternoon. I’m here and ready. What would you like to ask?`,
+        actions: []
+      };
+    }
+    if (saysGoodEvening) {
+      return {
+        text: `${directName}good evening. I’m here and happy to help. What would you like to know?`,
+        actions: []
+      };
+    }
+    if (saysGoodNight) {
+      return {
+        text: `${directName}good night. If you still have one last question, I’m here.`,
+        actions: []
+      };
+    }
+    if (saysNiceToMeetYou) {
+      return {
+        text: `${directName}nice to meet you too. Ask whatever you want, and I’ll answer directly.`,
+        actions: []
+      };
+    }
+    if (saysThanks) {
+      return {
+        text: `${directName}you’re welcome. If you want to continue, just send the next question.`,
+        actions: []
+      };
+    }
+    if (saysBye) {
+      return {
+        text: `${directName}all right. Goodbye.`,
+        actions: []
+      };
+    }
+    if (saysHello) {
+      return {
+        text: `${directName}hello. What would you like to know?`,
+        actions: []
+      };
+    }
+    return null;
+  };
+
   const buildDynamicWebsiteQuestionAnswer = async (query = "", { forcedAnswerId = "" } = {}) => {
     const normalizedQuery = normalizeReviewLookupText(query);
     if (!normalizedQuery) return null;
+
+    const smallTalkAnswer = buildHelpBotSmallTalkAnswer(query);
+    if (smallTalkAnswer) {
+      return smallTalkAnswer;
+    }
 
     const wantsWebsiteUpdateTime = forcedAnswerId === "website-last-updated"
       || (
