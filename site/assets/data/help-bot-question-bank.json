@@ -2678,6 +2678,55 @@
       ]
     },
     {
+      "id": "website-build-details",
+      "keywords": [
+        "how website built",
+        "how was website developed",
+        "how site built",
+        "website build details",
+        "site build details",
+        "development details",
+        "tech stack",
+        "website tech stack",
+        "portfolio tech stack",
+        "who built website",
+        "who developed website",
+        "who made website"
+      ],
+      "questions": [
+        "How was the website built?",
+        "How did Sooraj build the portfolio website?",
+        "Can you share the website build details?",
+        "What is the tech stack behind this website?",
+        "Who built this portfolio website?",
+        "Where can I read the public development details for the website?"
+      ]
+    },
+    {
+      "id": "chatbot-build-details",
+      "keywords": [
+        "how chatbot built",
+        "how chat bot built",
+        "chatbot build details",
+        "chat bot build details",
+        "bot build details",
+        "assistant build details",
+        "who built chatbot",
+        "who built the bot",
+        "how was chatbot developed",
+        "chatbot tech details",
+        "bot technical details"
+      ],
+      "questions": [
+        "How was the chatbot built?",
+        "Who built the chatbot?",
+        "Can you share chatbot development details?",
+        "What is the tech behind the chatbot?",
+        "Where can I read the public chatbot development details?",
+        "How did Sooraj build this assistant?"
+      ]
+    },
+    {
       "id": "github-profile",
       "keywords": [
         "github",
@@ -2705,6 +2754,89 @@
       ]
     },
     {
+      "id": "image-upload-request",
+      "keywords": [
+        "upload image",
+        "upload screenshot",
+        "upload picture",
+        "upload photo",
+        "send image",
+        "send screenshot",
+        "send picture",
+        "send photo",
+        "attach image",
+        "attach screenshot",
+        "attach file",
+        "share image",
+        "share screenshot",
+        "add image",
+        "add screenshot",
+        "image processing",
+        "process image",
+        "upload link",
+        "send link",
+        "share link"
+      ],
+      "questions": [
+        "Can I upload an image here?",
+        "Can I send you a screenshot?",
+        "Can I attach a picture in the chat?",
+        "Can I upload a photo for processing?",
+        "Can I send a file or screenshot to Sooraj through the bot?",
+        "Can I share a link here?",
+        "Do you support image upload in the chat?",
+        "Can I add a screenshot and ask about it?",
+        "Can I send a picture request to Sooraj?",
+        "Can you process an image if I upload it?"
+      ]
+    },
+    {
+      "id": "chat-with-assistant-direct",
+      "keywords": [
+        "chat with me",
+        "can we chat",
+        "can i chat here",
+        "can i chat with you",
+        "talk to me",
+        "talk with me",
+        "i want to chat",
+        "lets chat",
+        "ask you directly",
+        "continue the chat"
+      ],
+      "questions": [
+        "Can I chat with you directly?",
+        "Can we chat here?",
+        "Can I talk to you directly?",
+        "I want to chat with you.",
+        "Can I continue the chat here?",
+        "Can you guide me through the website while we chat?"
+      ]
+    },
+    {
+      "id": "connect-to-sooraj-direct",
+      "keywords": [
+        "chat with sooraj",
+        "connect to sooraj",
+        "connect me to sooraj",
+        "connect to owner",
+        "connect to the owner",
+        "talk to sooraj",
+        "talk to owner",
+        "speak to sooraj",
+        "owner contact",
+        "connect me to owner"
+      ],
+      "questions": [
+        "Can I chat with Sooraj directly?",
+        "Can you connect me to Sooraj?",
+        "Can you connect me to the portfolio owner?",
+        "How do I talk to Sooraj directly?",
+        "Can I speak to the owner?",
+        "Can I connect to Sooraj from here?"
+      ]
+    },
+    {
       "id": "cv-request-path",
       "keywords": [
         "request cv",
@@ -2715,6 +2847,7 @@
         "ask for cv",
         "ask for resume",
         "download cv",
+        "download resume",
         "get cv",
         "request latest resume",
         "open cv",
@@ -2724,12 +2857,17 @@
         "give me cv",
         "send me cv",
         "send cv",
+        "send the cv",
+        "send me the resume",
         "share cv",
         "share resume",
+        "share the cv",
         "need cv",
         "need resume",
         "can i request cv",
-        "can i make a request"
+        "can i make a request",
+        "cv please",
+        "resume please"
       ],
       "questions": [
         "How do I request Sooraj's CV?",
@@ -2747,10 +2885,61 @@
         "Show me the CV path.",
         "Give me the CV.",
         "Send me the CV.",
+        "Download the CV.",
+        "Download the resume.",
+        "Send me the resume.",
         "Share the resume.",
         "I need the CV.",
         "Can I request the CV?",
         "Can I make a CV request?"
+      ]
+    },
+    {
+      "id": "portfolio-overview-download",
+      "keywords": [
+        "download portfolio",
+        "download portfolio pdf",
+        "portfolio pdf",
+        "download profile pdf",
+        "download recruiter overview",
+        "portfolio overview pdf",
+        "recruiter overview pdf",
+        "download portfolio overview",
+        "download my portfolio",
+        "send portfolio pdf",
+        "get portfolio pdf",
+        "open portfolio overview",
+        "download full portfolio",
+        "download portfolio brief",
+        "download experience",
+        "download my experience",
+        "experience pdf",
+        "download project",
+        "download projects",
+        "project pdf",
+        "projects pdf",
+        "send project details",
+        "send experience details",
+        "download work experience",
+        "download project summary",
+        "download experience summary",
+        "download project overview"
+      ],
+      "questions": [
+        "Can I download the portfolio?",
+        "Can you give me a portfolio PDF?",
+        "Open the portfolio overview.",
+        "Can recruiters download a portfolio overview?",
+        "Do you have a recruiter overview PDF?",
+        "How do I download the portfolio summary?",
+        "Can I get the full portfolio as a PDF?",
+        "Can I download the experience summary?",
+        "Can I download the project summary?",
+        "Can you send the project details as a PDF?",
+        "Can you send the experience details as a PDF?",
+        "Show me the portfolio brief download.",
+        "Can you open the portfolio download path?",
+        "I want a recruiter-ready portfolio PDF."
       ]
     },
     {

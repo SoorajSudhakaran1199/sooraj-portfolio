@@ -3997,6 +3997,48 @@ function setupVisibleBackButton() {
   (shell || document.body).append(button);
 }
 
+function createPortfolioDownloadLink({ mobile = false } = {}) {
+  const lang = document.documentElement.lang === "de" ? "de" : "en";
+  const link = document.createElement("a");
+  link.href = "portfolio-overview.html#download";
+  link.target = "_blank";
+  link.rel = "noreferrer";
+  link.dataset.downloadPortfolioLink = "true";
+  link.className = mobile
+    ? "btn btn-small btn-mobile-quick btn-mobile-quick-download btn-download-portfolio"
+    : "btn btn-small btn-cv-top btn-download-portfolio";
+  if (mobile) {
+    link.textContent = "⬇ Portfolio PDF";
+  } else {
+    const icon = document.createElement("span");
+    icon.className = "btn-download-portfolio-icon";
+    icon.setAttribute("aria-hidden", "true");
+    icon.innerHTML = '<svg viewBox="0 0 20 20" focusable="false"><path d="M10 3.5v8.2m0 0 3.2-3.2M10 11.7 6.8 8.5M4 14.5h12" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/></svg>';
+    const label = document.createElement("span");
+    label.className = "btn-download-portfolio-label";
+    label.textContent = lang === "de" ? "Portfolio herunterladen" : "Download Portfolio";
+    link.append(icon, label);
+  }
+  return link;
+}
+
+function setupPortfolioDownloadLinks() {
+  document.querySelectorAll(".nav-actions").forEach((container) => {
+    if (container.querySelector("[data-download-portfolio-link]")) return;
+    const link = createPortfolioDownloadLink();
+    const reference = container.querySelector("[data-request-cv-link], .btn-cv-top, .theme-toggle");
+    container.insertBefore(link, reference || null);
+  });
+
+  document.querySelectorAll(".mobile-top-quick-actions").forEach((container) => {
+    if (!document.body.classList.contains("portfolio-page") || document.body.classList.contains("detail-page")) return;
+    if (container.querySelector("[data-download-portfolio-link]")) return;
+    const link = createPortfolioDownloadLink({ mobile: true });
+    const reference = container.querySelector("[data-request-cv-link]");
+    container.insertBefore(link, reference || null);
+  });
+}
+
 function setupStoredReturnPosition() {
   let stored;
   try {
@@ -4044,6 +4086,10 @@ function createHelpBotPageTarget(href, hash = "") {
   return { type: "page", href, hash };
 }
 
+function createHelpBotDownloadTarget(href, hash = "") {
+  return createHelpBotExternalTarget(`${href || "index.html"}${hash ? `#${hash}` : ""}`);
+}
+
 function createHelpBotExternalTarget(href) {
   return { type: "external", href };
 }
@@ -4052,12 +4098,24 @@ function createHelpBotEmailTarget() {
   return createHelpBotExternalTarget("mailto:soorajsudhakaran1199@gmail.com");
 }
 
+function createHelpBotRepoTarget() {
+  return createHelpBotExternalTarget("https://github.com/SoorajSudhakaran1199/sooraj-portfolio");
+}
+
+function createHelpBotReadmeTarget() {
+  return createHelpBotExternalTarget("https://github.com/SoorajSudhakaran1199/sooraj-portfolio#readme");
+}
+
 function createHelpBotCvTarget() {
   return createHelpBotPageTarget("request-cv.html");
 }
 
 function createHelpBotContactFormTarget() {
   return createHelpBotPageTarget("feedback.html?type=contact", "feedback-form");
+}
+
+function createHelpBotFeedbackFormTarget() {
+  return createHelpBotPageTarget("feedback.html?type=feedback", "feedback-form");
 }
 
 function getPortfolioHelpBotConfig(lang) {
@@ -4071,8 +4129,8 @@ function getPortfolioHelpBotConfig(lang) {
       typingAnnouncement: "Der AI Assistant schreibt gerade.",
       title: "AI Assistant von Sooraj",
       lead: "Ich fuehre Sie persoenlich durch Projekte, Erfahrung, Reviews, CV und Kontakt.",
-      endChat: "Chat beenden",
-      continueChat: "Chat fortsetzen",
+      endChat: "Gespraech beenden",
+      continueChat: "Gespraech fortsetzen",
       startFresh: "Neu starten",
       resumeQuestion: "Willkommen zurueck. Moechten Sie dort weitermachen, wo Sie aufgehoert haben, oder einen neuen Chat beginnen?",
       ended: "Der Chat wurde beendet. Oeffnen Sie den Assistenten jederzeit fuer einen neuen Start.",
@@ -4132,7 +4190,7 @@ function getPortfolioHelpBotConfig(lang) {
       searchWebsiteFollowupPrompt: "Sie koennen hier direkt noch eine weitere Frage stellen, wenn Sie moechten.",
       searchWebsiteMainMenu: "Zum Hauptmenue",
       searchWebsiteContact: "Sooraj fragen",
-      searchWebsiteAskAgain: "Noch einmal fragen",
+      searchWebsiteAskAgain: "Neue Frage stellen",
       searchWebsiteTrainingClarifyPrompt: "Meinen Sie, wer mich als AI Assistant weiter trainiert, oder fragen Sie nach Soorajs eigenem Trainings- und Lernweg?",
       searchWebsiteTrainingClarifyAssistant: "Den AI Assistant meinen",
       searchWebsiteTrainingClarifySooraj: "Soorajs Trainingsweg meinen",
@@ -4594,8 +4652,8 @@ function getPortfolioHelpBotConfig(lang) {
     typingAnnouncement: "The AI Assistant is typing.",
     title: "AI Assistant of Sooraj",
     lead: "I can personally guide you through my projects, experience, reviews, CV, and contact paths.",
-    endChat: "End chat",
-    continueChat: "Continue chat",
+    endChat: "Close conversation",
+    continueChat: "Continue conversation",
     startFresh: "Start fresh",
     resumeQuestion: "Welcome back. Would you like to continue where you left off or start a new chat?",
     ended: "The chat has ended. Open the assistant any time to start again.",
@@ -4655,7 +4713,7 @@ function getPortfolioHelpBotConfig(lang) {
     searchWebsiteFollowupPrompt: "You can keep asking me more questions here if you want.",
     searchWebsiteMainMenu: "Go to main menu",
     searchWebsiteContact: "Ask Sooraj",
-    searchWebsiteAskAgain: "Ask again",
+    searchWebsiteAskAgain: "Ask another question",
     searchWebsiteTrainingClarifyPrompt: "Do you mean who is training me as the AI assistant, or are you asking about Sooraj's own training and learning path?",
     searchWebsiteTrainingClarifyAssistant: "You mean the AI assistant",
     searchWebsiteTrainingClarifySooraj: "You mean Sooraj's path",
@@ -5432,7 +5490,7 @@ function setupPortfolioHelpBot() {
         </div>
         <div class="help-bot-panel-actions">
           <button class="help-bot-head-btn help-bot-head-btn-info" type="button" data-help-bot-privacy-toggle aria-expanded="false">i</button>
-          <button class="help-bot-head-btn" type="button" data-help-bot-reset></button>
+          <button class="help-bot-head-btn help-bot-head-btn-reset" type="button" data-help-bot-reset></button>
           <button class="help-bot-head-btn help-bot-head-btn-close" type="button" data-help-bot-close>&times;</button>
         </div>
       </div>
@@ -7081,6 +7139,11 @@ function setupPortfolioHelpBot() {
     ...(badge ? { badge } : {})
   });
 
+  const getContinueChatInlineOptions = (items = []) => withEndChatOption(dedupeHelpBotOptions([
+    createBadgedOption("continue-chat", "continue", config.continueChat, currentLang === "de" ? "Chat" : "Chat"),
+    ...(Array.isArray(items) ? items : [])
+  ]));
+
   const getReviewPathStartOption = () => (
     currentLang === "de"
       ? createBadgedOption("review-path-start", "review-path-start", "Review-Ansichten", "Vertrauen")
@@ -8131,13 +8194,24 @@ function setupPortfolioHelpBot() {
           ]
         },
         "cv-request-path": {
-          text: "Ja. Sie koennen den CV direkt ueber diese Website bei Sooraj anfragen. Ich gebe den Lebenslauf nicht direkt im Chat aus, aber ich kann Sie sofort zum offiziellen CV-Anfragepfad fuehren. Am professionellsten ist es, die Anfrage kurz mit Rolle, Unternehmen oder Anlass zu verbinden, damit Sooraj den Kontext sofort einordnen kann.",
+          text: "Ja. Sie koennen den CV direkt ueber diese Website bei Sooraj anfragen. Ich gebe den Lebenslauf nicht direkt im Chat aus, aber ich kann Sie sofort zum offiziellen CV-Anfragepfad fuehren. Wenn Sie lieber zuerst Unterlagen sehen moechten, kann ich auch die recruiter-orientierte Portfolio-PDF mit Erfahrung, Projekten, Bildung und Skills oeffnen. Fuer direkten Austausch sind ausserdem Kontaktformular und freigegebener E-Mail-Weg verfuegbar.",
           actions: [
+            createBadgedAction("Portfolio-PDF", createHelpBotDownloadTarget("portfolio-overview.html", "download"), "PDF"),
             createBadgedAction("CV anfragen", createHelpBotCvTarget(), "CV"),
             createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action"),
-            createBadgedAction("LinkedIn oeffnen", createHelpBotExternalTarget("https://www.linkedin.com/in/sooraj-sudhakaran1999"), "Profile")
+            createBadgedAction("E-Mail senden", createHelpBotEmailTarget(), "Email")
           ],
           inlineOptions: getInlineCvRequestOptions()
+        },
+        "portfolio-overview-download": {
+          text: "Ja. Ich kann eine recruiter-orientierte Portfolio-Uebersicht in einem druckfertigen PDF-Fenster oeffnen. Dort finden Sie die komprimierte Uebersicht zu Karriere, Bildung, Erfahrung, Projekten, Skills und Zertifikaten. Wenn jemand nach Projekt- oder Erfahrungsunterlagen fragt, ist dieser Portfolio-Download der passende offizielle Weg. Falls stattdessen der CV benoetigt wird, kann ich direkt zur CV-Anfrage oder zum Kontaktweg fuehren.",
+          actions: [
+            createBadgedAction("Portfolio-PDF herunterladen", createHelpBotDownloadTarget("portfolio-overview.html", "download"), "PDF"),
+            createBadgedAction("Portfolio-Uebersicht oeffnen", createHelpBotPageTarget("portfolio-overview.html"), "Overview"),
+            createBadgedAction("CV anfragen", createHelpBotCvTarget(), "CV"),
+            createBadgedAction("Kontaktformular", createHelpBotContactFormTarget(), "Action"),
+            createBadgedAction("E-Mail senden", createHelpBotEmailTarget(), "Email")
+          ]
         },
         "official-contact-email": {
           text: "Ich darf keine private E-Mail teilen. Wenn Sie den offiziellen Kontaktweg per E-Mail nutzen wollen, kann ich Sie direkt zum freigegebenen Kontaktpfad oder zur offiziellen Kontakt-E-Mail fuehren.",
@@ -8145,6 +8219,32 @@ function setupPortfolioHelpBot() {
             createBadgedAction("E-Mail senden", createHelpBotEmailTarget(), "Email"),
             createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action"),
             createBadgedAction("Kontaktbereich", createHelpBotHomeTarget("contact"), "Direct")
+          ]
+        },
+        "image-upload-request": {
+          text: "Aktuell koennen Sie im Chat noch keine Bilder, Screenshots, Fotos, Dateien oder verarbeitbaren Links hochladen. Diese Bild- und Verarbeitungsfunktion wird von Sooraj noch entwickelt und ist fuer ein kommendes Update vorgesehen. Wenn Sie schon jetzt eine Bild- oder Screenshot-Anfrage an Sooraj senden moechten, nutzen Sie bitte den direkten Kontaktweg.",
+          actions: [
+            createBadgedAction("Kontaktformular", createHelpBotContactFormTarget(), "Action"),
+            createBadgedAction("E-Mail senden", createHelpBotEmailTarget(), "Email"),
+            createBadgedAction("Feedback-Formular", createHelpBotFeedbackFormTarget(), "Feedback")
+          ]
+        },
+        "chat-with-assistant-direct": {
+          text: "Ja. Sie koennen direkt mit mir chatten. Ich kann Fragen beantworten, Sie durch die Website fuehren und die schnellsten Wege zu Erfahrung, Projekten, CV, Reviews oder Kontakt zeigen. Wenn Sie wollen, fragen Sie einfach weiter oder nennen Sie das Thema, das ich oeffnen oder erklaeren soll.",
+          actions: [
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
+            createBadgedAction("Projekte", createHelpBotHomeTarget("projects"), "Work"),
+            createBadgedAction("Kontaktformular", createHelpBotContactFormTarget(), "Action")
+          ],
+          inlineOptions: getContinueChatInlineOptions([getWebsiteSearchStartOption(currentRoleId)])
+        },
+        "connect-to-sooraj-direct": {
+          text: "Direkt live mit Sooraj chatten kann ich hier nicht einschalten. Fuer direkten Kontakt oder eine persoenliche Rueckmeldung nutzen Sie bitte das Kontaktformular, die freigegebene Kontakt-E-Mail oder das Feedback-Formular, wenn es eher um Website-Kommentare, Beobachtungen oder Hinweise geht.",
+          actions: [
+            createBadgedAction("Kontaktformular", createHelpBotContactFormTarget(), "Action"),
+            createBadgedAction("Feedback-Formular", createHelpBotFeedbackFormTarget(), "Feedback"),
+            createBadgedAction("E-Mail senden", createHelpBotEmailTarget(), "Email"),
+            createBadgedAction("CV anfragen", createHelpBotCvTarget(), "CV")
           ]
         },
         "contact-response-time": {
@@ -8375,7 +8475,13 @@ function setupPortfolioHelpBot() {
           ]
         }
       };
-      return deAnswers[answerId] || null;
+      const matchedAnswer = deAnswers[answerId] || null;
+      return matchedAnswer
+        ? {
+            ...matchedAnswer,
+            inlineOptions: getContinueChatInlineOptions(matchedAnswer.inlineOptions || [])
+          }
+        : null;
     }
 
     const enAnswers = {
@@ -8838,13 +8944,24 @@ function setupPortfolioHelpBot() {
         ]
       },
       "cv-request-path": {
-        text: "Yes. You can request the CV directly from Sooraj through this website. I do not hand over the resume directly inside the chat, but I can take you straight to the official CV request path. The strongest professional approach is to connect the request with the role, company, or context so Sooraj can respond with the right next step quickly.",
+        text: "Yes. You can request the CV directly from Sooraj through this website. I do not hand over the resume directly inside the chat, but I can take you straight to the official CV request path. If you want something downloadable first, I can also open the recruiter-ready portfolio PDF with experience, projects, education, and skills. For direct outreach, I can also open the contact form or approved email route.",
         actions: [
+          createBadgedAction("Download portfolio PDF", createHelpBotDownloadTarget("portfolio-overview.html", "download"), "PDF"),
           createBadgedAction("Request CV", createHelpBotCvTarget(), "CV"),
           createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action"),
-          createBadgedAction("Open LinkedIn", createHelpBotExternalTarget("https://www.linkedin.com/in/sooraj-sudhakaran1999"), "Profile")
+          createBadgedAction("Email Sooraj", createHelpBotEmailTarget(), "Email")
         ],
         inlineOptions: getInlineCvRequestOptions()
+      },
+      "portfolio-overview-download": {
+        text: "Yes. I can open a recruiter-ready portfolio overview in a print-ready PDF window. That document is the official downloadable path for career direction, education, experience, projects, skills, and certificates. If someone asks to download projects or experience, this portfolio PDF is the correct professional summary. If the request is specifically for the CV, I can also take you to the CV request path or direct contact options.",
+        actions: [
+          createBadgedAction("Download portfolio PDF", createHelpBotDownloadTarget("portfolio-overview.html", "download"), "PDF"),
+          createBadgedAction("Open portfolio overview", createHelpBotPageTarget("portfolio-overview.html"), "Overview"),
+          createBadgedAction("Request CV", createHelpBotCvTarget(), "CV"),
+          createBadgedAction("Open contact form", createHelpBotContactFormTarget(), "Action"),
+          createBadgedAction("Email Sooraj", createHelpBotEmailTarget(), "Email")
+        ]
       },
       "official-contact-email": {
         text: "I should not share a private email address. If you want the approved email route, I can take you to the official contact email path or the website contact form.",
@@ -8852,6 +8969,32 @@ function setupPortfolioHelpBot() {
           createBadgedAction("Email Sooraj", createHelpBotEmailTarget(), "Email"),
           createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action"),
           createBadgedAction("Open contact section", createHelpBotHomeTarget("contact"), "Direct")
+        ]
+      },
+      "image-upload-request": {
+        text: "At the moment, you cannot upload images, screenshots, pictures, files, or processable links directly in this chat. That image-upload and processing feature is still being developed by Sooraj and is planned for a coming update. If you want to send an image-related request to Sooraj now, please use the direct contact path.",
+        actions: [
+          createBadgedAction("Open contact form", createHelpBotContactFormTarget(), "Action"),
+          createBadgedAction("Email Sooraj", createHelpBotEmailTarget(), "Email"),
+          createBadgedAction("Open feedback form", createHelpBotFeedbackFormTarget(), "Feedback")
+        ]
+      },
+      "chat-with-assistant-direct": {
+        text: "Yes. You can chat with me directly here. I can answer questions, guide you through the website, and take you quickly to experience, projects, CV, reviews, or contact paths. If you want, just keep asking or tell me what you want to open or understand next.",
+        actions: [
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
+          createBadgedAction("Open projects section", createHelpBotHomeTarget("projects"), "Work"),
+          createBadgedAction("Open contact form", createHelpBotContactFormTarget(), "Action")
+        ],
+        inlineOptions: getContinueChatInlineOptions([getWebsiteSearchStartOption(currentRoleId)])
+      },
+      "connect-to-sooraj-direct": {
+        text: "I cannot turn this into a live chat with Sooraj here. For direct contact or a personal reply, please use the contact form, the approved email route, or the feedback form if your message is mainly about the website, comments, or suggestions.",
+        actions: [
+          createBadgedAction("Open contact form", createHelpBotContactFormTarget(), "Action"),
+          createBadgedAction("Open feedback form", createHelpBotFeedbackFormTarget(), "Feedback"),
+          createBadgedAction("Email Sooraj", createHelpBotEmailTarget(), "Email"),
+          createBadgedAction("Request CV", createHelpBotCvTarget(), "CV")
         ]
       },
       "contact-response-time": {
@@ -9082,7 +9225,13 @@ function setupPortfolioHelpBot() {
         ]
       }
     };
-    return enAnswers[answerId] || null;
+    const matchedAnswer = enAnswers[answerId] || null;
+    return matchedAnswer
+      ? {
+          ...matchedAnswer,
+          inlineOptions: getContinueChatInlineOptions(matchedAnswer.inlineOptions || [])
+        }
+      : null;
   };
 
   const normalizeReviewLookupText = (value = "") => String(value || "")
@@ -10129,7 +10278,11 @@ function setupPortfolioHelpBot() {
       },
       {
         answerId: "cv-request-path",
-        test: () => /\b(request cv|request resume|resume request|cv request|open cv|open resume|show cv|show resume|give me cv|give me your cv|send cv|send me cv|send resume|share cv|share resume|latest cv|latest resume|can i request cv|can i request the cv|can i make a cv request|need cv|need resume)\b/.test(normalizedQuery)
+        test: () => /\b(request cv|request resume|resume request|cv request|open cv|open resume|show cv|show resume|give me cv|give me your cv|send cv|send me cv|send resume|share cv|share resume|latest cv|latest resume|can i request cv|can i request the cv|can i make a cv request|need cv|need resume|download cv|download resume|send the cv|send me the resume|share the cv|resume please|cv please)\b/.test(normalizedQuery)
+      },
+      {
+        answerId: "portfolio-overview-download",
+        test: () => /\b(download portfolio|download portfolio pdf|portfolio pdf|download profile pdf|download recruiter overview|portfolio overview pdf|recruiter overview pdf|download portfolio overview|download my portfolio|send portfolio pdf|get portfolio pdf|open portfolio overview|download full portfolio|download portfolio brief|portfolio summary pdf|open portfolio pdf|download experience|download my experience|experience pdf|download project|download projects|project pdf|projects pdf|send project details|send experience details|download work experience|download project summary|download experience summary|download project overview)\b/.test(normalizedQuery)
       },
       {
         answerId: "feedback-vs-contact",
@@ -10174,7 +10327,20 @@ function setupPortfolioHelpBot() {
       || /\bwhat tech stack\b/.test(normalizedQuery)
       || /\bwhich tech stack\b/.test(normalizedQuery)
       || /\bwhat technologies\b/.test(normalizedQuery)
-      || /\bhow was the website developed\b/.test(normalizedQuery);
+      || /\bhow was the website developed\b/.test(normalizedQuery)
+      || /\bwebsite build details\b/.test(normalizedQuery)
+      || /\bsite build details\b/.test(normalizedQuery)
+      || /\bdevelopment details\b/.test(normalizedQuery)
+      || /\bhow did you build the website\b/.test(normalizedQuery)
+      || /\bhow did sooraj build the website\b/.test(normalizedQuery);
+    const asksHowChatbotBuilt = /\bhow (was|is) (the )?(chat ?bot|bot|assistant) (built|made|developed)\b/.test(normalizedQuery)
+      || /\bhow did you build (the )?(chat ?bot|bot|assistant)\b/.test(normalizedQuery)
+      || /\bwho built (the )?(chat ?bot|bot|assistant)\b/.test(normalizedQuery)
+      || /\bchat ?bot build details\b/.test(normalizedQuery)
+      || /\bbot build details\b/.test(normalizedQuery)
+      || /\bassistant build details\b/.test(normalizedQuery)
+      || /\btechnical details of (the )?(chat ?bot|bot|assistant)\b/.test(normalizedQuery)
+      || /\bwhat is the tech behind (the )?(chat ?bot|bot|assistant)\b/.test(normalizedQuery);
     const asksChatStorage = /\b(do|does) (you|this chat|the bot) (store|save|collect|log|keep) (chat|chats|messages|message|data)\b/.test(normalizedQuery)
       || /\bis this chat saved\b/.test(normalizedQuery)
       || /\bdo you save chats\b/.test(normalizedQuery);
@@ -10192,13 +10358,19 @@ function setupPortfolioHelpBot() {
       || /\bcontact me back\b/.test(normalizedQuery)
       || /\bcall me back\b/.test(normalizedQuery)
       || /\breach me back\b/.test(normalizedQuery);
+    const asksChatWithAssistant = /\b(chat with me|can we chat|can i chat here|can i chat with you|can i talk with you|can i talk to you|talk with me|talk to me|can we talk|i want to chat|let s chat|lets chat|i want to talk to you|can i ask you directly|can i continue the chat)\b/.test(normalizedQuery);
+    const asksConnectToOwner = /\b(can i chat with sooraj|chat with sooraj|connect to sooraj|connect me to sooraj|connect me to the owner|connect to owner|connect to the owner|connect to portfolio owner|talk to sooraj|talk with sooraj|talk to owner|talk to the owner|can i talk to sooraj|can i connect to sooraj|can i connect to the owner|speak to sooraj|speak to owner|owner contact|connect me to owner)\b/.test(normalizedQuery);
     const asksPersonalEmail = /\b(personal|private)\b/.test(normalizedQuery)
       && /\b(email|email id|email address|mail id|mail address)\b/.test(normalizedQuery);
     const asksEmailRoute = /\b(send email|send an email|write email|write an email|email link|mail link|email contact|contact email|how to email|how can i email|how do i email|send mail|write mail|mail him|email him|official email|approved email|professional email|give me the email|give me the email id|give me email id|give email id|show email id|share email id|what is the email id|what is your email id)\b/.test(normalizedQuery);
     const asksPublicEmail = /\b(sooraj|owner)\b/.test(normalizedQuery)
       && /\b(email|email id|email address|mail id|mail address)\b/.test(normalizedQuery)
       && !asksPersonalEmail;
-    const asksCvDirect = /\b(request cv|request resume|resume request|cv request|open cv|open resume|show cv|show resume|give me cv|give me your cv|send cv|send me cv|send resume|share cv|share resume|latest cv|latest resume|can i request cv|can i request the cv|can i make a cv request|need cv|need resume)\b/.test(normalizedQuery);
+    const asksImageUpload = /\b(can i add|can i attach|can i upload|can i send|may i send|do you accept|can i share)\b/.test(normalizedQuery)
+      && /\b(image|images|picture|pictures|photo|photos|screenshot|screenshots|file|files|document|documents|attachment|attachments|link|links|url|urls)\b/.test(normalizedQuery)
+      || /\b(upload image|upload screenshot|upload picture|upload photo|send image|send screenshot|send picture|send photo|attach image|attach screenshot|attach photo|share image|share screenshot|add image|add screenshot|process image|image processing|picture processing|photo processing|upload link|send link|share link)\b/.test(normalizedQuery);
+    const asksCvDirect = /\b(request cv|request resume|resume request|cv request|open cv|open resume|show cv|show resume|give me cv|give me your cv|send cv|send me cv|send resume|share cv|share resume|latest cv|latest resume|can i request cv|can i request the cv|can i make a cv request|need cv|need resume|download cv|download resume|send the cv|send me the resume|share the cv|resume please|cv please)\b/.test(normalizedQuery);
+    const asksPortfolioOverviewDownload = /\b(download portfolio|download portfolio pdf|portfolio pdf|download profile pdf|download recruiter overview|portfolio overview pdf|recruiter overview pdf|download portfolio overview|download my portfolio|send portfolio pdf|get portfolio pdf|open portfolio overview|download full portfolio|download portfolio brief|portfolio summary pdf|open portfolio pdf|download experience|download my experience|experience pdf|download project|download projects|project pdf|projects pdf|send project details|send experience details|download work experience|download project summary|download experience summary|download project overview)\b/.test(normalizedQuery);
     const asksKnowEverything = /\bdo you know everything\b/.test(normalizedQuery)
       || /\bcan you answer everything\b/.test(normalizedQuery)
       || /\bdo you know all\b/.test(normalizedQuery);
@@ -10261,21 +10433,31 @@ function setupPortfolioHelpBot() {
       }
       if (asksWhoBuiltWebsite) {
         return {
-          text: "Die Website wurde von Sooraj Sudhakaran selbst aufgebaut und laufend weiterentwickelt. Ich bin ebenfalls Teil dieses Systems und wurde von ihm als Portfolio-Assistent integriert.",
+          text: "Die Website wurde von Sooraj Sudhakaran selbst aufgebaut und laufend weiterentwickelt. Fuer tiefe Entwicklungs- oder Architekturdetails teile ich hier jedoch keine internen technischen Angaben. Der oeffentliche Repository-Name ist `sooraj-portfolio` auf GitHub. Das Repository ist oeffentlich, und im README finden Sie die freigegebenen Entwicklungsdetails. Wenn Sie direkt mit Sooraj ueber den Aufbau sprechen moechten, kann ich Sie sofort zum Kontaktformular fuehren.",
           actions: [
-            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
-            createBadgedAction("Journey", createHelpBotPageTarget("journey.html"), "Story"),
-            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+            createBadgedAction("Repo oeffnen", createHelpBotRepoTarget(), "Code"),
+            createBadgedAction("README oeffnen", createHelpBotReadmeTarget(), "Readme"),
+            createBadgedAction("Kontaktformular", createHelpBotContactFormTarget(), "Action")
           ]
         };
       }
       if (asksHowWebsiteBuilt) {
         return {
-          text: "Soweit ich oeffentlich sagen kann, ist die Website als individuell gebaute Portfolio-Seite mit HTML, CSS und JavaScript umgesetzt. Strukturierte Bereiche wie Feedback, Kontakt, CV-Anfrage, Reviews und Chat-Logik sind sauber in den Website-Flow integriert, und fuer die Datenspeicherung werden Supabase-basierte Workflows genutzt.",
+          text: "Ich kann hier keine tieferen internen Entwicklungs- oder Architekturdetails offenlegen. Was ich oeffentlich sagen kann: Das Portfolio wird von Sooraj selbst entwickelt, der oeffentliche Repository-Name lautet `sooraj-portfolio`, und das Repository ist auf GitHub lesbar. Im README finden Sie die freigegebenen Entwicklungsdetails. Wenn Sie die Umsetzung direkt mit Sooraj besprechen moechten, kann ich sofort den Kontaktweg oeffnen.",
           actions: [
-            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
-            createBadgedAction("Feedback / Kontakt", createHelpBotPageTarget("feedback.html"), "Flow"),
-            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+            createBadgedAction("Repo oeffnen", createHelpBotRepoTarget(), "Code"),
+            createBadgedAction("README oeffnen", createHelpBotReadmeTarget(), "Readme"),
+            createBadgedAction("Kontaktformular", createHelpBotContactFormTarget(), "Action")
+          ]
+        };
+      }
+      if (asksHowChatbotBuilt) {
+        return {
+          text: "Auch fuer den Chatbot gebe ich hier keine tieferen internen technischen Umsetzungsdetails frei. Wenn Sie die oeffentliche Entwicklungsseite sehen moechten: Das GitHub-Repository heisst `sooraj-portfolio`, ist oeffentlich, und im README finden Sie die freigegebenen Hinweise zur Entwicklung. Fuer weitergehende Rueckfragen koennen Sie Sooraj direkt ueber das Kontaktformular erreichen.",
+          actions: [
+            createBadgedAction("Repo oeffnen", createHelpBotRepoTarget(), "Code"),
+            createBadgedAction("README oeffnen", createHelpBotReadmeTarget(), "Readme"),
+            createBadgedAction("Kontaktformular", createHelpBotContactFormTarget(), "Action")
           ]
         };
       }
@@ -10285,6 +10467,12 @@ function setupPortfolioHelpBot() {
           actions: createHelpBotDirectContactActions()
         };
       }
+      if (asksChatWithAssistant) {
+        return getWebsiteQuestionAnswerEntry("chat-with-assistant-direct");
+      }
+      if (asksConnectToOwner) {
+        return getWebsiteQuestionAnswerEntry("connect-to-sooraj-direct");
+      }
       if (asksContactSooraj) {
         return {
           text: "Ja. Wenn Sie eine Nachricht an Sooraj weitergeben oder um Rueckkontakt bitten moechten, ist der saubere Weg das offizielle Kontaktformular oder die freigegebene Kontakt-E-Mail. Ich selbst kann hier keinen Live-Rueckruf ausloesen, aber ich kann Sie sofort zum richtigen Kontaktpfad fuehren.",
@@ -10293,6 +10481,12 @@ function setupPortfolioHelpBot() {
       }
       if (asksPublicEmail || asksEmailRoute) {
         return getWebsiteQuestionAnswerEntry("official-contact-email");
+      }
+      if (asksImageUpload) {
+        return getWebsiteQuestionAnswerEntry("image-upload-request");
+      }
+      if (asksPortfolioOverviewDownload) {
+        return getWebsiteQuestionAnswerEntry("portfolio-overview-download");
       }
       if (asksCvDirect) {
         return getWebsiteQuestionAnswerEntry("cv-request-path");
@@ -10359,21 +10553,31 @@ function setupPortfolioHelpBot() {
     }
     if (asksWhoBuiltWebsite) {
       return {
-        text: "The website was built and is continually improved by Sooraj Sudhakaran himself. I am also part of that system and was integrated by him as the portfolio assistant.",
+        text: "The website was built and is continually improved by Sooraj Sudhakaran himself. I should not share deeper internal development or architecture details here. The public repository name is `sooraj-portfolio` on GitHub. It is public, and you can read the README there for the approved development details. If you want to discuss the build directly with Sooraj, I can open the contact form now.",
         actions: [
-          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
-          createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story"),
-          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action")
+          createBadgedAction("Open repository", createHelpBotRepoTarget(), "Code"),
+          createBadgedAction("Open README", createHelpBotReadmeTarget(), "Readme"),
+          createBadgedAction("Open contact form", createHelpBotContactFormTarget(), "Action")
         ]
       };
     }
     if (asksHowWebsiteBuilt) {
       return {
-        text: "At the public level, the website is built as a custom portfolio using HTML, CSS, and JavaScript. Structured flows such as feedback, contact, CV requests, reviews, and the chatbot are integrated directly into the site, and Supabase-based workflows are used for data storage and submissions.",
+        text: "I cannot share deeper internal development or architecture details here. What I can share publicly is that the portfolio is developed by Sooraj himself, the public repository name is `sooraj-portfolio`, and that repository is readable on GitHub. You can check the README there for the approved development details. If you want to discuss the implementation directly with Sooraj, I can open the contact form now.",
         actions: [
-          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
-          createBadgedAction("Open feedback page", createHelpBotPageTarget("feedback.html"), "Flow"),
-          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action")
+          createBadgedAction("Open repository", createHelpBotRepoTarget(), "Code"),
+          createBadgedAction("Open README", createHelpBotReadmeTarget(), "Readme"),
+          createBadgedAction("Open contact form", createHelpBotContactFormTarget(), "Action")
+        ]
+      };
+    }
+    if (asksHowChatbotBuilt) {
+      return {
+        text: "I should not share deeper internal technical implementation details for the chatbot here. If you want the public development path, the GitHub repository is named `sooraj-portfolio`, it is public, and the README provides the approved development details. If you want to ask Sooraj directly about the build, I can open the contact form now.",
+        actions: [
+          createBadgedAction("Open repository", createHelpBotRepoTarget(), "Code"),
+          createBadgedAction("Open README", createHelpBotReadmeTarget(), "Readme"),
+          createBadgedAction("Open contact form", createHelpBotContactFormTarget(), "Action")
         ]
       };
     }
@@ -10383,6 +10587,12 @@ function setupPortfolioHelpBot() {
         actions: createHelpBotDirectContactActions()
       };
     }
+    if (asksChatWithAssistant) {
+      return getWebsiteQuestionAnswerEntry("chat-with-assistant-direct");
+    }
+    if (asksConnectToOwner) {
+      return getWebsiteQuestionAnswerEntry("connect-to-sooraj-direct");
+    }
     if (asksContactSooraj) {
       return {
         text: "Yes. If you want to pass a message to Sooraj or ask for a callback or follow-up, the cleanest path is the official contact form or the approved contact email. I cannot trigger a live callback from here, but I can take you straight to the right contact route now.",
@@ -10391,6 +10601,12 @@ function setupPortfolioHelpBot() {
     }
     if (asksPublicEmail || asksEmailRoute) {
       return getWebsiteQuestionAnswerEntry("official-contact-email");
+    }
+    if (asksImageUpload) {
+      return getWebsiteQuestionAnswerEntry("image-upload-request");
+    }
+    if (asksPortfolioOverviewDownload) {
+      return getWebsiteQuestionAnswerEntry("portfolio-overview-download");
     }
     if (asksCvDirect) {
       return getWebsiteQuestionAnswerEntry("cv-request-path");
@@ -13236,7 +13452,11 @@ function setupPortfolioHelpBot() {
     if (nudgeBadge) nudgeBadge.textContent = config.nudgeBadge;
     syncRoleChrome();
     renderHelpBotPrivacyPanel();
-    resetButton.textContent = config.reset;
+    if (resetButton) {
+      resetButton.innerHTML = `<span class="help-bot-head-btn-reset-icon" aria-hidden="true">&#8635;</span><span class="help-bot-head-btn-reset-label">${escapeHtml(config.reset)}</span>`;
+      resetButton.setAttribute("aria-label", config.reset);
+      resetButton.setAttribute("title", config.reset);
+    }
     backdrop.setAttribute("aria-label", config.close);
     closeButton.setAttribute("aria-label", config.close);
     nudgeCloseButton.setAttribute("aria-label", config.close);
@@ -13748,6 +13968,9 @@ function setupPortfolioHelpBot() {
         const button = document.createElement("button");
         button.type = "button";
         button.className = "help-bot-message-option";
+        if (option.kind === "end-chat" || option.id === "end-chat") {
+          button.classList.add("is-end-chat");
+        }
         if (option.priority === "low") {
           button.classList.add("is-low-priority");
         }
@@ -20544,6 +20767,23 @@ function formatUpdatedTimestamp(date, lang) {
   }).format(date);
 }
 
+function formatBerlinUpdatedTimestamp(date, lang) {
+  const locale = lang === "de" ? "de-DE" : "en-GB";
+  const base = new Intl.DateTimeFormat(locale, {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Europe/Berlin"
+  }).format(date);
+  const timeZoneName = new Intl.DateTimeFormat(locale, {
+    timeZone: "Europe/Berlin",
+    timeZoneName: "short"
+  }).formatToParts(date).find((part) => part.type === "timeZoneName")?.value?.trim() || "CET";
+  return `${base} ${timeZoneName}`;
+}
+
 function getUpdateAgeState(date, lang) {
   const ageMs = Date.now() - date.getTime();
   const ageDays = ageMs / (1000 * 60 * 60 * 24);
@@ -20841,7 +21081,7 @@ async function setupLastUpdated() {
   if (Number.isNaN(fallbackModifiedAt.getTime())) return;
 
   const lang = document.documentElement.lang === "de" ? "de" : "en";
-  const label = lang === "de" ? "Zuletzt aktualisiert" : "Last updated";
+  const label = lang === "de" ? "Aktualisiert am" : "Updated on";
   const adminButtonLabel = lang === "de" ? "Update-Zeit aktualisieren" : "Refresh update time";
   const nav = document.querySelector(".nav");
   if (!nav) return;
@@ -20856,7 +21096,7 @@ async function setupLastUpdated() {
     const icon = document.createElement("span");
     icon.className = "top-update-icon";
     icon.setAttribute("aria-hidden", "true");
-    icon.textContent = "↻";
+    icon.textContent = "•";
 
     const badge = document.createElement("span");
     badge.className = "top-update-badge";
@@ -20899,7 +21139,7 @@ async function setupLastUpdated() {
       badge.textContent = state.badge;
     }
     if (meta) {
-      meta.textContent = `${label}: ${formatUpdatedTimestamp(date, lang)}`;
+      meta.textContent = `${label} ${formatBerlinUpdatedTimestamp(date, lang)}`;
     }
   };
 
@@ -21219,6 +21459,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupDetailOriginTracking();
   setupSmartDetailBack();
   setupVisibleBackButton();
+  setupPortfolioDownloadLinks();
   setupPortfolioHelpBot();
   setupFeedbackForm();
   setupRequestCvForm();
