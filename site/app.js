@@ -1144,6 +1144,11 @@ function getPublicReviewUiCopy(lang) {
         pinnedBadge: "📌 Vom Admin hervorgehoben",
         countryFallback: "Land nicht angegeben",
         viewPublicReviews: "Oeffentliche Bewertungen ansehen",
+        readMore: "Mehr lesen",
+        showLess: "Weniger anzeigen",
+        allPublishedReviews: "Alle veroeffentlichten Bewertungen",
+        openFullArchive: "Das vollstaendige Bewertungsarchiv oeffnen",
+        noPublishedReviews: "Noch keine veroeffentlichten Bewertungen.",
         publicReplyLabel: "Oeffentliche Antwort",
         verifiedOwnerReply: "Verifiziert",
         adminToolsLabel: "Admin-Aktionen",
@@ -1173,6 +1178,11 @@ function getPublicReviewUiCopy(lang) {
         pinnedBadge: "📌 Pinned by admin",
         countryFallback: "Country not shared",
         viewPublicReviews: "View public reviews",
+        readMore: "Read more",
+        showLess: "Show less",
+        allPublishedReviews: "All published reviews",
+        openFullArchive: "Open the full public review archive",
+        noPublishedReviews: "No published reviews yet.",
         publicReplyLabel: "Public reply",
         verifiedOwnerReply: "Verified",
         adminToolsLabel: "Admin actions",
@@ -1260,7 +1270,7 @@ function renderPublicReviewListContent({ list, reviews, copy, lang, isAdminMode,
     empty.textContent = filter === "pinned"
       ? copy.featuredEmpty
       : filter === "unpinned"
-        ? copy.archiveEmpty
+        ? copy.noPublishedReviews
         : copy.noReviews;
     list.append(empty);
     return;
@@ -1297,10 +1307,18 @@ function renderPublicReviewListContent({ list, reviews, copy, lang, isAdminMode,
     const pinBadge = review.isPinned
       ? `<span class="feedback-public-review-pin-badge">${escapeHtml(copy.pinnedBadge)}</span>`
       : "";
+    const isLongReview = reviewText.length > 260;
+    const hasLongReply = String(review.adminReply || "").trim().length > 220;
+    const toggleButton = isLongReview
+      ? `<button class="feedback-public-review-toggle" type="button" data-review-toggle aria-expanded="false"><span>${escapeHtml(copy.readMore)}</span></button>`
+      : "";
+    const replyToggleButton = hasLongReply
+      ? `<button class="feedback-public-review-toggle feedback-public-review-toggle-reply" type="button" data-review-reply-toggle aria-expanded="false"><span>${escapeHtml(copy.readMore)}</span></button>`
+      : "";
     const replyBlock = review.adminReply
       ? `
         <div class="feedback-public-review-reply-shell">
-          <div class="feedback-public-review-reply">
+          <div class="feedback-public-review-reply${hasLongReply ? " is-collapsed" : ""}">
             <div class="feedback-public-review-reply-head">
               <div class="feedback-public-review-reply-brand">
                 <span class="feedback-public-review-reply-mark" aria-hidden="true"></span>
@@ -1315,6 +1333,7 @@ function renderPublicReviewListContent({ list, reviews, copy, lang, isAdminMode,
               ${replyDateLabel ? `<small class="feedback-public-review-reply-date">${escapeHtml(replyDateLabel)}</small>` : ""}
             </div>
             <p class="feedback-public-review-reply-text">${escapeHtml(review.adminReply)}</p>
+            ${replyToggleButton}
           </div>
         </div>
       `
@@ -1355,9 +1374,10 @@ function renderPublicReviewListContent({ list, reviews, copy, lang, isAdminMode,
           </div>
         </div>
       </div>
-      <div class="feedback-public-review-body">
+      <div class="feedback-public-review-body${isLongReview ? " is-collapsed" : ""}">
         ${shouldShowReviewTitle ? `<span class="feedback-public-review-title">${escapeHtml(reviewTitle)}</span>` : ""}
         <p class="feedback-public-review-text">${escapeHtml(review.reviewText)}</p>
+        ${toggleButton}
       </div>
       ${replyBlock}
       ${adminControls}
@@ -1369,7 +1389,6 @@ function renderPublicReviewListContent({ list, reviews, copy, lang, isAdminMode,
 
 function setupPublicReviewPanels() {
   const triggers = Array.from(document.querySelectorAll("[data-public-review-toggle]"));
-  if (!triggers.length) return;
 
   triggers.forEach((trigger) => {
     trigger.addEventListener("click", () => {
@@ -1384,6 +1403,28 @@ function setupPublicReviewPanels() {
         window.setTimeout(() => summary.focus({ preventScroll: true }), 180);
       }
     });
+  });
+
+  document.addEventListener("click", (event) => {
+    const toggle = event.target instanceof Element ? event.target.closest("[data-review-toggle], [data-review-reply-toggle]") : null;
+    if (!(toggle instanceof HTMLButtonElement)) return;
+    const lang = resolveInitialLanguage();
+    const copy = getPublicReviewUiCopy(lang);
+    const isReplyToggle = toggle.hasAttribute("data-review-reply-toggle");
+    const target = isReplyToggle
+      ? toggle.closest(".feedback-public-review-reply")
+      : toggle.closest(".feedback-public-review-body");
+    if (!(target instanceof HTMLElement)) return;
+    const expanded = target.classList.toggle("is-expanded");
+    target.classList.toggle("is-collapsed", !expanded);
+    toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+    const label = expanded ? copy.showLess : copy.readMore;
+    const labelSpan = toggle.querySelector("span");
+    if (labelSpan) {
+      labelSpan.textContent = label;
+    } else {
+      toggle.textContent = label;
+    }
   });
 }
 
@@ -1556,8 +1597,12 @@ const LANGUAGE_TEXT = {
     "Check Where I Fit": "Wo ich passe",
     "Check how this profile aligns with your role description, team needs, and deployment context.": "Pruefen Sie, wie dieses Profil zu Ihrer Rollenbeschreibung, den Anforderungen Ihres Teams und dem Einsatzkontext passt.",
     "Robotics engineer based in Stuttgart, Germany": "Robotikingenieur mit Standort Stuttgart, Deutschland",
-    "Building robotics that work outside the demo.": "Robotik entwickeln, die auch außerhalb der Demo funktioniert.",
-    "I am Sooraj Sudhakaran, a mechatronics engineer focused on industrial robotics, automation, motion planning, ROS workflows, simulation-driven development, and deployment-ready engineering. My work sits at the point where control logic, robot behavior, and practical implementation have to hold up in the real world.": "Ich bin Sooraj Sudhakaran, Mechatronikingenieur mit Fokus auf industrielle Robotik, Automatisierung, Motion Planning, ROS-Workflows, simulationsgestützte Entwicklung und einsatzreife Technik. Meine Arbeit liegt dort, wo Steuerlogik, Roboterverhalten und praktische Umsetzung in der realen Welt bestehen müssen.",
+    "Hi,": "Hallo,",
+    "I'm": "Ich bin",
+    "Robotics and Automation Engineer": "Robotik- und Automatisierungsingenieur",
+    "Experience in robotics, automation, motion planning, ROS workflows, and simulation-driven engineering.": "Erfahrung in Robotik, Automatisierung, Motion Planning, ROS-Workflows und simulationsgestuetzter Entwicklung.",
+    "I build practical robotics systems for industrial and real-world use, with a focus on deployment-ready engineering, control logic, and robot behavior that holds up outside the demo.": "Ich entwickle praxisnahe Robotiksysteme fuer industrielle und reale Anwendungen, mit Fokus auf einsatzreife Technik, Steuerlogik und Roboterverhalten, das auch ausserhalb der Demo funktioniert.",
+    "Check Where I Fit": "Wo ich passe",
     "Recruiter: Check Where I Fit": "Recruiter: Wo ich passe",
     "My Journey": "Mein Werdegang",
     "Explore": "Mehr",
@@ -2668,12 +2713,12 @@ Object.assign(LANGUAGE_TEXT.de, {
 });
 
 Object.assign(META_TRANSLATIONS.de.title, {
-  "Journey from India to Germany | Sooraj Sudhakaran": "Weg von Indien nach Deutschland | Sooraj Sudhakaran",
-  "Feedback and Contact | Sooraj Sudhakaran": "Feedback und Kontakt | Sooraj Sudhakaran",
-  "Request CV | Sooraj Sudhakaran": "CV anfragen | Sooraj Sudhakaran",
-  "Portfolio Map | Sooraj Sudhakaran": "Portfolio-Map | Sooraj Sudhakaran",
-  "Feedback and Contact Form | Sooraj Sudhakaran": "Feedback- und Kontaktformular | Sooraj Sudhakaran",
-  "Submission received | Sooraj Sudhakaran": "Uebermittlung erhalten | Sooraj Sudhakaran"
+  "Sooraj Sudhakaran | Journey from India to Germany": "Sooraj Sudhakaran | Weg von Indien nach Deutschland",
+  "Sooraj Sudhakaran | Feedback and Contact": "Sooraj Sudhakaran | Feedback und Kontakt",
+  "Sooraj Sudhakaran | Request CV": "Sooraj Sudhakaran | CV anfragen",
+  "Sooraj Sudhakaran | Portfolio Map": "Sooraj Sudhakaran | Portfolio-Map",
+  "Sooraj Sudhakaran | Feedback and Contact Form": "Sooraj Sudhakaran | Feedback- und Kontaktformular",
+  "Sooraj Sudhakaran | Submission received": "Sooraj Sudhakaran | Uebermittlung erhalten"
 });
 
 Object.assign(META_TRANSLATIONS.de.description, {
@@ -3013,12 +3058,17 @@ function setupMobileNav() {
   }
 
   const mediaQuery = window.matchMedia("(max-width: 780px)");
+  const canUseCollapsedMenu = () => {
+    const nav = document.querySelector(".nav");
+    return mediaQuery.matches || nav?.classList.contains("is-compact");
+  };
   const setOpen = (open) => {
-    const isOpen = Boolean(open) && mediaQuery.matches;
+    const isOpen = Boolean(open) && canUseCollapsedMenu();
     navInner.classList.toggle("is-mobile-open", isOpen);
     toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
     toggle.setAttribute("aria-label", isOpen ? labels.close : labels.open);
   };
+  navInner.__setMobileNavOpen = setOpen;
 
   toggle.addEventListener("click", () => {
     setOpen(!navInner.classList.contains("is-mobile-open"));
@@ -3050,6 +3100,59 @@ function setupMobileNav() {
   });
 }
 
+function setupCompactNav() {
+  const nav = document.querySelector(".nav");
+  const navInner = document.querySelector(".nav-inner");
+  if (!nav) return;
+
+  const desktopQuery = window.matchMedia("(min-width: 781px)");
+  const compactEnterThreshold = 88;
+  const compactExitThreshold = 24;
+  let ticking = false;
+  let isCompact = nav.classList.contains("is-compact");
+
+  const updateState = () => {
+    ticking = false;
+    if (!desktopQuery.matches) {
+      if (isCompact) {
+        isCompact = false;
+        nav.classList.remove("is-compact");
+        navInner?.__setMobileNavOpen?.(false);
+      }
+      return;
+    }
+
+    const scrollY = window.scrollY;
+    const nextCompact = isCompact
+      ? scrollY > compactExitThreshold
+      : scrollY > compactEnterThreshold;
+
+    if (nextCompact === isCompact) return;
+
+    isCompact = nextCompact;
+    nav.classList.toggle("is-compact", isCompact);
+    if (!isCompact) {
+      navInner?.__setMobileNavOpen?.(false);
+    }
+  };
+
+  const requestUpdate = () => {
+    if (ticking) return;
+    ticking = true;
+    window.requestAnimationFrame(updateState);
+  };
+
+  if (typeof desktopQuery.addEventListener === "function") {
+    desktopQuery.addEventListener("change", requestUpdate);
+  } else if (typeof desktopQuery.addListener === "function") {
+    desktopQuery.addListener(requestUpdate);
+  }
+
+  window.addEventListener("scroll", requestUpdate, { passive: true });
+  window.addEventListener("resize", requestUpdate, { passive: true });
+  updateState();
+}
+
 function setupReveal() {
   const items = document.querySelectorAll(".reveal-on-scroll");
   if (!items.length || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -3075,26 +3178,76 @@ function setupReveal() {
 }
 
 function setupActiveNav() {
-  const sections = document.querySelectorAll("main section[id]");
-  const links = document.querySelectorAll('.nav-links a[href^="#"]');
+  const sections = Array.from(document.querySelectorAll("main section[id], main [data-nav-section][id], footer[id]"));
+  const links = Array.from(document.querySelectorAll('.nav-links a[href^="#"]'));
   if (!sections.length || !links.length) return;
 
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        links.forEach((link) => link.classList.remove("active-link"));
-        const active = document.querySelector(`.nav-links a[href="#${entry.target.id}"]`);
-        if (active) active.classList.add("active-link");
-      });
-    },
-    {
-      threshold: 0.35,
-      rootMargin: "-20% 0px -55% 0px",
-    }
+  const linkById = new Map(
+    links.map((link) => [link.getAttribute("href")?.slice(1), link])
   );
 
-  sections.forEach((section) => observer.observe(section));
+  let activeId = "";
+
+  const setActive = (id) => {
+    if (!id || id === activeId) return;
+    activeId = id;
+    links.forEach((link) => {
+      const isActive = link.getAttribute("href") === `#${id}`;
+      link.classList.toggle("active-link", isActive);
+      link.setAttribute("aria-current", isActive ? "location" : "false");
+    });
+  };
+
+  const updateActiveSection = () => {
+    const visibleSections = sections.filter((section) => !section.hidden);
+    if (!visibleSections.length) return;
+
+    const offset = getScrollOffset() + 18;
+    const scrollPosition = window.scrollY + offset;
+    const documentBottom = window.scrollY + window.innerHeight;
+    const bodyHeight = Math.max(
+      document.body.scrollHeight,
+      document.documentElement.scrollHeight
+    );
+
+    if (documentBottom >= bodyHeight - 12) {
+      setActive(visibleSections[visibleSections.length - 1].id);
+      return;
+    }
+
+    let current = visibleSections[0];
+    for (const section of visibleSections) {
+      if (section.offsetTop <= scrollPosition) {
+        current = section;
+        continue;
+      }
+      break;
+    }
+
+    setActive(current.id);
+  };
+
+  let ticking = false;
+  const requestUpdate = () => {
+    if (ticking) return;
+    ticking = true;
+    window.requestAnimationFrame(() => {
+      ticking = false;
+      updateActiveSection();
+    });
+  };
+
+  links.forEach((link) => {
+    link.addEventListener("click", () => {
+      const id = link.getAttribute("href")?.slice(1);
+      if (id && linkById.has(id)) setActive(id);
+    });
+  });
+
+  window.addEventListener("scroll", requestUpdate, { passive: true });
+  window.addEventListener("resize", requestUpdate, { passive: true });
+  window.addEventListener("hashchange", requestUpdate);
+  updateActiveSection();
 }
 
 function getScrollOffset() {
@@ -3997,6 +4150,303 @@ function setupVisibleBackButton() {
   (shell || document.body).append(button);
 }
 
+
+function setupScrollProgressBar() {
+  if (document.querySelector('[data-scroll-progress]')) return;
+
+  const track = document.createElement('div');
+  track.className = 'scroll-progress';
+  track.setAttribute('data-scroll-progress', 'true');
+  track.setAttribute('aria-hidden', 'true');
+
+  const bar = document.createElement('span');
+  bar.className = 'scroll-progress-bar';
+  track.append(bar);
+  document.body.append(track);
+
+  let ticking = false;
+  const update = () => {
+    ticking = false;
+    const doc = document.documentElement;
+    const scrollable = Math.max(doc.scrollHeight - window.innerHeight, 0);
+    const ratio = scrollable <= 0 ? 0 : Math.min(Math.max(window.scrollY / scrollable, 0), 1);
+    bar.style.transform = `scaleX(${ratio})`;
+    track.classList.toggle('is-active', ratio > 0.002);
+    track.classList.toggle('is-complete', ratio > 0.995);
+  };
+
+  const requestUpdate = () => {
+    if (ticking) return;
+    ticking = true;
+    window.requestAnimationFrame(update);
+  };
+
+  window.addEventListener('scroll', requestUpdate, { passive: true });
+  window.addEventListener('resize', requestUpdate, { passive: true });
+  requestUpdate();
+}
+
+function setupScrollTopButton() {
+  if (document.querySelector("[data-scroll-direction-buttons]")) return;
+
+  const isGerman = document.documentElement.lang === "de";
+  const labels = {
+    up: isGerman ? "Nach oben" : "Back to top",
+    down: isGerman ? "Nach unten" : "Scroll down"
+  };
+
+  const rail = document.createElement("div");
+  rail.className = "scroll-direction-buttons";
+  rail.setAttribute("data-scroll-direction-buttons", "true");
+
+  const upButton = document.createElement("button");
+  upButton.type = "button";
+  upButton.className = "scroll-nav-button scroll-nav-button-up";
+  upButton.hidden = true;
+  upButton.setAttribute("data-scroll-top-button", "true");
+  upButton.setAttribute("aria-label", labels.up);
+  upButton.setAttribute("title", labels.up);
+  upButton.innerHTML = `
+    <span class="scroll-nav-button-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m18 15-6-6-6 6"></path>
+        <path d="M12 9v12"></path>
+      </svg>
+    </span>
+    <span class="sr-only">${labels.up}</span>
+  `;
+
+  const downButton = document.createElement("button");
+  downButton.type = "button";
+  downButton.className = "scroll-nav-button scroll-nav-button-down";
+  downButton.hidden = true;
+  downButton.setAttribute("data-scroll-down-button", "true");
+  downButton.setAttribute("aria-label", labels.down);
+  downButton.setAttribute("title", labels.down);
+  downButton.innerHTML = `
+    <span class="scroll-nav-button-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m6 9 6 6 6-6"></path>
+        <path d="M12 15V3"></path>
+      </svg>
+    </span>
+    <span class="sr-only">${labels.down}</span>
+  `;
+
+  rail.append(upButton);
+
+  const setButtonVisible = (button, shouldShow) => {
+    const isVisible = button.classList.contains("is-visible");
+    if (shouldShow === isVisible) return;
+    if (shouldShow) {
+      button.hidden = false;
+      window.requestAnimationFrame(() => button.classList.add("is-visible"));
+      return;
+    }
+    button.classList.remove("is-visible");
+    window.setTimeout(() => {
+      if (!button.classList.contains("is-visible")) button.hidden = true;
+    }, 180);
+  };
+
+  upButton.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  downButton.addEventListener("click", () => {
+    const targets = Array.from(document.querySelectorAll("main > section, footer[id]"))
+      .filter((element) => !element.hidden && window.getComputedStyle(element).display !== "none");
+    const currentTop = window.scrollY + getScrollOffset() + 12;
+    const nextTarget = targets.find((element) => element.offsetTop > currentTop + 24);
+
+    if (nextTarget) {
+      const top = nextTarget.getBoundingClientRect().top + window.scrollY - getScrollOffset();
+      window.scrollTo({ top: Math.max(top, 0), behavior: "smooth" });
+      return;
+    }
+
+    window.scrollTo({
+      top: window.scrollY + window.innerHeight * 0.85,
+      behavior: "smooth"
+    });
+  });
+
+  const isHomepage = document.body.classList.contains("portfolio-page") && !document.body.classList.contains("detail-page");
+  if (isHomepage) {
+    downButton.classList.add("scroll-nav-button-home");
+  }
+
+  document.body.classList.add("has-scroll-direction-buttons");
+  const shell = document.querySelector(".page-shell");
+  const hero = document.querySelector("main > .hero");
+  (shell || document.body).append(rail);
+  if (isHomepage) {
+    (hero || shell || document.body).append(downButton);
+  }
+
+  const updateVisibility = () => {
+    const scrollable = Math.max(document.documentElement.scrollHeight - window.innerHeight, 0);
+    setButtonVisible(upButton, window.scrollY > 520);
+    setButtonVisible(
+      downButton,
+      isHomepage && scrollable > 0 && window.scrollY < Math.max(window.innerHeight * 0.32, 180)
+    );
+  };
+
+  window.addEventListener("scroll", updateVisibility, { passive: true });
+  window.addEventListener("resize", updateVisibility, { passive: true });
+  updateVisibility();
+}
+
+function setupHeroViewportFit() {
+  const isHomepage = document.body.classList.contains("portfolio-page") && !document.body.classList.contains("detail-page");
+  if (!isHomepage) return;
+
+  const hero = document.querySelector("main > .hero");
+  if (!hero) return;
+
+  const nav = document.querySelector(".nav");
+  const updateBar = document.querySelector(".top-update-bar");
+  const mobileQuickActions = document.querySelector(".mobile-top-quick-actions");
+  const desktopQuery = window.matchMedia("(min-width: 781px)");
+  let frame = 0;
+  let stableDesktopNavHeight = 0;
+  let stableDesktopUpdateBarHeight = 0;
+
+  const updateMetrics = () => {
+    frame = 0;
+    const currentNavHeight = nav ? nav.getBoundingClientRect().height : 0;
+    const currentUpdateBarHeight = updateBar ? updateBar.getBoundingClientRect().height : 0;
+    const quickActionsVisible = mobileQuickActions && window.getComputedStyle(mobileQuickActions).display !== "none";
+    const mobileQuickActionsHeight = quickActionsVisible ? mobileQuickActions.getBoundingClientRect().height : 0;
+
+    let navHeight = currentNavHeight;
+    let updateBarHeight = currentUpdateBarHeight;
+
+    if (desktopQuery.matches) {
+      stableDesktopNavHeight = Math.max(stableDesktopNavHeight, currentNavHeight);
+      stableDesktopUpdateBarHeight = Math.max(stableDesktopUpdateBarHeight, currentUpdateBarHeight);
+      navHeight = stableDesktopNavHeight;
+      updateBarHeight = stableDesktopUpdateBarHeight;
+    } else {
+      stableDesktopNavHeight = 0;
+      stableDesktopUpdateBarHeight = 0;
+    }
+
+    const totalOffset = Math.ceil(navHeight + updateBarHeight + mobileQuickActionsHeight);
+    document.documentElement.style.setProperty("--hero-top-offset", `${totalOffset}px`);
+  };
+
+  const requestUpdate = () => {
+    if (frame) return;
+    frame = window.requestAnimationFrame(updateMetrics);
+  };
+
+  if (typeof ResizeObserver === "function") {
+    const observer = new ResizeObserver(requestUpdate);
+    [nav, updateBar, mobileQuickActions].forEach((element) => {
+      if (element) observer.observe(element);
+    });
+  }
+
+  if (typeof desktopQuery.addEventListener === "function") {
+    desktopQuery.addEventListener("change", requestUpdate);
+  } else if (typeof desktopQuery.addListener === "function") {
+    desktopQuery.addListener(requestUpdate);
+  }
+
+  window.addEventListener("resize", requestUpdate, { passive: true });
+  window.addEventListener("load", requestUpdate, { once: true });
+  requestUpdate();
+}
+
+function setupHomepageFirstFoldState() {
+  const isHomepage = document.body.classList.contains("portfolio-page") && !document.body.classList.contains("detail-page");
+  if (!isHomepage) return;
+
+  const hero = document.querySelector("main > .hero");
+  if (!hero) return;
+
+  let ticking = false;
+  let isComplete = document.body.classList.contains("homepage-first-fold-complete");
+  let enterThreshold = 180;
+  let exitThreshold = 96;
+
+  const refreshThresholds = () => {
+    const heroHeight = hero.offsetHeight || hero.getBoundingClientRect().height || window.innerHeight;
+    const baseThreshold = Math.max(Math.min(heroHeight * 0.42, window.innerHeight * 0.46), 180);
+    enterThreshold = Math.round(baseThreshold);
+    exitThreshold = Math.round(Math.max(Math.min(baseThreshold * 0.58, 160), 96));
+  };
+
+  const updateState = () => {
+    ticking = false;
+    const scrollY = window.scrollY;
+    const nextComplete = isComplete ? scrollY > exitThreshold : scrollY > enterThreshold;
+    if (nextComplete === isComplete) return;
+    isComplete = nextComplete;
+    document.body.classList.toggle("homepage-first-fold-complete", isComplete);
+  };
+
+  const requestUpdate = () => {
+    if (ticking) return;
+    ticking = true;
+    window.requestAnimationFrame(updateState);
+  };
+
+  const refreshAndUpdate = () => {
+    refreshThresholds();
+    requestUpdate();
+  };
+
+  window.addEventListener("scroll", requestUpdate, { passive: true });
+  window.addEventListener("resize", refreshAndUpdate, { passive: true });
+  window.addEventListener("load", refreshAndUpdate, { once: true });
+  refreshAndUpdate();
+}
+
+function setupHomepageFitSectionToggle() {
+  const section = document.querySelector("#where-i-fit.fit-showcase");
+  const toggle = section?.querySelector("[data-fit-collapse-toggle]");
+  const body = section?.querySelector("[data-fit-collapse-body]");
+  if (!section || !toggle || !body) return;
+
+  let isCollapsed = true;
+
+  const applyState = (collapsed) => {
+    isCollapsed = collapsed;
+    section.classList.toggle("is-collapsed", collapsed);
+    toggle.setAttribute("aria-expanded", String(!collapsed));
+    toggle.setAttribute("aria-label", collapsed ? "Expand Where I Fit section" : "Collapse Where I Fit section");
+    body.hidden = collapsed;
+  };
+
+  const openSection = () => {
+    if (!isCollapsed) return;
+    applyState(false);
+  };
+
+  toggle.addEventListener("click", () => {
+    applyState(!isCollapsed);
+  });
+
+  document.addEventListener("click", (event) => {
+    const link = event.target.closest('a[href="#where-i-fit"]');
+    if (!link) return;
+    openSection();
+  });
+
+  const openIfTargeted = () => {
+    if (window.location.hash.replace(/^#/, "") === "where-i-fit") {
+      openSection();
+    }
+  };
+
+  window.addEventListener("hashchange", openIfTargeted);
+  applyState(true);
+  openIfTargeted();
+}
+
 function createPortfolioDownloadLink({ mobile = false } = {}) {
   const lang = document.documentElement.lang === "de" ? "de" : "en";
   const link = document.createElement("a");
@@ -4037,6 +4487,84 @@ function setupPortfolioDownloadLinks() {
     const reference = container.querySelector("[data-request-cv-link]");
     container.insertBefore(link, reference || null);
   });
+}
+
+function setupFloatingPageActions() {
+  if (!document.body.classList.contains("portfolio-page") || document.body.classList.contains("detail-page")) return;
+  if (document.querySelector("[data-floating-page-actions]")) return;
+
+  const lang = document.documentElement.lang === "de" ? "de" : "en";
+  const copy = {
+    en: {
+      map: "Portfolio map",
+      filter: "Filter",
+      contact: "Contact",
+      mapAria: "Open portfolio map",
+      filterAria: "Open homepage section filter",
+      contactAria: "Open contact form"
+    },
+    de: {
+      map: "Portfolio-Karte",
+      filter: "Filter",
+      contact: "Kontakt",
+      mapAria: "Portfolio-Karte oeffnen",
+      filterAria: "Startseiten-Filter oeffnen",
+      contactAria: "Kontaktformular oeffnen"
+    }
+  }[lang];
+
+  const filterToggle = document.querySelector("[data-section-filter-toggle]");
+  if (!filterToggle) return;
+
+  const rail = document.createElement("div");
+  rail.className = "floating-page-actions";
+  rail.setAttribute("data-floating-page-actions", "true");
+  rail.setAttribute("aria-label", lang === "de" ? "Seitenaktionen" : "Page actions");
+
+  const createAction = ({ type, href, label, ariaLabel, icon, onClick }) => {
+    const element = href ? document.createElement("a") : document.createElement("button");
+    if (href) {
+      element.href = href;
+      element.setAttribute("data-skip-link-decoration", "true");
+    } else {
+      element.type = "button";
+    }
+    element.className = `floating-page-action floating-page-action-${type}`;
+    element.setAttribute("aria-label", ariaLabel);
+    element.setAttribute("title", label);
+    element.innerHTML = `
+      <span class="floating-page-action-icon" aria-hidden="true">${icon}</span>
+      <span class="floating-page-action-label">${label}</span>
+    `;
+    if (onClick) element.addEventListener("click", onClick);
+    return element;
+  };
+
+  rail.append(
+    createAction({
+      type: "map",
+      href: "portfolio-map.html",
+      label: copy.map,
+      ariaLabel: copy.mapAria,
+      icon: '<img src="assets/images/portfolio map roadmap-journey-milestone-career-600nw-2633817533.png" alt="" />'
+    }),
+    createAction({
+      type: "filter",
+      label: copy.filter,
+      ariaLabel: copy.filterAria,
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6"/><path d="m20 20-3.5-3.5"/></svg>',
+      onClick: () => filterToggle.click()
+    }),
+    createAction({
+      type: "contact",
+      href: "feedback.html?type=contact#feedback-form",
+      label: copy.contact,
+      ariaLabel: copy.contactAria,
+      icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 14a2 2 0 0 1-2 2H7l-4 4V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/><path d="M8 10h8"/></svg>'
+    })
+  );
+
+  document.body.append(rail);
 }
 
 function setupStoredReturnPosition() {
@@ -21478,6 +22006,7 @@ function decorateContactLinks() {
 
   document.querySelectorAll("a[href]").forEach((link) => {
     if (link.closest(".nav")) return;
+    if (link.hasAttribute("data-skip-link-decoration")) return;
 
     const href = link.getAttribute("href") || "";
     const spec = specs.find((item) => item.match(href, link));
@@ -21723,6 +22252,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupAdminModeControl();
   setupHomepageSectionFilter();
   setupMobileNav();
+  setupCompactNav();
+  setupHeroViewportFit();
+  setupHomepageFirstFoldState();
+  setupHomepageFitSectionToggle();
   setupReveal();
   setupSmoothAnchorScroll();
   setupActiveNav();
@@ -21730,7 +22263,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupDetailOriginTracking();
   setupSmartDetailBack();
   setupVisibleBackButton();
+  setupScrollProgressBar();
+  setupScrollTopButton();
   setupPortfolioDownloadLinks();
+  setupFloatingPageActions();
   setupPortfolioHelpBot();
   setupFeedbackForm();
   setupRequestCvForm();
