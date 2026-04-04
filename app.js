@@ -4118,6 +4118,62 @@ function createHelpBotFeedbackFormTarget() {
   return createHelpBotPageTarget("feedback.html?type=feedback", "feedback-form");
 }
 
+function getBerlinHourOfDay() {
+  try {
+    const parts = new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Europe/Berlin",
+      hour: "numeric",
+      hour12: false
+    }).formatToParts(new Date());
+    const hourValue = parts.find((part) => part.type === "hour")?.value || "12";
+    const hour = Number.parseInt(hourValue, 10);
+    return Number.isNaN(hour) ? 12 : hour;
+  } catch {
+    return new Date().getHours();
+  }
+}
+
+function getHelpBotTimePeriod() {
+  const hour = getBerlinHourOfDay();
+  if (hour < 12) return "morning";
+  if (hour < 17) return "afternoon";
+  return "evening";
+}
+
+function getHelpBotTimeAwareWelcome(lang = "en") {
+  const period = getHelpBotTimePeriod();
+  if (lang === "de") {
+    if (period === "morning") {
+      return "Guten Morgen. Ich bin der AI Assistant von Sooraj Sudhakaran und helfe Ihnen dabei, diese Website schneller zu nutzen und die richtigen Bereiche zu finden.";
+    }
+    if (period === "afternoon") {
+      return "Guten Tag. Ich bin der AI Assistant von Sooraj Sudhakaran und helfe Ihnen dabei, diese Website schneller zu nutzen und die richtigen Bereiche zu finden.";
+    }
+    return "Guten Abend. Ich bin der AI Assistant von Sooraj Sudhakaran und helfe Ihnen dabei, diese Website schneller zu nutzen und die richtigen Bereiche zu finden.";
+  }
+  if (period === "morning") {
+    return "Good morning. I am the AI Assistant of Sooraj Sudhakaran. I can help guide you through the website and quickly take you to the right sections.";
+  }
+  if (period === "afternoon") {
+    return "Good afternoon. I am the AI Assistant of Sooraj Sudhakaran. I can help guide you through the website and quickly take you to the right sections.";
+  }
+  return "Good evening. I am the AI Assistant of Sooraj Sudhakaran. I can help guide you through the website and quickly take you to the right sections.";
+}
+
+function getHelpBotTimeAwareClosing(lang = "en") {
+  const period = getHelpBotTimePeriod();
+  if (lang === "de") {
+    if (period === "evening") {
+      return "Danke fuer das Gespraech. Ich wuensche Ihnen einen angenehmen Abend und hoffe, Sie bald wiederzusehen.";
+    }
+    return "Danke fuer das Gespraech. Ich wuensche Ihnen noch einen schoenen Tag und hoffe, Sie bald wiederzusehen.";
+  }
+  if (period === "evening") {
+    return "Thank you for the conversation. Have a pleasant evening, and I hope to see you again soon.";
+  }
+  return "Thank you for the conversation. Have a nice day, and I hope to see you again soon.";
+}
+
 function getPortfolioHelpBotConfig(lang) {
   if (lang === "de") {
     return {
@@ -4133,7 +4189,7 @@ function getPortfolioHelpBotConfig(lang) {
       continueChat: "Gespraech fortsetzen",
       startFresh: "Neu starten",
       resumeQuestion: "Willkommen zurueck. Moechten Sie dort weitermachen, wo Sie aufgehoert haben, oder einen neuen Chat beginnen?",
-      ended: "Der Chat wurde beendet. Oeffnen Sie den Assistenten jederzeit fuer einen neuen Start.",
+      ended: "Danke fuer das Gespraech. Ich wuensche Ihnen noch einen schoenen Tag und hoffe, Sie bald wiederzusehen.",
       reset: "Neu starten",
       close: "Chat schliessen",
       welcome: "Hallo, ich bin der AI Assistant von Sooraj Sudhakaran. Ich helfe Ihnen dabei, diese Website schneller zu nutzen und die richtigen Bereiche zu finden.",
@@ -4328,9 +4384,9 @@ function getPortfolioHelpBotConfig(lang) {
       feedbackInvalidCountry: "Bitte geben Sie ein Land ein.",
       feedbackInvalidComments: "Bitte schreiben Sie einen etwas laengeren Kommentar.",
       feedbackFailure: "Die Uebermittlung hat gerade nicht funktioniert. Sie koennen es erneut versuchen, Ihren Text anpassen oder die Feedback-Seite direkt oeffnen.",
-      feedbackSuccess: (name = "") => name ? `Vielen Dank fuer Ihr Feedback, ${name}. Bis bald.` : "Vielen Dank fuer Ihr Feedback. Bis bald.",
-      feedbackSkipFarewell: (name = "") => name ? `Vielen Dank, ${name}. Bis bald.` : "Vielen Dank. Bis bald.",
-      feedbackSkipFarewellStudent: (name = "") => name ? `Vielen Dank, ${name} 😔 Ich habe den Chat jetzt an meinen Boss weitergegeben, damit er sieht, dass ich wirklich nach einer Bewertung gefragt habe. Bis zum naechsten Mal.` : "Vielen Dank 😔 Ich habe den Chat jetzt an meinen Boss weitergegeben, damit er sieht, dass ich wirklich nach einer Bewertung gefragt habe. Bis zum naechsten Mal.",
+      feedbackSuccess: (name = "") => name ? `Vielen Dank fuer Ihr Feedback, ${name}. Ich wuensche Ihnen noch einen schoenen Tag und hoffe, Sie bald wiederzusehen.` : "Vielen Dank fuer Ihr Feedback. Ich wuensche Ihnen noch einen schoenen Tag und hoffe, Sie bald wiederzusehen.",
+      feedbackSkipFarewell: (name = "") => name ? `Vielen Dank, ${name}. Ich wuensche Ihnen noch einen schoenen Tag und hoffe, Sie bald wiederzusehen.` : "Vielen Dank. Ich wuensche Ihnen noch einen schoenen Tag und hoffe, Sie bald wiederzusehen.",
+      feedbackSkipFarewellStudent: (name = "") => name ? `Vielen Dank, ${name} 😔 Ich habe den Chat jetzt an meinen Boss weitergegeben, damit er sieht, dass ich wirklich nach einer Bewertung gefragt habe. Ich wuensche Ihnen noch einen schoenen Tag und hoffe, Sie bald wiederzusehen.` : "Vielen Dank 😔 Ich habe den Chat jetzt an meinen Boss weitergegeben, damit er sieht, dass ich wirklich nach einer Bewertung gefragt habe. Ich wuensche Ihnen noch einen schoenen Tag und hoffe, Sie bald wiederzusehen.",
       roleQuestion: "Damit ich Sie passender begleiten kann: In welchem Kontext besuchen Sie die Website heute?",
       optionPrompt: "Wobei soll ich Ihnen als Naechstes helfen?",
       roles: {
@@ -4656,7 +4712,7 @@ function getPortfolioHelpBotConfig(lang) {
     continueChat: "Continue conversation",
     startFresh: "Start fresh",
     resumeQuestion: "Welcome back. Would you like to continue where you left off or start a new chat?",
-    ended: "The chat has ended. Open the assistant any time to start again.",
+    ended: "Thank you for the conversation. Have a nice day, and I hope to see you again soon.",
     reset: "Start over",
     close: "Close chat",
     welcome: "Hi, I am the AI Assistant of Sooraj Sudhakaran. I can help guide you through the website and quickly take you to the right sections.",
@@ -4851,9 +4907,9 @@ function getPortfolioHelpBotConfig(lang) {
     feedbackInvalidCountry: "Please enter your country.",
     feedbackInvalidComments: "Please write a slightly longer comment.",
     feedbackFailure: "The submission did not go through just now. You can try again, adjust your text, or open the feedback page directly.",
-    feedbackSuccess: (name = "") => name ? `Thank you for your feedback, ${name}. See you again.` : "Thank you for your feedback. See you again.",
-    feedbackSkipFarewell: (name = "") => name ? `Thank you, ${name}. See you again.` : "Thank you. See you again.",
-    feedbackSkipFarewellStudent: (name = "") => name ? `Thank you, ${name} 😔 I have sent this chat to my boss so he can see that I really did ask for a review. See you next time.` : "Thank you 😔 I have sent this chat to my boss so he can see that I really did ask for a review. See you next time.",
+    feedbackSuccess: (name = "") => name ? `Thank you for your feedback, ${name}. Have a nice day, and I hope to see you again soon.` : "Thank you for your feedback. Have a nice day, and I hope to see you again soon.",
+    feedbackSkipFarewell: (name = "") => name ? `Thank you, ${name}. Have a nice day, and I hope to see you again soon.` : "Thank you. Have a nice day, and I hope to see you again soon.",
+    feedbackSkipFarewellStudent: (name = "") => name ? `Thank you, ${name} 😔 I have sent this chat to my boss so he can see that I really did ask for a review. Have a nice day, and I hope to see you again soon.` : "Thank you 😔 I have sent this chat to my boss so he can see that I really did ask for a review. Have a nice day, and I hope to see you again soon.",
     roleQuestion: "So I can guide you more appropriately, may I ask in what context you are visiting the website today?",
     optionPrompt: "What should I help you with next?",
     roles: {
@@ -7139,6 +7195,57 @@ function setupPortfolioHelpBot() {
     ...(badge ? { badge } : {})
   });
 
+  const RECRUITER_ONLY_ANSWER_IDS = new Set([
+    "availability-details",
+    "notice-period-details",
+    "work-mode-preference",
+    "relocation-details",
+    "salary-expectation-details"
+  ]);
+
+  const isRecruiterContextRole = (roleId = currentRoleId) => roleId === "recruiter" || roleId === "hiringManager";
+
+  const getRecruiterRedirectInlineOptions = () => withEndChatOption(dedupeHelpBotOptions([
+    createBadgedOption(
+      "role",
+      "recruiter",
+      currentLang === "de" ? "Zum Recruiter Desk wechseln" : "Switch to Recruiter Desk",
+      currentLang === "de" ? "Recruiter" : "Recruiter"
+    ),
+    createBadgedOption(
+      "continue-chat",
+      "continue",
+      config.continueChat,
+      currentLang === "de" ? "Chat" : "Chat"
+    )
+  ]));
+
+  const getRoleScopedWebsiteQuestionAnswer = (answerId = "", answer = null, roleId = currentRoleId) => {
+    if (!answer) return null;
+    const normalizedAnswerId = String(answerId || "").trim();
+    if (!RECRUITER_ONLY_ANSWER_IDS.has(normalizedAnswerId) || isRecruiterContextRole(roleId)) return answer;
+
+    return {
+      text: currentLang === "de"
+        ? "Das ist eher eine recruiter-orientierte Frage. In Student-, Chat- oder allgemeinem Besuchermodus halte ich diese Antwort bewusst im Recruiter-Pfad. Wenn Sie die recruiter-orientierte Antwort sehen moechten, wechseln Sie bitte zuerst zum Recruiter Desk oder oeffnen Sie die recruiter-orientierte Seite. Typische recruiter-level Fragen hier sind Verfuegbarkeit, Notice Period, Arbeitsmodus, Relocation, Gehaltserwartung, CV-Anfrage und direkter Hiring-Kontakt."
+        : "That is a recruiter-level question. In student mode, direct chat, or general visitor mode, I keep that answer inside the recruiter path on purpose. If you want the recruiter-facing answer, please switch to the Recruiter Desk or open the recruiter page first. Typical recruiter-level questions here are availability, notice period, work mode, relocation, salary expectation, CV request, and direct hiring contact.",
+      actions: [
+        createBadgedAction(
+          currentLang === "de" ? "Recruiter-Seite oeffnen" : "Open recruiter page",
+          createHelpBotHomeTarget("where-i-fit"),
+          currentLang === "de" ? "Fit" : "Fit"
+        ),
+        createBadgedAction(
+          currentLang === "de" ? "Kontaktformular oeffnen" : "Open contact form",
+          createHelpBotContactFormTarget(),
+          currentLang === "de" ? "Aktion" : "Action"
+        )
+      ],
+      inlineOptions: getRecruiterRedirectInlineOptions(),
+      skipContinueWrap: true
+    };
+  };
+
   const getContinueChatInlineOptions = (items = []) => withEndChatOption(dedupeHelpBotOptions([
     createBadgedOption("continue-chat", "continue", config.continueChat, currentLang === "de" ? "Chat" : "Chat"),
     ...(Array.isArray(items) ? items : [])
@@ -7151,6 +7258,90 @@ function setupPortfolioHelpBot() {
   );
 
   const getTopicTrail = () => (Array.isArray(helpBotState.topicTrail) ? helpBotState.topicTrail : []);
+
+  const isHelpBotCorrectionIntent = (query = "") => /^(no\b|no not\b|not that\b|wrong\b|not correct\b|incorrect\b|you misunderstood\b|you dont understand\b|that is not what i asked\b|that is not what i meant\b|not what i asked\b|not what i meant\b|i meant\b|i want to change\b|change that\b|change it\b)/i.test(
+    String(query || "").trim().toLowerCase(),
+  );
+
+  const getHelpBotCorrectionReply = (lang = currentLang) => (
+    lang === "de"
+      ? "Verstanden. Ich korrigiere die Richtung gern. Formulieren Sie die Frage einfach noch einmal in Ihren eigenen Worten, dann halte ich die Antwort gezielter."
+      : "Understood. I can correct that. Ask it once more in your own words, and I will keep the next answer tighter and more relevant."
+  );
+
+  const getHelpBotAnswerType = (answerId = "") => {
+    const normalized = String(answerId || "").trim().toLowerCase();
+    if (!normalized) return "general";
+    if (
+      normalized.includes("contact")
+      || normalized.includes("email")
+      || normalized.includes("cv-request")
+      || normalized.includes("portfolio-overview")
+    ) return "contact";
+    return "general";
+  };
+
+  const buildHelpBotAcknowledgement = ({
+    lang = currentLang,
+    roleId = currentRoleId,
+    query = "",
+    answerType = "general"
+  } = {}) => {
+    const normalized = String(query || "").trim().toLowerCase();
+    const topicTrail = getTopicTrail();
+    if (lang === "de") {
+      if (answerType === "search") return "Ich pruefe den klarsten Pfad dafuer.";
+      if (answerType === "contact") return "Der direkte Weg dafuer ist klar.";
+      if (isHelpBotCorrectionIntent(normalized)) return "Danke fuer die Korrektur.";
+      if (topicTrail.length > 0 && roleId === "recruiter") return "Auf Basis Ihres bisherigen Bewertungswegs ist dies der klarste naechste Punkt.";
+      if (topicTrail.length > 0 && roleId === "student") return "Dazu passt der naechste Schritt aus Ihrem bisherigen Pfad gut.";
+      if (/^(how|what|why|can|could|do|does|is|are|where|when)\b/i.test(normalized)) return "Gute Frage.";
+      return "Gern.";
+    }
+    if (answerType === "search") return "I am checking the clearest path for that.";
+    if (answerType === "contact") return "The direct route for that is clear.";
+    if (isHelpBotCorrectionIntent(normalized)) return "Thanks for the correction.";
+    if (topicTrail.length > 0 && roleId === "recruiter") return "Based on the evaluation path you have already reviewed, this is the clearest next point.";
+    if (topicTrail.length > 0 && roleId === "student") return "This fits well with the path you have already started.";
+    if (/^(how|what|why|can|could|do|does|is|are|where|when)\b/i.test(normalized)) return "Good question.";
+    return "Certainly.";
+  };
+
+  const buildHelpBotFollowupPrompt = ({
+    lang = currentLang,
+    roleId = currentRoleId,
+    answerType = "general"
+  } = {}) => {
+    const topicTrail = getTopicTrail();
+    if (lang === "de") {
+      if (answerType === "contact") return "Wenn Sie moechten, kann ich direkt den Kontaktpfad oder die passende Seite oeffnen.";
+      if (roleId === "recruiter" && topicTrail.length > 0) return "Wenn Sie moechten, zeige ich als Naechstes den staerksten Beleg oder den schnellsten Kontaktweg.";
+      if (roleId === "student" && topicTrail.length > 0) return "Wenn Sie moechten, kann ich dazu den passenden Studien-, Projekt- oder Deutschland-Pfad zeigen.";
+      return "Wenn Sie moechten, erklaere ich es hier weiter oder oeffne direkt den passenden Bereich.";
+    }
+    if (answerType === "contact") return "If useful, I can take you straight to the contact path or the right section now.";
+    if (roleId === "recruiter" && topicTrail.length > 0) return "If useful, I can show the strongest next proof point or the fastest contact path.";
+    if (roleId === "student" && topicTrail.length > 0) return "If useful, I can take you to the most relevant study, project, or Germany-related path next.";
+    return "If useful, I can explain it further here or open the most relevant section next.";
+  };
+
+  const buildHelpBotHumanisedAnswerText = (
+    answerText,
+    {
+      lang = currentLang,
+      roleId = currentRoleId,
+      query = "",
+      answerType = "general"
+    } = {},
+  ) => {
+    const body = String(answerText || "").trim();
+    if (!body) return "";
+    return [
+      buildHelpBotAcknowledgement({ lang, roleId, query, answerType }),
+      body,
+      buildHelpBotFollowupPrompt({ lang, roleId, answerType })
+    ].filter(Boolean).join("\n\n");
+  };
 
   const recordTopicTrail = (roleId, topic) => {
     if (!roleId || !topic?.id || !topic?.label) return;
@@ -8256,7 +8447,7 @@ function setupPortfolioHelpBot() {
           ]
         },
         "availability-details": {
-          text: "Ja. Die klare oeffentliche Richtung des Portfolios ist, dass Sooraj fuer Vollzeitrollen offen ist, besonders in Robotik, Automation, mechatronischen Systemen, Simulation und angrenzenden technischen Rollen. Fuer den schnellsten Hiring-Schritt sind Where I Fit, CV-Anfrage und direkter Kontakt die besten Wege.",
+          text: "Ja. Fuer Recruiter-Kontext ist die oeffentliche Aussage: verfuegbar ab Juni 2026 und grundsaetzlich jederzeit startklar, ohne Notice Period. Die staerksten naechsten Schritte sind Where I Fit, CV-Anfrage und direkter Kontakt.",
           actions: [
             createBadgedAction("Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
             createBadgedAction("CV anfragen", createHelpBotCvTarget(), "CV"),
@@ -8264,7 +8455,7 @@ function setupPortfolioHelpBot() {
           ]
         },
         "work-mode-preference": {
-          text: "Das Portfolio ist am staerksten fuer professionelle Rollen mit direkter Engineering- oder Industrieanbindung. Fuer Onsite-, Hybrid- oder Remote-Praeferenz gibt es keine harte oeffentliche Festlegung im Bot. Der saubere Weg ist, das im Recruiter-Kontakt direkt mit Sooraj zu bestaetigen.",
+          text: "Fuer Recruiter-Kontext ist die oeffentliche Richtung: flexibel fuer Onsite, Hybrid oder Remote, und offen fuer Standortwechsel, wenn Rolle und Einsatzkontext passen.",
           actions: [
             createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action"),
             createBadgedAction("CV anfragen", createHelpBotCvTarget(), "CV"),
@@ -8272,7 +8463,7 @@ function setupPortfolioHelpBot() {
           ]
         },
         "relocation-details": {
-          text: "Der oeffentliche Schwerpunkt des Portfolios liegt klar auf Deutschland und dem aktuellen beruflichen Kontext dort. Wenn Sie Relocation oder Standortwechsel pruefen wollen, sollte das direkt ueber den Kontaktpfad mit Sooraj abgestimmt werden.",
+          text: "Ja. Fuer Recruiter-Kontext lautet die oeffentliche Richtung: aktuell in Stuttgart, Deutschland, aber grundsaetzlich flexibel fuer Relocation, wenn Rolle und Einsatzort passen.",
           actions: [
             createBadgedAction("Journey oeffnen", createHelpBotPageTarget("journey.html"), "Story"),
             createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action"),
@@ -8288,14 +8479,30 @@ function setupPortfolioHelpBot() {
           ]
         },
         "notice-period-details": {
-          text: "Eine feste Notice Period ist nicht oeffentlich in diesem Bot hinterlegt. Wenn Sie Hiring-Timing, Starttermin oder Verfuegbarkeit exakt pruefen wollen, ist direkter Recruiter-Kontakt der richtige Weg.",
+          text: "Fuer Recruiter-Kontext ist die Antwort klar: keine Notice Period. Verfuegbar ab Juni 2026 und grundsaetzlich jederzeit startklar.",
           actions: [
             createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action"),
             createBadgedAction("CV anfragen", createHelpBotCvTarget(), "CV"),
             createBadgedAction("LinkedIn oeffnen", createHelpBotExternalTarget("https://www.linkedin.com/in/sooraj-sudhakaran1999"), "Profile")
           ]
         },
-        "chat-data-deletion": {
+        "salary-expectation-details": {
+          text: "Fuer Recruiter-Kontext liegt die aktuelle Gehaltserwartung bei 45.950 Euro brutto pro Jahr. Die finale Einordnung kann weiterhin von Rolle, Standort und Gesamtpaket abhaengen.",
+          actions: [
+            createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action"),
+            createBadgedAction("CV anfragen", createHelpBotCvTarget(), "CV"),
+            createBadgedAction("E-Mail senden", createHelpBotEmailTarget(), "Email")
+          ]
+        },
+      "salary-expectation-details": {
+        text: "For recruiter context, the current salary expectation is EUR 45,950 gross per year. Final alignment can still depend on role scope, location, and the full compensation package.",
+        actions: [
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action"),
+          createBadgedAction("Request CV", createHelpBotCvTarget(), "CV"),
+          createBadgedAction("Email Sooraj", createHelpBotEmailTarget(), "Email")
+        ]
+      },
+      "chat-data-deletion": {
           text: "Wenn Sie die Loeschung Ihrer Chatdaten anfragen moechten, ist der richtige Weg der Request-deletion-Pfad ueber den Kontaktbereich. Dort kann Sooraj die Anfrage pruefen und die gespeicherten Chatdaten entfernen.",
           actions: [
             createBadgedAction("Loeschung anfragen", createHelpBotContactFormTarget(), "Privacy"),
@@ -8476,10 +8683,13 @@ function setupPortfolioHelpBot() {
         }
       };
       const matchedAnswer = deAnswers[answerId] || null;
-      return matchedAnswer
+      const scopedAnswer = getRoleScopedWebsiteQuestionAnswer(answerId, matchedAnswer);
+      return scopedAnswer
         ? {
-            ...matchedAnswer,
-            inlineOptions: getContinueChatInlineOptions(matchedAnswer.inlineOptions || [])
+            ...scopedAnswer,
+            inlineOptions: scopedAnswer.skipContinueWrap
+              ? (Array.isArray(scopedAnswer.inlineOptions) ? scopedAnswer.inlineOptions : [])
+              : getContinueChatInlineOptions(scopedAnswer.inlineOptions || [])
           }
         : null;
     }
@@ -9006,7 +9216,7 @@ function setupPortfolioHelpBot() {
         ]
       },
       "availability-details": {
-        text: "Yes. The clear public direction of the portfolio is that Sooraj is open to full-time roles, especially across robotics, automation, mechatronic systems, simulation, and related technical work. For the fastest hiring path, the best next steps are Where I Fit, CV request, and direct contact.",
+        text: "Yes. For recruiter context, the public answer is: available from June 2026 and generally ready to start at any time, with no notice period. The cleanest next steps are Where I Fit, CV request, and direct contact.",
         actions: [
           createBadgedAction("Open Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
           createBadgedAction("Request CV", createHelpBotCvTarget(), "CV"),
@@ -9014,7 +9224,7 @@ function setupPortfolioHelpBot() {
         ]
       },
       "work-mode-preference": {
-        text: "The portfolio is strongest for professional roles with direct engineering or industrial context. There is no hard public bot answer that locks onsite, hybrid, or remote preference. The clean way to confirm work mode is to discuss it directly with Sooraj through the recruiter contact path.",
+        text: "For recruiter context, the public direction is: flexible for onsite, hybrid, or remote work, and open to location changes when the role and deployment context are the right fit.",
         actions: [
           createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action"),
           createBadgedAction("Request CV", createHelpBotCvTarget(), "CV"),
@@ -9022,7 +9232,7 @@ function setupPortfolioHelpBot() {
         ]
       },
       "relocation-details": {
-        text: "The public portfolio clearly centers Germany and the current professional context there. If you want to confirm relocation or location flexibility beyond that, the right path is direct recruiter contact with Sooraj.",
+        text: "Yes. For recruiter context, the public direction is: currently based in Stuttgart, Germany, but flexible for relocation when the role and location are the right fit.",
         actions: [
           createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story"),
           createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action"),
@@ -9038,7 +9248,7 @@ function setupPortfolioHelpBot() {
         ]
       },
       "notice-period-details": {
-        text: "A fixed notice period is not published inside this bot. If you need exact hiring timing, joining date, or availability details, the right next step is direct recruiter contact.",
+        text: "For recruiter context, the answer is straightforward: no notice period. Available from June 2026 and generally ready to start at any time.",
         actions: [
           createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action"),
           createBadgedAction("Request CV", createHelpBotCvTarget(), "CV"),
@@ -9226,10 +9436,13 @@ function setupPortfolioHelpBot() {
       }
     };
     const matchedAnswer = enAnswers[answerId] || null;
-    return matchedAnswer
+    const scopedAnswer = getRoleScopedWebsiteQuestionAnswer(answerId, matchedAnswer);
+    return scopedAnswer
       ? {
-          ...matchedAnswer,
-          inlineOptions: getContinueChatInlineOptions(matchedAnswer.inlineOptions || [])
+          ...scopedAnswer,
+          inlineOptions: scopedAnswer.skipContinueWrap
+            ? (Array.isArray(scopedAnswer.inlineOptions) ? scopedAnswer.inlineOptions : [])
+            : getContinueChatInlineOptions(scopedAnswer.inlineOptions || [])
         }
       : null;
   };
@@ -9532,6 +9745,12 @@ function setupPortfolioHelpBot() {
   const buildHelpBotPhysicalWorldAnswer = (query = "") => {
     const normalizedQuery = normalizeReviewLookupText(query);
     if (!normalizedQuery) return null;
+
+    if (isHelpBotCorrectionIntent(normalizedQuery)) {
+      return {
+        text: getHelpBotCorrectionReply(currentLang)
+      };
+    }
 
     const asksFoodDrink = /\b(tea|chai|coffee|cofee|espresso|latte|juice|water|milk|cola|soda|soft drink|soft drinks|drink|drinks|beer|wine|cocktail|mocktail|food|meal|meals|eat|eating|ate|hungry|thirsty|breakfast|lunch|dinner|snack|snacks|fruit|fruits|apple|banana|orange|mango|grape|vegetable|vegetables|carrot|potato|tomato|rice|bread|pizza|burger|sandwich)\b/.test(normalizedQuery);
     const asksBodyNeeds = /\b(toilet|bathroom|washroom|restroom|pee|poop|shower|bath|brush teeth|toothbrush|sleep|sleeping|slept|nap|break|rest)\b/.test(normalizedQuery);
@@ -10291,6 +10510,27 @@ function setupPortfolioHelpBot() {
       {
         answerId: "job-search-status",
         test: () => /\b(open to work|job search status|available for roles|available for work|open for full time|hire sooraj|available for opportunities)\b/.test(normalizedQuery)
+      },
+      {
+        answerId: "availability-details",
+        test: () => /\b(availability|available from|joining date|join date|start date|from june|june 2026|when can sooraj join|when can he join|when can you join|immediate joining|available to join|when available)\b/.test(normalizedQuery)
+      },
+      {
+        answerId: "notice-period-details",
+        test: () => /\b(notice period|serving notice|joining immediately|no notice period|immediate availability|available immediately|immediate join|join immediately)\b/.test(normalizedQuery)
+      },
+      {
+        answerId: "work-mode-preference",
+        test: () => /\b(remote|hybrid|onsite|on site|work mode|working mode|mode of work|remote work|hybrid work|onsite work|on site work)\b/.test(normalizedQuery)
+      },
+      {
+        answerId: "relocation-details",
+        test: () => /\b(relocation|relocate|move anywhere|move anywhere in europe|move to another city|move to another country|open to move|flexible location|location flexibility)\b/.test(normalizedQuery)
+      },
+      {
+        answerId: "salary-expectation-details",
+        test: () => /\b(salary expectation|expected salary|compensation expectation|expected compensation|gross per year|annual salary|salary range|package expectation|ctc expectation)\b/.test(normalizedQuery)
+          && /\b(recruiter|hiring|role|offer|job|position|compensation|salary|package)\b/.test(normalizedQuery)
       }
     ];
 
@@ -14961,7 +15201,7 @@ function setupPortfolioHelpBot() {
     helpBotState.lastNavTarget = null;
     persistHelpBotState();
     setOptions([], "");
-    await queueBotReply({ text: config.welcome, delay: 420, token });
+    await queueBotReply({ text: getHelpBotTimeAwareWelcome(currentLang), delay: 420, token });
     if (token !== responseToken) return;
     await queueBotReply({
       text: config.roleQuestion,
@@ -15381,7 +15621,12 @@ function setupPortfolioHelpBot() {
     helpBotState.pendingInputKind = "website-search";
     persistHelpBotState();
     await queueBotReply({
-      text: `${answer.text}\n${config.searchWebsiteFollowupPrompt}`,
+      text: buildHelpBotHumanisedAnswerText(answer.text, {
+        lang: currentLang,
+        roleId: currentRoleId,
+        query: helpBotState.websiteSearchQuery || result?.label || "",
+        answerType: getHelpBotAnswerType(result?.answerId || answer.answerId || "")
+      }),
       actions: answer.actions,
       delay: 260,
       token,
@@ -15675,6 +15920,22 @@ function setupPortfolioHelpBot() {
       return;
     }
 
+    if (isHelpBotCorrectionIntent(query)) {
+      helpBotState.websiteSearchResult = null;
+      helpBotState.websiteSearchResults = [];
+      helpBotState.pendingInputKind = "website-search";
+      persistHelpBotState();
+      await queueBotReply({
+        text: getHelpBotCorrectionReply(currentLang),
+        delay: 220,
+        token,
+        inlineOptions: getWebsiteSearchContinueOptions()
+      });
+      if (token !== responseToken) return;
+      showComposer();
+      return;
+    }
+
     const dynamicAnswer = await buildDynamicWebsiteQuestionAnswer(query);
     if (token !== responseToken) return;
     if (dynamicAnswer) {
@@ -15683,7 +15944,12 @@ function setupPortfolioHelpBot() {
       helpBotState.pendingInputKind = "website-search";
       persistHelpBotState();
       await queueBotReply({
-        text: `${dynamicAnswer.text}\n${config.searchWebsiteFollowupPrompt}`,
+        text: buildHelpBotHumanisedAnswerText(dynamicAnswer.text, {
+          lang: currentLang,
+          roleId: currentRoleId,
+          query,
+          answerType: getHelpBotAnswerType(dynamicAnswer.answerId || "")
+        }),
         actions: dynamicAnswer.actions,
         delay: 260,
         token,
@@ -15766,7 +16032,12 @@ function setupPortfolioHelpBot() {
       helpBotState.pendingInputKind = "website-search";
       persistHelpBotState();
       await queueBotReply({
-        text: `${answer.text}\n${config.searchWebsiteFollowupPrompt}`,
+        text: buildHelpBotHumanisedAnswerText(answer.text, {
+          lang: currentLang,
+          roleId: currentRoleId,
+          query,
+          answerType: getHelpBotAnswerType(answer.answerId || "")
+        }),
         actions: answer.actions,
         delay: 260,
         token,
@@ -16294,7 +16565,7 @@ function setupPortfolioHelpBot() {
     messages.innerHTML = "";
     setOptions([], "");
     setOpen(false);
-    setNudgeMessage(showExitNudge ? config.ended : config.nudge);
+    setNudgeMessage(showExitNudge ? getHelpBotTimeAwareClosing(currentLang) : config.nudge);
     if (showExitNudge) {
       showNudge({ delay: 900 });
     }
