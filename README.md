@@ -1,13 +1,13 @@
 # Sooraj Sudhakaran Portfolio
 
 <p align="center">
-  Robotics, automation, ROS workflows, simulation, industrial engineering, and deployment-oriented portfolio website.
+  Robotics, automation, ROS workflows, simulation, industrial engineering, and recruiter-focused portfolio website.
 </p>
 
 <p align="center">
   <a href="https://soorajsudhakaran1199.github.io/sooraj-portfolio/"><strong>Live Website</strong></a> ·
-  <a href="https://soorajsudhakaran1199.github.io/sooraj-portfolio/journey.html"><strong>Journey</strong></a> ·
-  <a href="https://soorajsudhakaran1199.github.io/sooraj-portfolio/experience-masters-thesis-keba.html"><strong>Robotics Thesis</strong></a> ·
+  <a href="https://soorajsudhakaran1199.github.io/sooraj-portfolio/portfolio-overview.html"><strong>Portfolio Overview PDF</strong></a> ·
+  <a href="https://soorajsudhakaran1199.github.io/sooraj-portfolio/request-cv.html"><strong>Request CV</strong></a> ·
   <a href="https://soorajsudhakaran1199.github.io/sooraj-portfolio/feedback.html"><strong>Feedback and Contact</strong></a>
 </p>
 
@@ -28,60 +28,48 @@
   <a href="https://github.com/SoorajSudhakaran1199/sooraj-portfolio">
     <img src="https://img.shields.io/badge/Deployment-GitHub%20Pages-1f2937?style=for-the-badge" alt="GitHub Pages deployment" />
   </a>
-  <a href="https://soorajsudhakaran1199.github.io/sooraj-portfolio/feedback.html">
-    <img src="https://img.shields.io/badge/Contact-Feedback%20Form-0b3d2e?style=for-the-badge" alt="Feedback and contact form" />
+  <a href="https://soorajsudhakaran1199.github.io/sooraj-portfolio/request-cv.html">
+    <img src="https://img.shields.io/badge/Recruiter-CV%20Request-0b3d2e?style=for-the-badge" alt="Request CV" />
   </a>
-  <a href="https://soorajsudhakaran1199.github.io/sooraj-portfolio/experience-masters-thesis-keba.html">
-    <img src="https://img.shields.io/badge/Focus-Industrial%20Robotics-10233f?style=for-the-badge" alt="Industrial robotics focus" />
+  <a href="https://soorajsudhakaran1199.github.io/sooraj-portfolio/portfolio-overview.html">
+    <img src="https://img.shields.io/badge/Download-Portfolio%20PDF-10233f?style=for-the-badge" alt="Portfolio PDF" />
   </a>
 </p>
 
 ## Overview
 
-This repository contains the source structure for the personal portfolio website of Sooraj Sudhakaran. The website is designed to present a robotics and automation profile in a clear, recruiter-friendly format while still giving enough technical depth for engineering teams, thesis reviewers, and collaborators.
+This repository contains the source for the personal portfolio website of Sooraj Sudhakaran. The site is designed to present robotics, automation, simulation, and deployment-facing engineering work in a way that is readable for recruiters, useful for hiring managers, and still detailed enough for technical reviewers.
 
 The portfolio combines:
 
-- professional profile positioning
-- project and experience pages
-- bilingual website support
-- recruiter contact and CV request flows
-- analytics and search visibility setup
+- a recruiter-friendly homepage with fast role-fit framing
+- dedicated project and experience pages
+- a structured contact, feedback, and CV-request flow
+- a role-aware chatbot assistant
+- public review visibility
+- a recruiter-ready downloadable portfolio overview
+- lightweight operational tracking and admin controls
 
-## What The Website Includes
+## What The Portfolio Includes
 
-- a recruiter-facing homepage with profile summary, skills, experience, projects, reviews, and contact
-- dedicated pages for experience, thesis work, and engineering projects
-- a journey page covering academic and professional transition from India to Germany
-- a structured feedback and contact form
-- a CV request form
-- public review and rating visibility
-- shared website status and admin management support
+- homepage with profile summary, role fit, skills, experience, projects, reviews, and contact paths
+- detailed pages for thesis work, KEBA experience, robotics projects, VR/simulation work, controls work, and design work
+- journey page showing the India-to-Germany academic and professional path
+- feedback and contact page with mode-based workflow
+- dedicated CV request page
+- recruiter-ready portfolio overview page with print-to-PDF download path
+- bilingual English and German interface support
+- private admin controls for site operations and chatbot log review
 
-## Featured Pages
+## Main Entry Points
 
-<table>
-  <tr>
-    <td width="33%">
-      <a href="https://soorajsudhakaran1199.github.io/sooraj-portfolio/">
-        <img src="https://soorajsudhakaran1199.github.io/sooraj-portfolio/assets/images/readme-preview.png" alt="Homepage preview" width="100%" />
-      </a>
-      <p><strong>Homepage</strong><br />Main portfolio overview, fit summary, projects, reviews, and contact access.</p>
-    </td>
-    <td width="33%">
-      <a href="https://soorajsudhakaran1199.github.io/sooraj-portfolio/journey.html">
-        <img src="https://soorajsudhakaran1199.github.io/sooraj-portfolio/assets/images/my%20journey%20.webp" alt="Journey page preview" width="100%" />
-      </a>
-      <p><strong>Journey</strong><br />Background, transition, lived experience in Germany, and profile development context.</p>
-    </td>
-    <td width="33%">
-      <a href="https://soorajsudhakaran1199.github.io/sooraj-portfolio/experience-masters-thesis-keba.html">
-        <img src="https://soorajsudhakaran1199.github.io/sooraj-portfolio/assets/images/keba-thesis.jpeg" alt="Industrial robotics thesis preview" width="100%" />
-      </a>
-      <p><strong>Industrial Robotics Thesis</strong><br />Core thesis page with the strongest robotics and deployment-oriented technical signal.</p>
-    </td>
-  </tr>
-</table>
+- Live homepage: `https://soorajsudhakaran1199.github.io/sooraj-portfolio/`
+- Portfolio map: `https://soorajsudhakaran1199.github.io/sooraj-portfolio/portfolio-map.html`
+- Recruiter portfolio overview: `https://soorajsudhakaran1199.github.io/sooraj-portfolio/portfolio-overview.html`
+- Journey page: `https://soorajsudhakaran1199.github.io/sooraj-portfolio/journey.html`
+- Industrial robotics thesis: `https://soorajsudhakaran1199.github.io/sooraj-portfolio/experience-masters-thesis-keba.html`
+- Feedback and contact: `https://soorajsudhakaran1199.github.io/sooraj-portfolio/feedback.html`
+- CV request: `https://soorajsudhakaran1199.github.io/sooraj-portfolio/request-cv.html`
 
 ## Best Fit
 
@@ -100,323 +88,272 @@ Strong profile signals presented across the site:
 - thesis work linked to planning-to-deployment workflows
 - ROS and autonomous robotics projects
 - simulation, optimization, VR, and systems-focused engineering work
+- recruiter-ready contact and PDF download paths
 
-## Languages Included
+## Languages And Stack
 
-The website currently supports:
+### User-facing languages
 
 - English
 - German
 
-Navigation labels, major content areas, form wording, and interface copy are designed to work in both languages.
-
-## How The Website Was Built
-
-This portfolio was built as a static multi-page website so it stays fast, easy to maintain, and simple to deploy on GitHub Pages.
-
-In general terms:
-
-- `HTML` is used to build the page structure
-- `CSS` is used for layout, visual design, responsive behavior, and presentation
-- `JavaScript` is used for interactions, animations, translations, analytics, filtering, form logic, and admin behavior
-
-The website was developed by:
-
-- planning the main portfolio sections such as About, Skills, Experience, Projects, Journey, Reviews, and Contact
-- creating separate detail pages for important thesis, project, and experience items
-- organizing images and documents into a clearer asset structure
-- adding bilingual English and German support
-- improving search visibility with metadata, structured data, canonical URLs, `robots.txt`, and `sitemap.xml`
-- connecting analytics tools to understand visits, clicks, and behavior on the website
-
-The result is a portfolio site that should remain understandable for non-experts while still being detailed enough for technical review.
-
-## Tech Stack
+### Implementation languages and formats
 
 - HTML
 - CSS
 - JavaScript
+- JSON
+- SQL
+- Python
+
+### Services and tools
+
 - GitHub Pages
-- Supabase
+- Supabase Auth
+- Supabase Postgres / RPC / REST
 - Web3Forms
 - Google Analytics 4
 - Microsoft Clarity
-- Google Search Console support
 
-## Main Capabilities
+## Architecture
 
-- static multi-page portfolio architecture
-- recruiter-focused homepage structure
-- project and experience detail pages
-- bilingual user interface
-- feedback and contact workflow
-- CV request workflow
-- public review and rating display
-- secure admin mode using Supabase authentication
-- SEO setup with:
-  - `robots.txt`
-  - `sitemap.xml`
-  - canonical URLs
-  - Open Graph metadata
-  - Twitter metadata
-  - JSON-LD structured data
+This is a static multi-page portfolio with a lightweight service layer.
 
-## Feature Walkthrough
+### Frontend
 
-The website is designed so that a recruiter, hiring manager, professor, collaborator, or general visitor can understand the profile quickly and then move into deeper technical pages only when needed.
+- root HTML pages define the public portfolio pages
+- `style.css` holds the main visual system, responsive behavior, print styling, and chatbot styling
+- `app.js` handles translations, UI behavior, analytics hooks, forms, admin controls, chatbot logic, and client-side integrations
 
-Important live entry points:
+### Service layer
 
-- Homepage: `https://soorajsudhakaran1199.github.io/sooraj-portfolio/`
-- Feedback and contact page: `https://soorajsudhakaran1199.github.io/sooraj-portfolio/feedback.html`
-- CV request page: `https://soorajsudhakaran1199.github.io/sooraj-portfolio/request-cv.html`
-- Journey page: `https://soorajsudhakaran1199.github.io/sooraj-portfolio/journey.html`
-- Industrial robotics thesis page: `https://soorajsudhakaran1199.github.io/sooraj-portfolio/experience-masters-thesis-keba.html`
+- `Web3Forms` handles direct message and CV request delivery
+- `Supabase` handles authenticated admin features, shared submission events, and chatbot session storage
+- analytics tools measure traffic and interaction behavior
 
-## How The Feedback And Contact System Works
+### Operational model
 
-The feedback page was created to serve two different needs inside one clean workflow:
+- visitors use public pages, forms, review flows, and chatbot guidance
+- recruiters can use the CV request path and recruiter-ready PDF overview
+- admin mode unlocks private review, summary, and chatbot log controls after authentication
 
-- professional feedback about the website, profile, or presentation
-- direct contact messages from recruiters, companies, or collaborators
+## Chatbot Assistant
 
-Instead of building two completely separate pages, the website uses one structured form that changes its wording and required fields based on the visitor's selected message type.
+The portfolio includes a role-aware assistant built into the website.
 
-In simple terms, the flow works like this:
+It supports:
 
-1. the visitor opens the feedback page and chooses either `Feedback form` or `Contact form`
-2. the page automatically updates the visible fields, labels, hints, and required information
-3. the form validates the information in the browser before sending it
-4. the submission is sent through `Web3Forms`, which handles delivery without needing a traditional custom backend server
-5. after a successful submission, the visitor is redirected to a thank-you page
-6. the website updates the shared submission summary so the overall activity can be reviewed later
+- recruiter, student, and general-visitor guidance paths
+- direct website Q&A routing
+- English and German responses
+- CV request guidance
+- direct contact guidance
+- recruiter-level redirects for hiring-only questions
+- privacy/info panel inside the chat UI
+- chat transcript storage for admin review
 
-This approach was chosen because it is practical, fast to maintain, and suitable for a GitHub Pages website. It gives the portfolio a real professional contact workflow without turning the project into a heavy full-stack application.
+Current practical chatbot scope:
 
-What makes this form professional:
+- answers portfolio, project, education, experience, review, and contact questions
+- handles greetings, small talk, direct navigation help, and common visitor questions
+- blocks abusive input and restricts confidential requests
+- offers official routes for CV, contact, email, and portfolio download
 
-- clear separation between feedback messages and direct contact requests
-- custom validation and error messaging instead of relying only on browser defaults
-- bilingual wording for English and German visitors
-- thank-you confirmation flow after successful submission
-- structured submission summaries for operational visibility
+Current limitations:
 
-## How The CV Request Flow Works
+- no direct image upload or image processing inside the chat yet
+- no live direct conversation with Sooraj inside the chat
+- some hiring-specific answers are intentionally limited to recruiter context
 
-The `Request CV` page is a separate workflow because a CV request is different from a normal contact message. A recruiter or hiring manager often wants the latest CV quickly, without writing a long message.
+## Portfolio Overview PDF
 
-The CV request flow was created so the visitor can:
+The repository includes a recruiter-ready portfolio overview page:
 
-- enter their name, company, role, email, country, and an optional note
-- submit a simple request through the website
-- receive a clear confirmation path after submission
+- `portfolio-overview.html`
+- print-friendly layout
+- intended for browser `Print -> Save as PDF`
+- focused on profile summary, education, experience, projects, skills, certifications, and contact links
 
-Behind the scenes, the page uses the same reliable submission idea as the feedback workflow:
+This is different from the CV request flow:
 
-- the browser checks the required fields before sending
-- the request is submitted through `Web3Forms`
-- the website records the request as a `cv` type submission for later summary and analysis
-- the visitor is redirected to the thank-you page after success
+- `portfolio overview` is a public recruiter-facing summary
+- `CV request` is the controlled route for requesting the latest CV directly from Sooraj
 
-This makes the website more recruiter-friendly because it reduces friction. A visitor does not need to search for an email template or guess what information to provide.
+## Feedback, Contact, And CV Request Flows
 
-## How Admin Mode Was Created
+### Feedback and contact
 
-Admin mode was created as a private management layer on top of the public portfolio. The goal was not to build a large content-management system, but to provide a secure and lightweight way to manage operational controls directly from the live website.
+The feedback page supports two professional workflows inside one structured interface:
 
-The admin experience works in a simple way:
+- website feedback, corrections, design suggestions, and reviews
+- direct professional contact messages
 
-1. every visitor sees the website in `User mode` by default
-2. an `Admin mode` switch is available in the navigation
-3. when admin mode is selected, the website opens a secure sign-in dialog
-4. authentication is handled through `Supabase Auth`
-5. admin access is only enabled when the signed-in session matches the approved admin email
-6. once authenticated, private management controls become available in that browser session
+The mode changes labels, hints, and required fields so the same page can support both kinds of submissions cleanly.
 
-What admin mode is used for:
+### CV request
 
-- refreshing private submission statistics
-- clearing or deleting individual submission records from the admin log
-- reviewing summary counts such as total submissions, CV requests, and country distribution
-- refreshing the website update timestamp shown in the top status bar
+The CV request page is separate because recruiter intent is different from a normal contact message. It is designed to reduce friction and capture the basic information needed for a CV request clearly.
 
-Why this is a strong design choice:
+## Supabase Data Layer
 
-- the public website stays simple for normal visitors
-- private controls are hidden unless authentication succeeds
-- the solution fits well with a static website architecture
-- it avoids exposing sensitive management actions to general users
+The project currently includes two main SQL-backed operational layers:
 
-In non-technical terms, admin mode acts like a secure private control panel built into the website rather than a separate dashboard application.
+- `supabase/portfolio_submission_events.sql`
+  - shared submission event tracking for feedback, contact, and CV requests
+- `supabase/portfolio_help_bot_sessions.sql`
+  - chatbot session storage and admin-side chatbot log review
 
-## How Viewer Insights And Submission Analysis Work
+Supabase is also used for:
 
-The website analyses visitor activity using two different layers so the owner can understand both traffic and meaningful engagement.
+- admin authentication
+- private admin access checks
+- chatbot log inspection and deletion
 
-### 1. Visitor behavior analytics
+## Privacy And EU-Facing Notes
 
-General visitor behavior is measured with:
+The chatbot and site include a practical privacy and transparency layer.
 
-- `Google Analytics 4`
-- `Microsoft Clarity`
+Current visible handling includes:
 
-In practice, this means the site owner can review aggregate traffic and interaction patterns through established analytics tools, while keeping the public website itself lightweight.
+- chatbot privacy note and info panel
+- chat-log storage disclosure inside the chatbot
+- deletion-request route through contact
+- confidential-data boundary replies for passwords, private credentials, and other restricted information
+- AI assistant transparency in the chat UI
 
-These tools help answer questions such as:
+The chatbot also contains user-facing guidance for EU/GDPR-style questions, including general references to:
 
-- how many people are visiting the site
-- which pages attract the most attention
-- which buttons or links are clicked most often
-- whether people open the CV request flow, journey page, GitHub profile, LinkedIn profile, or feedback form
-- how visitors move through the website
+- GDPR
+- ePrivacy
+- EU AI Act transparency direction
 
-The website also tracks important call-to-action events such as:
+This repository is not legal advice, but the project is structured to be transparent about chat logging, contact handling, and admin-side access.
 
-- contact clicks
-- CV request opens and successful CV submissions
-- feedback form opens
-- journey page opens
-- GitHub and LinkedIn clicks
-- navigation interactions
+## Admin Mode
 
-### 2. Submission-level business insight
+Admin mode is a private operational layer on top of the public portfolio.
 
-The website also keeps a structured summary of form activity so the owner can understand the practical outcome of visitor interest, not only raw page traffic.
+It is used for:
 
-This includes information such as:
+- private submission summary review
+- chatbot session inspection and deletion
+- website maintenance/update controls
+- shared activity visibility
 
-- total submissions received
-- number of CV requests
-- country-level submission distribution
-- rating values from feedback entries
-- review count and average rating used in the public review summary
+Admin access is unlocked only after successful authentication through Supabase Auth and approved admin-session checks.
 
-The shared event data is stored through `Supabase`, with local fallback handling for resilience when needed. This gives the site a lightweight reporting layer without requiring a large reporting platform.
+## Analytics And Operational Insight
 
-For a non-expert reader, the easiest way to understand it is:
+The site uses analytics and shared event tracking for two different purposes.
 
-- analytics tools show how people use the website
-- submission summaries show what useful actions people actually completed
+### Visitor behavior analytics
 
-## Privacy And Professional Handling Of Visitor Data
+Measured through:
 
-The website is designed to be professional in how it handles visitor interactions.
+- Google Analytics 4
+- Microsoft Clarity
 
-Important practical principles:
+Used for:
 
-- submitted messages are used for direct communication and operational review
-- public pages show summary information such as ratings, counts, and country reach, not private message content
-- admin-only controls are protected behind authentication
-- analytics are used to understand traffic and user behavior, not to publish personal contact information
-- the form and summary design focuses on business usefulness rather than unnecessary data collection
+- traffic measurement
+- navigation and click behavior
+- CTA tracking
+- heatmaps and session behavior review
 
-This separation is important because it keeps the site credible for recruiters and professional visitors while still giving the site owner useful operational visibility.
+### Submission-level operational insight
 
-## Website Status And Update Tracking
+Used for:
 
-The website also includes a visible `Last updated` status bar. This was created so visitors can see whether the portfolio is actively maintained.
-
-The update indicator works by checking the latest modification time across important public files such as:
-
-- main pages
-- project and experience pages
-- `style.css`
-- `app.js`
-
-An admin can also refresh the shared update timestamp so the live website reflects the latest publish state more clearly.
-
-This adds a professional maintenance signal because the portfolio does not look abandoned or uncertain about its freshness.
-
-## Non-Technical System Flow
-
-The overall website logic can be understood with this simplified map:
-
-```text
-Visitor
-  -> opens portfolio page
-  -> explores pages, buttons, and links
-  -> analytics tools record page and click behavior
-
-Visitor
-  -> opens Feedback or Request CV workflow
-  -> completes validated form
-  -> submission is delivered through Web3Forms
-  -> summary event is recorded for reporting
-  -> thank-you page confirms completion
-
-Admin
-  -> signs in through Supabase Auth
-  -> unlocks private controls
-  -> reviews submission summaries and maintenance status
-  -> refreshes update time or manages submission records
-```
-
-This architecture keeps the website understandable for non-experts while still providing real operational value behind the scenes.
+- feedback/contact/CV event counting
+- country-level submission visibility
+- review-related totals and summary signals
+- operational tracking without building a heavy backend dashboard
 
 ## Repository Structure
 
 ```text
 .
 ├── README.md
+├── app.js
+├── style.css
+├── index.html
+├── journey.html
+├── portfolio-map.html
+├── portfolio-overview.html
+├── feedback.html
+├── feedback-thank-you.html
+├── request-cv.html
+├── experience-*.html
+├── project-*.html
+├── assets/
+│   ├── data/
+│   │   └── help-bot-question-bank.json
+│   ├── images/
+│   └── documents/
 ├── scripts/
-├── site/
-│   ├── index.html
-│   ├── journey.html
-│   ├── feedback.html
-│   ├── feedback-thank-you.html
-│   ├── request-cv.html
-│   ├── portfolio-map.html
-│   ├── experience-*.html
-│   ├── project-*.html
-│   ├── app.js
-│   ├── style.css
-│   ├── robots.txt
-│   ├── sitemap.xml
-│   ├── assets/
-│   │   ├── images/
-│   │   └── documents/
-│   └── README.md
-└── supabase/
-    └── portfolio_submission_events.sql
+│   ├── responsive_audit.mjs
+│   ├── animation_audit.mjs
+│   └── legacy/
+├── supabase/
+│   ├── portfolio_submission_events.sql
+│   └── portfolio_help_bot_sessions.sql
+└── site/
+    ├── README.md
+    ├── app.js
+    ├── style.css
+    ├── index.html
+    ├── portfolio-overview.html
+    ├── feedback.html
+    ├── request-cv.html
+    ├── assets/
+    └── project and experience page mirrors
 ```
+
+## Root And `site/` Mirror
+
+This repository contains both:
+
+- the main root website files
+- a mirrored `site/` copy
+
+When changing shared UI or chatbot logic, the main mirrored files should stay aligned, especially:
+
+- `app.js` and `site/app.js`
+- `style.css` and `site/style.css`
+- `assets/data/help-bot-question-bank.json` and `site/assets/data/help-bot-question-bank.json`
+
+## Local Development
+
+This project does not depend on a heavy build system for normal editing.
+
+Typical local workflow:
+
+1. edit the relevant HTML, CSS, JS, JSON, or SQL files
+2. open the site locally with a static server
+3. test the public pages, forms, chatbot, and responsive layout
+4. keep root and `site/` mirrored files in sync where required
+5. commit and push to `main`
+
+Useful places to edit:
+
+- `app.js` for chatbot, admin logic, analytics hooks, and UI behavior
+- `style.css` for layout, motion, visual design, print styling, and chat UI
+- `assets/data/help-bot-question-bank.json` for chatbot phrasing and question coverage
+- `portfolio-overview.html` for recruiter PDF/download content
+- `supabase/*.sql` for data-layer changes
 
 ## Deployment
 
-The deployable website files live inside `site/`.
+The project is designed for GitHub Pages deployment.
 
-Typical deployment flow:
+Practical deployment model:
 
-1. sync the contents of `site/` into the GitHub Pages repository root
-2. commit the updated files
-3. push to `main`
-4. allow GitHub Pages to redeploy
+1. keep the repository files current
+2. push to `main`
+3. allow GitHub Pages to redeploy
+4. verify the public site, chatbot behavior, and portfolio-download flow
 
-Example sync:
-
-```bash
-rsync -av --exclude='.DS_Store' "/path/to/sooraj-portfolio-cleaned/site/" /path/to/deployment-repo/
-```
-
-## Search, Analytics, and Reach
-
-Search visibility support includes:
-
-- sitemap and crawler directives
-- canonical page URLs
-- structured metadata
-- internal linking between homepage, thesis, experience, projects, journey, and contact
-
-Analytics and visitor tracking include:
-
-- Google Analytics 4
-- Microsoft Clarity
-
-These support:
-
-- page traffic measurement
-- click tracking
-- interaction visibility
-- session recordings and heatmaps
+If the deployment setup uses the mirrored `site/` layer, keep that structure aligned before pushing.
 
 ## Contact
 
@@ -425,34 +362,29 @@ For professional contact, collaboration, portfolio review, or recruiter outreach
 - Email: `soorajsudhakaran1199@gmail.com`
 - LinkedIn: `https://www.linkedin.com/in/sooraj-sudhakaran1999`
 - GitHub: `https://github.com/SoorajSudhakaran1199`
-- Feedback and contact form: `https://soorajsudhakaran1199.github.io/sooraj-portfolio/feedback.html`
+- Contact form: `https://soorajsudhakaran1199.github.io/sooraj-portfolio/feedback.html?type=contact#feedback-form`
+- CV request: `https://soorajsudhakaran1199.github.io/sooraj-portfolio/request-cv.html`
 
 ## Maintenance Notes
 
-- keep public page URLs stable when possible
-- place new images under `site/assets/images/`
-- place documents under `site/assets/documents/`
-- keep English and German content aligned when updating visible text
-- treat `site/` as the deployable web layer
-
-## Site Folder Reference
-
-For the site-level structure and deployment notes, see [site/README.md](site/README.md).
+- keep public URLs stable when possible
+- keep English and German content aligned
+- keep root and `site/` mirrored files aligned where applicable
+- place new chatbot questions in the shared question-bank structure
+- treat Supabase SQL changes as part of the real production behavior, not only documentation
+- test print/PDF output after changing `portfolio-overview.html` or print styles
 
 ## Share Feedback Or Review
 
-If you review the website, profile, project pages, or overall presentation, professional feedback is welcome. Thoughtful feedback helps improve clarity, recruiter experience, technical presentation, and the overall quality of the portfolio.
+Professional feedback is welcome, especially on:
 
-Best ways to respond:
+- recruiter clarity
+- technical presentation
+- website usability
+- chatbot quality
+- project communication
+- portfolio download quality
 
-- Share feedback or a professional review: `https://soorajsudhakaran1199.github.io/sooraj-portfolio/feedback.html`
-- View the live portfolio before reviewing: `https://soorajsudhakaran1199.github.io/sooraj-portfolio/`
+Best feedback path:
 
-<p align="center">
-  <a href="https://soorajsudhakaran1199.github.io/sooraj-portfolio/feedback.html">
-    <img src="https://img.shields.io/badge/Share-Feedback%20or%20Review-0b3d2e?style=for-the-badge" alt="Share feedback or review" />
-  </a>
-  <a href="https://soorajsudhakaran1199.github.io/sooraj-portfolio/">
-    <img src="https://img.shields.io/badge/Open-Live%20Portfolio-10233f?style=for-the-badge" alt="Open live portfolio" />
-  </a>
-</p>
+- `https://soorajsudhakaran1199.github.io/sooraj-portfolio/feedback.html`
