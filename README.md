@@ -359,11 +359,11 @@ If the deployment setup uses the mirrored `site/` layer, keep that structure ali
 
 For professional contact, collaboration, portfolio review, or recruiter outreach:
 
-- Email: `soorajsudhakaran1199@gmail.com`
-- LinkedIn: `https://www.linkedin.com/in/sooraj-sudhakaran1999`
-- GitHub: `https://github.com/SoorajSudhakaran1199`
-- Contact form: `https://soorajsudhakaran1199.github.io/sooraj-portfolio/feedback.html?type=contact#feedback-form`
-- CV request: `https://soorajsudhakaran1199.github.io/sooraj-portfolio/request-cv.html`
+- Email: [soorajsudhakaran1199@gmail.com](mailto:soorajsudhakaran1199@gmail.com)
+- LinkedIn: [Open LinkedIn profile](https://www.linkedin.com/in/sooraj-sudhakaran1999)
+- GitHub: [Open GitHub profile](https://github.com/SoorajSudhakaran1199)
+- Contact form: [Open contact form](https://soorajsudhakaran1199.github.io/sooraj-portfolio/feedback.html?type=contact#feedback-form)
+- CV request: [Open CV request page](https://soorajsudhakaran1199.github.io/sooraj-portfolio/request-cv.html)
 
 ## Maintenance Notes
 
