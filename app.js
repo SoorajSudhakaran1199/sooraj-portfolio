@@ -1263,6 +1263,7 @@ function renderPublicReviewListContent({ list, reviews, copy, lang, isAdminMode,
   if (!(list instanceof HTMLElement)) return;
 
   list.innerHTML = "";
+  const isFeaturedList = Boolean(list.closest(".review-featured-panel"));
 
   if (!reviews.length) {
     const empty = document.createElement("span");
@@ -1307,8 +1308,8 @@ function renderPublicReviewListContent({ list, reviews, copy, lang, isAdminMode,
     const pinBadge = review.isPinned
       ? `<span class="feedback-public-review-pin-badge">${escapeHtml(copy.pinnedBadge)}</span>`
       : "";
-    const isLongReview = reviewText.length > 260;
-    const hasLongReply = String(review.adminReply || "").trim().length > 220;
+    const isLongReview = reviewText.length > (isFeaturedList ? 90 : 260);
+    const hasLongReply = String(review.adminReply || "").trim().length > (isFeaturedList ? 90 : 220);
     const toggleButton = isLongReview
       ? `<button class="feedback-public-review-toggle" type="button" data-review-toggle aria-expanded="false"><span>${escapeHtml(copy.readMore)}</span></button>`
       : "";
@@ -3107,7 +3108,7 @@ function setupCompactNav() {
 
   const desktopQuery = window.matchMedia("(min-width: 781px)");
   const compactEnterThreshold = 88;
-  const compactExitThreshold = 24;
+  const compactExitThreshold = 4;
   let ticking = false;
   let isCompact = nav.classList.contains("is-compact");
 
@@ -3123,9 +3124,7 @@ function setupCompactNav() {
     }
 
     const scrollY = window.scrollY;
-    const nextCompact = isCompact
-      ? scrollY > compactExitThreshold
-      : scrollY > compactEnterThreshold;
+    const nextCompact = scrollY <= compactExitThreshold ? false : scrollY > compactEnterThreshold;
 
     if (nextCompact === isCompact) return;
 
@@ -4370,19 +4369,19 @@ function setupHomepageFirstFoldState() {
   let ticking = false;
   let isComplete = document.body.classList.contains("homepage-first-fold-complete");
   let enterThreshold = 180;
-  let exitThreshold = 96;
+  let exitThreshold = 4;
 
   const refreshThresholds = () => {
     const heroHeight = hero.offsetHeight || hero.getBoundingClientRect().height || window.innerHeight;
     const baseThreshold = Math.max(Math.min(heroHeight * 0.42, window.innerHeight * 0.46), 180);
     enterThreshold = Math.round(baseThreshold);
-    exitThreshold = Math.round(Math.max(Math.min(baseThreshold * 0.58, 160), 96));
+    exitThreshold = 4;
   };
 
   const updateState = () => {
     ticking = false;
     const scrollY = window.scrollY;
-    const nextComplete = isComplete ? scrollY > exitThreshold : scrollY > enterThreshold;
+    const nextComplete = scrollY <= exitThreshold ? false : scrollY > enterThreshold;
     if (nextComplete === isComplete) return;
     isComplete = nextComplete;
     document.body.classList.toggle("homepage-first-fold-complete", isComplete);
