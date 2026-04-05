@@ -4233,6 +4233,7 @@ function setupScrollTopButton() {
   `;
 
   rail.append(upButton);
+  rail.append(downButton);
 
   const setButtonVisible = (button, shouldShow) => {
     const isVisible = button.classList.contains("is-visible");
@@ -4270,26 +4271,16 @@ function setupScrollTopButton() {
     });
   });
 
-  const isHomepage = document.body.classList.contains("portfolio-page") && !document.body.classList.contains("detail-page");
-  if (isHomepage) {
-    downButton.classList.add("scroll-nav-button-home");
-  }
-
   document.body.classList.add("has-scroll-direction-buttons");
   const shell = document.querySelector(".page-shell");
-  const hero = document.querySelector("main > .hero");
   (shell || document.body).append(rail);
-  if (isHomepage) {
-    (hero || shell || document.body).append(downButton);
-  }
 
   const updateVisibility = () => {
+    const scrollTop = Math.max(window.scrollY || 0, 0);
     const scrollable = Math.max(document.documentElement.scrollHeight - window.innerHeight, 0);
-    setButtonVisible(upButton, window.scrollY > 520);
-    setButtonVisible(
-      downButton,
-      isHomepage && scrollable > 0 && window.scrollY < Math.max(window.innerHeight * 0.32, 180)
-    );
+    const nearBottom = scrollTop >= Math.max(scrollable - 140, 0);
+    setButtonVisible(upButton, scrollTop > 320);
+    setButtonVisible(downButton, scrollable > 160 && !nearBottom);
   };
 
   window.addEventListener("scroll", updateVisibility, { passive: true });

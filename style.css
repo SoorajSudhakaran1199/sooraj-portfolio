@@ -4070,36 +4070,10 @@ body.portfolio-page:not(.detail-page) .hero-photo-frame {
   position: relative;
 }
 
-.scroll-nav-button.scroll-nav-button-home {
-  position: absolute;
-  left: 50%;
-  bottom: 0.45rem;
-  transform: translate(-50%, 10px);
-  width: 3.15rem;
-  height: 3.15rem;
-  border-color: rgba(89, 226, 188, 0.24);
-  box-shadow: 0 18px 34px rgba(5, 13, 24, 0.28);
-}
-
-body.portfolio-page:not(.detail-page) .scroll-nav-button.scroll-nav-button-home {
-  bottom: 0.32rem;
-  width: 2.8rem;
-  height: 2.8rem;
-  border-color: rgba(89, 226, 188, 0.18);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.025)),
-    rgba(7, 17, 31, 0.72);
-  box-shadow: 0 12px 24px rgba(5, 13, 24, 0.18);
-}
-
 .scroll-nav-button.is-visible {
   opacity: 1;
   transform: translateY(0);
   pointer-events: auto;
-}
-
-.scroll-nav-button.scroll-nav-button-home.is-visible {
-  transform: translate(-50%, 0);
 }
 
 .scroll-nav-button:hover,
@@ -4121,16 +4095,6 @@ body.portfolio-page:not(.detail-page) .scroll-nav-button.scroll-nav-button-home 
   height: 1.05rem;
 }
 
-body.portfolio-page:not(.detail-page) .scroll-nav-button.scroll-nav-button-home .scroll-nav-button-icon {
-  width: 1.25rem;
-  height: 1.25rem;
-}
-
-body.portfolio-page:not(.detail-page) .scroll-nav-button.scroll-nav-button-home .scroll-nav-button-icon svg {
-  width: 0.88rem;
-  height: 0.88rem;
-}
-
 body.has-page-back-button .scroll-direction-buttons {
   bottom: calc(max(1rem, env(safe-area-inset-bottom)) + 4.25rem);
 }
@@ -4149,12 +4113,6 @@ body.has-page-back-button .scroll-direction-buttons {
   box-shadow: 0 18px 36px rgba(33, 54, 87, 0.16);
 }
 
-[data-theme="light"] body.portfolio-page:not(.detail-page) .scroll-nav-button.scroll-nav-button-home {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(247, 250, 255, 0.76)),
-    rgba(255, 255, 255, 0.82);
-  box-shadow: 0 12px 24px rgba(33, 54, 87, 0.1);
-}
 
 .btn-attention {
   position: relative;
@@ -13743,10 +13701,6 @@ body.vacuum-detail-page .detail-repo-text {
 
   body.has-page-back-button .scroll-direction-buttons {
     bottom: calc(max(0.95rem, env(safe-area-inset-bottom)) + 7.95rem);
-  }
-
-  .scroll-nav-button.scroll-nav-button-home {
-    bottom: calc(max(0.95rem, env(safe-area-inset-bottom)) + 0.35rem);
   }
 
   .nav-actions {
