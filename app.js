@@ -3038,6 +3038,10 @@ function setupMobileNav() {
   const navActions = navInner?.querySelector(".nav-actions");
   if (!navInner || !navLinks || !navActions) return;
 
+  if (document.querySelector(".mobile-top-quick-actions")) {
+    navInner.classList.add("has-mobile-quick-actions");
+  }
+
   const lang = document.documentElement.lang === "de" ? "de" : "en";
   const labels = lang === "de"
     ? { open: "Navigation oeffnen", close: "Navigation schliessen" }
@@ -3110,6 +3114,39 @@ function setupMobileNav() {
     }
   });
   toggle.dataset.mobileNavReady = "true";
+}
+
+function setupResponsiveNavLabels() {
+  const options = Array.from(document.querySelectorAll(".portfolio-view-switch .portfolio-view-option"));
+  if (!options.length) return;
+
+  options.forEach((option) => {
+    if (!option.dataset.labelFull) {
+      option.dataset.labelFull = option.textContent.trim();
+    }
+  });
+
+  const mediaQuery = window.matchMedia("(max-width: 560px)");
+  const applyLabels = () => {
+    options.forEach((option) => {
+      const href = option.getAttribute("href") || "";
+      const isMap = href.includes("portfolio-map");
+      const fullLabel = option.dataset.labelFull || option.textContent.trim();
+      const shortLabel = isMap
+        ? (document.documentElement.lang === "de" ? "Karte" : "Map")
+        : (document.documentElement.lang === "de" ? "Details" : "Details");
+      option.textContent = mediaQuery.matches ? shortLabel : fullLabel;
+      option.setAttribute("aria-label", fullLabel);
+      option.setAttribute("title", fullLabel);
+    });
+  };
+
+  applyLabels();
+  if (typeof mediaQuery.addEventListener === "function") {
+    mediaQuery.addEventListener("change", applyLabels);
+  } else if (typeof mediaQuery.addListener === "function") {
+    mediaQuery.addListener(applyLabels);
+  }
 }
 
 function setupCompactNav() {
@@ -23028,6 +23065,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupAdminModeControl();
   setupHomepageSectionFilter();
   setupMobileNav();
+  setupResponsiveNavLabels();
   setupCompactNav();
   setupHeroViewportFit();
   setupHomepageFirstFoldState();
