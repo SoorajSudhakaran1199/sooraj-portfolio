@@ -3204,16 +3204,205 @@ function setupReveal() {
   items.forEach((item) => observer.observe(item));
 }
 
+function setupPortfolioMotion() {
+  const root = document.body;
+  if (!root) return;
+
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const uniqueElements = (elements = []) => Array.from(new Set(
+    (Array.isArray(elements) ? elements : [])
+      .filter((element) => element instanceof HTMLElement && !element.hidden)
+  ));
+  const queryUnique = (selectors = []) => uniqueElements(
+    (Array.isArray(selectors) ? selectors : [])
+      .flatMap((selector) => Array.from(document.querySelectorAll(selector)))
+  );
+
+  const applyRevealStagger = (selector, {
+    step = 0.08,
+    start = 0.02,
+    max = 0.54,
+    alternate = false,
+    distance = ""
+  } = {}) => {
+    const elements = uniqueElements(Array.from(document.querySelectorAll(selector)));
+    elements.forEach((element, index) => {
+      if (!element.style.getPropertyValue("--reveal-delay")) {
+        const delay = Math.min(start + (index * step), max);
+        element.style.setProperty("--reveal-delay", `${delay.toFixed(2)}s`);
+      }
+      if (distance && !element.style.getPropertyValue("--reveal-distance")) {
+        element.style.setProperty("--reveal-distance", distance);
+      }
+      if (alternate && !element.dataset.revealVariant) {
+        element.dataset.revealVariant = index % 2 === 0 ? "left" : "right";
+      }
+    });
+  };
+
+  applyRevealStagger(".section-heading.reveal-on-scroll", { step: 0.04, start: 0.04, max: 0.16, distance: "18px" });
+  applyRevealStagger(
+    [
+      ".experience-timeline > .reveal-on-scroll",
+      ".project-grid > .reveal-on-scroll",
+      ".feature-grid > .reveal-on-scroll",
+      ".portfolio-map-grid > .reveal-on-scroll",
+      ".journey-preview-grid > .reveal-on-scroll",
+      ".event-grid > .reveal-on-scroll",
+      ".accomplishment-grid > .reveal-on-scroll",
+      ".certificate-grid > .reveal-on-scroll",
+      ".education-grid > .reveal-on-scroll",
+      ".travel-grid > .reveal-on-scroll",
+      ".topic-explore-grid > .reveal-on-scroll",
+      ".faq-grid > .reveal-on-scroll"
+    ].join(", "),
+    { step: 0.08, start: 0.03, max: 0.42, alternate: true, distance: "24px" }
+  );
+
+  const heroSequence = queryUnique([
+    ".hero-copy > *",
+    ".hero-grid > .hero-card",
+    ".hero-support-main",
+    ".hero-support-side",
+    ".journey-hero .eyebrow",
+    ".journey-hero h1",
+    ".journey-hero .lead",
+    ".journey-hero .journey-actions > *",
+    ".journey-hero .journey-stage-strip",
+    ".journey-hero .quick-facts > *",
+    ".journey-hero .hero-card",
+    ".portfolio-map-hero .feedback-hero-copy > *",
+    ".portfolio-map-actions > *",
+    ".portfolio-map-hero .portfolio-map-snapshot"
+  ]);
+
+  const stageStrips = uniqueElements(Array.from(document.querySelectorAll(".journey-stage-strip")));
+  stageStrips.forEach((strip) => {
+    strip.classList.add("motion-stage-strip");
+    Array.from(strip.querySelectorAll(".journey-stage-item")).forEach((item, index) => {
+      item.style.setProperty("--motion-index", String(index));
+    });
+  });
+
+  const routeLines = uniqueElements(Array.from(document.querySelectorAll(".route-line")));
+  routeLines.forEach((line) => {
+    line.classList.add("motion-route");
+    Array.from(line.querySelectorAll(".route-node")).forEach((node, index) => {
+      node.style.setProperty("--motion-index", String(index));
+    });
+  });
+
+  const routeMapFrames = uniqueElements(Array.from(document.querySelectorAll(".route-map-frame")));
+  routeMapFrames.forEach((frame) => {
+    frame.classList.add("motion-route-map");
+    Array.from(frame.querySelectorAll(".route-map-grid-line, .route-map-land, .route-map-node, .route-map-flag, .route-map-label, .route-map-caption")).forEach((item, index) => {
+      item.style.setProperty("--motion-index", String(index));
+    });
+  });
+
+  const reviewSummaryGroups = uniqueElements(Array.from(document.querySelectorAll(".review-metric-grid")));
+  reviewSummaryGroups.forEach((group) => group.classList.add("motion-review-summary"));
+
+  const footerHeroBlocks = uniqueElements(Array.from(document.querySelectorAll(".footer-hero")));
+  footerHeroBlocks.forEach((block) => block.classList.add("motion-footer-hero"));
+
+  if (prefersReducedMotion) {
+    root.classList.add("motion-ready");
+    uniqueElements([...stageStrips, ...routeLines, ...routeMapFrames, ...reviewSummaryGroups, ...footerHeroBlocks]).forEach((element) => {
+      element.classList.add("is-motion-visible");
+    });
+    return;
+  }
+
+  root.classList.add("motion-pending");
+
+  heroSequence.forEach((element, index) => {
+    element.classList.add("motion-sequence-item");
+    if (!element.style.getPropertyValue("--motion-delay")) {
+      const delay = Math.min(0.05 + (index * 0.08), 0.72);
+      element.style.setProperty("--motion-delay", `${delay.toFixed(2)}s`);
+    }
+    if (!element.dataset.motionVariant) {
+      if (
+        element.matches(".hero-card, .hero-support-side, .portfolio-map-snapshot")
+        || element.closest(".hero-card, .hero-support-side, .portfolio-map-snapshot")
+      ) {
+        element.dataset.motionVariant = "right";
+      } else {
+        element.dataset.motionVariant = "left";
+      }
+    }
+  });
+
+  const motionObserverTargets = uniqueElements([
+    ...stageStrips,
+    ...routeLines,
+    ...routeMapFrames,
+    ...reviewSummaryGroups,
+    ...footerHeroBlocks,
+    ...Array.from(document.querySelectorAll(".experience-timeline, .portfolio-map-hero, .journey-preview-cta"))
+  ]);
+
+  if (motionObserverTargets.length && typeof IntersectionObserver === "function") {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add("is-motion-visible");
+          observer.unobserve(entry.target);
+        });
+      },
+      {
+        threshold: 0.18,
+        rootMargin: "0px 0px -10% 0px"
+      }
+    );
+
+    motionObserverTargets.forEach((element) => observer.observe(element));
+  } else {
+    motionObserverTargets.forEach((element) => element.classList.add("is-motion-visible"));
+  }
+
+  window.requestAnimationFrame(() => {
+    window.requestAnimationFrame(() => {
+      root.classList.remove("motion-pending");
+      root.classList.add("motion-ready");
+    });
+  });
+}
+
 function setupActiveNav() {
   const sections = Array.from(document.querySelectorAll("main section[id], main [data-nav-section][id], footer[id]"));
   const links = Array.from(document.querySelectorAll('.nav-links a[href^="#"]'));
   if (!sections.length || !links.length) return;
+  const linkTrack = links[0]?.closest(".nav-links");
 
   const linkById = new Map(
     links.map((link) => [link.getAttribute("href")?.slice(1), link])
   );
 
   let activeId = "";
+
+  const syncActiveMarker = (id) => {
+    if (!(linkTrack instanceof HTMLElement)) return;
+    const activeLink = id ? linkById.get(id) : null;
+    if (!(activeLink instanceof HTMLElement)) {
+      linkTrack.style.setProperty("--nav-active-opacity", "0");
+      linkTrack.removeAttribute("data-has-active-marker");
+      return;
+    }
+
+    const trackRect = linkTrack.getBoundingClientRect();
+    const linkRect = activeLink.getBoundingClientRect();
+    const left = Math.max(0, linkRect.left - trackRect.left);
+    const top = Math.max(0, linkRect.top - trackRect.top);
+    linkTrack.style.setProperty("--nav-active-left", `${left.toFixed(2)}px`);
+    linkTrack.style.setProperty("--nav-active-top", `${top.toFixed(2)}px`);
+    linkTrack.style.setProperty("--nav-active-width", `${linkRect.width.toFixed(2)}px`);
+    linkTrack.style.setProperty("--nav-active-height", `${linkRect.height.toFixed(2)}px`);
+    linkTrack.style.setProperty("--nav-active-opacity", "1");
+    linkTrack.setAttribute("data-has-active-marker", "true");
+  };
 
   const setActive = (id) => {
     if (!id || id === activeId) return;
@@ -3223,6 +3412,7 @@ function setupActiveNav() {
       link.classList.toggle("active-link", isActive);
       link.setAttribute("aria-current", isActive ? "location" : "false");
     });
+    syncActiveMarker(id);
   };
 
   const updateActiveSection = () => {
@@ -3274,6 +3464,11 @@ function setupActiveNav() {
   window.addEventListener("scroll", requestUpdate, { passive: true });
   window.addEventListener("resize", requestUpdate, { passive: true });
   window.addEventListener("hashchange", requestUpdate);
+  if (typeof ResizeObserver === "function" && linkTrack instanceof HTMLElement) {
+    const resizeObserver = new ResizeObserver(() => syncActiveMarker(activeId));
+    resizeObserver.observe(linkTrack);
+    links.forEach((link) => resizeObserver.observe(link));
+  }
   updateActiveSection();
 }
 
@@ -7781,13 +7976,39 @@ function setupPortfolioHelpBot() {
 
   const dedupeHelpBotOptions = (items = []) => {
     const seen = new Set();
+    const seenLabels = new Set();
     return (Array.isArray(items) ? items : []).filter((item) => {
       if (!item || !item.kind || !item.id || !item.label) return false;
       const key = `${item.kind}:${item.id}`;
+      const labelKey = String(item.label || "")
+        .toLowerCase()
+        .replace(/\s+/g, " ")
+        .trim();
+      if (seen.has(key)) return false;
+      if (labelKey && seenLabels.has(labelKey)) return false;
+      seen.add(key);
+      if (labelKey) seenLabels.add(labelKey);
+      return true;
+    });
+  };
+
+  const dedupeHelpBotActions = (items = []) => {
+    const seen = new Set();
+    return (Array.isArray(items) ? items : []).filter((item) => {
+      if (!item || !item.label || !item.target) return false;
+      const targetKey = encodeURIComponent(JSON.stringify(item.target));
+      const key = `${String(item.label).toLowerCase().replace(/\s+/g, " ").trim()}::${targetKey}`;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
     });
+  };
+
+  const getDisplayHelpBotInlineOptions = (items = []) => {
+    const normalized = dedupeHelpBotOptions(items);
+    const hasRetryOption = normalized.some((item) => item.kind === "website-search-fallback" && item.id === "retry");
+    if (!hasRetryOption) return normalized;
+    return normalized.filter((item) => !(item.kind === "continue-chat" && item.id === "continue"));
   };
 
   const findRoleTopic = (roleId, topicId) => {
@@ -8538,6 +8759,20 @@ function setupPortfolioHelpBot() {
     const lead = rawTokens[0] || "";
     return normalized.includes("?")
       || rawTokens.length >= 5
+      || rawTokens.some((token) => [
+        "strength",
+        "strengths",
+        "weakness",
+        "weaknesses",
+        "achievement",
+        "achievements",
+        "teamwork",
+        "leadership",
+        "salary"
+      ].includes(token))
+      || normalized.includes("career goals")
+      || normalized.includes("future goals")
+      || normalized.includes("salary expectation")
       || ["what", "where", "who", "which", "when", "why", "how", "can", "does", "is", "are", "explain", "tell"].includes(lead);
   };
 
@@ -8551,6 +8786,169 @@ function setupPortfolioHelpBot() {
             createBadgedAction("Erfahrung", createHelpBotHomeTarget("experience"), "Proof"),
             createBadgedAction("Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
             createBadgedAction("Projekte", createHelpBotHomeTarget("projects"), "Work")
+          ]
+        },
+        "tell-me-about-sooraj": {
+          text: "Wenn Sie die Interview-Version wollen: Sooraj ist ein Mechatronik- und Robotikingenieur in Deutschland mit Mechanical-Engineering-Basis aus Indien, Master-Weiterentwicklung in Cyber-Physical Systems, aktueller KEBA Erfahrung in industrieller Robotik und klaren Projektbelegen in ROS, VR, MATLAB/Simulink und designnaher Engineering-Arbeit. Die staerkste Linie im Profil ist praktische Umsetzung: nicht nur Theorie oder Simulation, sondern Systeme in Richtung reale industrielle Nutzung zu bringen.",
+          actions: [
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Start"),
+            createBadgedAction("Erfahrung", createHelpBotHomeTarget("experience"), "Proof"),
+            createBadgedAction("Journey", createHelpBotPageTarget("journey.html"), "Story"),
+            createBadgedAction("Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit")
+          ]
+        },
+        "why-hire-sooraj": {
+          text: "Der staerkste Hiring-Case ist die Kombination aus Breite und Ausfuehrungsnaehe. Sooraj verbindet mechanische Basis, Robotik- und Simulationsarbeit, aktuelle Industrieumgebung bei KEBA und klare Projektbeweise ueber mehrere technische Richtungen hinweg. Das Profil wirkt besonders stark fuer Teams, die jemanden wollen, der Systeme versteht, schnell lernt und nicht nur konzeptionell denkt, sondern an umsetzbaren Engineering-Ergebnissen arbeitet.",
+          actions: [
+            createBadgedAction("Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
+            createBadgedAction("Erfahrung", createHelpBotHomeTarget("experience"), "Proof"),
+            createBadgedAction("Projekte", createHelpBotHomeTarget("projects"), "Work"),
+            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+          ]
+        },
+        "top-strengths": {
+          text: "Die klarsten Staerken im Portfolio sind 1. interdisziplinaere Breite zwischen Robotik, Mechanik, Simulation und Software, 2. praktische Umsetzung statt nur Konzeptniveau, 3. glaubwuerdige Lernkurve von Indien nach Deutschland in ein industrielles Robotikumfeld, und 4. gute Mischung aus Industriearbeit, Thesis-Tiefe und Projektbeweisen. Kurz gesagt: anpassungsfaehig, technisch breit und stark auf reale Ausfuehrung ausgerichtet.",
+          actions: [
+            createBadgedAction("Skills", createHelpBotHomeTarget("skills"), "Stack"),
+            createBadgedAction("Erfahrung", createHelpBotHomeTarget("experience"), "Proof"),
+            createBadgedAction("Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit")
+          ]
+        },
+        "development-area": {
+          text: "Die fairste Entwicklungsantwort ist: Das Profil ist noch fruehe Karriere, aber schon breit. Die groesste Entwicklungsrichtung ist deshalb weniger fehlende Motivation und eher noch mehr lange, tiefere Spezialisierung in einer engen Nische ueber mehrere Jahre. Im Moment zeigt das Portfolio starke Breite und Momentum. Mit weiterer Industrietiefe wird genau diese Breite noch staerker.",
+          actions: [
+            createBadgedAction("Erfahrung", createHelpBotHomeTarget("experience"), "Proof"),
+            createBadgedAction("KEBA Master-Thesis", createHelpBotPageTarget("experience-masters-thesis-keba.html"), "Depth"),
+            createBadgedAction("KEBA Werkstudent", createHelpBotPageTarget("experience-working-student-keba.html"), "Industry")
+          ]
+        },
+        "biggest-achievement": {
+          text: "Die staerkste oeffentlich sichtbare Leistung ist, aus einer Mechanical-Engineering-Basis in Indien innerhalb weniger Jahre ein glaubwuerdiges Robotikprofil in Deutschland mit echter Industrieanknuepfung aufgebaut zu haben. Die Kombination aus Master in Deutschland, KEBA Werkstudentenrolle, industrieller Robotik-Thesis und projektbasierten Belegen ist derzeit die groesste Gesamtleistung im Portfolio. Als fruehere Einzelleistung sticht zusaetzlich der ausgezeichnete Service-Roboter hervor.",
+          actions: [
+            createBadgedAction("Journey", createHelpBotPageTarget("journey.html"), "Story"),
+            createBadgedAction("KEBA Master-Thesis", createHelpBotPageTarget("experience-masters-thesis-keba.html"), "Thesis"),
+            createBadgedAction("Service-Roboter", createHelpBotPageTarget("project-service-robot.html"), "Award")
+          ]
+        },
+        "problem-solving-style": {
+          text: "Das Portfolio zeigt einen problemloesenden Stil, der Systemverstaendnis mit praktischer Umsetzung verbindet. Typisch ist erstens die technische Strukturierung des Problems, zweitens Simulation oder Validierung wo sinnvoll, und drittens der Schritt in Richtung reale Ausfuehrung, Nutzerfluss oder Deployment-Kontext. Genau diese Haltung sieht man in der Thesis, im ROS-Projekt, in der VR-Simulation und in den modellbasierten Arbeiten.",
+          actions: [
+            createBadgedAction("KEBA Master-Thesis", createHelpBotPageTarget("experience-masters-thesis-keba.html"), "Robotics"),
+            createBadgedAction("ROS-Projekt", createHelpBotPageTarget("project-autonomous-vacuum-robot.html"), "ROS"),
+            createBadgedAction("VR-Workshop", createHelpBotPageTarget("project-vr-machine-workshop.html"), "VR")
+          ]
+        },
+        "teamwork-style": {
+          text: "Die Teamwork-Seite des Profils wirkt am staerksten ueber industriellen Kontext, Ausbildung in Deutschland und projektorientierte Zusammenarbeit. Das Portfolio zeigt keine isolierte Einzelkaempfer-Story, sondern eine Person, die sich in reale Teams, Betreuungskontexte, Reviews und strukturierte Engineering-Umfelder einordnet. Kurz gesagt: eher kooperativ, lernorientiert und anschlussfaehig an interdisziplinaere Arbeit.",
+          actions: [
+            createBadgedAction("KEBA Werkstudent", createHelpBotPageTarget("experience-working-student-keba.html"), "Team"),
+            createBadgedAction("Reviews", createHelpBotHomeTarget("reviews"), "Trust"),
+            createBadgedAction("Journey", createHelpBotPageTarget("journey.html"), "Context")
+          ]
+        },
+        "leadership-style": {
+          text: "Die Leadership-Signale im Portfolio sind eher initiative- und verantwortungsgetrieben als managementlastig. Sichtbar wird das ueber selbstgetriebene Weiterentwicklung, das Aufbauen dieses Portfolios, fruehere Team- oder Organisationsrollen und die Bereitschaft, neue technische Bereiche eigenstaendig aufzubauen. Das Profil signalisiert daher fruehe Ownership und Initiative mehr als formale hierarchische Fuehrung.",
+          actions: [
+            createBadgedAction("Journey", createHelpBotPageTarget("journey.html"), "Story"),
+            createBadgedAction("Service-Roboter", createHelpBotPageTarget("project-service-robot.html"), "Award"),
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile")
+          ]
+        },
+        "career-goals": {
+          text: "Die Richtung ist klar: weiter in anspruchsvolle Rollen zwischen industrieller Robotik, Automation, Simulation und umsetzungsnahem Engineering hineinwachsen. Oeffentlich wirkt das Profil am staerksten fuer Rollen, in denen Robotiksoftware, Integrationsdenken, Motion Planning, Simulationsvalidierung oder technische Umsetzung zusammenkommen. Langfristig zeigt das Portfolio eine Bewegung in Richtung staerkere Robotikverantwortung mit realem Industriebezug.",
+          actions: [
+            createBadgedAction("Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
+            createBadgedAction("Erfahrung", createHelpBotHomeTarget("experience"), "Proof"),
+            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+          ]
+        },
+        "why-robotics": {
+          text: "Aus dem Portfolio gelesen wirkt Robotik wie die natuerliche Schnittstelle aus Mechanik, Automation, Simulation und praktischer Systemarbeit. Genau dort treffen Soorajs fruehere Mechanical-Basis, das spaetere Mechatronik-Studium, ROS-Projekte, industrielle Robotikarbeit bei KEBA und die Thesis sauber zusammen. Robotik ist hier also nicht zufaellig, sondern die logischste Verbindung der bisher aufgebauten Staerken.",
+          actions: [
+            createBadgedAction("KEBA Master-Thesis", createHelpBotPageTarget("experience-masters-thesis-keba.html"), "Robotics"),
+            createBadgedAction("ROS-Projekt", createHelpBotPageTarget("project-autonomous-vacuum-robot.html"), "ROS"),
+            createBadgedAction("Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit")
+          ]
+        },
+        "why-germany": {
+          text: "Deutschland ist im Portfolio klar als akademischer und industrieller Beschleuniger lesbar. Der Wechsel nach Deutschland fuehrte in den Master, in ein staerkeres mechatronisches und cyber-physisches Umfeld, in die KEBA Rolle und in die Thesis-nahe industrielle Robotikarbeit. Kurz gesagt: Deutschland ist hier nicht nur Ort, sondern der Kontext, in dem sich das Profil von mechanischer Basis zu einem glaubwuerdigen Robotikweg verdichtet hat.",
+          actions: [
+            createBadgedAction("Journey", createHelpBotPageTarget("journey.html"), "Story"),
+            createBadgedAction("Bildung", createHelpBotHomeTarget("education"), "Study"),
+            createBadgedAction("KEBA Werkstudent", createHelpBotPageTarget("experience-working-student-keba.html"), "Current")
+          ]
+        },
+        "why-keba": {
+          text: "Oeffentlich gelesen passt KEBA sehr gut, weil dort industrielle Robotik, Automation, reale Engineering-Rahmenbedingungen und praktische Ausfuehrung zusammenkommen. Genau diese Mischung ist auch die staerkste Linie im Profil. Deshalb wirkt KEBA im Portfolio nicht wie ein zufaelliger Arbeitgeber, sondern wie ein glaubwuerdiger Match zwischen Soorajs Entwicklungsrichtung und einem realen industriellen Robotikumfeld.",
+          actions: [
+            createBadgedAction("KEBA Werkstudent", createHelpBotPageTarget("experience-working-student-keba.html"), "Current"),
+            createBadgedAction("KEBA Master-Thesis", createHelpBotPageTarget("experience-masters-thesis-keba.html"), "Parallel"),
+            createBadgedAction("Erfahrung", createHelpBotHomeTarget("experience"), "Proof")
+          ]
+        },
+        "current-best-role-fit": {
+          text: "Aktuell passt Sooraj am staerksten zu Rollen in industrieller Robotik, Robotiksoftware, Automation, Simulationsvalidierung und deployment-orientierter technischer Umsetzung. Wenn man es enger fasst, sind die glaubwuerdigsten Richtungen robotiknahe Engineering-Rollen mit Motion Planning, Robot Programming, ROS-nahem Denken, Integrationsaufgaben oder simulationsgestuetzter Systemarbeit.",
+          actions: [
+            createBadgedAction("Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
+            createBadgedAction("KEBA Master-Thesis", createHelpBotPageTarget("experience-masters-thesis-keba.html"), "Robotics"),
+            createBadgedAction("Skills", createHelpBotHomeTarget("skills"), "Stack")
+          ]
+        },
+        "recruiter-top-3-pages": {
+          text: "Wenn ein Recruiter nur kurz Zeit hat, sind die drei besten Startpunkte: 1. Where I Fit fuer die schnelle Rollenpassung. 2. Experience fuer aktuelle Industrie- und Thesis-Belege. 3. Die Portfolio-PDF fuer die recruiter-komprimierte Gesamtuebersicht. Danach lohnt sich je nach Interesse direkt KEBA oder ein passendes Projekt.",
+          actions: [
+            createBadgedAction("Where I Fit", createHelpBotHomeTarget("where-i-fit"), "1"),
+            createBadgedAction("Erfahrung", createHelpBotHomeTarget("experience"), "2"),
+            createBadgedAction("Portfolio-PDF", createHelpBotDownloadTarget("portfolio-overview.html", "download"), "3")
+          ]
+        },
+        "student-top-3-pages": {
+          text: "Fuer Studierende sind die drei besten Startpunkte meist: 1. Journey fuer den Indien-Deutschland-Entwicklungsweg. 2. Projects fuer greifbare technische Beweise. 3. Skills, um zu sehen, wie sich die technische Breite aufgebaut hat. Diese drei Bereiche zeigen Lernweg, Arbeitsproben und Kompetenzaufbau am klarsten.",
+          actions: [
+            createBadgedAction("Journey", createHelpBotPageTarget("journey.html"), "1"),
+            createBadgedAction("Projekte", createHelpBotHomeTarget("projects"), "2"),
+            createBadgedAction("Skills", createHelpBotHomeTarget("skills"), "3")
+          ]
+        },
+        "site-quick-tour": {
+          text: "Die schnellste Leselogik ist einfach. Wenn Sie Gesamtverstaendnis wollen, starten Sie mit About. Wenn Sie Rollenpassung wollen, gehen Sie zu Where I Fit. Wenn Sie Belege wollen, oeffnen Sie Experience und Projects. Wenn Sie alles auf einen Blick sehen wollen, nutzen Sie die Portfolio Map. Wenn Sie eine recruiter-kompakte Unterlage wollen, nehmen Sie die Portfolio-PDF.",
+          actions: [
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Start"),
+            createBadgedAction("Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
+            createBadgedAction("Portfolio Map", createHelpBotPageTarget("portfolio-map.html"), "Map"),
+            createBadgedAction("Portfolio-PDF", createHelpBotDownloadTarget("portfolio-overview.html", "download"), "PDF")
+          ]
+        },
+        "detailed-portfolio-vs-map": {
+          text: "Detailed Portfolio ist die eigentliche Leseansicht mit Inhalten, Reihenfolge, Story und allen Sektionen. Portfolio Map ist eher die schnelle Navigations- und Uebersichtsansicht ueber die Seitenstruktur. Wenn Sie lesen und bewerten wollen, nehmen Sie Detailed Portfolio. Wenn Sie scannen, springen oder die Gesamtstruktur verstehen wollen, ist Portfolio Map besser.",
+          actions: [
+            createBadgedAction("Detailed Portfolio", createHelpBotPageTarget("index.html"), "Read"),
+            createBadgedAction("Portfolio Map", createHelpBotPageTarget("portfolio-map.html"), "Scan"),
+            createBadgedAction("About", createHelpBotHomeTarget("about"), "Start")
+          ]
+        },
+        "portfolio-pdf-vs-cv": {
+          text: "Die Portfolio-PDF ist eine recruiter-orientierte, oeffentliche Uebersicht ueber Erfahrung, Projekte, Bildung, Skills und Gesamtprofil. Die CV-Anfrage ist der offizielle Weg, um den Lebenslauf direkt bei Sooraj anzufordern. Kurz gesagt: PDF fuer schnellen Portfolio-Scan, CV-Anfrage fuer den formellen Lebenslauf.",
+          actions: [
+            createBadgedAction("Portfolio-PDF", createHelpBotDownloadTarget("portfolio-overview.html", "download"), "PDF"),
+            createBadgedAction("CV anfragen", createHelpBotCvTarget(), "CV"),
+            createBadgedAction("Kontakt", createHelpBotContactFormTarget(), "Action")
+          ]
+        },
+        "software-mechanical-balance": {
+          text: "Das Profil ist hybrid, verschiebt sich aber sichtbar in Richtung Robotiksoftware und technische Systemintegration, ohne die mechanische Basis zu verlieren. Die mechanische Grundlage kommt aus Bachelor, Design und FEA-nahen Arbeiten. Die neuere und staerkere Wachstumsrichtung liegt aber klar in Robotik, ROS, Simulation, Motion Planning und softwaregestuetzter Umsetzung.",
+          actions: [
+            createBadgedAction("Skills", createHelpBotHomeTarget("skills"), "Stack"),
+            createBadgedAction("Topology Projekt", createHelpBotPageTarget("project-topology-bag-sealer.html"), "Mechanical"),
+            createBadgedAction("ROS-Projekt", createHelpBotPageTarget("project-autonomous-vacuum-robot.html"), "Software")
+          ]
+        },
+        "best-project-to-start": {
+          text: "Das haengt vom Ziel ab. Fuer industrielle Robotiktiefe ist die KEBA Master-Thesis der beste Start. Fuer klares ROS- und Autonomie-Proof ist der autonome Vakuumroboter der beste Start. Fuer breite interdisziplinaere Wirkung ist der VR Workshop stark. Wenn Sie nur ein einziges Beispiel fuer aktuelle Robotiknaehe wollen, starten Sie mit der Thesis.",
+          actions: [
+            createBadgedAction("KEBA Master-Thesis", createHelpBotPageTarget("experience-masters-thesis-keba.html"), "Start"),
+            createBadgedAction("ROS-Projekt", createHelpBotPageTarget("project-autonomous-vacuum-robot.html"), "ROS"),
+            createBadgedAction("VR-Workshop", createHelpBotPageTarget("project-vr-machine-workshop.html"), "VR")
           ]
         },
         "portfolio-sections-overview": {
@@ -9320,6 +9718,169 @@ function setupPortfolioHelpBot() {
           createBadgedAction("Open experience section", createHelpBotHomeTarget("experience"), "Proof"),
           createBadgedAction("Open Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
           createBadgedAction("Open projects section", createHelpBotHomeTarget("projects"), "Work")
+        ]
+      },
+      "tell-me-about-sooraj": {
+        text: "If you want the interview-style version: Sooraj is a mechatronics and robotics engineer in Germany with a mechanical-engineering base from India, master's-level development in cyber-physical systems, current KEBA experience in industrial robotics, and project proof across ROS, VR, MATLAB/Simulink, and design-oriented engineering work. The strongest theme in the profile is practical execution: not just concept or simulation work, but pushing systems closer to real industrial use.",
+        actions: [
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Start"),
+          createBadgedAction("Open experience section", createHelpBotHomeTarget("experience"), "Proof"),
+          createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story"),
+          createBadgedAction("Open Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit")
+        ]
+      },
+      "why-hire-sooraj": {
+        text: "The strongest hiring case is the mix of breadth and execution. Sooraj combines a mechanical foundation, robotics and simulation work, live industrial exposure at KEBA, and clear project proof across multiple technical directions. The profile is strongest for teams that want someone who understands systems, learns fast, and works toward usable engineering outcomes instead of staying only at concept level.",
+        actions: [
+          createBadgedAction("Open Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
+          createBadgedAction("Open experience section", createHelpBotHomeTarget("experience"), "Proof"),
+          createBadgedAction("Open projects section", createHelpBotHomeTarget("projects"), "Work"),
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action")
+        ]
+      },
+      "top-strengths": {
+        text: "The clearest strengths in the portfolio are 1. cross-disciplinary breadth across robotics, mechanics, simulation, and software, 2. practical execution rather than only concept work, 3. a credible learning curve from India to Germany into an industrial robotics context, and 4. a strong mix of industry exposure, thesis depth, and project proof. In short: adaptable, technically broad, and strongly execution-oriented.",
+        actions: [
+          createBadgedAction("Open skills", createHelpBotHomeTarget("skills"), "Stack"),
+          createBadgedAction("Open experience section", createHelpBotHomeTarget("experience"), "Proof"),
+          createBadgedAction("Open Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit")
+        ]
+      },
+      "development-area": {
+        text: "The fairest development answer is this: the profile is still early-career, but already broad. So the main growth area is not lack of drive, but building even deeper long-duration specialization in a narrower slice over more years. Right now the portfolio shows strong breadth and momentum. With more industrial depth, that breadth becomes even more valuable.",
+        actions: [
+          createBadgedAction("Open experience section", createHelpBotHomeTarget("experience"), "Proof"),
+          createBadgedAction("Open KEBA master's thesis", createHelpBotPageTarget("experience-masters-thesis-keba.html"), "Depth"),
+          createBadgedAction("Open KEBA working student role", createHelpBotPageTarget("experience-working-student-keba.html"), "Industry")
+        ]
+      },
+      "biggest-achievement": {
+        text: "The strongest publicly visible achievement is turning a mechanical-engineering base in India into a credible robotics profile in Germany with real industrial linkage. The combination of a master's path in Germany, the KEBA working-student role, the industrial robotics thesis, and project-based proof is the biggest overall achievement in the portfolio right now. As an earlier single milestone, the award-winning service robot also stands out.",
+        actions: [
+          createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story"),
+          createBadgedAction("Open KEBA master's thesis", createHelpBotPageTarget("experience-masters-thesis-keba.html"), "Thesis"),
+          createBadgedAction("Open service robot", createHelpBotPageTarget("project-service-robot.html"), "Award")
+        ]
+      },
+      "problem-solving-style": {
+        text: "The portfolio shows a problem-solving style that combines system understanding with practical execution. The usual pattern is to structure the technical problem first, use simulation or validation where useful, and then move toward real execution, user flow, or deployment context. That mindset is visible in the thesis, the ROS project, the VR simulation work, and the model-based engineering pages.",
+        actions: [
+          createBadgedAction("Open KEBA master's thesis", createHelpBotPageTarget("experience-masters-thesis-keba.html"), "Robotics"),
+          createBadgedAction("Open ROS project", createHelpBotPageTarget("project-autonomous-vacuum-robot.html"), "ROS"),
+          createBadgedAction("Open VR workshop", createHelpBotPageTarget("project-vr-machine-workshop.html"), "VR")
+        ]
+      },
+      "teamwork-style": {
+        text: "The teamwork side of the profile reads strongest through industrial context, study in Germany, and project-oriented collaboration. The portfolio does not read like an isolated solo story. It reads more like someone who can work inside real teams, supervision structures, reviews, and interdisciplinary engineering environments. In short: collaborative, learning-oriented, and easy to place into mixed technical teams.",
+        actions: [
+          createBadgedAction("Open KEBA working student role", createHelpBotPageTarget("experience-working-student-keba.html"), "Team"),
+          createBadgedAction("Open reviews", createHelpBotHomeTarget("reviews"), "Trust"),
+          createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Context")
+        ]
+      },
+      "leadership-style": {
+        text: "The leadership signals in the portfolio are more initiative- and ownership-driven than management-heavy. You can see that through self-driven growth, building this portfolio, earlier team or organizing roles, and the willingness to step into new technical areas independently. So the profile signals early ownership and initiative more than formal hierarchy-based leadership.",
+        actions: [
+          createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story"),
+          createBadgedAction("Open service robot", createHelpBotPageTarget("project-service-robot.html"), "Award"),
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile")
+        ]
+      },
+      "career-goals": {
+        text: "The direction is clear: grow deeper into demanding roles across industrial robotics, automation, simulation, and execution-facing engineering. Publicly, the profile reads strongest for work that combines robotics software, integration thinking, motion planning, simulation validation, or practical technical execution. Long term, the portfolio points toward stronger robotics responsibility with real industrial context.",
+        actions: [
+          createBadgedAction("Open Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
+          createBadgedAction("Open experience section", createHelpBotHomeTarget("experience"), "Proof"),
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action")
+        ]
+      },
+      "why-robotics": {
+        text: "From the portfolio, robotics looks like the natural intersection of mechanics, automation, simulation, and practical system work. That is where the earlier mechanical base, the later mechatronics study, ROS projects, industrial robotics work at KEBA, and the thesis all connect cleanly. So robotics does not look accidental here. It looks like the most logical convergence of the strengths already built.",
+        actions: [
+          createBadgedAction("Open KEBA master's thesis", createHelpBotPageTarget("experience-masters-thesis-keba.html"), "Robotics"),
+          createBadgedAction("Open ROS project", createHelpBotPageTarget("project-autonomous-vacuum-robot.html"), "ROS"),
+          createBadgedAction("Open Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit")
+        ]
+      },
+      "why-germany": {
+        text: "Germany reads as the academic and industrial accelerator in the portfolio. The move to Germany leads into the master's path, a stronger mechatronics and cyber-physical-systems environment, the KEBA role, and thesis-linked industrial robotics work. In short, Germany is not just the location. It is the context in which the profile sharpens from a mechanical base into a credible robotics path.",
+        actions: [
+          createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "Story"),
+          createBadgedAction("Open education section", createHelpBotHomeTarget("education"), "Study"),
+          createBadgedAction("Open KEBA working student role", createHelpBotPageTarget("experience-working-student-keba.html"), "Current")
+        ]
+      },
+      "why-keba": {
+        text: "KEBA fits the public profile well because it sits at the intersection of industrial robotics, automation, real engineering constraints, and practical execution. That same mix is also the strongest line in Sooraj's portfolio. So KEBA does not read like a random employer. It reads like a credible match between Sooraj's growth direction and a real industrial robotics environment.",
+        actions: [
+          createBadgedAction("Open KEBA working student role", createHelpBotPageTarget("experience-working-student-keba.html"), "Current"),
+          createBadgedAction("Open KEBA master's thesis", createHelpBotPageTarget("experience-masters-thesis-keba.html"), "Parallel"),
+          createBadgedAction("Open experience section", createHelpBotHomeTarget("experience"), "Proof")
+        ]
+      },
+      "current-best-role-fit": {
+        text: "Right now, Sooraj fits strongest into roles across industrial robotics, robotics software, automation, simulation validation, and deployment-facing technical execution. If you narrow it further, the most credible directions are robotics-adjacent engineering roles involving motion planning, robot programming, ROS-oriented thinking, systems integration, or simulation-backed engineering work.",
+        actions: [
+          createBadgedAction("Open Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
+          createBadgedAction("Open KEBA master's thesis", createHelpBotPageTarget("experience-masters-thesis-keba.html"), "Robotics"),
+          createBadgedAction("Open skills", createHelpBotHomeTarget("skills"), "Stack")
+        ]
+      },
+      "recruiter-top-3-pages": {
+        text: "If a recruiter has only a short window, the three best starting points are 1. Where I Fit for fast role alignment, 2. Experience for current industry and thesis proof, and 3. the portfolio PDF for a compressed recruiter-facing overview. After that, the best next click is usually KEBA or the project most relevant to the role.",
+        actions: [
+          createBadgedAction("Open Where I Fit", createHelpBotHomeTarget("where-i-fit"), "1"),
+          createBadgedAction("Open experience section", createHelpBotHomeTarget("experience"), "2"),
+          createBadgedAction("Download portfolio PDF", createHelpBotDownloadTarget("portfolio-overview.html", "download"), "3")
+        ]
+      },
+      "student-top-3-pages": {
+        text: "For students, the three best starting points are usually 1. Journey for the India-to-Germany growth path, 2. Projects for concrete technical proof, and 3. Skills to see how the technical stack was built over time. Those three areas show learning path, work samples, and competence growth most clearly.",
+        actions: [
+          createBadgedAction("Open journey page", createHelpBotPageTarget("journey.html"), "1"),
+          createBadgedAction("Open projects section", createHelpBotHomeTarget("projects"), "2"),
+          createBadgedAction("Open skills", createHelpBotHomeTarget("skills"), "3")
+        ]
+      },
+      "site-quick-tour": {
+        text: "The fastest reading logic is simple. If you want the overall profile, start with About. If you want role fit, go to Where I Fit. If you want evidence, open Experience and Projects. If you want a structural overview, use Portfolio Map. If you want a recruiter-compressed document, use the portfolio PDF.",
+        actions: [
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Start"),
+          createBadgedAction("Open Where I Fit", createHelpBotHomeTarget("where-i-fit"), "Fit"),
+          createBadgedAction("Open portfolio map", createHelpBotPageTarget("portfolio-map.html"), "Map"),
+          createBadgedAction("Download portfolio PDF", createHelpBotDownloadTarget("portfolio-overview.html", "download"), "PDF")
+        ]
+      },
+      "detailed-portfolio-vs-map": {
+        text: "Detailed Portfolio is the main reading view with content, sequence, story, and all sections. Portfolio Map is the faster navigation and overview view for the page structure. If you want to read and evaluate, use Detailed Portfolio. If you want to scan, jump, or understand the full structure quickly, Portfolio Map is better.",
+        actions: [
+          createBadgedAction("Open detailed portfolio", createHelpBotPageTarget("index.html"), "Read"),
+          createBadgedAction("Open portfolio map", createHelpBotPageTarget("portfolio-map.html"), "Scan"),
+          createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Start")
+        ]
+      },
+      "portfolio-pdf-vs-cv": {
+        text: "The portfolio PDF is a recruiter-oriented public overview of experience, projects, education, skills, and overall profile. The CV request is the official path to request the resume directly from Sooraj. In short: use the PDF for a fast portfolio scan, and use the CV request for the formal resume path.",
+        actions: [
+          createBadgedAction("Download portfolio PDF", createHelpBotDownloadTarget("portfolio-overview.html", "download"), "PDF"),
+          createBadgedAction("Request CV", createHelpBotCvTarget(), "CV"),
+          createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action")
+        ]
+      },
+      "software-mechanical-balance": {
+        text: "The profile is hybrid, but it is clearly shifting toward robotics software and technical systems integration without losing the mechanical base. The mechanical foundation comes from the bachelor's track and the design and FEA-oriented work. The newer and stronger growth direction is clearly robotics, ROS, simulation, motion planning, and software-backed execution.",
+        actions: [
+          createBadgedAction("Open skills", createHelpBotHomeTarget("skills"), "Stack"),
+          createBadgedAction("Open topology project", createHelpBotPageTarget("project-topology-bag-sealer.html"), "Mechanical"),
+          createBadgedAction("Open ROS project", createHelpBotPageTarget("project-autonomous-vacuum-robot.html"), "Software")
+        ]
+      },
+      "best-project-to-start": {
+        text: "That depends on the goal. For industrial robotics depth, the KEBA master's thesis is the strongest place to start. For clear ROS and autonomy proof, start with the autonomous vacuum robot. For broad interdisciplinary impact, the VR workshop is strong. If you only want one current robotics-centered proof first, start with the thesis.",
+        actions: [
+          createBadgedAction("Open KEBA master's thesis", createHelpBotPageTarget("experience-masters-thesis-keba.html"), "Start"),
+          createBadgedAction("Open ROS project", createHelpBotPageTarget("project-autonomous-vacuum-robot.html"), "ROS"),
+          createBadgedAction("Open VR workshop", createHelpBotPageTarget("project-vr-machine-workshop.html"), "VR")
         ]
       },
       "chat-greeting": {
@@ -13115,7 +13676,7 @@ function setupPortfolioHelpBot() {
   ]);
 
   const getWebsiteSearchContinueOptions = (extraOptions = []) => withEndChatOption(dedupeHelpBotOptions([
-    ...(Array.isArray(extraOptions) ? extraOptions : []),
+    ...(Array.isArray(extraOptions) ? extraOptions : []).filter((option) => !(option?.kind === "continue-chat" && option?.id === "continue")),
     createBadgedOption(
       "website-search-fallback",
       "retry",
@@ -14683,6 +15244,44 @@ function setupPortfolioHelpBot() {
       && cards.length === 0;
   };
 
+  const triggerComposerSendPulse = () => {
+    root.classList.remove("is-sending");
+    void root.offsetWidth;
+    root.classList.add("is-sending");
+    window.setTimeout(() => {
+      root.classList.remove("is-sending");
+    }, 420);
+  };
+
+  const acknowledgeHelpBotControl = (control) => {
+    if (!(control instanceof HTMLElement)) return;
+    control.classList.add("is-acknowledged");
+    if (control instanceof HTMLButtonElement) {
+      control.disabled = true;
+      window.setTimeout(() => {
+        if (document.contains(control)) {
+          control.disabled = false;
+        }
+        control.classList.remove("is-acknowledged");
+      }, 520);
+      return;
+    }
+    window.setTimeout(() => {
+      control.classList.remove("is-acknowledged");
+    }, 520);
+  };
+
+  const mountHelpBotBubble = (bubble) => {
+    if (!(bubble instanceof HTMLElement)) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      bubble.classList.add("is-mounted");
+      return;
+    }
+    window.requestAnimationFrame(() => {
+      bubble.classList.add("is-mounted");
+    });
+  };
+
   const getAdaptiveReplyDelay = ({ text = "", actions = [], inlineOptions = [], cards = [], delay = 520, mode = "" } = {}) => {
     const normalized = String(text || "").replace(/\s+/g, " ").trim();
     const baseDelay = Math.max(180, Number(delay || 0));
@@ -14749,6 +15348,8 @@ function setupPortfolioHelpBot() {
 
     normalizedLines.forEach((line, index) => {
       const paragraph = document.createElement("p");
+      paragraph.classList.add("help-bot-stagger-item");
+      paragraph.style.setProperty("--help-bot-stagger-index", String(index));
       if (useTypeReveal && sender === "bot" && index === 0) {
         revealParagraph = paragraph;
         revealContent = line;
@@ -14758,11 +15359,16 @@ function setupPortfolioHelpBot() {
       bubble.append(paragraph);
     });
 
-    if (actions.length) {
+    const renderedActions = dedupeHelpBotActions(actions);
+    const renderedInlineOptions = getDisplayHelpBotInlineOptions(inlineOptions);
+
+    if (renderedActions.length) {
       const actionRow = document.createElement("div");
       actionRow.className = "help-bot-message-actions";
+      actionRow.classList.add("help-bot-stagger-item");
+      actionRow.style.setProperty("--help-bot-stagger-index", String(bubble.children.length));
 
-      actions.forEach((action) => {
+      renderedActions.forEach((action) => {
         const button = document.createElement("button");
         button.type = "button";
         button.className = "help-bot-message-link";
@@ -14787,6 +15393,8 @@ function setupPortfolioHelpBot() {
     if (cards.length) {
       const cardGrid = document.createElement("div");
       cardGrid.className = "help-bot-cards";
+      cardGrid.classList.add("help-bot-stagger-item");
+      cardGrid.style.setProperty("--help-bot-stagger-index", String(bubble.children.length));
 
       cards.forEach((card) => {
         const article = card.kind && card.id
@@ -14818,11 +15426,13 @@ function setupPortfolioHelpBot() {
       bubble.append(cardGrid);
     }
 
-    if (inlineOptions.length) {
+    if (renderedInlineOptions.length) {
       const optionRow = document.createElement("div");
       optionRow.className = "help-bot-message-options";
+      optionRow.classList.add("help-bot-stagger-item");
+      optionRow.style.setProperty("--help-bot-stagger-index", String(bubble.children.length));
 
-      inlineOptions.forEach((option) => {
+      renderedInlineOptions.forEach((option) => {
         const button = document.createElement("button");
         button.type = "button";
         button.className = "help-bot-message-option";
@@ -14884,6 +15494,7 @@ function setupPortfolioHelpBot() {
       setStaticCopy();
       syncComposerState();
     }
+    mountHelpBotBubble(bubble);
     window.requestAnimationFrame(() => {
       const behavior = persist ? "smooth" : "auto";
       if (shouldScrollReplyFromStart(appendedItem, { sender, actions, inlineOptions, cards })) {
@@ -14896,6 +15507,7 @@ function setupPortfolioHelpBot() {
       animateBotTypeReveal(revealParagraph, revealContent);
     }
     if (sender === "user") {
+      triggerComposerSendPulse();
       setBotPresence(deriveUserPresenceState(text), { temporaryMs: 1800 });
     } else {
       setBotPresence(deriveBotPresenceState({ text, actions, inlineOptions, cards }), { temporaryMs: 2600 });
@@ -17234,6 +17846,7 @@ function setupPortfolioHelpBot() {
 
     const optionButton = event.target.closest("[data-help-bot-option-kind]");
     if (optionButton) {
+      acknowledgeHelpBotControl(optionButton);
       const kind = optionButton.getAttribute("data-help-bot-option-kind");
       const id = optionButton.getAttribute("data-help-bot-option-id") || "";
       if (helpBotState.moderationLocked && kind !== "start-over" && kind !== "end-chat") {
@@ -17376,6 +17989,7 @@ function setupPortfolioHelpBot() {
 
     const navButton = event.target.closest("[data-help-bot-nav]");
     if (navButton) {
+      acknowledgeHelpBotControl(navButton);
       if (helpBotState.moderationLocked) return;
       const targetRaw = navButton.getAttribute("data-help-bot-target") || "";
       try {
@@ -21545,18 +22159,72 @@ async function setupPublicReviewSummary({ publicReviews: providedPublicReviews =
   const averageLabel = ratings.length ? `${average.toFixed(1)}/5` : copy.noRatings;
   const reviewCount = publicReviews.length;
   const reachCount = countryEntries.length;
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const animateNumericValue = (element, targetValue, {
+    duration = 860,
+    decimals = 0,
+    formatter = null
+  } = {}) => {
+    if (!(element instanceof HTMLElement)) return;
+    const safeTarget = Number.isFinite(targetValue) ? targetValue : 0;
+    if (prefersReducedMotion) {
+      element.textContent = formatter ? formatter(safeTarget) : safeTarget.toFixed(decimals);
+      return;
+    }
+
+    const startedAt = performance.now();
+    const step = (now) => {
+      const progress = Math.min((now - startedAt) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const currentValue = safeTarget * eased;
+      element.textContent = formatter ? formatter(currentValue) : currentValue.toFixed(decimals);
+      if (progress < 1) {
+        window.requestAnimationFrame(step);
+      }
+    };
+
+    window.requestAnimationFrame(step);
+  };
+
+  const revealElements = (elements = []) => {
+    const items = (Array.isArray(elements) ? elements : []).filter((element) => element instanceof HTMLElement);
+    if (!items.length) return;
+    items.forEach((element, index) => {
+      element.style.setProperty("--motion-index", String(index));
+    });
+    if (prefersReducedMotion) {
+      items.forEach((element) => element.classList.add("is-visible"));
+      return;
+    }
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        items.forEach((element) => element.classList.add("is-visible"));
+      });
+    });
+  };
 
   if (averageValue) {
-    averageValue.textContent = averageLabel;
+    animateNumericValue(averageValue, average, {
+      decimals: 1,
+      formatter: (value) => ratings.length ? `${value.toFixed(1)}/5` : copy.noRatings
+    });
   }
   if (metricAverageValue) {
-    metricAverageValue.textContent = averageLabel;
+    animateNumericValue(metricAverageValue, average, {
+      decimals: 1,
+      formatter: (value) => ratings.length ? `${value.toFixed(1)}/5` : copy.noRatings
+    });
   }
   if (reviewCountValue) {
-    reviewCountValue.textContent = String(reviewCount);
+    animateNumericValue(reviewCountValue, reviewCount, {
+      formatter: (value) => `${Math.round(value)}`
+    });
   }
   if (reachValue) {
-    reachValue.textContent = `${reachCount} ${copy.countries}`;
+    animateNumericValue(reachValue, reachCount, {
+      formatter: (value) => `${Math.round(value)} ${copy.countries}`
+    });
   }
   if (reachFlags) {
     reachFlags.innerHTML = "";
@@ -21573,6 +22241,7 @@ async function setupPublicReviewSummary({ publicReviews: providedPublicReviews =
         flag.setAttribute("aria-label", countryMeta.label);
         reachFlags.append(flag);
       });
+      revealElements(Array.from(reachFlags.children));
     }
   }
   if (captionValue) {
@@ -21582,7 +22251,15 @@ async function setupPublicReviewSummary({ publicReviews: providedPublicReviews =
     starsShell.setAttribute("aria-label", ratings.length ? copy.ratingLabel(average.toFixed(1)) : copy.noRatings);
   }
   if (starsFill) {
-    starsFill.style.width = `${Math.max(0, Math.min(100, (average / 5) * 100))}%`;
+    const starWidth = `${Math.max(0, Math.min(100, (average / 5) * 100))}%`;
+    if (prefersReducedMotion) {
+      starsFill.style.width = starWidth;
+    } else {
+      starsFill.style.width = "0%";
+      window.requestAnimationFrame(() => {
+        starsFill.style.width = starWidth;
+      });
+    }
   }
 
   if (distributionList) {
@@ -21604,7 +22281,15 @@ async function setupPublicReviewSummary({ publicReviews: providedPublicReviews =
           <strong class="review-distribution-count">${count}</strong>
         `;
         distributionList.append(row);
+        const fill = row.querySelector(".review-distribution-bar-fill");
+        if (fill instanceof HTMLElement && !prefersReducedMotion) {
+          fill.style.width = "0%";
+          window.requestAnimationFrame(() => {
+            fill.style.width = width;
+          });
+        }
       });
+      revealElements(Array.from(distributionList.children));
     }
   }
 
@@ -21623,6 +22308,7 @@ async function setupPublicReviewSummary({ publicReviews: providedPublicReviews =
         item.innerHTML = `<span class="review-country-flag" aria-hidden="true">${escapeHtml(countryMeta.flag)}</span><span>${escapeHtml(countryMeta.label)} · ${escapeHtml(count)}</span>`;
         countryList.append(item);
       });
+      revealElements(Array.from(countryList.children));
     }
   }
 }
@@ -22347,6 +23033,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupHomepageFirstFoldState();
   setupHomepageFitSectionToggle();
   setupReveal();
+  setupPortfolioMotion();
   setupSmoothAnchorScroll();
   setupActiveNav();
   setupSectionTargetHighlight();

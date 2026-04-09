@@ -3889,6 +3889,441 @@
       ]
     },
     {
+      "id": "tell-me-about-sooraj",
+      "keywords": [
+        "tell me about sooraj",
+        "introduce sooraj",
+        "sooraj introduction",
+        "self introduction",
+        "about yourself",
+        "tell me about yourself",
+        "who is sooraj",
+        "quick introduction",
+        "kurze vorstellung",
+        "stell dich vor"
+      ],
+      "questions": [
+        "Tell me about Sooraj.",
+        "Can you introduce Sooraj clearly?",
+        "Give me a quick introduction to Sooraj.",
+        "Tell me about yourself as Sooraj.",
+        "Who is Sooraj Sudhakaran?",
+        "Can you give me an interview style introduction for Sooraj?"
+      ]
+    },
+    {
+      "id": "why-hire-sooraj",
+      "keywords": [
+        "why hire sooraj",
+        "why should we hire sooraj",
+        "hire sooraj",
+        "why choose sooraj",
+        "why select sooraj",
+        "hiring reason",
+        "unique hiring value",
+        "warum sooraj einstellen"
+      ],
+      "questions": [
+        "Why should we hire Sooraj?",
+        "What is the strongest reason to hire Sooraj?",
+        "Why would Sooraj be a good hire?",
+        "Why choose Sooraj over a generic candidate?",
+        "What hiring value does Sooraj bring?",
+        "What is the case for hiring Sooraj?"
+      ]
+    },
+    {
+      "id": "top-strengths",
+      "keywords": [
+        "strengths",
+        "top strengths",
+        "strong points",
+        "core strengths",
+        "best strengths",
+        "key strengths",
+        "staerken",
+        "what is he good at"
+      ],
+      "questions": [
+        "What are Sooraj's top strengths?",
+        "What is Sooraj especially good at?",
+        "Can you summarize Sooraj's core strengths?",
+        "What are Sooraj's strongest professional strengths?",
+        "What strengths stand out in this portfolio?",
+        "Which strengths make Sooraj credible?"
+      ]
+    },
+    {
+      "id": "development-area",
+      "keywords": [
+        "weakness",
+        "weaknesses",
+        "biggest weakness",
+        "development area",
+        "improvement area",
+        "growth area",
+        "what should improve",
+        "schwaeche"
+      ],
+      "questions": [
+        "What is Sooraj's biggest weakness?",
+        "What is a fair development area for Sooraj?",
+        "Where does Sooraj still need to improve?",
+        "What is the honest growth area in this profile?",
+        "What is a realistic weakness in Sooraj's portfolio?",
+        "Which area is still developing for Sooraj?"
+      ]
+    },
+    {
+      "id": "biggest-achievement",
+      "keywords": [
+        "biggest achievement",
+        "greatest achievement",
+        "proudest achievement",
+        "main achievement",
+        "career achievement",
+        "best achievement",
+        "largest achievement",
+        "groesste leistung"
+      ],
+      "questions": [
+        "What is Sooraj's biggest achievement?",
+        "What is the strongest achievement visible in the portfolio?",
+        "What should be seen as Sooraj's proudest achievement?",
+        "What has Sooraj achieved most strongly so far?",
+        "What is Sooraj's top public career achievement?",
+        "Which achievement stands out most in this portfolio?"
+      ]
+    },
+    {
+      "id": "problem-solving-style",
+      "keywords": [
+        "problem solving",
+        "problem-solving",
+        "solves problems",
+        "approach to problems",
+        "engineering approach",
+        "how he solves",
+        "problem approach",
+        "problemloesung"
+      ],
+      "questions": [
+        "How does Sooraj solve problems?",
+        "What is Sooraj's problem solving style?",
+        "How does this portfolio show Sooraj's engineering approach?",
+        "What kind of problem solver is Sooraj?",
+        "How does Sooraj approach technical problems?",
+        "Can you explain Sooraj's problem solving mindset?"
+      ]
+    },
+    {
+      "id": "teamwork-style",
+      "keywords": [
+        "teamwork",
+        "team player",
+        "collaboration",
+        "works with team",
+        "working with others",
+        "collaborative style",
+        "team contribution",
+        "teamfaehigkeit"
+      ],
+      "questions": [
+        "How does Sooraj work in a team?",
+        "What is Sooraj's teamwork style?",
+        "Is Sooraj a strong team player?",
+        "How does the portfolio show collaboration ability?",
+        "What kind of teammate does Sooraj seem to be?",
+        "Can you explain Sooraj's teamwork strengths?"
+      ]
+    },
+    {
+      "id": "leadership-style",
+      "keywords": [
+        "leadership",
+        "lead",
+        "initiative",
+        "ownership",
+        "responsibility",
+        "take initiative",
+        "lead projects",
+        "fuehrung"
+      ],
+      "questions": [
+        "Does Sooraj show leadership?",
+        "What is Sooraj's leadership style?",
+        "How does Sooraj take initiative?",
+        "Where does the portfolio show ownership or leadership?",
+        "Can you explain Sooraj's leadership potential?",
+        "What evidence is there that Sooraj takes responsibility?"
+      ]
+    },
+    {
+      "id": "career-goals",
+      "keywords": [
+        "career goals",
+        "future goals",
+        "future direction",
+        "long term goal",
+        "next step",
+        "career direction",
+        "future plan",
+        "karriereziele"
+      ],
+      "questions": [
+        "What are Sooraj's career goals?",
+        "What future direction does Sooraj seem to be building toward?",
+        "What is Sooraj aiming for professionally?",
+        "What are the next career steps for Sooraj?",
+        "What long term direction is visible in the portfolio?",
+        "Can you summarize Sooraj's future career path?"
+      ]
+    },
+    {
+      "id": "why-robotics",
+      "keywords": [
+        "why robotics",
+        "why automation",
+        "why robots",
+        "reason for robotics",
+        "robotics motivation",
+        "why industrial robotics",
+        "why mechatronics",
+        "warum robotik"
+      ],
+      "questions": [
+        "Why robotics for Sooraj?",
+        "Why did Sooraj choose robotics and automation?",
+        "What is Sooraj's motivation for robotics?",
+        "Why is Sooraj moving toward industrial robotics?",
+        "Why does the portfolio focus on robotics?",
+        "Can you explain why Sooraj chose this robotics path?"
+      ]
+    },
+    {
+      "id": "why-germany",
+      "keywords": [
+        "why germany",
+        "why move to germany",
+        "why in germany",
+        "reason for germany",
+        "germany motivation",
+        "study in germany why",
+        "career in germany",
+        "warum deutschland"
+      ],
+      "questions": [
+        "Why did Sooraj move to Germany?",
+        "Why Germany for Sooraj's career?",
+        "What is the reason behind Sooraj's Germany move?",
+        "Why is Sooraj building this career path in Germany?",
+        "Why did Sooraj choose Germany for study and work?",
+        "Can you explain Sooraj's Germany motivation?"
+      ]
+    },
+    {
+      "id": "why-keba",
+      "keywords": [
+        "why keba",
+        "why join keba",
+        "why work at keba",
+        "keba motivation",
+        "reason for keba",
+        "why keba group",
+        "keba choice",
+        "warum keba"
+      ],
+      "questions": [
+        "Why KEBA for Sooraj?",
+        "Why did Sooraj join KEBA?",
+        "What makes KEBA a good fit for Sooraj?",
+        "Why is KEBA important in Sooraj's portfolio?",
+        "Why does Sooraj's profile connect well with KEBA?",
+        "Can you explain the KEBA fit clearly?"
+      ]
+    },
+    {
+      "id": "current-best-role-fit",
+      "keywords": [
+        "best role",
+        "best fit now",
+        "best role fit",
+        "which roles suit",
+        "what roles fit",
+        "ideal role",
+        "most suitable role",
+        "beste rolle"
+      ],
+      "questions": [
+        "What roles fit Sooraj best right now?",
+        "What is Sooraj's current best role fit?",
+        "Which job titles suit Sooraj best today?",
+        "What kind of roles should recruiters consider first?",
+        "Where does Sooraj fit most strongly right now?",
+        "What role direction is strongest in this profile?"
+      ]
+    },
+    {
+      "id": "recruiter-top-3-pages",
+      "keywords": [
+        "top 3 pages recruiter",
+        "best pages recruiter",
+        "recruiter should read",
+        "where recruiter start",
+        "best recruiter pages",
+        "recruiter quick path",
+        "recruiter first pages"
+      ],
+      "questions": [
+        "What are the top 3 pages a recruiter should open first?",
+        "Where should a recruiter start on this site?",
+        "Which pages matter most for a recruiter?",
+        "If I only have a few minutes, what should I read first as a recruiter?",
+        "What is the fastest recruiter path through this portfolio?",
+        "Which three pages explain Sooraj best for hiring?"
+      ]
+    },
+    {
+      "id": "student-top-3-pages",
+      "keywords": [
+        "top 3 pages student",
+        "best pages student",
+        "student should read",
+        "where student start",
+        "learning path pages",
+        "student quick path",
+        "student first pages"
+      ],
+      "questions": [
+        "What are the top 3 pages a student should read first?",
+        "Where should a student start on this site?",
+        "Which pages are most useful for students?",
+        "What should a student open first to learn from this portfolio?",
+        "Which three pages show the learning journey best?",
+        "What is the best student path through this site?"
+      ]
+    },
+    {
+      "id": "site-quick-tour",
+      "keywords": [
+        "how to use this website",
+        "quick tour",
+        "2 minute tour",
+        "where should i start",
+        "how to navigate",
+        "site guide",
+        "quick guide",
+        "website guide"
+      ],
+      "questions": [
+        "How should I use this website quickly?",
+        "Can you give me a 2 minute tour of the portfolio?",
+        "Where should I start on this site?",
+        "What is the best quick path through the portfolio?",
+        "How do I navigate this website efficiently?",
+        "Can you guide me through the site in a simple way?"
+      ]
+    },
+    {
+      "id": "detailed-portfolio-vs-map",
+      "keywords": [
+        "detailed portfolio vs portfolio map",
+        "portfolio map vs detailed portfolio",
+        "difference between detailed portfolio and portfolio map",
+        "detailed or map",
+        "which view should i use",
+        "portfolio views difference"
+      ],
+      "questions": [
+        "What is the difference between Detailed Portfolio and Portfolio Map?",
+        "Should I use Detailed Portfolio or Portfolio Map?",
+        "What does the Portfolio Map do compared with Detailed Portfolio?",
+        "Which view is better for reading this site?",
+        "Why are there two portfolio views here?",
+        "Can you explain Detailed Portfolio versus Portfolio Map clearly?"
+      ]
+    },
+    {
+      "id": "portfolio-pdf-vs-cv",
+      "keywords": [
+        "portfolio pdf vs cv",
+        "portfolio overview pdf vs cv request",
+        "difference between pdf and cv",
+        "portfolio download vs cv request",
+        "which document should i use",
+        "pdf or cv"
+      ],
+      "questions": [
+        "What is the difference between the Portfolio PDF and the CV request?",
+        "Should I use the portfolio overview PDF or request the CV?",
+        "When should I download the portfolio PDF instead of requesting the CV?",
+        "What does the portfolio PDF contain compared with the CV?",
+        "Why are there both PDF and CV options on this site?",
+        "Can you explain Portfolio PDF versus CV request clearly?"
+      ]
+    },
+    {
+      "id": "salary-expectation-details",
+      "keywords": [
+        "salary expectation",
+        "expected salary",
+        "salary range",
+        "compensation expectation",
+        "pay expectation",
+        "ctc expectation",
+        "gehaltserwartung",
+        "salary details"
+      ],
+      "questions": [
+        "What is Sooraj's salary expectation?",
+        "What compensation is Sooraj expecting?",
+        "Can you tell me the current expected salary?",
+        "What salary range should recruiters consider for Sooraj?",
+        "What is the current pay expectation in the portfolio?",
+        "How much salary is Sooraj expecting right now?"
+      ]
+    },
+    {
+      "id": "software-mechanical-balance",
+      "keywords": [
+        "software or mechanical",
+        "mechanical or software",
+        "balanced profile",
+        "software mechanical balance",
+        "mechatronics balance",
+        "hardware software balance",
+        "mechanik oder software"
+      ],
+      "questions": [
+        "Is Sooraj more software or mechanical?",
+        "How balanced is Sooraj between software and mechanical engineering?",
+        "Does this profile lean more toward robotics software or mechanical design?",
+        "What is the software versus mechanical balance in Sooraj's profile?",
+        "Is Sooraj a hybrid engineer or a specialist?",
+        "How should I read Sooraj's mechatronics balance?"
+      ]
+    },
+    {
+      "id": "best-project-to-start",
+      "keywords": [
+        "best project",
+        "start with project",
+        "most impressive project",
+        "which project first",
+        "best proof project",
+        "top project to open",
+        "what project should i open first"
+      ],
+      "questions": [
+        "Which project should I open first?",
+        "What is the best project to start with in this portfolio?",
+        "Which project is most impressive for a first look?",
+        "What is the strongest project proof on this site?",
+        "If I only open one project first, which one should it be?",
+        "What project gives the best first impression of Sooraj?"
+      ]
+    },
+    {
       "id": "website-last-updated",
       "keywords": [
         "last website update",
