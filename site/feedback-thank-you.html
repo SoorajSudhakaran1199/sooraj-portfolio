@@ -46,6 +46,13 @@
             <small>Submission received</small>
           </span>
         </a>
+        <button class="mobile-nav-toggle" type="button" data-mobile-nav-toggle="true" aria-expanded="false" aria-label="Open navigation">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+            <path d="M4 7h16"></path>
+            <path d="M4 12h16"></path>
+            <path d="M4 17h16"></path>
+          </svg>
+        </button>
         <nav class="nav-links" aria-label="Confirmation navigation">
           <a href="index.html">Portfolio</a>
           <a href="feedback.html" data-feedback-thankyou-primary-link>Feedback form</a>
@@ -54,6 +61,16 @@
         <div class="nav-actions">
           <a class="btn btn-small btn-ghost" href="feedback.html" data-feedback-thankyou-primary-link>Submit new form</a>
           <a class="btn btn-small btn-ghost" href="index.html">Back to Portfolio</a>
+          <div class="lang-switcher" role="group" aria-label="Language switcher">
+            <button class="lang-option is-active" type="button" data-lang="en" aria-pressed="true">
+              <span class="lang-flags lang-flag-en" aria-hidden="true"></span>
+              <span class="lang-code">EN</span>
+            </button>
+            <button class="lang-option" type="button" data-lang="de" aria-pressed="false">
+              <span class="lang-flags lang-flag-de" aria-hidden="true"></span>
+              <span class="lang-code">DE</span>
+            </button>
+          </div>
           <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle theme">
             <span data-theme-icon="moon" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3A7 7 0 0 0 21 12.79z"/></svg>

@@ -124,6 +124,7 @@ This is a static multi-page portfolio with a lightweight service layer.
 - root HTML pages define the public portfolio pages
 - `style.css` holds the main visual system, responsive behavior, print styling, and chatbot styling
 - `app.js` handles translations, UI behavior, analytics hooks, forms, admin controls, chatbot logic, and client-side integrations
+- `site/` is a generated mirror for deployment and should be refreshed from root with `node scripts/sync_site.mjs`
 
 ### Service layer
 

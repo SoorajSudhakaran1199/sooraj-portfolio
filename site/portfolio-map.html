@@ -95,6 +95,13 @@
             <small>Portfolio map</small>
           </span>
         </a>
+        <button class="mobile-nav-toggle" type="button" data-mobile-nav-toggle="true" aria-expanded="false" aria-label="Open navigation">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+            <path d="M4 7h16"></path>
+            <path d="M4 12h16"></path>
+            <path d="M4 17h16"></path>
+          </svg>
+        </button>
         <nav class="nav-links" aria-label="Portfolio map navigation">
           <a href="#entry-points">Entry points</a>
           <a href="#experience">Experience</a>
@@ -106,8 +113,19 @@
             <a class="portfolio-view-option" href="index.html">Detailed portfolio</a>
             <a class="portfolio-view-option is-active" href="portfolio-map.html" aria-current="page">Portfolio map</a>
           </div>
+          <div class="lang-switcher" role="group" aria-label="Language switcher">
+            <button class="lang-option is-active" type="button" data-lang="en" aria-pressed="true">
+              <span class="lang-flags lang-flag-en" aria-hidden="true"></span>
+              <span class="lang-code">EN</span>
+            </button>
+            <button class="lang-option" type="button" data-lang="de" aria-pressed="false">
+              <span class="lang-flags lang-flag-de" aria-hidden="true"></span>
+              <span class="lang-code">DE</span>
+            </button>
+          </div>
           <a class="btn btn-small btn-ghost" href="index.html">Move to Portfolio</a>
           <a class="btn btn-small btn-ghost" href="journey.html">Journey</a>
+          <a class="btn btn-small btn-cv-top btn-download-portfolio" href="portfolio-overview.html#download" target="_blank" rel="noreferrer" data-download-portfolio-link>Download Portfolio</a>
           <button class="theme-toggle" type="button" data-theme-toggle aria-label="Toggle theme">
             <span data-theme-icon="moon" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3A7 7 0 0 0 21 12.79z"/></svg>
@@ -123,6 +141,7 @@
 
     <div class="top-update-bar" aria-live="polite"></div>
     <div class="mobile-top-quick-actions container" aria-label="Mobile quick actions">
+      <a class="btn btn-small btn-mobile-quick btn-mobile-quick-download btn-download-portfolio" href="portfolio-overview.html#download" target="_blank" rel="noreferrer" data-download-portfolio-link>⬇ Portfolio PDF</a>
       <a class="btn btn-small btn-mobile-quick btn-mobile-quick-cv" href="request-cv.html" data-request-cv-link>Request CV</a>
       <a class="btn btn-small btn-mobile-quick btn-mobile-quick-fit" href="index.html#where-i-fit">Where I Fit</a>
     </div>

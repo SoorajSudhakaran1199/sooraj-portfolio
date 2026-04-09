@@ -1,29 +1,27 @@
-# Site Structure
+# Generated Site Mirror
 
-This folder contains the deployed portfolio website.
+This directory is generated from the repository root.
 
-## Root files
+Do not edit files in `site/` manually. Update the root source files instead, then run:
 
-- `index.html`: main homepage
-- `journey.html`: journey page
-- `feedback.html`: feedback and contact form
-- `feedback-thank-you.html`: post-submit confirmation page
-- `portfolio-map.html`: crawlable portfolio overview page
-- `experience-*.html`: experience detail pages
-- `project-*.html`: project detail pages
-- `app.js`: site logic, translations, analytics, and interactions
-- `style.css`: global site styling
-- `sitemap.xml`: search-engine sitemap
-- `robots.txt`: crawler rules
+```bash
+node scripts/sync_site.mjs
+```
 
-## Assets
+Synced HTML pages:
 
-- `assets/images/`: logos, project visuals, UI icons, and branded assets
-- `assets/images/profile/`: profile photos used for meta previews and site avatar
-- `assets/documents/certificates/`: public certificate PDFs
-- `assets/documents/cv/`: CV file storage
-
-## Notes
-
-- Public page URLs stay at the site root for cleaner links and stable indexing.
-- Shared assets and documents are grouped under `assets/` for a more professional structure.
+- `experience-masters-thesis-keba.html`
+- `experience-ndt-technician.html`
+- `experience-working-student-keba.html`
+- `feedback-thank-you.html`
+- `feedback.html`
+- `index.html`
+- `journey.html`
+- `portfolio-map.html`
+- `portfolio-overview.html`
+- `project-active-suspension.html`
+- `project-autonomous-vacuum-robot.html`
+- `project-service-robot.html`
+- `project-topology-bag-sealer.html`
+- `project-vr-machine-workshop.html`
+- `request-cv.html`

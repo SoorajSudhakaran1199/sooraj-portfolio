@@ -2845,37 +2845,43 @@ function translateDocument(lang) {
 
 function setupLanguageSwitcher() {
   const navActions = document.querySelector(".nav-actions");
-  if (!navActions || navActions.querySelector(".lang-switcher")) return;
+  if (!navActions) return;
 
-  const switcher = document.createElement("div");
-  switcher.className = "lang-switcher";
-  switcher.setAttribute("role", "group");
-  switcher.setAttribute("aria-label", "Language switcher");
-  switcher.innerHTML = `
-    <button class="lang-option" type="button" data-lang="en" aria-pressed="true">
-      <span class="lang-flags lang-flag-en" aria-hidden="true"></span>
-      <span class="lang-code">EN</span>
-    </button>
-    <button class="lang-option" type="button" data-lang="de" aria-pressed="false">
-      <span class="lang-flags lang-flag-de" aria-hidden="true"></span>
-      <span class="lang-code">DE</span>
-    </button>
-  `;
+  let switcher = navActions.querySelector(".lang-switcher");
+  if (!switcher) {
+    switcher = document.createElement("div");
+    switcher.className = "lang-switcher";
+    switcher.setAttribute("role", "group");
+    switcher.setAttribute("aria-label", "Language switcher");
+    switcher.innerHTML = `
+      <button class="lang-option" type="button" data-lang="en" aria-pressed="true">
+        <span class="lang-flags lang-flag-en" aria-hidden="true"></span>
+        <span class="lang-code">EN</span>
+      </button>
+      <button class="lang-option" type="button" data-lang="de" aria-pressed="false">
+        <span class="lang-flags lang-flag-de" aria-hidden="true"></span>
+        <span class="lang-code">DE</span>
+      </button>
+    `;
 
-  const themeToggle = navActions.querySelector("[data-theme-toggle]");
-  navActions.insertBefore(switcher, themeToggle || navActions.firstChild);
+    const themeToggle = navActions.querySelector("[data-theme-toggle]");
+    navActions.insertBefore(switcher, themeToggle || navActions.firstChild);
+  }
 
-  switcher.querySelectorAll(".lang-option").forEach((button) => {
-    button.addEventListener("click", () => {
-      const lang = button.dataset.lang === "de" ? "de" : "en";
-      const current = resolveInitialLanguage();
-      if (lang === current) return;
-      localStorage.setItem(STORAGE_LANGUAGE_KEY, lang);
-      document.documentElement.setAttribute("lang", lang);
-      document.documentElement.setAttribute("data-lang-ready", "false");
-      window.location.reload();
+  if (!switcher.dataset.langSwitcherReady) {
+    switcher.querySelectorAll(".lang-option").forEach((button) => {
+      button.addEventListener("click", () => {
+        const lang = button.dataset.lang === "de" ? "de" : "en";
+        const current = resolveInitialLanguage();
+        if (lang === current) return;
+        localStorage.setItem(STORAGE_LANGUAGE_KEY, lang);
+        document.documentElement.setAttribute("lang", lang);
+        document.documentElement.setAttribute("data-lang-ready", "false");
+        window.location.reload();
+      });
     });
-  });
+    switcher.dataset.langSwitcherReady = "true";
+  }
 
   translateDocument(resolveInitialLanguage());
 }
@@ -3030,33 +3036,37 @@ function setupMobileNav() {
   const navInner = document.querySelector(".nav-inner");
   const navLinks = navInner?.querySelector(".nav-links");
   const navActions = navInner?.querySelector(".nav-actions");
-  if (!navInner || !navLinks || !navActions || navInner.querySelector("[data-mobile-nav-toggle]")) return;
+  if (!navInner || !navLinks || !navActions) return;
 
   const lang = document.documentElement.lang === "de" ? "de" : "en";
   const labels = lang === "de"
     ? { open: "Navigation oeffnen", close: "Navigation schliessen" }
     : { open: "Open navigation", close: "Close navigation" };
 
-  const toggle = document.createElement("button");
-  toggle.type = "button";
-  toggle.className = "mobile-nav-toggle";
-  toggle.dataset.mobileNavToggle = "true";
-  toggle.setAttribute("aria-expanded", "false");
-  toggle.setAttribute("aria-label", labels.open);
-  toggle.innerHTML = `
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-      <path d="M4 7h16"></path>
-      <path d="M4 12h16"></path>
-      <path d="M4 17h16"></path>
-    </svg>
-  `;
+  let toggle = navInner.querySelector("[data-mobile-nav-toggle]");
+  if (!toggle) {
+    toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.className = "mobile-nav-toggle";
+    toggle.dataset.mobileNavToggle = "true";
+    toggle.setAttribute("aria-expanded", "false");
+    toggle.setAttribute("aria-label", labels.open);
+    toggle.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+        <path d="M4 7h16"></path>
+        <path d="M4 12h16"></path>
+        <path d="M4 17h16"></path>
+      </svg>
+    `;
 
-  const brand = navInner.querySelector(".brand");
-  if (brand?.nextSibling) {
-    navInner.insertBefore(toggle, brand.nextSibling);
-  } else {
-    navInner.appendChild(toggle);
+    const brand = navInner.querySelector(".brand");
+    if (brand?.nextSibling) {
+      navInner.insertBefore(toggle, brand.nextSibling);
+    } else {
+      navInner.appendChild(toggle);
+    }
   }
+  if (toggle.dataset.mobileNavReady) return;
 
   const mediaQuery = window.matchMedia("(max-width: 780px)");
   const canUseCollapsedMenu = () => {
@@ -3099,6 +3109,7 @@ function setupMobileNav() {
       setOpen(false);
     }
   });
+  toggle.dataset.mobileNavReady = "true";
 }
 
 function setupCompactNav() {
@@ -3107,49 +3118,66 @@ function setupCompactNav() {
   if (!nav) return;
 
   const desktopQuery = window.matchMedia("(min-width: 781px)");
-  const compactEnterThreshold = 88;
-  const compactExitThreshold = 4;
-  let ticking = false;
-  let isCompact = nav.classList.contains("is-compact");
+  const compactRootMargin = "-96px 0px 0px 0px";
+  let observer = null;
+  let frame = 0;
 
-  const updateState = () => {
-    ticking = false;
-    if (!desktopQuery.matches) {
-      if (isCompact) {
-        isCompact = false;
-        nav.classList.remove("is-compact");
-        navInner?.__setMobileNavOpen?.(false);
-      }
-      return;
-    }
+  let sentinel = document.querySelector("[data-nav-compact-sentinel]");
+  if (!sentinel) {
+    sentinel = document.createElement("div");
+    sentinel.className = "nav-compact-sentinel";
+    sentinel.setAttribute("data-nav-compact-sentinel", "true");
+    sentinel.setAttribute("aria-hidden", "true");
+    const anchor = document.querySelector(".top-update-bar") || nav;
+    anchor.insertAdjacentElement("afterend", sentinel);
+  }
 
-    const scrollY = window.scrollY;
-    const nextCompact = scrollY <= compactExitThreshold ? false : scrollY > compactEnterThreshold;
-
-    if (nextCompact === isCompact) return;
-
-    isCompact = nextCompact;
-    nav.classList.toggle("is-compact", isCompact);
-    if (!isCompact) {
+  const applyCompactState = (compact) => {
+    const shouldCompact = compact && desktopQuery.matches;
+    nav.classList.toggle("is-compact", shouldCompact);
+    if (!shouldCompact) {
       navInner?.__setMobileNavOpen?.(false);
     }
   };
 
-  const requestUpdate = () => {
-    if (ticking) return;
-    ticking = true;
-    window.requestAnimationFrame(updateState);
+  const connectObserver = () => {
+    observer?.disconnect();
+    observer = null;
+    applyCompactState(false);
+
+    if (!desktopQuery.matches || !sentinel || typeof IntersectionObserver !== "function") return;
+
+    observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        applyCompactState(!(entry?.isIntersecting));
+      },
+      {
+        root: null,
+        rootMargin: compactRootMargin,
+        threshold: 0
+      }
+    );
+
+    observer.observe(sentinel);
+  };
+
+  const requestReconnect = () => {
+    if (frame) return;
+    frame = window.requestAnimationFrame(() => {
+      frame = 0;
+      connectObserver();
+    });
   };
 
   if (typeof desktopQuery.addEventListener === "function") {
-    desktopQuery.addEventListener("change", requestUpdate);
+    desktopQuery.addEventListener("change", requestReconnect);
   } else if (typeof desktopQuery.addListener === "function") {
-    desktopQuery.addListener(requestUpdate);
+    desktopQuery.addListener(requestReconnect);
   }
 
-  window.addEventListener("scroll", requestUpdate, { passive: true });
-  window.addEventListener("resize", requestUpdate, { passive: true });
-  updateState();
+  window.addEventListener("resize", requestReconnect, { passive: true });
+  connectObserver();
 }
 
 function setupReveal() {
@@ -4411,30 +4439,10 @@ function setupHomepageFitSectionToggle() {
     body.hidden = collapsed;
   };
 
-  const openSection = () => {
-    if (!isCollapsed) return;
-    applyState(false);
-  };
-
   toggle.addEventListener("click", () => {
     applyState(!isCollapsed);
   });
-
-  document.addEventListener("click", (event) => {
-    const link = event.target.closest('a[href="#where-i-fit"]');
-    if (!link) return;
-    openSection();
-  });
-
-  const openIfTargeted = () => {
-    if (window.location.hash.replace(/^#/, "") === "where-i-fit") {
-      openSection();
-    }
-  };
-
-  window.addEventListener("hashchange", openIfTargeted);
   applyState(true);
-  openIfTargeted();
 }
 
 function createPortfolioDownloadLink({ mobile = false } = {}) {
@@ -4462,17 +4470,93 @@ function createPortfolioDownloadLink({ mobile = false } = {}) {
   return link;
 }
 
+function hydratePortfolioDownloadLink(link, { mobile = false } = {}) {
+  if (!(link instanceof HTMLElement)) return;
+  const hydrated = createPortfolioDownloadLink({ mobile });
+  link.href = hydrated.href;
+  link.target = hydrated.target;
+  link.rel = hydrated.rel;
+  link.dataset.downloadPortfolioLink = "true";
+  link.className = hydrated.className;
+  link.innerHTML = hydrated.innerHTML;
+}
+
+function createMobileQuickActionLink({ href, label, className = "", dataset = {} } = {}) {
+  const link = document.createElement("a");
+  link.href = href || "#";
+  link.className = className || "btn btn-small btn-mobile-quick";
+  link.textContent = label || "";
+  Object.entries(dataset).forEach(([key, value]) => {
+    link.dataset[key] = value;
+  });
+  return link;
+}
+
+function ensureDetailMobileQuickActions() {
+  const body = document.body;
+  if (
+    !body.classList.contains("portfolio-page")
+    || !body.classList.contains("detail-page")
+    || body.classList.contains("feedback-page")
+    || body.classList.contains("feedback-thank-you-page")
+    || body.classList.contains("portfolio-overview-page")
+  ) {
+    return null;
+  }
+
+  let container = document.querySelector(".mobile-top-quick-actions");
+  if (!container) {
+    container = document.createElement("div");
+    container.className = "mobile-top-quick-actions container";
+    container.setAttribute("aria-label", "Mobile quick actions");
+
+    const requestCvLink = createMobileQuickActionLink({
+      href: "request-cv.html",
+      label: "Request CV",
+      className: "btn btn-small btn-mobile-quick btn-mobile-quick-cv",
+      dataset: { requestCvLink: "true" }
+    });
+
+    const insertionPoint = document.querySelector(".top-update-bar") || document.querySelector(".nav");
+    insertionPoint?.insertAdjacentElement("afterend", container);
+    container.append(requestCvLink);
+  }
+
+  return container;
+}
+
 function setupPortfolioDownloadLinks() {
+  const suppressHeaderDownload =
+    document.body.classList.contains("feedback-page")
+    || document.body.classList.contains("feedback-thank-you-page")
+    || document.body.classList.contains("portfolio-overview-page")
+    || document.querySelector("[data-request-cv-form]");
+
   document.querySelectorAll(".nav-actions").forEach((container) => {
-    if (container.querySelector("[data-download-portfolio-link]")) return;
+    const existingLink = container.querySelector("[data-download-portfolio-link]");
+    if (existingLink) {
+      hydratePortfolioDownloadLink(existingLink);
+      return;
+    }
+    if (suppressHeaderDownload) return;
     const link = createPortfolioDownloadLink();
     const reference = container.querySelector("[data-request-cv-link], .btn-cv-top, .theme-toggle");
     container.insertBefore(link, reference || null);
   });
 
-  document.querySelectorAll(".mobile-top-quick-actions").forEach((container) => {
-    if (!document.body.classList.contains("portfolio-page") || document.body.classList.contains("detail-page")) return;
-    if (container.querySelector("[data-download-portfolio-link]")) return;
+  const mobileContainers = Array.from(document.querySelectorAll(".mobile-top-quick-actions"));
+  const detailQuickActions = ensureDetailMobileQuickActions();
+  if (detailQuickActions && !mobileContainers.includes(detailQuickActions)) {
+    mobileContainers.push(detailQuickActions);
+  }
+
+  mobileContainers.forEach((container) => {
+    if (!document.body.classList.contains("portfolio-page")) return;
+    const existingLink = container.querySelector("[data-download-portfolio-link]");
+    if (existingLink) {
+      hydratePortfolioDownloadLink(existingLink, { mobile: true });
+      return;
+    }
     const link = createPortfolioDownloadLink({ mobile: true });
     const reference = container.querySelector("[data-request-cv-link]");
     container.insertBefore(link, reference || null);
@@ -6007,6 +6091,22 @@ function navigateHelpBotTarget(target, closePanel = () => {}) {
 
   closePanel();
   window.location.assign(href);
+}
+
+function shouldEnablePortfolioHelpBot() {
+  const currentPage = getCurrentPageName();
+  if (currentPage === "feedback.html" || currentPage === "request-cv.html" || currentPage === "feedback-thank-you.html") {
+    return false;
+  }
+  if (
+    document.body.classList.contains("feedback-page")
+    || document.body.classList.contains("feedback-thank-you-page")
+    || document.querySelector("[data-feedback-form]")
+    || document.querySelector("[data-request-cv-form]")
+  ) {
+    return false;
+  }
+  return true;
 }
 
 function setupPortfolioHelpBot() {
@@ -22257,7 +22357,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupScrollTopButton();
   setupPortfolioDownloadLinks();
   setupFloatingPageActions();
-  setupPortfolioHelpBot();
+  if (shouldEnablePortfolioHelpBot()) {
+    setupPortfolioHelpBot();
+  }
   setupFeedbackForm();
   setupRequestCvForm();
   setupFeedbackThankYouPage();
