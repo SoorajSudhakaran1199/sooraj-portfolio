@@ -2868,8 +2868,9 @@ function setupLanguageSwitcher() {
     navActions.insertBefore(switcher, themeToggle || navActions.firstChild);
   }
 
-  if (!switcher.dataset.langSwitcherReady) {
-    switcher.querySelectorAll(".lang-option").forEach((button) => {
+  document.querySelectorAll(".lang-switcher").forEach((switcherElement) => {
+    if (switcherElement.dataset.langSwitcherReady) return;
+    switcherElement.querySelectorAll(".lang-option").forEach((button) => {
       button.addEventListener("click", () => {
         const lang = button.dataset.lang === "de" ? "de" : "en";
         const current = resolveInitialLanguage();
@@ -2880,8 +2881,8 @@ function setupLanguageSwitcher() {
         window.location.reload();
       });
     });
-    switcher.dataset.langSwitcherReady = "true";
-  }
+    switcherElement.dataset.langSwitcherReady = "true";
+  });
 
   translateDocument(resolveInitialLanguage());
 }
@@ -2902,10 +2903,14 @@ function syncThemeToggleButtons() {
   const lang = document.documentElement.lang === "de" ? "de" : "en";
   const copy = lang === "de"
     ? {
+        darkMode: "Dunkel",
+        lightMode: "Hell",
         switchToLight: "Zum Hellmodus wechseln",
         switchToDark: "Zum Dunkelmodus wechseln"
       }
     : {
+        darkMode: "Dark",
+        lightMode: "Light",
         switchToLight: "Switch to light mode",
         switchToDark: "Switch to dark mode"
       };
@@ -2915,6 +2920,10 @@ function syncThemeToggleButtons() {
     toggle.dataset.themeState = current;
     toggle.setAttribute("aria-label", isDark ? copy.switchToLight : copy.switchToDark);
     toggle.setAttribute("title", isDark ? copy.switchToLight : copy.switchToDark);
+    const label = toggle.querySelector(".theme-toggle-switch-label");
+    if (label) {
+      label.textContent = isDark ? copy.darkMode : copy.lightMode;
+    }
   });
 }
 
@@ -3405,6 +3414,81 @@ function setupPortfolioMotion() {
       root.classList.remove("motion-pending");
       root.classList.add("motion-ready");
     });
+  });
+}
+
+function setupPremiumPortfolioInteractions() {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  if (window.matchMedia("(pointer: coarse)").matches) return;
+
+  const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+  const heroCards = Array.from(document.querySelectorAll("body.portfolio-page:not(.detail-page) .hero-card"));
+  heroCards.forEach((card) => {
+    if (!(card instanceof HTMLElement)) return;
+    card.classList.add("is-tilt-ready");
+
+    card.addEventListener("pointermove", (event) => {
+      const rect = card.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      const xRatio = clamp((event.clientX - rect.left) / rect.width, 0, 1);
+      const yRatio = clamp((event.clientY - rect.top) / rect.height, 0, 1);
+      card.style.setProperty("--tilt-x", `${((0.5 - yRatio) * 5.2).toFixed(2)}deg`);
+      card.style.setProperty("--tilt-y", `${((xRatio - 0.5) * 6.4).toFixed(2)}deg`);
+      card.style.setProperty("--spot-x", `${(xRatio * 100).toFixed(1)}%`);
+      card.style.setProperty("--spot-y", `${(yRatio * 100).toFixed(1)}%`);
+    }, { passive: true });
+
+    card.addEventListener("pointerleave", () => {
+      card.style.setProperty("--tilt-x", "0deg");
+      card.style.setProperty("--tilt-y", "0deg");
+      card.style.setProperty("--spot-x", "50%");
+      card.style.setProperty("--spot-y", "50%");
+    }, { passive: true });
+  });
+
+  const pointerLitCards = Array.from(document.querySelectorAll(".project-card"));
+  pointerLitCards.forEach((card) => {
+    if (!(card instanceof HTMLElement)) return;
+    card.addEventListener("pointermove", (event) => {
+      const rect = card.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      const xRatio = clamp((event.clientX - rect.left) / rect.width, 0, 1);
+      const yRatio = clamp((event.clientY - rect.top) / rect.height, 0, 1);
+      card.style.setProperty("--spot-x", `${(xRatio * 100).toFixed(1)}%`);
+      card.style.setProperty("--spot-y", `${(yRatio * 100).toFixed(1)}%`);
+      card.classList.add("is-pointer-lit");
+    }, { passive: true });
+
+    card.addEventListener("pointerleave", () => {
+      card.style.setProperty("--spot-x", "50%");
+      card.style.setProperty("--spot-y", "50%");
+      card.classList.remove("is-pointer-lit");
+    }, { passive: true });
+  });
+
+  const spotlightElements = Array.from(document.querySelectorAll(
+    ".experience-intro, .experience-stat, .timeline-item, .skill-card, .fit-showcase, .certificate-card, .education-card, .event-card, .achievement-card, .btn, .help-bot-message-link, .help-bot-message-option"
+  ));
+  spotlightElements.forEach((element) => {
+    if (!(element instanceof HTMLElement) || element.dataset.premiumSpotlightReady) return;
+    element.dataset.premiumSpotlightReady = "true";
+
+    element.addEventListener("pointermove", (event) => {
+      const rect = element.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      const xRatio = clamp((event.clientX - rect.left) / rect.width, 0, 1);
+      const yRatio = clamp((event.clientY - rect.top) / rect.height, 0, 1);
+      element.style.setProperty("--spot-x", `${(xRatio * 100).toFixed(1)}%`);
+      element.style.setProperty("--spot-y", `${(yRatio * 100).toFixed(1)}%`);
+      element.classList.add("is-pointer-lit");
+    }, { passive: true });
+
+    element.addEventListener("pointerleave", () => {
+      element.style.setProperty("--spot-x", "50%");
+      element.style.setProperty("--spot-y", "50%");
+      element.classList.remove("is-pointer-lit");
+    }, { passive: true });
   });
 }
 
@@ -4978,20 +5062,20 @@ function getHelpBotTimeAwareWelcome(lang = "en") {
   const period = getHelpBotTimePeriod();
   if (lang === "de") {
     if (period === "morning") {
-      return "Guten Morgen. Ich bin der AI Assistant von Sooraj Sudhakaran und helfe Ihnen dabei, diese Website schneller zu nutzen und die richtigen Bereiche zu finden.";
+      return "Guten Morgen. Ich bin Soorajs Portfolio Assistant und helfe Ihnen dabei, diese Website schneller zu nutzen und die richtigen Bereiche zu finden.";
     }
     if (period === "afternoon") {
-      return "Guten Tag. Ich bin der AI Assistant von Sooraj Sudhakaran und helfe Ihnen dabei, diese Website schneller zu nutzen und die richtigen Bereiche zu finden.";
+      return "Guten Tag. Ich bin Soorajs Portfolio Assistant und helfe Ihnen dabei, diese Website schneller zu nutzen und die richtigen Bereiche zu finden.";
     }
-    return "Guten Abend. Ich bin der AI Assistant von Sooraj Sudhakaran und helfe Ihnen dabei, diese Website schneller zu nutzen und die richtigen Bereiche zu finden.";
+    return "Guten Abend. Ich bin Soorajs Portfolio Assistant und helfe Ihnen dabei, diese Website schneller zu nutzen und die richtigen Bereiche zu finden.";
   }
   if (period === "morning") {
-    return "Good morning. I am the AI Assistant of Sooraj Sudhakaran. I can help guide you through the website and quickly take you to the right sections.";
+    return "Good morning. I am Sooraj's Portfolio Assistant. I can help guide you through the website and quickly take you to the right sections.";
   }
   if (period === "afternoon") {
-    return "Good afternoon. I am the AI Assistant of Sooraj Sudhakaran. I can help guide you through the website and quickly take you to the right sections.";
+    return "Good afternoon. I am Sooraj's Portfolio Assistant. I can help guide you through the website and quickly take you to the right sections.";
   }
-  return "Good evening. I am the AI Assistant of Sooraj Sudhakaran. I can help guide you through the website and quickly take you to the right sections.";
+  return "Good evening. I am Sooraj's Portfolio Assistant. I can help guide you through the website and quickly take you to the right sections.";
 }
 
 function getHelpBotTimeAwareClosing(lang = "en") {
@@ -5011,14 +5095,14 @@ function getHelpBotTimeAwareClosing(lang = "en") {
 function getPortfolioHelpBotConfig(lang) {
   if (lang === "de") {
     return {
-      nudgeBadge: "AI Assistant",
-      nudge: "Hallo, ich bin der AI Assistant von Sooraj. Kann ich Ihnen etwas schneller zeigen?",
-      launcher: "Chat mit Sooraj oeffnen",
-      badge: "AI Assistant von Sooraj",
-      assistantName: "AI Assistant",
-      typingAnnouncement: "Der AI Assistant schreibt gerade.",
-      title: "AI Assistant von Sooraj",
-      lead: "Ich fuehre Sie persoenlich durch Projekte, Erfahrung, Reviews, CV und Kontakt.",
+      nudgeBadge: "Portfolio Assistant",
+      nudge: "Hallo, ich bin Soorajs Portfolio Assistant. Kann ich Ihnen etwas schneller zeigen?",
+      launcher: "Soorajs Portfolio Assistant oeffnen",
+      badge: "Soorajs Portfolio Assistant",
+      assistantName: "Soorajs Portfolio Assistant",
+      typingAnnouncement: "Soorajs Portfolio Assistant schreibt gerade.",
+      title: "Soorajs Portfolio Assistant",
+      lead: "Ich fuehre Sie durch Projekte, Erfahrung, Reviews, CV und Kontakt.",
       endChat: "Gespraech beenden",
       continueChat: "Gespraech fortsetzen",
       startFresh: "Neu starten",
@@ -5026,14 +5110,14 @@ function getPortfolioHelpBotConfig(lang) {
       ended: "Danke fuer das Gespraech. Ich wuensche Ihnen noch einen schoenen Tag und hoffe, Sie bald wiederzusehen.",
       reset: "Neu starten",
       close: "Chat schliessen",
-      welcome: "Hallo, ich bin der AI Assistant von Sooraj Sudhakaran. Ich helfe Ihnen dabei, diese Website schneller zu nutzen und die richtigen Bereiche zu finden.",
+      welcome: "Hallo, ich bin Soorajs Portfolio Assistant. Ich helfe Ihnen dabei, diese Website schneller zu nutzen und die richtigen Bereiche zu finden.",
       askName: "Bevor ich Sie weiterfuehre: Wie darf ich Sie ansprechen?",
       askNamePlaceholder: "Bitte geben Sie Ihren Namen ein",
       askNameSubmit: "Namen senden",
       askNameNotice: "Namensabfrage: Bitte geben Sie den Namen ein, mit dem ich Sie in diesem Chat ansprechen soll.",
       askNameBotReply: (roleId = "") => roleId === "student"
-        ? "Mein Name hier ist Synapse. Wie darf ich Sie ansprechen, damit ich den studentischen Weg passend fuehren kann?"
-        : "Mein Name hier ist Synapse. Wie darf ich Sie ansprechen?",
+        ? "Ich bin Soorajs Portfolio Assistant. Wie darf ich Sie ansprechen, damit ich den studentischen Weg passend fuehren kann?"
+        : "Ich bin Soorajs Portfolio Assistant. Wie darf ich Sie ansprechen?",
       askNameGreeting: (name) => `Willkommen ${name} 👋😊 Ich freue mich, Sie heute durch die Website zu begleiten.`,
       askUniversity: (name) => `Schoen, dass Sie da sind, ${name} 👋 Welche Hochschule oder Universitaet kann ich heute mit Ihrem Weg verknuepfen?`,
       askUniversityPlaceholder: "Hochschule oder Universitaet eingeben",
@@ -5081,20 +5165,20 @@ function getPortfolioHelpBotConfig(lang) {
       searchWebsiteMainMenu: "Zum Hauptmenue",
       searchWebsiteContact: "Sooraj fragen",
       searchWebsiteAskAgain: "Neue Frage stellen",
-      searchWebsiteTrainingClarifyPrompt: "Meinen Sie, wer mich als AI Assistant weiter trainiert, oder fragen Sie nach Soorajs eigenem Trainings- und Lernweg?",
-      searchWebsiteTrainingClarifyAssistant: "Den AI Assistant meinen",
+      searchWebsiteTrainingClarifyPrompt: "Meinen Sie, wer mich als Soorajs Portfolio Assistant weiter trainiert, oder fragen Sie nach Soorajs eigenem Trainings- und Lernweg?",
+      searchWebsiteTrainingClarifyAssistant: "Den Portfolio Assistant meinen",
       searchWebsiteTrainingClarifySooraj: "Soorajs Trainingsweg meinen",
-      searchWebsiteComplianceClarifyPrompt: "Meinen Sie, ob dieser AI Assistant bzw. das Chatbot-System den relevanten EU- oder Deutschland-Rahmen fuer Datenschutz und Transparenz folgt?",
-      searchWebsiteComplianceClarifyYes: "Ja, den AI Assistant meinen",
+      searchWebsiteComplianceClarifyPrompt: "Meinen Sie, ob Soorajs Portfolio Assistant bzw. das Chatbot-System den relevanten EU- oder Deutschland-Rahmen fuer Datenschutz und Transparenz folgt?",
+      searchWebsiteComplianceClarifyYes: "Ja, den Portfolio Assistant meinen",
       searchWebsiteComplianceClarifyNo: "Nein, etwas anderes",
       searchWebsiteNameClarifyPrompt: "Meinen Sie meinen Bot-Namen oder den Namen des Portfolio-Inhabers?",
       searchWebsiteNameClarifyBot: "Den Bot-Namen meinen",
       searchWebsiteNameClarifyOwner: "Den Portfolio-Inhaber meinen",
-      searchWebsiteIdentityClarifyPrompt: "Meinen Sie mich als AI Assistant oder Sooraj, den Portfolio-Inhaber?",
-      searchWebsiteIdentityClarifyAssistant: "Den AI Assistant meinen",
+      searchWebsiteIdentityClarifyPrompt: "Meinen Sie mich als Portfolio Assistant oder Sooraj, den Portfolio-Inhaber?",
+      searchWebsiteIdentityClarifyAssistant: "Den Portfolio Assistant meinen",
       searchWebsiteIdentityClarifyOwner: "Sooraj meinen",
-      searchWebsiteGermanClarifyPrompt: "Meinen Sie, ob ich als AI Assistant Deutsch sprechen kann, oder fragen Sie nach Soorajs Deutschkenntnissen?",
-      searchWebsiteGermanClarifyAssistant: "Den AI Assistant meinen",
+      searchWebsiteGermanClarifyPrompt: "Meinen Sie, ob ich als Portfolio Assistant Deutsch sprechen kann, oder fragen Sie nach Soorajs Deutschkenntnissen?",
+      searchWebsiteGermanClarifyAssistant: "Den Portfolio Assistant meinen",
       searchWebsiteGermanClarifySooraj: "Soorajs Deutsch meinen",
       privacyButton: "Info",
       privacyButtonAria: "Chat-Datenschutz anzeigen",
@@ -5534,14 +5618,14 @@ function getPortfolioHelpBotConfig(lang) {
   }
 
   return {
-    nudgeBadge: "AI Assistant",
-    nudge: "Hi, I am the AI Assistant of Sooraj. Want help finding something faster?",
-    launcher: "Open chat with Sooraj",
-    badge: "AI Assistant of Sooraj",
-    assistantName: "AI Assistant",
-    typingAnnouncement: "The AI Assistant is typing.",
-    title: "AI Assistant of Sooraj",
-    lead: "I can personally guide you through my projects, experience, reviews, CV, and contact paths.",
+    nudgeBadge: "Portfolio Assistant",
+    nudge: "Hi, I am Sooraj's Portfolio Assistant. Want help finding something faster?",
+    launcher: "Open Sooraj's Portfolio Assistant",
+    badge: "Sooraj's Portfolio Assistant",
+    assistantName: "Sooraj's Portfolio Assistant",
+    typingAnnouncement: "Sooraj's Portfolio Assistant is typing.",
+    title: "Sooraj's Portfolio Assistant",
+    lead: "I can guide you through projects, experience, reviews, CV, and contact paths.",
     endChat: "Close conversation",
     continueChat: "Continue conversation",
     startFresh: "Start fresh",
@@ -5549,14 +5633,14 @@ function getPortfolioHelpBotConfig(lang) {
     ended: "Thank you for the conversation. Have a nice day, and I hope to see you again soon.",
     reset: "Start over",
     close: "Close chat",
-    welcome: "Hi, I am the AI Assistant of Sooraj Sudhakaran. I can help guide you through the website and quickly take you to the right sections.",
+    welcome: "Hi, I am Sooraj's Portfolio Assistant. I can help guide you through the website and quickly take you to the right sections.",
     askName: "Before I guide you further, what should I call you?",
     askNamePlaceholder: "Please enter your name",
     askNameSubmit: "Send name",
     askNameNotice: "Name request: please enter the name you want me to use in this chat.",
     askNameBotReply: (roleId = "") => roleId === "student"
-      ? "My name is Synapse. How should I address you so I can guide your student path properly?"
-      : "My name is Synapse. How should I address you?",
+      ? "I am Sooraj's Portfolio Assistant. How should I address you so I can guide your student path properly?"
+      : "I am Sooraj's Portfolio Assistant. How should I address you?",
     askNameGreeting: (name) => `Welcome ${name} 👋😊 I am here to help guide you through the website today.`,
     askUniversity: (name) => `Glad you are here, ${name} 👋 Which university should I connect your path with today?`,
     askUniversityPlaceholder: "Type your university",
@@ -9217,7 +9301,7 @@ function setupPortfolioHelpBot() {
           ]
         },
         "assistant-training": {
-          text: "Ich bin Synapse, der AI Assistant von Sooraj. Sie koennen mich als Assistenten sehen, den Sooraj Schritt fuer Schritt weiter verbessert. Wenn ich eine Frage noch nicht sauber beantworten kann, kann der Verlauf spaeter von Sooraj geprueft und fuer bessere Antworten genutzt werden. Dadurch kann ich bei einer aehnlichen Frage spaeter klarer reagieren.",
+          text: "Ich bin Soorajs Portfolio Assistant. Sie koennen mich als digitalen Guide sehen, den Sooraj Schritt fuer Schritt weiter verbessert. Wenn ich eine Frage noch nicht sauber beantworten kann, kann der Verlauf spaeter von Sooraj geprueft und fuer bessere Antworten genutzt werden.",
           actions: [
             createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action"),
             createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
@@ -9336,7 +9420,7 @@ function setupPortfolioHelpBot() {
           ]
         },
         "bot-name": {
-          text: "Mein Name hier ist Synapse. Ich bin der AI Assistant von Sooraj. Sie koennen mich als digitalen Guide sehen, der hier ist, um Sooraj dabei zu helfen, Sie schneller durch die Website zu fuehren. Ich werde von Sooraj ueber die Zeit weiter verbessert. Wenn Sie moechten, gehen wir direkt wieder zu den wichtigsten Website-Bereichen zurueck.",
+          text: "Mein Name ist Soorajs Portfolio Assistant. Ich bin der digitale Guide auf dieser Website und helfe Ihnen, schneller zu den passenden Bereichen zu kommen. Wenn Sie moechten, gehen wir direkt wieder zu den wichtigsten Website-Bereichen zurueck.",
           actions: [
             createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
             createBadgedAction("Projekte", createHelpBotHomeTarget("projects"), "Work"),
@@ -9564,7 +9648,7 @@ function setupPortfolioHelpBot() {
           ]
         },
         "eu-chatbot-compliance": {
-          text: "Ja. Dieser Chatbot ist darauf ausgelegt, den zentralen EU-Rahmen fuer Datenschutz und Transparenz zu folgen, der fuer diese Website relevant ist.\n1. KI-Transparenz: EU AI Act, Verordnung (EU) 2024/1689, Artikel 50. Der Assistent wird klar als AI Assistant gekennzeichnet. Fuer Chatbot-Transparenz wird diese Regel am 2. August 2026 anwendbar, und diese Website ist bereits in diese Richtung aufgebaut.\n2. Datenschutz-Grundprinzipien: DSGVO, Verordnung (EU) 2016/679, Artikel 5 Absatz 1 Buchstaben a, c, e und f. Es werden nur relevante Chatdaten verarbeitet, etwa Name, Kontext, Seitenpfad, Zeitstempel und Transkript.\n3. Informationspflicht: DSGVO Artikel 13. Im Chat selbst gibt es Datenschutzhinweise mit Controller, gespeicherten Daten, Zweck, Supabase-Speicherung, Zugriff, Aufbewahrung und Loeschpfad.\n4. Betroffenenrechte: DSGVO Artikel 15 und 17. Es gibt einen Request-deletion-Pfad, ueber den Besucher die Loeschung ihrer Chatdaten anfragen koennen.\n5. Sicherheit und Geraetespeicher: DSGVO Artikel 32 sowie ePrivacy-Richtlinie 2002/58/EG, Artikel 5 Absatz 3. Chat-Zustand wird nur fuer den Chat- und Resume-Fluss im Browser gehalten, waehrend Chat-Logs in Supabase mit Admin-Zugriffskontrolle gespeichert werden.\nFuer Deutschland ist derselbe EU-Kernrahmen hier ebenfalls die Hauptgrundlage.",
+          text: "Ja. Dieser Chatbot ist darauf ausgelegt, den zentralen EU-Rahmen fuer Datenschutz und Transparenz zu folgen, der fuer diese Website relevant ist.\n1. KI-Transparenz: EU AI Act, Verordnung (EU) 2024/1689, Artikel 50. Der Assistent wird klar als Soorajs Portfolio Assistant gekennzeichnet. Fuer Chatbot-Transparenz wird diese Regel am 2. August 2026 anwendbar, und diese Website ist bereits in diese Richtung aufgebaut.\n2. Datenschutz-Grundprinzipien: DSGVO, Verordnung (EU) 2016/679, Artikel 5 Absatz 1 Buchstaben a, c, e und f. Es werden nur relevante Chatdaten verarbeitet, etwa Name, Kontext, Seitenpfad, Zeitstempel und Transkript.\n3. Informationspflicht: DSGVO Artikel 13. Im Chat selbst gibt es Datenschutzhinweise mit Controller, gespeicherten Daten, Zweck, Supabase-Speicherung, Zugriff, Aufbewahrung und Loeschpfad.\n4. Betroffenenrechte: DSGVO Artikel 15 und 17. Es gibt einen Request-deletion-Pfad, ueber den Besucher die Loeschung ihrer Chatdaten anfragen koennen.\n5. Sicherheit und Geraetespeicher: DSGVO Artikel 32 sowie ePrivacy-Richtlinie 2002/58/EG, Artikel 5 Absatz 3. Chat-Zustand wird nur fuer den Chat- und Resume-Fluss im Browser gehalten, waehrend Chat-Logs in Supabase mit Admin-Zugriffskontrolle gespeichert werden.\nFuer Deutschland ist derselbe EU-Kernrahmen hier ebenfalls die Hauptgrundlage.",
           actions: [
             createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action"),
             createBadgedAction("Kontaktbereich", createHelpBotHomeTarget("contact"), "Direct"),
@@ -9604,7 +9688,7 @@ function setupPortfolioHelpBot() {
           ]
         },
         "identity-confusion": {
-          text: "Nein. Sie sprechen gerade nicht direkt mit Sooraj als Live-Person. Ich bin Synapse, sein AI Assistant innerhalb dieser Website. Ich kann viele Fragen sofort beantworten und Sie fuehren, aber fuer direkte persoenliche Rueckmeldungen ist der richtige Weg der Kontaktpfad zu Sooraj.",
+          text: "Nein. Sie sprechen gerade nicht direkt mit Sooraj als Live-Person. Ich bin Soorajs Portfolio Assistant innerhalb dieser Website. Ich kann viele Fragen sofort beantworten und Sie fuehren, aber fuer direkte persoenliche Rueckmeldungen ist der richtige Weg der Kontaktpfad zu Sooraj.",
           actions: createHelpBotDirectContactActions()
         },
         "live-support-expectation": {
@@ -10149,7 +10233,7 @@ function setupPortfolioHelpBot() {
         ]
       },
       "assistant-training": {
-        text: "I am Synapse, the AI assistant of Sooraj. You can think of me as a guide that Sooraj keeps improving over time. When I cannot answer something clearly yet, the conversation can be reviewed by Sooraj and used to improve future replies, so if you ask again later I may answer more accurately.",
+        text: "I am Sooraj's Portfolio Assistant. You can think of me as a digital guide that Sooraj keeps improving over time. When I cannot answer something clearly yet, the conversation can be reviewed by Sooraj and used to improve future replies.",
         actions: [
           createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action"),
           createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
@@ -10268,7 +10352,7 @@ function setupPortfolioHelpBot() {
         ]
       },
       "bot-name": {
-        text: "My name here is Synapse. I am the AI assistant of Sooraj. You can think of me as the digital guide hired here to help Sooraj help you move through the website faster. I am trained and improved by Sooraj over time. If you want, we can go straight back to the main website sections now.",
+        text: "My name is Sooraj's Portfolio Assistant. I am the digital guide on this website, here to help you move through the portfolio faster. If you want, we can go straight back to the main website sections now.",
         actions: [
           createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
           createBadgedAction("Open projects section", createHelpBotHomeTarget("projects"), "Work"),
@@ -10520,7 +10604,7 @@ function setupPortfolioHelpBot() {
         ]
       },
       "identity-confusion": {
-        text: "No. You are not speaking to Sooraj as a live person right now. I am Synapse, his AI assistant inside this website. I can answer many questions immediately and guide you through the site, but for a direct personal reply from Sooraj, the right path is the contact flow.",
+        text: "No. You are not speaking to Sooraj as a live person right now. I am Sooraj's Portfolio Assistant inside this website. I can answer many questions immediately and guide you through the site, but for a direct personal reply from Sooraj, the right path is the contact flow.",
         actions: createHelpBotDirectContactActions()
       },
       "live-support-expectation": {
@@ -11850,7 +11934,7 @@ function setupPortfolioHelpBot() {
       }
       if (asksWhoAreYou) {
         return {
-          text: "Ich bin Synapse, der AI Assistant von Sooraj. Ich fuehre Besucher durch die Website, beantworte haeufige Fragen zu Profil, Projekten, Erfahrung, Reviews, CV und Kontakt und leite bei Bedarf an die passenden Bereiche weiter.",
+          text: "Ich bin Soorajs Portfolio Assistant. Ich fuehre Besucher durch die Website, beantworte haeufige Fragen zu Profil, Projekten, Erfahrung, Reviews, CV und Kontakt und leite bei Bedarf an die passenden Bereiche weiter.",
           actions: [
             createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
             createBadgedAction("Projekte", createHelpBotHomeTarget("projects"), "Work"),
@@ -11970,7 +12054,7 @@ function setupPortfolioHelpBot() {
     }
     if (asksWhoAreYou) {
       return {
-        text: "I am Synapse, the AI assistant of Sooraj. I guide visitors through the website, answer common questions about the profile, projects, experience, reviews, CV, and contact paths, and route people to the right sections.",
+        text: "I am Sooraj's Portfolio Assistant. I guide visitors through the website, answer common questions about the profile, projects, experience, reviews, CV, and contact paths, and route people to the right sections.",
         actions: [
           createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
           createBadgedAction("Open projects section", createHelpBotHomeTarget("projects"), "Work"),
@@ -12703,7 +12787,7 @@ function setupPortfolioHelpBot() {
               + scoreMatches(["who trained the ai", "who is training the ai", "who trains the assistant", "ai assistant training", "bot training"], 3)
               + scoreMatches(["ai", "assistant", "bot", "synapse", "training", "trained", "teaching", "guiding"], 2)
             ),
-            text: "Ich bin Synapse, der AI Assistant von Sooraj. Sie koennen mich als Assistenten sehen, den Sooraj Schritt fuer Schritt weiter verbessert. Wenn ich eine Frage noch nicht sauber beantworten kann, kann der Verlauf spaeter von Sooraj geprueft und fuer bessere Antworten genutzt werden. Dadurch kann ich bei einer aehnlichen Frage spaeter klarer reagieren.",
+            text: "Ich bin Soorajs Portfolio Assistant. Sie koennen mich als digitalen Guide sehen, den Sooraj Schritt fuer Schritt weiter verbessert. Wenn ich eine Frage noch nicht sauber beantworten kann, kann der Verlauf spaeter von Sooraj geprueft und fuer bessere Antworten genutzt werden.",
             actions: [
               createBadgedAction("Kontakt anfragen", createHelpBotContactFormTarget(), "Action"),
               createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
@@ -12781,7 +12865,7 @@ function setupPortfolioHelpBot() {
               + scoreMatches(["who are you", "what is your name", "your name", "bot name", "assistant name", "synapse"], 3)
               + scoreMatches(["name", "bot", "assistant"], 1)
             ),
-            text: "Mein Name hier ist Synapse. Ich bin der AI Assistant von Sooraj. Sie koennen mich als digitalen Guide sehen, der hier ist, um Sooraj dabei zu helfen, Sie schneller durch die Website zu fuehren. Ich werde von Sooraj ueber die Zeit weiter verbessert. Wenn Sie moechten, gehen wir direkt wieder zu den wichtigsten Website-Bereichen zurueck.",
+            text: "Mein Name ist Soorajs Portfolio Assistant. Ich bin der digitale Guide auf dieser Website und helfe Ihnen, schneller zu den passenden Bereichen zu kommen. Wenn Sie moechten, gehen wir direkt wieder zu den wichtigsten Website-Bereichen zurueck.",
             actions: [
               createBadgedAction("About", createHelpBotHomeTarget("about"), "Profile"),
               createBadgedAction("Projekte", createHelpBotHomeTarget("projects"), "Work"),
@@ -13216,7 +13300,7 @@ function setupPortfolioHelpBot() {
               + scoreMatches(["who trained the ai", "who is training the ai", "who trains the assistant", "ai assistant training", "bot training"], 3)
               + scoreMatches(["ai", "assistant", "bot", "synapse", "training", "trained", "teaching", "guiding"], 2)
             ),
-            text: "I am Synapse, the AI assistant of Sooraj. You can think of me as a guide that Sooraj keeps improving over time. When I cannot answer something clearly yet, the conversation can be reviewed by Sooraj and used to improve future replies, so if you ask again later I may answer more accurately.",
+            text: "I am Sooraj's Portfolio Assistant. You can think of me as a digital guide that Sooraj keeps improving over time. When I cannot answer something clearly yet, the conversation can be reviewed by Sooraj and used to improve future replies.",
             actions: [
               createBadgedAction("Request contact", createHelpBotContactFormTarget(), "Action"),
               createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
@@ -13294,7 +13378,7 @@ function setupPortfolioHelpBot() {
               + scoreMatches(["who are you", "what is your name", "your name", "bot name", "assistant name", "synapse"], 3)
               + scoreMatches(["name", "bot", "assistant"], 1)
             ),
-            text: "My name here is Synapse. I am the AI assistant of Sooraj. You can think of me as the digital guide hired here to help Sooraj help you move through the website faster. I am trained and improved by Sooraj over time. If you want, we can go straight back to the main website sections now.",
+            text: "My name is Sooraj's Portfolio Assistant. I am the digital guide on this website, here to help you move through the portfolio faster. If you want, we can go straight back to the main website sections now.",
             actions: [
               createBadgedAction("Open about section", createHelpBotHomeTarget("about"), "Profile"),
               createBadgedAction("Open projects section", createHelpBotHomeTarget("projects"), "Work"),
@@ -15756,14 +15840,14 @@ function setupPortfolioHelpBot() {
     const baseSubject = template.subjects?.feedback || "Feedback on your portfolio website";
     const derivedSubject = buildChatFeedbackDerivedSubject(
       draft.comments,
-      lang === "de" ? "AI Assistant Chat Feedback" : "AI Assistant chat feedback"
+      lang === "de" ? "Portfolio Assistant Chat Feedback" : "Portfolio Assistant chat feedback"
     );
     const finalSubject = derivedSubject ? `${baseSubject}: ${derivedSubject}` : baseSubject;
     const sourceLabel = lang === "de" ? "Quelle" : "Source";
-    const sourceValue = lang === "de" ? "AI Assistant Chat" : "AI Assistant chat";
+    const sourceValue = lang === "de" ? "Portfolio Assistant Chat" : "Portfolio Assistant chat";
     const sectionValue = lang === "de"
-      ? `${currentPageName} ueber den AI Assistant`
-      : `${currentPageName} via AI Assistant`;
+      ? `${currentPageName} ueber den Portfolio Assistant`
+      : `${currentPageName} via Portfolio Assistant`;
 
     const lines = [
       template.greeting,
@@ -16644,7 +16728,7 @@ function setupPortfolioHelpBot() {
       "",
       template.intros?.contact || "",
       "",
-      `${lang === "de" ? "Quelle" : "Source"}: ${lang === "de" ? "AI Assistant Chat" : "AI Assistant chat"}`,
+      `${lang === "de" ? "Quelle" : "Source"}: ${lang === "de" ? "Portfolio Assistant Chat" : "Portfolio Assistant chat"}`,
       `${template.labels.name}: ${draft.fullName}`,
       `${template.labels.email}: ${draft.email}`,
       `${template.labels.country}: ${draft.country}`,
@@ -16738,8 +16822,8 @@ function setupPortfolioHelpBot() {
       lang === "de" ? "Hallo Sooraj Sudhakaran," : "Hello Sooraj Sudhakaran,",
       "",
       lang === "de"
-        ? "eine Besucherin oder ein Besucher Ihres AI Assistant Chats hat Ihren CV angefragt."
-        : "A visitor requested your CV through the AI Assistant chat.",
+        ? "eine Besucherin oder ein Besucher Ihres Portfolio Assistant Chats hat Ihren CV angefragt."
+        : "A visitor requested your CV through the Portfolio Assistant chat.",
       "",
       `${lang === "de" ? "Anfragetyp" : "Request type"}: ${lang === "de" ? "CV-Anfrage" : "CV request"}`,
       `${lang === "de" ? "E-Mail" : "Email"}: ${draft.email}`
@@ -17437,8 +17521,8 @@ function setupPortfolioHelpBot() {
         fullName: getVisitorName(),
         role: currentRoleId === "recruiter" ? "Recruiter" : currentRoleId === "student" ? "Student" : "Visitor",
         message: (currentLang === "de"
-          ? `Frage aus dem AI Assistant Chat:\n${helpBotState.websiteSearchQuery || ""}\n\nBitte helfen Sie mir bei dieser Frage.`
-          : `Question from the AI Assistant chat:\n${helpBotState.websiteSearchQuery || ""}\n\nPlease help me with this question.`)
+          ? `Frage aus dem Portfolio Assistant Chat:\n${helpBotState.websiteSearchQuery || ""}\n\nBitte helfen Sie mir bei dieser Frage.`
+          : `Question from the Portfolio Assistant chat:\n${helpBotState.websiteSearchQuery || ""}\n\nPlease help me with this question.`)
       }, token);
       return;
     }
@@ -23072,6 +23156,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupHomepageFitSectionToggle();
   setupReveal();
   setupPortfolioMotion();
+  setupPremiumPortfolioInteractions();
   setupSmoothAnchorScroll();
   setupActiveNav();
   setupSectionTargetHighlight();

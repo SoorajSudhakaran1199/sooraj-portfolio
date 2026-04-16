@@ -87,9 +87,42 @@
     <header class="nav">
       <div class="container nav-inner">
         <a href="index.html" class="brand">
-          SOORAJ SUDHAKARAN
-          <small>Project detail</small>
+          <span class="brand-avatar" aria-hidden="true">
+            <img src="assets/images/profile/sooraj-sudhakaran-profile.jpeg" alt="" />
+          </span>
+          <span class="brand-copy">
+            <span class="brand-title">SOORAJ SUDHAKARAN</span>
+            <small>Project detail</small>
+          </span>
         </a>
+        <div class="mobile-title-controls" role="group" aria-label="Mobile title controls">
+          <div class="lang-switcher mobile-title-lang" role="group" aria-label="Language switcher">
+            <button class="lang-option is-active" type="button" data-lang="en" aria-pressed="true">
+              <span class="lang-flags lang-flag-en" aria-hidden="true"></span>
+              <span class="lang-code">EN</span>
+            </button>
+            <button class="lang-option" type="button" data-lang="de" aria-pressed="false">
+              <span class="lang-flags lang-flag-de" aria-hidden="true"></span>
+              <span class="lang-code">DE</span>
+            </button>
+          </div>
+          <button class="theme-toggle mobile-title-theme" type="button" data-theme-toggle aria-label="Toggle theme">
+            <span class="sr-only">Toggle theme</span>
+          </button>
+        </div>
+        <button class="mobile-nav-toggle" type="button" data-mobile-nav-toggle="true" aria-expanded="false" aria-label="Open navigation">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+            <path d="M4 7h16"></path>
+            <path d="M4 12h16"></path>
+            <path d="M4 17h16"></path>
+          </svg>
+        </button>
+        <nav class="nav-links" aria-label="Detail page navigation">
+          <a href="index.html#projects">Projects</a>
+          <a href="index.html#experience">Experience</a>
+          <a href="journey.html">Journey</a>
+          <a href="index.html#contact">Contact</a>
+        </nav>
         <div class="nav-actions">
           <a class="btn btn-small btn-ghost" href="index.html#projects">Back to Portfolio</a>
           <a class="btn btn-small btn-cv-top btn-download-portfolio" href="portfolio-overview.html#download" target="_blank" rel="noreferrer" data-download-portfolio-link>Download Portfolio</a>
@@ -108,8 +141,9 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3A7 7 0 0 0 21 12.79z"/></svg>
             </span>
             <span data-theme-icon="sun" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
             </span>
+            <span class="sr-only">Toggle theme</span>
           </button>
         </div>
       </div>
