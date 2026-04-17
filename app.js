@@ -3449,7 +3449,8 @@ function setupPremiumPortfolioInteractions() {
 
   const pointerLitCards = Array.from(document.querySelectorAll(".project-card"));
   pointerLitCards.forEach((card) => {
-    if (!(card instanceof HTMLElement)) return;
+    if (!(card instanceof HTMLElement) || card.dataset.premiumProjectSpotlightReady) return;
+    card.dataset.premiumProjectSpotlightReady = "true";
     card.addEventListener("pointermove", (event) => {
       const rect = card.getBoundingClientRect();
       if (!rect.width || !rect.height) return;
@@ -3467,10 +3468,8 @@ function setupPremiumPortfolioInteractions() {
     }, { passive: true });
   });
 
-  const spotlightElements = Array.from(document.querySelectorAll(
-    ".experience-intro, .experience-stat, .timeline-item, .skill-card, .fit-showcase, .certificate-card, .education-card, .event-card, .achievement-card, .btn, .help-bot-message-link, .help-bot-message-option"
-  ));
-  spotlightElements.forEach((element) => {
+  const spotlightSelector = ".experience-intro, .experience-stat, .timeline-item, .skill-card, .fit-showcase, .certificate-card, .education-card, .event-card, .achievement-card, .btn, .help-bot-card, .help-bot-message-link, .help-bot-message-option";
+  const attachSpotlight = (element) => {
     if (!(element instanceof HTMLElement) || element.dataset.premiumSpotlightReady) return;
     element.dataset.premiumSpotlightReady = "true";
 
@@ -3489,7 +3488,23 @@ function setupPremiumPortfolioInteractions() {
       element.style.setProperty("--spot-y", "50%");
       element.classList.remove("is-pointer-lit");
     }, { passive: true });
-  });
+  };
+
+  Array.from(document.querySelectorAll(spotlightSelector)).forEach(attachSpotlight);
+
+  const helpBotRoot = document.querySelector(".help-bot");
+  if (helpBotRoot instanceof HTMLElement && typeof MutationObserver === "function") {
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (!(node instanceof HTMLElement)) return;
+          if (node.matches(spotlightSelector)) attachSpotlight(node);
+          node.querySelectorAll(spotlightSelector).forEach(attachSpotlight);
+        });
+      });
+    });
+    observer.observe(helpBotRoot, { childList: true, subtree: true });
+  }
 }
 
 function setupActiveNav() {
@@ -10976,7 +10991,7 @@ function setupPortfolioHelpBot() {
     if (!normalized) return null;
 
     const mentionsOwner = HELP_BOT_OWNER_PATTERN.test(normalized);
-    const mentionsAssistant = /\b(ai|assistant|bot|synapse|chatbot)\b/.test(normalized);
+    const mentionsAssistant = /\b(ai|assistant|bot|portfolio assistant|chatbot)\b/.test(normalized);
     const usesYouPronoun = /\b(you|your|you re|you are)\b/.test(normalized);
     const asksAboutColor = /\b(color|colour|skin color|skin colour|skin tone|complexion|fair|dark|black|white|brown|wheatish|teint)\b/.test(normalized);
     const hasAppearanceFrame = /\b(what|which|is|are|does|do|look|tone|complexion|fair|dark)\b/.test(normalized);
@@ -11034,7 +11049,7 @@ function setupPortfolioHelpBot() {
     const hasRuleTerms = /\b(eu|europe|european|gdpr|dsgvo|ai act|a i act|eprivacy|article 50|article 13|article 15|article 17|article 32|chatbot law|chatbot laws|chatbot rule|chatbot rules|chatbot guideline|chatbot guidelines|germany|german)\b/.test(normalizedQuery);
     const hasComplianceIntent = /\b(follow|follows|following|comply|compliant|compliance|aligned|legal|lawful|regulated|regulation|rules|guidelines|laws)\b/.test(normalizedQuery)
       || /\b(what law|which law|what laws|which laws|what rule|which rule|what article|which article|law number|article number)\b/.test(normalizedQuery);
-    const hasChatContext = /\b(ai|assistant|bot|chatbot|website|chat|synapse)\b/.test(normalizedQuery);
+    const hasChatContext = /\b(ai|assistant|bot|chatbot|website|chat|portfolio assistant)\b/.test(normalizedQuery);
 
     if (!hasRuleTerms) return null;
     if (!hasChatContext && !hasComplianceIntent) return null;
@@ -11077,7 +11092,7 @@ function setupPortfolioHelpBot() {
 
     const mentionsWebsite = /\b(website|site|portfolio|page|pages|design|layout|chat window|chatbot window)\b/.test(normalizedQuery);
     const mentionsOwner = HELP_BOT_OWNER_STRICT_PATTERN.test(normalizedQuery);
-    const mentionsAssistant = /\b(ai|assistant|bot|chatbot|synapse)\b/.test(normalizedQuery)
+    const mentionsAssistant = /\b(ai|assistant|bot|chatbot|portfolio assistant)\b/.test(normalizedQuery)
       || (!mentionsOwner && /\b(you|your|you re|you are)\b/.test(normalizedQuery));
 
     if (mentionsWebsite) return getWebsiteQuestionAnswerEntry("website-critical-comment");
@@ -12785,7 +12800,7 @@ function setupPortfolioHelpBot() {
               scoreIf(hasAll(["ai", "training"]), 7)
               + scoreIf(hasAll(["assistant", "training"]), 7)
               + scoreMatches(["who trained the ai", "who is training the ai", "who trains the assistant", "ai assistant training", "bot training"], 3)
-              + scoreMatches(["ai", "assistant", "bot", "synapse", "training", "trained", "teaching", "guiding"], 2)
+              + scoreMatches(["ai", "assistant", "bot", "portfolio assistant", "training", "trained", "teaching", "guiding"], 2)
             ),
             text: "Ich bin Soorajs Portfolio Assistant. Sie koennen mich als digitalen Guide sehen, den Sooraj Schritt fuer Schritt weiter verbessert. Wenn ich eine Frage noch nicht sauber beantworten kann, kann der Verlauf spaeter von Sooraj geprueft und fuer bessere Antworten genutzt werden.",
             actions: [
@@ -12862,7 +12877,7 @@ function setupPortfolioHelpBot() {
             minScore: 3,
             score: () => (
               scoreIf(hasAll(["your", "name"]), 6)
-              + scoreMatches(["who are you", "what is your name", "your name", "bot name", "assistant name", "synapse"], 3)
+              + scoreMatches(["who are you", "what is your name", "your name", "bot name", "assistant name", "portfolio assistant"], 3)
               + scoreMatches(["name", "bot", "assistant"], 1)
             ),
             text: "Mein Name ist Soorajs Portfolio Assistant. Ich bin der digitale Guide auf dieser Website und helfe Ihnen, schneller zu den passenden Bereichen zu kommen. Wenn Sie moechten, gehen wir direkt wieder zu den wichtigsten Website-Bereichen zurueck.",
@@ -13298,7 +13313,7 @@ function setupPortfolioHelpBot() {
               scoreIf(hasAll(["ai", "training"]), 7)
               + scoreIf(hasAll(["assistant", "training"]), 7)
               + scoreMatches(["who trained the ai", "who is training the ai", "who trains the assistant", "ai assistant training", "bot training"], 3)
-              + scoreMatches(["ai", "assistant", "bot", "synapse", "training", "trained", "teaching", "guiding"], 2)
+              + scoreMatches(["ai", "assistant", "bot", "portfolio assistant", "training", "trained", "teaching", "guiding"], 2)
             ),
             text: "I am Sooraj's Portfolio Assistant. You can think of me as a digital guide that Sooraj keeps improving over time. When I cannot answer something clearly yet, the conversation can be reviewed by Sooraj and used to improve future replies.",
             actions: [
@@ -13375,7 +13390,7 @@ function setupPortfolioHelpBot() {
             minScore: 3,
             score: () => (
               scoreIf(hasAll(["your", "name"]), 6)
-              + scoreMatches(["who are you", "what is your name", "your name", "bot name", "assistant name", "synapse"], 3)
+              + scoreMatches(["who are you", "what is your name", "your name", "bot name", "assistant name", "portfolio assistant"], 3)
               + scoreMatches(["name", "bot", "assistant"], 1)
             ),
             text: "My name is Sooraj's Portfolio Assistant. I am the digital guide on this website, here to help you move through the portfolio faster. If you want, we can go straight back to the main website sections now.",
@@ -13948,7 +13963,7 @@ function setupPortfolioHelpBot() {
       return false;
     }
 
-    if (/(ai|assistant|bot|synapse|sooraj|portfolio|website|career|his|he)\b/.test(normalized)) {
+    if (/(ai|assistant|bot|portfolio assistant|sooraj|portfolio|website|career|his|he)\b/.test(normalized)) {
       return false;
     }
 
@@ -13978,7 +13993,7 @@ function setupPortfolioHelpBot() {
       return false;
     }
 
-    if (/\b(sooraj|owner|portfolio owner|website owner|founder|bot|assistant|ai|synapse|chatbot)\b/.test(normalized)) {
+    if (/\b(sooraj|owner|portfolio owner|website owner|founder|bot|assistant|ai|portfolio assistant|chatbot)\b/.test(normalized)) {
       return false;
     }
 
@@ -13994,7 +14009,7 @@ function setupPortfolioHelpBot() {
 
     const hasRuleTerms = /\b(eu|europe|european|gdpr|dsgvo|ai act|a i act|eprivacy|privacy law|privacy laws|article 50|article 13|article 15|article 17|article 32|chatbot law|chatbot laws|chatbot rules|chatbot guideline|chatbot guidelines|regulation|regulations|compliance|guideline|guidelines|rule|rules|law|laws|germany|german)\b/.test(normalized);
     const hasFollowTerms = /\b(follow|follows|following|comply|compliant|compliance|aligned|legal|lawful|regulated|regulation)\b/.test(normalized);
-    const hasAssistantTerms = /\b(ai|assistant|bot|chatbot|website|chat|synapse)\b/.test(normalized);
+    const hasAssistantTerms = /\b(ai|assistant|bot|chatbot|website|chat|portfolio assistant)\b/.test(normalized);
 
     return hasRuleTerms && (hasFollowTerms || /\b(article|gdpr|dsgvo|ai act|eprivacy)\b/.test(normalized)) && !hasAssistantTerms;
   };
@@ -14020,7 +14035,7 @@ function setupPortfolioHelpBot() {
       "can i know your name"
     ];
     const asksForName = directPatterns.some((pattern) => normalized.includes(pattern) || normalized === pattern);
-    const mentionsBot = /\b(ai|assistant|bot|chatbot|synapse)\b/.test(normalized);
+    const mentionsBot = /\b(ai|assistant|bot|chatbot|portfolio assistant)\b/.test(normalized);
     const mentionsOwner = /\b(sooraj|owner|website owner|portfolio owner|founder|his name|her name)\b/.test(normalized)
       || HELP_BOT_OWNER_PATTERN.test(normalized);
 
@@ -14035,7 +14050,7 @@ function setupPortfolioHelpBot() {
     if (!normalized) return null;
 
     const mentionsOwner = HELP_BOT_OWNER_PATTERN.test(normalized);
-    const mentionsAssistant = /\b(ai|assistant|bot|synapse|chatbot)\b/.test(normalized);
+    const mentionsAssistant = /\b(ai|assistant|bot|portfolio assistant|chatbot)\b/.test(normalized);
     const usesYouPronoun = /\b(you|your|yours|you re|you are)\b/.test(normalized);
     const asksForDocumentNumber = /\b(passport number|visa number|permit number|document number|id number|expiry|expiration|expire|valid until)\b/.test(normalized);
 
@@ -14097,7 +14112,7 @@ function setupPortfolioHelpBot() {
     if (!normalized) return null;
 
     const mentionsOwner = HELP_BOT_OWNER_PATTERN.test(normalized);
-    const mentionsAssistant = /\b(ai|assistant|bot|synapse|chatbot)\b/.test(normalized);
+    const mentionsAssistant = /\b(ai|assistant|bot|portfolio assistant|chatbot)\b/.test(normalized);
     const usesYouPronoun = /\b(you|your|you re|you are|du|dein|deine|dir)\b/.test(normalized);
     const asksAboutGerman = /\b(german|deutsch)\b/.test(normalized)
       && /\b(speak|speaking|talk|chat|write|understand|translate|antworten|sprechen|schreiben|chatten|uebersetzen|ubersetzen|kannst|sprichst)\b/.test(normalized);
@@ -15060,6 +15075,95 @@ function setupPortfolioHelpBot() {
     });
   };
 
+  const removeHelpBotWelcomeState = () => {
+    messages.querySelector(".help-bot-welcome-state")?.remove();
+  };
+
+  const renderHelpBotWelcomeState = () => {
+    if (!messages || helpBotState.messages.length || messages.querySelector(".help-bot-message")) {
+      root.classList.add("has-chat-messages");
+      removeHelpBotWelcomeState();
+      return;
+    }
+
+    root.classList.remove("has-chat-messages");
+    messages.innerHTML = "";
+
+    const quickStarts = [
+      {
+        id: "recruiter",
+        badge: "Hiring",
+        title: config.roles.recruiter.label,
+        text: currentLang === "de" ? "Rollen-Fit, CV und Kontaktpfad." : "Role fit, CV, and contact path."
+      },
+      {
+        id: "hiringManager",
+        badge: "Proof",
+        title: config.roles.hiringManager.label,
+        text: currentLang === "de" ? "Industrieerfahrung und Delivery-Logik." : "Industrial proof and delivery logic."
+      },
+      {
+        id: "student",
+        badge: "Study",
+        title: config.roles.student.label,
+        text: currentLang === "de" ? "Werdegang, Thesis und Projekte." : "Journey, thesis, and projects."
+      },
+      {
+        id: "collaborator",
+        badge: "Build",
+        title: currentLang === "de" ? "Projekt-Viewer" : "Project viewer",
+        text: currentLang === "de" ? "Stack, Projekte und GitHub." : "Stack, projects, and GitHub."
+      }
+    ];
+
+    const welcome = document.createElement("article");
+    welcome.className = "help-bot-welcome-state";
+    welcome.setAttribute("aria-label", config.title);
+
+    const kicker = document.createElement("span");
+    kicker.className = "help-bot-welcome-kicker";
+    kicker.textContent = config.badge;
+
+    const title = document.createElement("strong");
+    title.className = "help-bot-welcome-title";
+    title.textContent = currentLang === "de"
+      ? "Direkt zum richtigen Portfolio-Pfad"
+      : "Start with the right portfolio path";
+
+    const text = document.createElement("p");
+    text.className = "help-bot-welcome-text";
+    text.textContent = currentLang === "de"
+      ? "Waehlen Sie einen Kontext. Ich oeffne danach nur die Bereiche, die fuer Sie relevant sind."
+      : "Choose a context. I will route you only to the sections that matter for that review.";
+
+    const grid = document.createElement("div");
+    grid.className = "help-bot-welcome-grid";
+
+    quickStarts.forEach((entry) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "help-bot-welcome-option";
+      button.dataset.helpBotOptionKind = "role";
+      button.dataset.helpBotOptionId = entry.id;
+
+      const badge = document.createElement("span");
+      badge.className = "help-bot-welcome-option-badge";
+      badge.textContent = entry.badge;
+
+      const optionTitle = document.createElement("strong");
+      optionTitle.textContent = entry.title;
+
+      const optionText = document.createElement("span");
+      optionText.textContent = entry.text;
+
+      button.append(badge, optionTitle, optionText);
+      grid.append(button);
+    });
+
+    welcome.append(kicker, title, text, grid);
+    messages.append(welcome);
+  };
+
   const hideComposer = ({ clearValue = true } = {}) => {
     if (!composer) return;
     composer.hidden = true;
@@ -15114,6 +15218,13 @@ function setupPortfolioHelpBot() {
     clearTypingIndicator();
     if (liveRegion) liveRegion.textContent = "";
     messages.innerHTML = "";
+    if (!helpBotState.messages.length) {
+      renderHelpBotWelcomeState();
+      syncComposerState();
+      setOptions([], "");
+      return;
+    }
+    root.classList.add("has-chat-messages");
     helpBotState.messages.forEach((message) => {
       appendMessage({
         sender: message.sender,
@@ -15456,6 +15567,8 @@ function setupPortfolioHelpBot() {
   };
 
   const appendMessage = ({ sender = "bot", text = "", actions = [], inlineOptions = [], cards = [], persist = true }) => {
+    removeHelpBotWelcomeState();
+    root.classList.add("has-chat-messages");
     const item = document.createElement("div");
     item.className = `help-bot-message is-${sender}`;
 
@@ -18620,6 +18733,7 @@ function setupPortfolioHelpBot() {
     messages.innerHTML = "";
     setOptions([], "");
     setStaticCopy();
+    renderHelpBotWelcomeState();
   });
 
   langObserver.observe(document.documentElement, {
@@ -18628,6 +18742,7 @@ function setupPortfolioHelpBot() {
   });
 
   setStaticCopy();
+  renderHelpBotWelcomeState();
   showNudge({ delay: HELP_BOT_NUDGE_INITIAL_DELAY_MS });
 }
 
