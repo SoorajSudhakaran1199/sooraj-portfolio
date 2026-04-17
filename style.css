@@ -8480,6 +8480,7 @@ body.motion-ready .motion-review-summary.is-motion-visible .review-reach-card:nt
 .review-featured-panel .feedback-public-review-reply.is-collapsed .feedback-public-review-reply-text {
   display: -webkit-box;
   -webkit-line-clamp: 1;
+  line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -10539,10 +10540,12 @@ body.detail-page.feedback-page main[data-mode="contact"] .feedback-hero-panel {
 
 .feedback-public-review-body.is-collapsed .feedback-public-review-text {
   -webkit-line-clamp: 4;
+  line-clamp: 4;
 }
 
 .feedback-public-review-reply.is-collapsed .feedback-public-review-reply-text {
   -webkit-line-clamp: 3;
+  line-clamp: 3;
 }
 
 .feedback-public-review-body.is-expanded .feedback-public-review-text,
@@ -17299,6 +17302,7 @@ body.help-bot-open {
   line-height: 1.48;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -20159,6 +20163,7 @@ body.help-bot-open {
     line-height: 1.3;
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
@@ -20585,6 +20590,7 @@ body.help-bot-open {
     font-size: 0.66rem;
     line-height: 1.24;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
   }
 
   .help-bot-panel-badge {
