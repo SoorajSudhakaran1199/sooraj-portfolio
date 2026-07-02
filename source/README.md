@@ -1,49 +1,111 @@
 # Sooraj Sudhakaran Portfolio
 
-Professional portfolio website for Sooraj Sudhakaran, focused on robotics, automation, simulation, and industrial engineering work.
+Official portfolio website for Sooraj Sudhakaran, focused on robotics, automation, simulation, and industrial engineering work.
 
-The site is built as a modern static frontend with a lightweight Supabase-backed layer for recommendations, admin-controlled content settings, and email notification workflow.
+The site is designed as a professional engineering portfolio for recruiters, hiring teams, technical reviewers, and collaborators. It presents Sooraj's project evidence, KEBA industrial robotics experience, education, certifications, technical skills, professional recommendations, and a guided portfolio assistant in a polished static web experience.
 
-## Project Overview
+## Overview
 
-This portfolio is designed for technical recruiters, engineering teams, and collaborators who need a clear view of Sooraj's robotics profile. It presents:
+This project is a modern React and Vite portfolio with a static production build and a lightweight Supabase-backed workflow for selected dynamic features.
 
-- Robotics and automation positioning
-- Project case studies with engineering evidence
-- KEBA industrial robotics experience
-- Education, certifications, and technical skills
-- Public professional recommendations
-- A portfolio assistant for guided Q&A
-- Admin-controlled content settings for selected live sections
+The public website is intentionally fast, portable, and host-friendly. Core content is built into the frontend, while recommendation review, admin-controlled visibility, content additions, and email notification flow are handled through Supabase.
 
-The public site is a static build. Dynamic actions such as recommendations and admin updates are handled through Supabase with row-level security.
+Primary goals:
 
-## Tech Stack
+- Present a premium robotics and automation portfolio.
+- Keep the public website simple to deploy on static hosting.
+- Support professional recommendations with an approval workflow.
+- Provide admin-controlled content settings without exposing private credentials.
+- Maintain a clean source structure for future portfolio updates.
+
+## Portfolio Scope
+
+The website covers:
+
+- Industrial robotics and automation positioning
+- KEBA industrial robotics work and thesis case study
+- Robot workflow planning, simulation validation, and deployment-oriented engineering
+- ROS, SLAM, embedded systems, Unity, MATLAB, and control-system project evidence
+- Education, certifications, skills, and tools
+- Verified professional recommendations
+- Contact and resume access
+- Portfolio assistant for guided Q&A
+- Admin review and selected live content controls
+
+## Technology Stack
 
 - React 18
-- Vite
+- Vite 5
 - Tailwind CSS
 - Framer Motion
 - Lucide React icons
 - Supabase REST and Auth
-- Supabase Edge Function for recommendation email notification
+- Supabase Edge Functions
+- ESLint
+
+## Architecture
+
+The project separates the portfolio into four practical layers:
+
+```text
+Static frontend
+  React components, portfolio sections, project modals, theme handling,
+  language handling, animations, and responsive layout.
+
+Content layer
+  Structured portfolio data, site copy, assistant knowledge, and question bank.
+
+Supabase services
+  Public recommendation submission, admin approval state, content settings,
+  and authenticated update operations.
+
+Production build
+  Static files generated into dist/ for upload to GitHub Pages, Netlify,
+  Vercel static output, or any conventional static host.
+```
+
+The frontend only contains public-safe configuration, including the Supabase project URL and publishable browser key. Private credentials are expected to remain in Supabase project settings or Edge Function environment variables.
 
 ## Folder Structure
 
 ```text
 sooraj-sudhakaran-portfolio/
-  public/                Static public assets copied into production
-  src/                   Application source code
-    assets/              Images, certificates, logos, and project media
-    components/          UI sections and interactive panels
-    context/             Theme, language, and admin state provider
-    data/                Portfolio content and assistant knowledge
-    hooks/               Reusable interaction hooks
-    lib/                 Supabase and state composition services
-    pages/               Page-level composition
-  supabase/              Database setup and Edge Function source
-  dist/                  Production build output after npm run build
-  package.json           Project scripts and dependencies
+  public/
+    Static files copied directly into production output
+    Resume overview page, favicon, sitemap, robots file, manifest, preview image
+
+  src/
+    assets/
+      Profile media, project images, logos, certificates, and documents
+
+    components/
+      Portfolio sections, admin panel, recommendations, chatbot, navigation,
+      project views, stats, contact, and shared UI components
+
+    context/
+      Theme, language, and admin-state provider
+
+    data/
+      Portfolio content, site copy, chatbot knowledge, casual responses,
+      and assistant question bank
+
+    hooks/
+      Reusable UI and interaction hooks
+
+    lib/
+      Supabase services and portfolio state composition helpers
+
+    pages/
+      Page-level composition
+
+  supabase/
+    Database setup and Edge Function source
+
+  dist/
+    Production build generated by npm run build
+
+  package.json
+    Scripts, dependency list, and project metadata
 ```
 
 ## Local Development
@@ -60,89 +122,76 @@ Start the local development server:
 npm run dev
 ```
 
-Run lint checks:
-
-```bash
-npm run lint
-```
-
 Create a production build:
 
 ```bash
 npm run build
 ```
 
-Preview the production build locally:
+Preview the production build:
 
 ```bash
 npm run preview
 ```
 
-## Deployment
+Run lint checks:
 
-The deployable website is the contents of:
+```bash
+npm run lint
+```
+
+## Production Build
+
+The deployable website is generated in:
 
 ```text
 dist/
 ```
 
-For a static host, upload the files inside `dist/`, not the full source folder.
+For static hosting, upload the contents inside `dist/`, not the complete source folder.
 
-The Vite base path is configured as `./`, so the build can run from a root domain or a project subpath such as GitHub Pages.
+The Vite base path is configured as `./`, which allows the same build to work from a root domain or a project path such as GitHub Pages.
 
-Before publishing to a final public URL, confirm these files match the live domain:
-
-- `public/robots.txt`
-- `public/sitemap.xml`
-- `public/site.webmanifest`
-- `public/social-preview.webp`
-
-After editing public metadata, run `npm run build` again so `dist/` receives the updated files.
-
-## Backend Notes
-
-The portfolio uses Supabase for:
-
-- Public recommendations
-- Admin review and approval flow
-- Portfolio admin state
-- Section visibility and content additions
-- Recommendation email notification trigger
-
-The frontend contains only the Supabase project URL and publishable browser key. The admin password is not stored in the source code. Admin access is handled through Supabase Auth, and browser sessions are intentionally short-lived.
-
-Database setup for the portfolio admin state is kept in:
+Expected production output includes:
 
 ```text
-supabase/portfolio_admin_state.sql
+dist/index.html
+dist/assets/
+dist/.nojekyll
+dist/Sooraj-Sudhakaran-Resume-Overview.html
+dist/favicon.svg
+dist/robots.txt
+dist/sitemap.xml
+dist/site.webmanifest
+dist/social-preview.webp
 ```
 
-The recommendation notification function is kept in:
+## Deployment Runbook
 
-```text
-supabase/functions/recommendation-notify/
-```
+Before publishing a new version:
 
-Email delivery requires provider credentials to be configured as Supabase Edge Function environment variables. Do not place email API keys, private keys, or service-role keys in the frontend.
+1. Update content or layout in `src/` and `public/`.
+2. Run `npm run lint`.
+3. Run `npm run build`.
+4. Review the generated `dist/` folder.
+5. Serve the build locally or through a hosting preview.
+6. Check dark mode and light mode.
+7. Check desktop, tablet, and mobile layouts.
+8. Check project modals, recommendations, chatbot, contact links, and resume page.
+9. Upload only the contents of `dist/` to the hosting target.
 
-## Security Baseline
-
-- No admin password is stored in the repository.
-- No service-role key is stored in the frontend.
-- Admin sessions clear on refresh and expire after inactivity.
-- Public recommendation submissions stay pending until approved.
-- Backend updates depend on Supabase Auth and database policies.
+For GitHub Pages, keep `.nojekyll` in the deployed output so files and folders are served directly without Jekyll processing.
 
 ## Content Maintenance
 
-Primary portfolio content is managed in:
+Primary portfolio content:
 
 ```text
 src/data/portfolioData.js
 src/data/siteCopy.js
 ```
 
-Assistant responses are managed in:
+Portfolio assistant content:
 
 ```text
 src/data/helpBotKnowledge.js
@@ -150,25 +199,103 @@ src/data/helpBotCasualKnowledge.js
 src/data/helpBotQuestionBank.json
 ```
 
-Visual and layout changes are mainly in:
+Visual system and layout:
 
 ```text
 src/index.css
 src/components/
 ```
 
-## Production Checklist
+Public metadata:
 
-Before upload:
+```text
+public/robots.txt
+public/sitemap.xml
+public/site.webmanifest
+public/social-preview.webp
+```
 
-1. Run `npm run lint`.
-2. Run `npm run build`.
-3. Open `dist/index.html` through a local static server or hosting preview.
-4. Check dark and light themes.
-5. Check project case-study modals.
-6. Check recommendation submission and admin review if Supabase is enabled.
-7. Upload only the contents of `dist/`.
+After changing public metadata, run `npm run build` so the updated files are copied into `dist/`.
+
+## Supabase Integration
+
+Supabase supports the dynamic parts of the portfolio:
+
+- Public recommendation submissions
+- Pending, approved, rejected, and deleted recommendation states
+- Admin review workflow
+- Admin-controlled section visibility
+- Content additions and live portfolio settings
+- Recommendation email notification trigger
+
+Database setup:
+
+```text
+supabase/portfolio_admin_state.sql
+```
+
+Recommendation notification Edge Function:
+
+```text
+supabase/functions/recommendation-notify/
+```
+
+Email delivery depends on provider credentials configured in Supabase Edge Function secrets. These values must not be placed in frontend files, committed into the repository, or bundled into the production build.
+
+## Security Model
+
+Security expectations for this project:
+
+- No admin password is stored in the source code.
+- No service-role key is stored in the frontend.
+- Public browser access uses only publishable Supabase credentials.
+- Admin access is handled through Supabase Auth.
+- Admin sessions are intentionally short-lived.
+- Sessions clear on refresh where configured.
+- Public recommendations remain hidden until approved.
+- Database writes rely on Supabase policies and authenticated operations.
+- Email API keys and private credentials remain in Supabase environment variables.
+
+Before any public release, search the repository for accidental secrets:
+
+```bash
+rg -n "password|secret|service_role|api_key|private|token" .
+```
+
+Review findings carefully. Public-safe labels and documentation references are acceptable; real credentials are not.
+
+## Quality Checklist
+
+Use this checklist before publishing:
+
+- Lint check passes.
+- Production build completes.
+- Homepage loads without console errors.
+- Hero section renders correctly in dark and light mode.
+- Navigation anchors scroll to the correct sections.
+- Project modal content is readable on mobile and desktop.
+- Recommendation cards handle long text without overlap.
+- Admin panel opens above the page content and remains usable on mobile.
+- Chatbot input, reset, suggestion, and response flows work.
+- Contact links and resume links open correctly.
+- Sitemap and metadata match the intended public URL.
+
+## Repository Hygiene
+
+Do not commit:
+
+- `node_modules/`
+- local `.env` files
+- private keys
+- service-role keys
+- temporary screenshots
+- local editor folders
+- generated logs
+
+The production build in `dist/` is useful for upload, but the source project should remain the main editing location.
 
 ## Ownership
 
 This project is maintained as the official portfolio website for Sooraj Sudhakaran.
+
+For content updates, keep the writing concise, evidence-based, and aligned with robotics, automation, simulation, and industrial engineering roles.
