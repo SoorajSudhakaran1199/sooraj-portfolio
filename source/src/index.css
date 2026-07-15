@@ -2947,6 +2947,12 @@ section {
   animation: panelSheen 6.8s ease-in-out infinite;
 }
 
+:root {
+  --assistant-visual-height: 100svh;
+  --assistant-keyboard-inset: 0px;
+  --assistant-visual-offset-top: 0px;
+}
+
 .assistant-panel {
   isolation: isolate;
 }
@@ -2978,6 +2984,26 @@ section {
 .assistant-message-bubble {
   position: relative;
   overflow: hidden;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.assistant-message-bubble p {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.assistant-form {
+  min-width: 0;
+}
+
+.assistant-input {
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.assistant-composer {
+  overflow: hidden;
 }
 
 .assistant-message-alert {
@@ -3007,6 +3033,55 @@ section {
 
 .assistant-typing-dot:nth-child(4) {
   animation-delay: 280ms;
+}
+
+@media (min-width: 640px) {
+  .assistant-input {
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 639px) {
+  .assistant-panel {
+    bottom: max(0.5rem, calc(var(--assistant-keyboard-inset, 0px) + env(safe-area-inset-bottom) + 0.5rem)) !important;
+    height: min(760px, calc(var(--assistant-visual-height, 100svh) - 1rem)) !important;
+    max-height: calc(var(--assistant-visual-height, 100svh) - 1rem);
+  }
+
+  .assistant-panel.is-keyboard-active {
+    bottom: max(0.35rem, calc(var(--assistant-keyboard-inset, 0px) + env(safe-area-inset-bottom) + 0.35rem)) !important;
+    height: min(31rem, calc(var(--assistant-visual-height, 100svh) - 0.7rem)) !important;
+    max-height: calc(var(--assistant-visual-height, 100svh) - 0.7rem);
+    border-radius: 1.05rem;
+  }
+
+  .assistant-panel.is-keyboard-active .assistant-header {
+    padding-block: 0.65rem;
+  }
+
+  .assistant-panel.is-keyboard-active .assistant-quick-prompts {
+    max-height: 0;
+    margin-bottom: 0;
+    padding-bottom: 0;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .assistant-panel.is-keyboard-active .assistant-composer {
+    padding: 0.65rem;
+  }
+
+  .assistant-panel.is-keyboard-active .assistant-input {
+    min-height: 3rem;
+    border-radius: 1rem;
+  }
+
+  .assistant-panel.is-keyboard-active .assistant-send-button {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 1rem;
+  }
 }
 
 .scroll-progress {

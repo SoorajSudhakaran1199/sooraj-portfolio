@@ -212,6 +212,7 @@ export default function Chatbot() {
   const panelRef = useDialogA11y(open, () => setOpen(false), { lockScroll: false });
   const [messages, setMessages] = useState(() => loadStoredSession(language) || createInitialMessages(language));
   const [input, setInput] = useState('');
+  const [inputFocused, setInputFocused] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [pendingLanguageSwitch, setPendingLanguageSwitch] = useState('');
   const [pendingSpellingConfirmation, setPendingSpellingConfirmation] = useState(null);
@@ -248,12 +249,46 @@ export default function Chatbot() {
   }, [language, messages]);
 
   useEffect(() => {
+    if (!open || typeof window === 'undefined') return undefined;
+
+    const root = document.documentElement;
+    const updateViewportVars = () => {
+      const visualViewport = window.visualViewport;
+      const visualHeight = Math.round(visualViewport?.height || window.innerHeight);
+      const visualOffsetTop = Math.round(visualViewport?.offsetTop || 0);
+      const keyboardInset = Math.max(0, Math.round(window.innerHeight - visualHeight - visualOffsetTop));
+
+      root.style.setProperty('--assistant-visual-height', `${visualHeight}px`);
+      root.style.setProperty('--assistant-keyboard-inset', `${keyboardInset}px`);
+      root.style.setProperty('--assistant-visual-offset-top', `${visualOffsetTop}px`);
+    };
+
+    updateViewportVars();
+    window.addEventListener('resize', updateViewportVars);
+    window.visualViewport?.addEventListener('resize', updateViewportVars);
+    window.visualViewport?.addEventListener('scroll', updateViewportVars);
+
+    return () => {
+      window.removeEventListener('resize', updateViewportVars);
+      window.visualViewport?.removeEventListener('resize', updateViewportVars);
+      window.visualViewport?.removeEventListener('scroll', updateViewportVars);
+      root.style.removeProperty('--assistant-visual-height');
+      root.style.removeProperty('--assistant-keyboard-inset');
+      root.style.removeProperty('--assistant-visual-offset-top');
+    };
+  }, [open]);
+
+  useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, open, isTyping]);
 
   useEffect(() => () => window.clearTimeout(typingTimer.current), []);
+
+  useEffect(() => {
+    if (!open) setInputFocused(false);
+  }, [open]);
 
   const resetChat = () => {
     window.clearTimeout(typingTimer.current);
@@ -388,12 +423,25 @@ export default function Chatbot() {
     sendMessage(input);
   };
 
+  const focusInput = () => {
+    setInputFocused(true);
+    window.setTimeout(() => {
+      if (scrollRef.current) {
+        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      }
+    }, 160);
+  };
+
+  const blurInput = () => {
+    window.setTimeout(() => setInputFocused(false), 120);
+  };
+
   return (
     <>
       <AnimatePresence>
         {open && (
           <motion.aside
-            className="assistant-panel fixed inset-x-2 bottom-2 z-[60] flex h-[min(760px,calc(100svh-1rem))] w-auto flex-col overflow-hidden rounded-[1.35rem] border border-white/15 bg-ink-950/94 shadow-glow backdrop-blur-2xl sm:inset-x-auto sm:bottom-6 sm:right-6 sm:h-[min(720px,calc(100vh-3rem))] sm:w-[440px] sm:rounded-3xl xl:w-[460px]"
+            className={`assistant-panel fixed inset-x-2 bottom-2 z-[60] flex h-[min(760px,calc(100svh-1rem))] w-auto flex-col overflow-hidden rounded-[1.35rem] border border-white/15 bg-ink-950/94 shadow-glow backdrop-blur-2xl sm:inset-x-auto sm:bottom-6 sm:right-6 sm:h-[min(720px,calc(100vh-3rem))] sm:w-[440px] sm:rounded-3xl xl:w-[460px] ${inputFocused ? 'is-keyboard-active' : ''}`}
             ref={panelRef}
             tabIndex={-1}
             role="dialog"
@@ -493,7 +541,7 @@ export default function Chatbot() {
             </div>
 
             <div className="assistant-composer shrink-0 border-t border-white/10 bg-ink-950/70 p-3 backdrop-blur-xl sm:p-4">
-              <div className="chat-scrollbar mb-3 flex gap-2 overflow-x-auto pb-1" aria-label={chatbotCopy.quickQuestions}>
+              <div className="assistant-quick-prompts chat-scrollbar mb-3 flex gap-2 overflow-x-auto pb-1" aria-label={chatbotCopy.quickQuestions}>
                 {quickPrompts.map((prompt) => (
                   <button
                     key={prompt}
@@ -506,15 +554,18 @@ export default function Chatbot() {
                   </button>
                 ))}
               </div>
-              <form onSubmit={submit} className="flex gap-2">
+              <form onSubmit={submit} className="assistant-form flex gap-2">
                 <input
                   value={input}
                   onChange={(event) => setInput(event.target.value)}
+                  onFocus={focusInput}
+                  onBlur={blurInput}
                   disabled={isTyping}
                   className="assistant-input min-h-11 min-w-0 flex-1 rounded-2xl border border-white/10 bg-white/[0.06] px-4 text-sm text-white outline-none placeholder:text-slate-500 focus:border-electric-300 disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-12"
                   placeholder={chatbotCopy.placeholder}
+                  enterKeyHint="send"
                 />
-                <button type="submit" disabled={isTyping} className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-electric-500 text-white transition hover:bg-electric-400 disabled:cursor-not-allowed disabled:opacity-60 sm:h-12 sm:w-12" aria-label={chatbotCopy.send}>
+                <button type="submit" disabled={isTyping} className="assistant-send-button grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-electric-500 text-white transition hover:bg-electric-400 disabled:cursor-not-allowed disabled:opacity-60 sm:h-12 sm:w-12" aria-label={chatbotCopy.send}>
                   <Send size={18} />
                 </button>
               </form>
