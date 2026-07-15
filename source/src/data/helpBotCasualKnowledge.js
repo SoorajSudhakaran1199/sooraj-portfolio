@@ -273,8 +273,8 @@ const casualEntryData = [
     prompts: ['do you remember me', 'will you remember this chat', 'do you have memory', 'remember my name', 'save my chat', 'will this stay for follow up', 'do you keep context'],
     keywords: ['remember', 'memory', 'save my chat', 'follow up', 'keep context'],
     response: {
-      en: 'I keep normal chat context in your browser so follow-up questions make sense. That local copy is not the same as saving every chat to the portfolio database.',
-      de: 'Ich halte normalen Chat-Kontext im Browser, damit Follow-up-Fragen Sinn ergeben. Diese lokale Kopie ist nicht dasselbe wie jede Nachricht in der Portfolio-Datenbank zu speichern.',
+      en: 'I keep chat context in your browser for follow-up continuity, and chat messages may also be stored in the portfolio review database for admin review and improvement. I do not know you personally unless you share identifying details.',
+      de: 'Ich halte Chat-Kontext im Browser fuer Follow-up-Kontinuitaet; Chatnachrichten koennen auch in der Portfolio-Pruefdatenbank fuer Adminpruefung und Verbesserung gespeichert werden. Ich kenne Sie nicht persoenlich, ausser Sie teilen identifizierende Details.',
     },
   },
   {
@@ -325,8 +325,8 @@ const casualEntryData = [
       'questions recorded',
     ],
     response: {
-      en: 'Not every chat is saved to the portfolio database. Normal chat is kept locally in your browser for follow-up continuity. Questions that receive “No match found” can be saved for admin review and question-bank improvement. Avoid sharing passwords, private numbers, or sensitive personal data.',
-      de: 'Nicht jeder Chat wird in der Portfolio-Datenbank gespeichert. Normale Chats bleiben lokal im Browser fuer Follow-up-Kontext. Fragen mit “Kein Treffer gefunden” koennen fuer Adminpruefung und Verbesserung der Fragenbank gespeichert werden. Bitte keine Passwoerter, privaten Nummern oder sensiblen Daten teilen.',
+      en: 'Chat messages may be stored in the portfolio review database for admin review and improvement. A local browser copy is also used for follow-up continuity. Avoid sharing passwords, private numbers, or sensitive personal data.',
+      de: 'Chatnachrichten koennen in der Portfolio-Pruefdatenbank fuer Adminpruefung und Verbesserung gespeichert werden. Eine lokale Browserkopie wird ebenfalls fuer Follow-up-Kontext genutzt. Bitte keine Passwoerter, privaten Nummern oder sensiblen Daten teilen.',
     },
   },
   {
@@ -334,8 +334,8 @@ const casualEntryData = [
     prompts: ['delete my chat', 'clear my data', 'remove chat history', 'reset conversation', 'erase chat', 'delete saved no match questions', 'remove recorded unanswered question'],
     keywords: ['delete chat', 'clear data', 'remove chat', 'erase chat', 'reset conversation'],
     response: {
-      en: 'Use the reset button to clear the local browser chat. If a no-match question was saved for review, the portfolio admin can remove it from the admin chat history panel.',
-      de: 'Mit dem Reset-Button loeschen Sie den lokalen Browser-Chat. Falls eine No-Match-Frage zur Pruefung gespeichert wurde, kann der Portfolio-Admin sie im Admin-Chatverlauf entfernen.',
+      en: 'Use the reset button to clear the local browser chat. Stored review records can be removed by the portfolio admin from the admin chat history panel.',
+      de: 'Mit dem Reset-Button loeschen Sie den lokalen Browser-Chat. Gespeicherte Pruefdatensaetze kann der Portfolio-Admin im Admin-Chatverlauf entfernen.',
     },
   },
   {
@@ -358,8 +358,8 @@ const casualEntryData = [
     ],
     keywords: ['private', 'privacy', 'admin read', 'who sees this chat', 'everything recorded', 'everything saved', 'saving for training', 'what gets recorded'],
     response: {
-      en: 'This is not fully private like an encrypted personal messenger. Normal chat stays in your browser for continuity, and no-match questions can be recorded for admin review and improvement. Do not share passwords, private phone numbers, or sensitive personal details here.',
-      de: 'Das ist nicht voll privat wie ein verschluesselter persoenlicher Messenger. Normale Chats bleiben fuer Kontinuitaet im Browser, und No-Match-Fragen koennen fuer Adminpruefung und Verbesserung gespeichert werden. Bitte keine Passwoerter, privaten Telefonnummern oder sensiblen Details teilen.',
+      en: 'This is not fully private like an encrypted personal messenger. Chat messages may be stored for portfolio admin review and improvement, and local browser storage is used for continuity. Do not share passwords, private phone numbers, or sensitive personal details here.',
+      de: 'Das ist nicht voll privat wie ein verschluesselter persoenlicher Messenger. Chatnachrichten koennen fuer Portfolio-Adminpruefung und Verbesserung gespeichert werden; lokaler Browserspeicher wird fuer Kontinuitaet genutzt. Bitte keine Passwoerter, privaten Telefonnummern oder sensiblen Details teilen.',
     },
   },
   {

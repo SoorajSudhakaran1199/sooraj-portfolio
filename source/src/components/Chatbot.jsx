@@ -87,12 +87,6 @@ function isModerationMessage(message) {
     || message?.match?.intentId === 'moderation-disallowed-language';
 }
 
-function isNoMatchMessage(message) {
-  return message?.match?.topic === 'noMatch'
-    || message?.match?.intentId === 'no-match'
-    || message?.match?.intentId === 'spelling-confirmation-rejected';
-}
-
 function getMessageBubbleClass(message) {
   const baseClass = 'assistant-message-bubble max-w-[92%] rounded-[1.15rem] px-3.5 py-2.5 text-[13px] leading-6 sm:max-w-[88%] sm:rounded-2xl sm:px-4 sm:py-3 sm:text-sm';
 
@@ -315,42 +309,7 @@ export default function Chatbot() {
     setMessages(createInitialMessages(language));
   };
 
-  const recordNoMatchForReview = (visitorText, assistantMessage) => {
-    if (!isNoMatchMessage(assistantMessage)) return;
-    const cleanedVisitorText = String(visitorText || '').trim();
-    const match = assistantMessage.match || {
-      intentId: 'no-match',
-      score: 0,
-      topic: 'noMatch',
-    };
-
-    const sessionId = historySessionIdRef.current;
-    const tasks = [];
-
-    if (cleanedVisitorText) {
-      tasks.push(recordChatbotMessage({
-        sessionId,
-        language,
-        role: 'user',
-        text: cleanedVisitorText,
-        match,
-        source: 'unanswered-question',
-      }));
-    }
-
-    tasks.push(recordChatbotMessage({
-      sessionId,
-      language,
-      role: 'assistant',
-      text: assistantMessage.text,
-      match,
-      source: 'no-match-reply',
-    }));
-
-    Promise.all(tasks).catch(() => null);
-  };
-
-  const queueAssistantMessage = (messageFactory, afterAppend, visitorText = '') => {
+  const queueAssistantMessage = (messageFactory, afterAppend) => {
     const responseId = responseIdRef.current + 1;
     responseIdRef.current = responseId;
     setIsTyping(true);
@@ -371,7 +330,14 @@ export default function Chatbot() {
         typingTimer.current = window.setTimeout(() => {
           if (responseIdRef.current !== responseId) return;
           setMessages((current) => [...current, message]);
-          recordNoMatchForReview(visitorText, message);
+          recordChatbotMessage({
+            sessionId: historySessionIdRef.current,
+            language,
+            role: 'assistant',
+            text: message.text,
+            match: message.match,
+            source: 'assistant-reply',
+          }).catch(() => null);
           setIsTyping(false);
           if (typeof afterAppend === 'function') afterAppend(message);
         }, remainingDelay);
@@ -388,6 +354,15 @@ export default function Chatbot() {
             suggestions: chatbotCopy.defaultSuggestions,
           },
         ]);
+        recordChatbotMessage({
+          sessionId: historySessionIdRef.current,
+          language,
+          role: 'assistant',
+          text: language === 'de'
+            ? 'Ich konnte diese Antwort gerade nicht laden. Bitte versuchen Sie es noch einmal oder fragen Sie nach Projekten, Skills, Lebenslauf oder Kontakt.'
+            : 'I could not load that answer right now. Please try again, or ask about projects, skills, resume, or contact.',
+          source: 'assistant-error',
+        }).catch(() => null);
         setIsTyping(false);
       });
   };
@@ -397,6 +372,13 @@ export default function Chatbot() {
     if (!trimmed) return;
 
     setMessages((current) => [...current, { from: 'user', text: trimmed }]);
+    recordChatbotMessage({
+      sessionId: historySessionIdRef.current,
+      language,
+      role: 'user',
+      text: trimmed,
+      source: 'visitor-message',
+    }).catch(() => null);
     setInput('');
 
     if (pendingSpellingConfirmation) {
@@ -409,9 +391,8 @@ export default function Chatbot() {
       }
 
       if (isConfirmNo(trimmed)) {
-        const originalInput = pendingSpellingConfirmation.originalInput || pendingSpellingConfirmation.input || trimmed;
         setPendingSpellingConfirmation(null);
-        queueAssistantMessage(getNoMatchMessage(language, chatbotCopy.defaultSuggestions), undefined, originalInput);
+        queueAssistantMessage(getNoMatchMessage(language, chatbotCopy.defaultSuggestions));
         return;
       }
 
@@ -466,7 +447,6 @@ export default function Chatbot() {
       () => findHelpBotAnswer(trimmed, language)
         .then((answer) => buildAssistantMessage(answer, chatbotCopy.defaultSuggestions)),
       (message) => setPendingSpellingConfirmation(message.confirmation || null),
-      trimmed,
     );
   };
 

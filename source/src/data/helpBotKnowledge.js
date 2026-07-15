@@ -1384,8 +1384,8 @@ const topicAnswer = (topic, language, input = '') => {
       return {
         ...common,
         response: t(language,
-          'Not every chat is recorded in the portfolio database. Normal chat is kept in your browser for follow-up continuity. Questions that return “No match found” can be saved for admin review so the portfolio question bank can be improved. Please do not share passwords, private phone numbers, or sensitive personal data here.',
-          'Nicht jeder Chat wird in der Portfolio-Datenbank aufgezeichnet. Normale Chats bleiben fuer Follow-ups im Browser. Fragen mit “Kein Treffer gefunden” koennen fuer Adminpruefung gespeichert werden, damit die Portfolio-Fragenbank verbessert wird. Bitte keine Passwoerter, privaten Telefonnummern oder sensiblen Daten teilen.'),
+          'Chat messages may be recorded in the portfolio review database for admin review and improvement, and a local browser copy is used for follow-up continuity. Admin access is password protected. Please do not share passwords, private phone numbers, or sensitive personal data here.',
+          'Chatnachrichten koennen in der Portfolio-Pruefdatenbank fuer Adminpruefung und Verbesserung gespeichert werden; eine lokale Browserkopie wird fuer Follow-up-Kontinuitaet genutzt. Der Adminzugang ist passwortgeschuetzt. Bitte teilen Sie hier keine Passwoerter, privaten Telefonnummern oder sensiblen persoenlichen Daten.'),
       };
 
     case 'assistantTraining':
