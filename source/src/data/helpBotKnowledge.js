@@ -10,6 +10,7 @@ const QUESTION_BANK_BASE_STATS = {
 };
 
 const DISALLOWED_INPUT_PATTERN = /\b(fuck|fucking|shit|bitch|asshole|bastard|cunt|dick|motherfucker|idiot|stupid)\b/i;
+const CONFIDENTIAL_DATA_PATTERN = /\b(password|passcode|pin code|login credential|admin access|private key|api key|secret key|access token|auth token|environment variable|database credential|backend secret|phone number|mobile number|personal number|home address|house address|residential address|street address|exact address|date of birth|birth date|birthday|family details|parent details|sibling details|relationship status|girlfriend|boyfriend|wife|husband|medical record|health condition|disease|passport number|passport copy|aadhar|aadhaar|identity card|id card number|visa document number|residence permit number|bank account|bank details|iban|upi id|payment details|credit card|debit card|salary slip|current salary|manager name|colleague phone|reference phone|referee phone|company secret|internal keba|confidential thesis|private project file|internal source code)\b/i;
 
 const STOP_WORDS = new Set([
   'a', 'about', 'am', 'an', 'and', 'any', 'are', 'as', 'at', 'be', 'but', 'by', 'can', 'could',
@@ -292,6 +293,62 @@ const EXTRA_INTENTS = [
     'Give me news.',
     'What is the stock price?',
   ]),
+  buildIntent('career-complete-history', ['complete career', 'career history', 'career timeline', 'professional journey', 'employment chronology'], [
+    'Explain Sooraj’s complete career history.',
+    'What is his professional journey from the beginning?',
+    'List his roles in chronological order.',
+    'How did his career move from mechanical engineering to robotics?',
+    'What did he do before joining KEBA?',
+  ]),
+  buildIntent('career-responsibilities', ['career responsibilities', 'job responsibilities', 'work duties', 'role responsibilities', 'daily work'], [
+    'What were Sooraj’s responsibilities in each role?',
+    'What kind of work does he do at KEBA?',
+    'What were his duties as an NDT technician?',
+    'Describe his industrial robotics responsibilities.',
+    'What does he work on professionally?',
+  ]),
+  buildIntent('career-achievements', ['career achievements', 'professional achievements', 'key outcomes', 'career highlights', 'major accomplishment'], [
+    'What are Sooraj’s biggest career achievements?',
+    'What professional outcomes has he delivered?',
+    'What is his strongest accomplishment?',
+    'Which results in the portfolio matter most to recruiters?',
+    'What has he achieved in robotics and automation?',
+  ]),
+  buildIntent('career-target-roles', ['target roles', 'desired jobs', 'suitable positions', 'career opportunities', 'jobs applying'], [
+    'What jobs is Sooraj looking for?',
+    'Which roles should he apply for?',
+    'What positions best match his career?',
+    'Is he suitable for robotics and automation jobs?',
+    'What is his ideal next role?',
+  ]),
+  buildIntent('career-hiring-evidence', ['hiring evidence', 'proof of skills', 'candidate evidence', 'why hire', 'recruiter proof'], [
+    'What evidence supports hiring Sooraj?',
+    'How does the portfolio prove his skills?',
+    'What should a recruiter verify?',
+    'Which projects demonstrate job readiness?',
+    'Why should a robotics company interview him?',
+  ]),
+  buildIntent('education-complete-history', ['complete education', 'academic history', 'education timeline', 'degrees completed', 'study background'], [
+    'Explain Sooraj’s complete education history.',
+    'What degrees has Sooraj studied?',
+    'Where and when did he study?',
+    'What is his academic timeline?',
+    'How does his education support a robotics career?',
+  ]),
+  buildIntent('portfolio-project-proof', ['project proof', 'technical evidence', 'project outcomes', 'project responsibilities', 'project contribution'], [
+    'What did Sooraj personally contribute to each project?',
+    'Which portfolio projects have technical proof?',
+    'What tools and outcomes are shown for each project?',
+    'Which project best proves industrial robotics ability?',
+    'How do his projects support his career claims?',
+  ]),
+  buildIntent('career-application-status', ['application status', 'job availability', 'start date', 'notice period', 'relocation', 'remote work'], [
+    'Is Sooraj available for work?',
+    'When can he start a new job?',
+    'Is he open to relocation or remote work?',
+    'What is his notice period?',
+    'How can a recruiter discuss availability?',
+  ]),
 ];
 
 const loadQuestionBankIntents = async () => {
@@ -529,10 +586,13 @@ const findMatchingIntent = async (input = '') => {
 
 const topicByIntentId = {
   'experience-overview': 'experience',
+  'experience-duration': 'experienceDuration',
+  'experience-details': 'experienceDetails',
   'robotics-experience': 'robotics',
   'vr-immersive': 'vr',
   'journey-india-germany': 'journey',
-  'bachelor-path': 'education',
+  'bachelor-path': 'bachelorDetails',
+  'education-locations': 'educationDetails',
   'current-role-germany': 'experience',
   'germany-location': 'location',
   'travel-footprint': 'journey',
@@ -684,7 +744,7 @@ const topicByIntentId = {
   'portfolio-improvements': 'portfolioImprovements',
   'certification-overview': 'certifications',
   'education-germany': 'educationGermany',
-  'education-india': 'educationIndia',
+  'education-india': 'bachelorDetails',
   'ndt-experience': 'ndtExperience',
   'cover-letter-help': 'coverLetter',
   'cv-bullet-help': 'cvBullets',
@@ -708,6 +768,14 @@ const topicByIntentId = {
   'general-contact-message': 'contactMessage',
   'general-reference-meaning': 'referenceMeaning',
   'general-out-of-scope': 'outOfScope',
+  'career-complete-history': 'experienceDetails',
+  'career-responsibilities': 'experienceDetails',
+  'career-achievements': 'biggestAchievement',
+  'career-target-roles': 'roleFit',
+  'career-hiring-evidence': 'recruiterScreen',
+  'education-complete-history': 'educationDetails',
+  'portfolio-project-proof': 'projects',
+  'career-application-status': 'availability',
 };
 
 const t = (language, english, german = english) => (language === 'de' ? german : english);
@@ -853,6 +921,7 @@ const directAnswerTopic = (input = '') => {
   const normalized = normalizeText(input);
   if (!normalized) return '';
   if (DISALLOWED_INPUT_PATTERN.test(input)) return 'moderation';
+  if (CONFIDENTIAL_DATA_PATTERN.test(input)) return 'confidential';
   if (/\b(are you gay|r u gay|you gay|are you lesbian|are you straight|sexual orientation|your orientation)\b/.test(normalized)) return 'botOrientation';
   if (/\b(is sooraj gay|sooraj gay|owner gay|is he gay|his orientation|sooraj orientation)\b/.test(normalized)) return 'ownerPrivate';
   if (/\b(had your food|have you eaten|did you eat|did u eat|had food|are you hungry|do you eat|what did you eat|food|drink|coffee|tea)\b/.test(normalized)) return 'botFood';
@@ -864,12 +933,17 @@ const directAnswerTopic = (input = '') => {
   if (/\b(bye|goodbye|see you|see ya|tschuss)\b/.test(normalized)) return 'goodbye';
   if (/\b(what can you do|help me|help|options|topics)\b/.test(normalized)) return 'capabilities';
   if (/\b(weather|current news|latest news|stock price|sports score|live score|lottery|crypto price)\b/.test(normalized)) return 'outOfScope';
+  if (/\b(tell me about sooraj|about sooraj|who is sooraj|sooraj profile|introduce sooraj|describe sooraj)\b/.test(normalized)) return 'profile';
   if (/\b(erzahl mir von sooraj|erzaehl mir von sooraj|uber sooraj|ueber sooraj|wer ist sooraj|profil sooraj|sooraj vorstellen)\b/.test(normalized)) return 'profile';
   if (/\b(robotik fit|fit bewerten|rollen fit|warum sooraj einstellen|sooraj einstellen|einstellen)\b/.test(normalized)) return 'roleFit';
   if (/\b(interviewfragen|interview fragen|technisches interview|bewerbungsgesprach|bewerbungsgespraech|screening fragen)\b/.test(normalized)) return 'interviewPlan';
   if (/\b(recruiter zusammenfassung|recruiter summary|kurzprofil|einstellungs summary|screening zusammenfassung)\b/.test(normalized)) return 'recruiterScreen';
   if (/\b(projektbelege|projekt belege|projekte zeigen|projekte ansehen|projekt evidence)\b/.test(normalized)) return 'projects';
   if (/\b(technischer stack|technischen stack|technologie stack|skills prufen|skills pruefen|kompetenzen)\b/.test(normalized)) return 'skills';
+  if (/\b(how many months.*experience|months of experience|month experience|experience duration|total work experience|years of experience|how long.*worked professionally)\b/.test(normalized)) return 'experienceDuration';
+  if (/\b(experience details|work history|employment history|job details|role details|companies.*worked|professional experience timeline)\b/.test(normalized)) return 'experienceDetails';
+  if (/\b(how long.*b tech|how long.*btech|b tech.*how many years|btech.*how many years|bachelor.*how many years|bachelor duration|btech duration|where.*b tech|where.*btech|where.*bachelor|bachelor timeline)\b/.test(normalized)) return 'bachelorDetails';
+  if (/\b(where.*study|where.*studied|when.*study|universities.*attend|education history|education details|academic history|study locations|college.*university)\b/.test(normalized)) return 'educationDetails';
   if (/\b(lebenslauf offnen|lebenslauf oeffnen|lebenslauf|cv offnen|cv oeffnen|resume offnen|resume oeffnen)\b/.test(normalized)) return 'resume';
   if (/\b(kontakt aufnehmen|sooraj kontaktieren|kontakt zu sooraj|email sooraj|e mail sooraj)\b/.test(normalized)) return 'contact';
   if (/\b(projekte vergleichen|projektvergleich|projekte vergleich|starkstes projekt|staerkstes projekt|bestes startprojekt)\b/.test(normalized)) return 'projectComparison';
@@ -1008,6 +1082,48 @@ const topicAnswer = (topic, language, input = '') => {
           `Experience signal: ${currentExperience.role} at ${currentExperience.company}, the ${thesisExperience?.role || 'KEBA thesis'} work, and earlier industrial NDT discipline. The strongest thread is practical robotics work in a German industrial automation context.`,
           `Erfahrungssignal: ${currentExperience.role} bei ${currentExperience.company}, die ${thesisExperience?.role || 'KEBA Thesis'} und fruehere industrielle NDT-Disziplin. Der staerkste rote Faden ist praktische Robotikarbeit im deutschen Automationsumfeld.`),
         actions: [sectionAction(language, 'experience', 'Open Experience', 'Erfahrung oeffnen')],
+      };
+
+    case 'experienceDuration':
+      return {
+        ...common,
+        response: t(language,
+          'The dated portfolio entries show about 13 elapsed months in total: roughly 7 months as an NDT Technician (February–September 2022) and 6 months for the KEBA industrial-robotics thesis (September 2025–March 2026). Sooraj also has a current Working Student role at KEBA, but its start date is not listed, so an exact overall professional-experience total cannot be verified yet. The portfolio separately summarizes 3+ years of broader engineering practice, including industrial, academic, project, and deployment-oriented work.',
+          'Die datierten Portfolio-Eintraege zeigen insgesamt etwa 13 verstrichene Monate: rund 7 Monate als NDT-Techniker (Februar–September 2022) und 6 Monate fuer die KEBA-Industrierobotik-Thesis (September 2025–Maerz 2026). Dazu kommt eine aktuelle Werkstudentenrolle bei KEBA, deren Startdatum nicht angegeben ist; deshalb ist die exakte gesamte Berufserfahrung noch nicht verifizierbar. Das Portfolio nennt separat 3+ Jahre breitere Engineering-Praxis einschliesslich Industrie-, Studien-, Projekt- und Deployment-Arbeit.'),
+        actions: [sectionAction(language, 'experience', 'Open Experience', 'Erfahrung oeffnen')],
+        suggestions: t(language,
+          ['Show all experience details', 'Where did he study?', 'How long was his B.Tech?'],
+          ['Alle Erfahrungsdetails zeigen', 'Wo hat er studiert?', 'Wie lange dauerte sein B.Tech?']),
+      };
+
+    case 'experienceDetails':
+      return {
+        ...common,
+        response: t(language,
+          'Sooraj’s experience has three listed parts: (1) current Working Student in Industrial Robotics at KEBA Group in Stuttgart, supporting robot programming, automation workflows, reliability, and deployment-aware implementation; (2) Master Thesis with KEBA/drag&bot from September 2025 to March 2026, developing a 6-axis robot workflow with path planning, waypoint generation, collision-zone logic, re-grip sequencing, and simulation validation; and (3) NDT Technician at United Engineering and Construction Co. in Kochi from February to September 2022, covering inspection, quality procedures, safety-conscious field work, documentation, and technical reporting.',
+          'Soorajs Erfahrung besteht aus drei Eintraegen: (1) aktuelle Werkstudentenrolle in Industrierobotik bei KEBA Group in Stuttgart mit Roboterprogrammierung, Automationsworkflows, Zuverlaessigkeit und deploymentnaher Umsetzung; (2) Master Thesis mit KEBA/drag&bot von September 2025 bis Maerz 2026 zu einem 6-Achs-Roboterworkflow mit Pfadplanung, Waypoints, Kollisionszonen, Re-Grip-Sequenzen und Simulationsvalidierung; und (3) NDT-Techniker bei United Engineering and Construction Co. in Kochi von Februar bis September 2022 mit Inspektion, Qualitaetsverfahren, sicherheitsbewusster Feldarbeit, Dokumentation und technischem Reporting.'),
+        actions: [sectionAction(language, 'experience', 'Open Experience', 'Erfahrung oeffnen'), resumeAction(language)],
+      };
+
+    case 'bachelorDetails':
+      return {
+        ...common,
+        response: t(language,
+          `${personal.name} completed a four-year B.Tech. in Mechanical Engineering at ${bachelorEducation.university} in India, from August 2017 to July 2021. The degree covered a mechanical-engineering foundation including CAD, CAE, programming fundamentals, thermal engineering, fluid systems, and core design principles before his later mechatronics and robotics studies in Germany.`,
+          `${personal.name} absolvierte einen vierjaehrigen B.Tech. in Mechanical Engineering an der ${bachelorEducation.university} in Indien, von August 2017 bis Juli 2021. Das Studium vermittelte Grundlagen in CAD, CAE, Programmierung, Thermodynamik, Fluidsystemen und Konstruktion vor dem spaeteren Mechatronik- und Robotikstudium in Deutschland.`),
+        actions: [sectionAction(language, 'education', 'Open Education', 'Ausbildung oeffnen')],
+        suggestions: t(language,
+          ['Where is he studying in Germany?', 'Show experience details', 'Explain his India-to-Germany journey'],
+          ['Wo studiert er in Deutschland?', 'Erfahrungsdetails zeigen', 'Indien-Deutschland-Weg erklaeren']),
+      };
+
+    case 'educationDetails':
+      return {
+        ...common,
+        response: t(language,
+          `Sooraj studied in both India and Germany. He completed a four-year B.Tech. in Mechanical Engineering at ${bachelorEducation.university}, India, from August 2017 to July 2021. He then began an M.Eng. in Mechatronics and Cyber-Physical Systems at ${masterEducation.university}, Germany, in March 2023; the portfolio lists it as ongoing.`,
+          `Sooraj studierte in Indien und Deutschland. Er absolvierte von August 2017 bis Juli 2021 einen vierjaehrigen B.Tech. in Mechanical Engineering an der ${bachelorEducation.university} in Indien. Im Maerz 2023 begann er einen M.Eng. in Mechatronics and Cyber-Physical Systems an der ${masterEducation.university} in Deutschland; im Portfolio ist das Studium als laufend angegeben.`),
+        actions: [sectionAction(language, 'education', 'Open Education', 'Ausbildung oeffnen')],
       };
 
     case 'robotics':
@@ -2032,7 +2148,20 @@ const topicAnswer = (topic, language, input = '') => {
 export const findHelpBotAnswer = async (input = '', language = 'en', options = {}) => {
   const directTopic = directAnswerTopic(input);
   if (directTopic === 'moderation') return moderationAnswer(language);
-  if (directTopic === 'timeGreeting') {
+  if (directTopic === 'confidential') {
+    const answer = topicAnswer(directTopic, language, input);
+    return {
+      ...answer,
+      suggestions: answer.suggestions || defaultSuggestions(language),
+      actions: answer.actions || [],
+      match: {
+        intentId: 'direct-confidential',
+        score: 100,
+        topic: directTopic,
+      },
+    };
+  }
+  if (directTopic === 'timeGreeting' || directTopic === 'profile') {
     const answer = topicAnswer(directTopic, language, input);
     return {
       ...answer,

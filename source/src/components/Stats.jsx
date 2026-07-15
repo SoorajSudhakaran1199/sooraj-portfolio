@@ -36,10 +36,10 @@ export default function Stats() {
   const { stats } = portfolioData;
 
   return (
-    <section className="relative z-10 -mt-6 pb-10">
+    <section className="stats-section relative z-10 -mt-6 pb-10">
       <div className="page-container">
         <motion.div
-          className="premium-card grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-4 lg:p-5"
+          className="stats-shell premium-card grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-4 lg:p-5"
           variants={staggerContainer}
           initial="hidden"
           whileInView="visible"
@@ -49,14 +49,14 @@ export default function Stats() {
             const Icon = iconMap[stat.icon];
             return (
               <motion.article key={stat.label} variants={fadeUp} whileHover={{ y: -5 }} className="stat-card group rounded-2xl border border-white/10 bg-ink-950/35 p-5 transition hover:border-electric-300/35 hover:bg-electric-500/[0.055]">
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-electric-500/12 text-electric-300 transition group-hover:bg-electric-500 group-hover:text-white">
+                <div className="stat-icon mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-electric-500/12 text-electric-300 transition group-hover:bg-electric-500 group-hover:text-white">
                   <Icon size={25} />
                 </div>
-                <div className="font-display text-3xl font-black text-white">
+                <div className="stat-value font-display text-3xl font-black text-white">
                   <AnimatedNumber value={stat.value} suffix={stat.suffix} />
                 </div>
-                <p className="mt-1 text-sm font-semibold text-white">{stat.label}</p>
-                <p className="mt-2 text-xs leading-5 text-slate-400">{stat.detail}</p>
+                <p className="stat-label mt-1 text-sm font-semibold text-white">{stat.label}</p>
+                <p className="stat-detail mt-2 text-xs leading-5 text-slate-400">{stat.detail}</p>
               </motion.article>
             );
           })}

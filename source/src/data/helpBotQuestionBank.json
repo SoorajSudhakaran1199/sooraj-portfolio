@@ -52,6 +52,59 @@
       ]
     },
     {
+      "id": "experience-duration",
+      "keywords": [
+        "months of experience",
+        "month experience",
+        "how many months",
+        "total experience",
+        "experience duration",
+        "years of experience",
+        "work duration",
+        "professional experience length"
+      ],
+      "questions": [
+        "How many months of experience does Sooraj have?",
+        "How many month of experience does he have?",
+        "How many month of experienec does he has?",
+        "How much total work experience does he have?",
+        "How many years of professional experience does Sooraj have?",
+        "What is the duration of Sooraj's work experience?",
+        "Can you calculate Sooraj's experience in months?",
+        "How long has Sooraj worked professionally?",
+        "What is Sooraj's total industrial experience?",
+        "How many months did Sooraj work in NDT?",
+        "How long was Sooraj's KEBA thesis experience?",
+        "Does the portfolio show an exact total experience duration?"
+      ]
+    },
+    {
+      "id": "experience-details",
+      "keywords": [
+        "experience details",
+        "work history",
+        "employment history",
+        "job details",
+        "role details",
+        "companies worked",
+        "responsibilities",
+        "career timeline"
+      ],
+      "questions": [
+        "What are Sooraj's experience details?",
+        "What experience details does he have?",
+        "Give me Sooraj's complete work history.",
+        "Where has Sooraj worked?",
+        "Which companies has Sooraj worked for?",
+        "What roles has Sooraj held?",
+        "What did Sooraj do at KEBA?",
+        "What did Sooraj do as an NDT technician?",
+        "Can you explain his responsibilities in each role?",
+        "Show me Sooraj's professional experience timeline.",
+        "Summarize every job and industrial role in the portfolio."
+      ]
+    },
+    {
       "id": "robotics-experience",
       "keywords": [
         "robotics",
@@ -254,6 +307,29 @@
         "Give me a quick summary of Sooraj's bachelor's background.",
         "How does the portfolio show Sooraj's bachelor's background?",
         "Where is Sooraj's bachelor's background shown in the portfolio?"
+      ]
+    },
+    {
+      "id": "education-locations",
+      "keywords": [
+        "where studied",
+        "where did he study",
+        "education institutions",
+        "universities attended",
+        "college and university",
+        "study locations",
+        "education places"
+      ],
+      "questions": [
+        "Where did Sooraj study?",
+        "Where has he studied?",
+        "Which universities did Sooraj attend?",
+        "Where did he complete his bachelor's degree?",
+        "Where is Sooraj studying for his master's degree?",
+        "What colleges and universities are in his education history?",
+        "Did Sooraj study in India and Germany?",
+        "Give me Sooraj's complete education history.",
+        "Where did Sooraj study B.Tech and M.Eng.?"
       ]
     },
     {

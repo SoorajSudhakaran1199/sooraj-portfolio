@@ -27,12 +27,12 @@ export default function Navbar() {
         className="scroll-progress absolute bottom-[-1px] left-0 h-px w-full origin-left bg-gradient-to-r from-electric-300 via-signal-cyan to-electric-500"
         style={{ scaleX: progressScale }}
       />
-      <nav className="page-container flex min-h-[var(--nav-height)] items-center justify-between gap-4">
-        <a href={homeHref} className="focus-outline flex items-center gap-3 rounded-xl" onClick={closeMenu}>
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-electric-500 text-xl font-black text-white shadow-glow-soft">
+      <nav className="site-nav-inner page-container flex min-h-[var(--nav-height)] items-center justify-between gap-4">
+        <a href={homeHref} className="site-brand focus-outline flex items-center gap-3 rounded-xl" onClick={closeMenu}>
+          <span className="site-brand-mark grid h-10 w-10 place-items-center rounded-xl bg-electric-500 text-xl font-black text-white shadow-glow-soft">
             {personal.initials}
           </span>
-          <span className="hidden min-[390px]:block">
+          <span className="site-brand-copy block min-w-0">
             <span className="site-brand-name block text-sm font-bold text-white sm:text-base">{personal.name}</span>
             <span className="site-brand-subtitle block text-xs text-slate-400">{copy.navSubtitle}</span>
           </span>
@@ -104,10 +104,10 @@ export default function Navbar() {
           <motion.div
             id="site-mobile-menu"
             className="site-mobile-menu border-t border-white/10 bg-ink-950/95 px-4 pb-5 pt-3 backdrop-blur-2xl lg:hidden"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.24, ease: 'easeOut' }}
+            initial={{ opacity: 0, height: 0, y: -8 }}
+            animate={{ opacity: 1, height: 'auto', y: 0 }}
+            exit={{ opacity: 0, height: 0, y: -8 }}
+            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
           >
             <div className="mx-auto grid max-w-7xl gap-2">
               {visibleNavItems.map((item) => (
