@@ -46,7 +46,7 @@ const tabs = [
   { id: 'control', label: 'Control', icon: LayoutDashboard },
   { id: 'about', label: 'About', icon: UserRound },
   { id: 'content', label: 'Add Content', icon: Layers3 },
-  { id: 'chatHistory', label: 'Chat History', icon: Bot },
+  { id: 'chatHistory', label: 'No-Match Chat', icon: Bot },
   { id: 'notify', label: 'Notify', icon: Bell },
 ];
 
@@ -731,11 +731,11 @@ export default function PortfolioAdminPanel({ variant = 'nav' }) {
                     <section className="portfolio-admin-panel-card portfolio-admin-wide">
                       <div className="portfolio-admin-card-title">
                         <Bot size={18} />
-                        <h3>Chatbot History</h3>
+                        <h3>Chatbot No-Match History</h3>
                       </div>
                       <div className="portfolio-admin-chat-toolbar">
                         <p>
-                          Review recorded chatbot sessions. Use this only for portfolio quality checks, support context, and abuse/privacy review.
+                          Review unanswered chatbot questions that returned “No match found”. Normal answered chat is kept only in the visitor browser for follow-up continuity.
                         </p>
                         <button type="button" onClick={refreshChatHistory} disabled={chatLoading} className="portfolio-admin-inline-button">
                           <RefreshCcw size={15} />
@@ -744,12 +744,12 @@ export default function PortfolioAdminPanel({ variant = 'nav' }) {
                       </div>
                       <div className="portfolio-admin-notice">
                         <ShieldCheck size={18} />
-                        <p>Only signed-in admin access can read or delete these records. Visitors should not share passwords, private phone numbers, or sensitive personal data in chat.</p>
+                        <p>Only signed-in admin access can read or delete these no-match records. Visitors should not share passwords, private phone numbers, or sensitive personal data in chat.</p>
                       </div>
                       {chatError && <p className="portfolio-admin-error">{chatError}</p>}
-                      {!chatError && chatLoading && <p className="portfolio-admin-success">Loading chatbot history...</p>}
+                      {!chatError && chatLoading && <p className="portfolio-admin-success">Loading no-match chat records...</p>}
                       {!chatLoading && chatSessions.length === 0 && (
-                        <p className="portfolio-admin-empty-state">No chatbot history records found yet. If this stays empty after testing, run the Supabase SQL migration in <code>source/supabase/portfolio_chatbot_history.sql</code>.</p>
+                        <p className="portfolio-admin-empty-state">No no-match chatbot records found yet. If this stays empty after testing, run the Supabase SQL migration in <code>source/supabase/portfolio_chatbot_history.sql</code>.</p>
                       )}
                       <div className="portfolio-admin-chat-list">
                         {chatSessions.map((chatSession) => {

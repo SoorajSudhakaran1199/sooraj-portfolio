@@ -833,7 +833,7 @@ const casualChatAnswer = (match, language) => {
   };
 };
 
-const spellingConfirmationAnswer = (language, candidate) => {
+const spellingConfirmationAnswer = (language, candidate, originalInput = '') => {
   const suggestedText = String(candidate?.phrase || '').trim();
 
   return {
@@ -847,6 +847,7 @@ const spellingConfirmationAnswer = (language, candidate) => {
     confirmation: {
       input: suggestedText,
       label: suggestedText,
+      originalInput: String(originalInput || '').trim(),
     },
     match: {
       intentId: `spelling-confirmation-${candidate?.type || 'match'}`,
@@ -862,7 +863,11 @@ const noMatchAnswer = (language) => ({
     'Kein Treffer gefunden. Fragen Sie nach Robotik-Fit, KEBA Workflow, ROS-Projekten, Skills, Erfahrung, Lebenslauf, Referenzen, Datenschutz oder Kontakt.'),
   suggestions: defaultSuggestions(language),
   actions: [sectionAction(language, 'projects', 'Open Projects', 'Projekte oeffnen'), emailAction(language)],
-  match: null,
+  match: {
+    intentId: 'no-match',
+    score: 0,
+    topic: 'noMatch',
+  },
 });
 
 const moderationAnswer = (language) => ({
@@ -922,6 +927,11 @@ const directAnswerTopic = (input = '') => {
   if (!normalized) return '';
   if (DISALLOWED_INPUT_PATTERN.test(input)) return 'moderation';
   if (CONFIDENTIAL_DATA_PATTERN.test(input)) return 'confidential';
+  if (
+    /\b(chat|chta|chtat|conversation|question|questions|message|messages|transcript|data)\b.*\b(save|saved|saving|store|stored|storing|record|recorded|recording|log|logged|logging|collect|collected|collecting|train|training)\b/.test(normalized)
+    || /\b(save|saved|saving|store|stored|storing|record|recorded|recording|log|logged|logging|collect|collected|collecting|train|training)\b.*\b(chat|chta|chtat|conversation|question|questions|message|messages|transcript|data)\b/.test(normalized)
+    || /\b(no match|unanswered|unknown question|cant answer|cannot answer|do not know|dont know)\b.*\b(save|saved|store|stored|record|recorded|log|training|train)\b/.test(normalized)
+  ) return 'privacy';
   if (/\b(are you gay|r u gay|you gay|are you lesbian|are you straight|sexual orientation|your orientation)\b/.test(normalized)) return 'botOrientation';
   if (/\b(is sooraj gay|sooraj gay|owner gay|is he gay|his orientation|sooraj orientation)\b/.test(normalized)) return 'ownerPrivate';
   if (/\b(had your food|have you eaten|did you eat|did u eat|had food|are you hungry|do you eat|what did you eat|food|drink|coffee|tea)\b/.test(normalized)) return 'botFood';
@@ -1374,8 +1384,8 @@ const topicAnswer = (topic, language, input = '') => {
       return {
         ...common,
         response: t(language,
-          'Chat messages may be recorded in the portfolio review database for admin review and improvement, and a local browser copy is used for continuity. Admin access is password protected. Please do not share passwords, private phone numbers, or sensitive personal data here.',
-          'Chatnachrichten koennen in der Portfolio-Pruefdatenbank fuer Adminpruefung und Verbesserung gespeichert werden; eine lokale Browserkopie wird fuer Kontinuitaet genutzt. Der Adminzugang ist passwortgeschuetzt. Bitte teilen Sie hier keine Passwoerter, privaten Telefonnummern oder sensiblen persoenlichen Daten.'),
+          'Not every chat is recorded in the portfolio database. Normal chat is kept in your browser for follow-up continuity. Questions that return “No match found” can be saved for admin review so the portfolio question bank can be improved. Please do not share passwords, private phone numbers, or sensitive personal data here.',
+          'Nicht jeder Chat wird in der Portfolio-Datenbank aufgezeichnet. Normale Chats bleiben fuer Follow-ups im Browser. Fragen mit “Kein Treffer gefunden” koennen fuer Adminpruefung gespeichert werden, damit die Portfolio-Fragenbank verbessert wird. Bitte keine Passwoerter, privaten Telefonnummern oder sensiblen Daten teilen.'),
       };
 
     case 'assistantTraining':
@@ -2196,7 +2206,7 @@ export const findHelpBotAnswer = async (input = '', language = 'en', options = {
 
   if (!options.skipConfirmation && (!matched || matched.score < DIRECT_MATCH_SCORE)) {
     const fuzzyMatch = await findFuzzyConfirmationMatch(input);
-    if (fuzzyMatch) return spellingConfirmationAnswer(language, fuzzyMatch);
+    if (fuzzyMatch) return spellingConfirmationAnswer(language, fuzzyMatch, input);
   }
 
   if (!matched || matched.score < DIRECT_MATCH_SCORE) {
