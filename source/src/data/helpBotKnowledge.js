@@ -1374,8 +1374,8 @@ const topicAnswer = (topic, language, input = '') => {
       return {
         ...common,
         response: t(language,
-          'Chat messages are stored only in your browser localStorage for session continuity. There is no Supabase chatbot log or admin review panel connected yet. You can clear the chat with the reset button.',
-          'Chatnachrichten werden nur im Browser-localStorage fuer Sitzungsfortsetzung gespeichert. Es gibt hier noch kein Supabase-Chatbot-Log und kein Admin-Review-Panel. Mit Reset kann der Chat geloescht werden.'),
+          'Chat messages may be recorded in the portfolio review database for admin review and improvement, and a local browser copy is used for continuity. Admin access is password protected. Please do not share passwords, private phone numbers, or sensitive personal data here.',
+          'Chatnachrichten koennen in der Portfolio-Pruefdatenbank fuer Adminpruefung und Verbesserung gespeichert werden; eine lokale Browserkopie wird fuer Kontinuitaet genutzt. Der Adminzugang ist passwortgeschuetzt. Bitte teilen Sie hier keine Passwoerter, privaten Telefonnummern oder sensiblen persoenlichen Daten.'),
       };
 
     case 'assistantTraining':

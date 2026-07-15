@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
@@ -25,6 +25,10 @@ import {
 import { useSitePreferences } from '../context/SitePreferencesContext.jsx';
 import useDialogA11y from '../hooks/useDialogA11y.js';
 import {
+  deleteChatbotSession,
+  fetchChatbotHistory,
+} from '../lib/chatbotHistoryService.js';
+import {
   defaultPortfolioAdminState,
   fetchPortfolioAdminState,
   resetWebsiteUpdatedAt,
@@ -42,6 +46,7 @@ const tabs = [
   { id: 'control', label: 'Control', icon: LayoutDashboard },
   { id: 'about', label: 'About', icon: UserRound },
   { id: 'content', label: 'Add Content', icon: Layers3 },
+  { id: 'chatHistory', label: 'Chat History', icon: Bot },
   { id: 'notify', label: 'Notify', icon: Bell },
 ];
 
@@ -124,6 +129,20 @@ function cloneState(state) {
   return JSON.parse(JSON.stringify(state || defaultPortfolioAdminState));
 }
 
+function formatAdminDate(value) {
+  const date = new Date(value || '');
+  if (Number.isNaN(date.getTime())) return 'Unknown time';
+  return new Intl.DateTimeFormat('en-GB', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(date);
+}
+
+function shortSessionId(value = '') {
+  const text = String(value || '');
+  return text.length > 12 ? text.slice(0, 8) : text || 'session';
+}
+
 function PortfolioAdminField({ label, children }) {
   return (
     <label className="portfolio-admin-field">
@@ -146,6 +165,11 @@ export default function PortfolioAdminPanel({ variant = 'nav' }) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [chatHistory, setChatHistory] = useState([]);
+  const [chatLoading, setChatLoading] = useState(false);
+  const [chatError, setChatError] = useState('');
+  const [expandedChatSession, setExpandedChatSession] = useState('');
+  const [pendingDeleteChatSession, setPendingDeleteChatSession] = useState('');
   const closePanel = () => setOpen(false);
   const dialogRef = useDialogA11y(open, closePanel);
   const isMobileLauncher = variant === 'mobile';
@@ -214,6 +238,62 @@ export default function PortfolioAdminPanel({ variant = 'nav' }) {
     education: draft.additions?.education?.length || 0,
     certificates: draft.additions?.certificates?.length || 0,
   }), [draft.additions]);
+
+  const chatSessions = useMemo(() => {
+    const grouped = new Map();
+
+    chatHistory.forEach((row) => {
+      const sessionId = row.session_id || 'unknown-session';
+      const existing = grouped.get(sessionId) || {
+        id: sessionId,
+        messages: [],
+        startedAt: row.created_at,
+        lastAt: row.created_at,
+        language: row.language || 'en',
+        pageUrl: row.page_url || '',
+      };
+
+      existing.messages.push(row);
+      if (Date.parse(row.created_at || '') > Date.parse(existing.lastAt || '')) {
+        existing.lastAt = row.created_at;
+      }
+      if (Date.parse(row.created_at || '') < Date.parse(existing.startedAt || '')) {
+        existing.startedAt = row.created_at;
+      }
+      if (!existing.pageUrl && row.page_url) existing.pageUrl = row.page_url;
+      grouped.set(sessionId, existing);
+    });
+
+    return Array.from(grouped.values())
+      .map((sessionItem) => ({
+        ...sessionItem,
+        messages: sessionItem.messages
+          .slice()
+          .sort((first, second) => Date.parse(first.created_at || '') - Date.parse(second.created_at || '')),
+      }))
+      .sort((first, second) => Date.parse(second.lastAt || '') - Date.parse(first.lastAt || ''));
+  }, [chatHistory]);
+
+  const refreshChatHistory = useCallback(async () => {
+    if (!session?.accessToken) return;
+    setChatLoading(true);
+    setChatError('');
+    try {
+      const rows = await fetchChatbotHistory(session.accessToken);
+      setChatHistory(rows);
+      setPendingDeleteChatSession('');
+    } catch (historyError) {
+      setChatError(historyError?.message || 'Could not load chatbot history.');
+    } finally {
+      setChatLoading(false);
+    }
+  }, [session?.accessToken]);
+
+  useEffect(() => {
+    if (open && activeTab === 'chatHistory' && session?.accessToken) {
+      refreshChatHistory();
+    }
+  }, [activeTab, open, refreshChatHistory, session?.accessToken]);
 
   const updateDraft = (updater) => {
     setMessage('');
@@ -374,8 +454,38 @@ export default function PortfolioAdminPanel({ variant = 'nav' }) {
     clearStoredAdminSession();
     setSession(null);
     setPassword('');
+    setChatHistory([]);
+    setExpandedChatSession('');
+    setPendingDeleteChatSession('');
     setMessage('');
     setError('');
+  };
+
+  const removeChatSession = async (sessionId) => {
+    if (!session?.accessToken || !sessionId) return;
+
+    if (pendingDeleteChatSession !== sessionId) {
+      setPendingDeleteChatSession(sessionId);
+      setChatError('');
+      setMessage(`Click delete again to remove chat session ${shortSessionId(sessionId)}.`);
+      return;
+    }
+
+    setChatLoading(true);
+    setChatError('');
+    setMessage('');
+
+    try {
+      await deleteChatbotSession(session.accessToken, sessionId);
+      setChatHistory((current) => current.filter((row) => row.session_id !== sessionId));
+      setExpandedChatSession((current) => (current === sessionId ? '' : current));
+      setPendingDeleteChatSession('');
+      setMessage('Chat session deleted.');
+    } catch (deleteError) {
+      setChatError(deleteError?.message || 'Could not delete this chat session.');
+    } finally {
+      setChatLoading(false);
+    }
   };
 
   const modalRoot = typeof document !== 'undefined' ? document.body : null;
@@ -613,6 +723,84 @@ export default function PortfolioAdminPanel({ variant = 'nav' }) {
                             </div>
                           ))}
                         </div>
+                      </div>
+                    </section>
+                  )}
+
+                  {activeTab === 'chatHistory' && (
+                    <section className="portfolio-admin-panel-card portfolio-admin-wide">
+                      <div className="portfolio-admin-card-title">
+                        <Bot size={18} />
+                        <h3>Chatbot History</h3>
+                      </div>
+                      <div className="portfolio-admin-chat-toolbar">
+                        <p>
+                          Review recorded chatbot sessions. Use this only for portfolio quality checks, support context, and abuse/privacy review.
+                        </p>
+                        <button type="button" onClick={refreshChatHistory} disabled={chatLoading} className="portfolio-admin-inline-button">
+                          <RefreshCcw size={15} />
+                          {chatLoading ? 'Loading...' : 'Refresh History'}
+                        </button>
+                      </div>
+                      <div className="portfolio-admin-notice">
+                        <ShieldCheck size={18} />
+                        <p>Only signed-in admin access can read or delete these records. Visitors should not share passwords, private phone numbers, or sensitive personal data in chat.</p>
+                      </div>
+                      {chatError && <p className="portfolio-admin-error">{chatError}</p>}
+                      {!chatError && chatLoading && <p className="portfolio-admin-success">Loading chatbot history...</p>}
+                      {!chatLoading && chatSessions.length === 0 && (
+                        <p className="portfolio-admin-empty-state">No chatbot history records found yet. If this stays empty after testing, run the Supabase SQL migration in <code>source/supabase/portfolio_chatbot_history.sql</code>.</p>
+                      )}
+                      <div className="portfolio-admin-chat-list">
+                        {chatSessions.map((chatSession) => {
+                          const expanded = expandedChatSession === chatSession.id;
+                          const lastMessage = chatSession.messages[chatSession.messages.length - 1];
+                          return (
+                            <article key={chatSession.id} className="portfolio-admin-chat-session">
+                              <div className="portfolio-admin-chat-session-header">
+                                <div>
+                                  <h4>Session {shortSessionId(chatSession.id)}</h4>
+                                  <p>
+                                    {chatSession.messages.length} messages · {chatSession.language?.toUpperCase() || 'EN'} · Last: {formatAdminDate(chatSession.lastAt)}
+                                  </p>
+                                </div>
+                                <div className="portfolio-admin-chat-actions">
+                                  <button type="button" onClick={() => setExpandedChatSession(expanded ? '' : chatSession.id)}>
+                                    {expanded ? 'Hide Chat' : 'View Chat'}
+                                  </button>
+                                  <button type="button" onClick={() => removeChatSession(chatSession.id)} disabled={chatLoading}>
+                                    <Trash2 size={14} />
+                                    {pendingDeleteChatSession === chatSession.id ? 'Confirm Delete' : 'Delete'}
+                                  </button>
+                                </div>
+                              </div>
+                              {chatSession.pageUrl && (
+                                <p className="portfolio-admin-chat-page">{chatSession.pageUrl}</p>
+                              )}
+                              {!expanded && lastMessage && (
+                                <p className="portfolio-admin-chat-preview">
+                                  <strong>{lastMessage.role === 'user' ? 'Visitor' : 'Assistant'}:</strong> {lastMessage.message}
+                                </p>
+                              )}
+                              {expanded && (
+                                <div className="portfolio-admin-chat-messages">
+                                  {chatSession.messages.map((chatMessage) => (
+                                    <div key={chatMessage.id} className={`portfolio-admin-chat-message is-${chatMessage.role}`}>
+                                      <div>
+                                        <strong>{chatMessage.role === 'user' ? 'Visitor' : 'Assistant'}</strong>
+                                        <span>{formatAdminDate(chatMessage.created_at)}</span>
+                                      </div>
+                                      <p>{chatMessage.message}</p>
+                                      {(chatMessage.topic || chatMessage.intent_id) && (
+                                        <small>{[chatMessage.topic, chatMessage.intent_id].filter(Boolean).join(' · ')}</small>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </article>
+                          );
+                        })}
                       </div>
                     </section>
                   )}

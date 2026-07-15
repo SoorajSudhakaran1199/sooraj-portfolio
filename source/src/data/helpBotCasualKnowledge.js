@@ -273,8 +273,8 @@ const casualEntryData = [
     prompts: ['do you remember me', 'will you remember this chat', 'do you have memory', 'remember my name', 'save my chat'],
     keywords: ['remember', 'memory', 'save my chat'],
     response: {
-      en: 'I only keep this chat in your browser localStorage for continuity. I do not know you personally and I do not have a connected admin chat log.',
-      de: 'Ich speichere diesen Chat nur im Browser-localStorage fuer Kontinuitaet. Ich kenne Sie nicht persoenlich und habe kein verbundenes Admin-Chat-Log.',
+      en: 'This chat can be stored for portfolio admin review and improvement, and local browser storage is used for continuity. I do not know you personally unless you share identifying details.',
+      de: 'Dieser Chat kann fuer Portfolio-Adminpruefung und Verbesserung gespeichert werden; lokaler Browserspeicher wird fuer Kontinuitaet genutzt. Ich kenne Sie nicht persoenlich, ausser Sie teilen identifizierende Details.',
     },
   },
   {
@@ -282,8 +282,8 @@ const casualEntryData = [
     prompts: ['where is my chat stored', 'do you store my data', 'what data do you save', 'is chat saved', 'chat storage'],
     keywords: ['store my data', 'chat stored', 'chat saved', 'storage'],
     response: {
-      en: 'Chat continuity is stored locally in your browser. Use the reset button if you want to clear it.',
-      de: 'Die Chat-Fortsetzung wird lokal in Ihrem Browser gespeichert. Nutzen Sie Reset, wenn Sie sie loeschen moechten.',
+      en: 'Chat messages may be stored in the portfolio review database for admin review and improvement. A local browser copy is also used for continuity. Avoid sharing passwords, private numbers, or sensitive personal data.',
+      de: 'Chatnachrichten koennen in der Portfolio-Pruefdatenbank fuer Adminpruefung und Verbesserung gespeichert werden. Eine lokale Browserkopie wird ebenfalls fuer Kontinuitaet genutzt. Bitte keine Passwoerter, privaten Nummern oder sensiblen persoenlichen Daten teilen.',
     },
   },
   {
@@ -291,8 +291,8 @@ const casualEntryData = [
     prompts: ['delete my chat', 'clear my data', 'remove chat history', 'reset conversation', 'erase chat'],
     keywords: ['delete chat', 'clear data', 'remove chat', 'erase chat', 'reset conversation'],
     response: {
-      en: 'Use the reset button in the chatbot header to clear this local chat session from your browser.',
-      de: 'Nutzen Sie den Reset-Button im Chatbot-Header, um diese lokale Chat-Sitzung aus dem Browser zu loeschen.',
+      en: 'Use the reset button to clear the local browser chat. Stored review records can be removed by the portfolio admin from the admin chat history panel.',
+      de: 'Mit dem Reset-Button loeschen Sie den lokalen Browser-Chat. Gespeicherte Pruefdatensaetze kann der Portfolio-Admin im Admin-Chatverlauf entfernen.',
     },
   },
   {
@@ -300,8 +300,8 @@ const casualEntryData = [
     prompts: ['is this chat private', 'privacy of this chat', 'can admin read this', 'who sees this chat', 'is my question private'],
     keywords: ['private', 'privacy', 'admin read', 'who sees this chat'],
     response: {
-      en: 'The chatbot stores messages locally in your browser only. It is not connected to a live admin review panel for chat logs.',
-      de: 'Der Chatbot speichert Nachrichten nur lokal in Ihrem Browser. Er ist nicht mit einem Live-Admin-Panel fuer Chat-Logs verbunden.',
+      en: 'Some chat messages may be recorded for portfolio admin review and improvement. Admin access is password protected, but you should not share passwords, private phone numbers, or sensitive personal details here.',
+      de: 'Einige Chatnachrichten koennen fuer Portfolio-Adminpruefung und Verbesserung aufgezeichnet werden. Der Adminzugang ist passwortgeschuetzt, dennoch sollten Sie hier keine Passwoerter, privaten Telefonnummern oder sensiblen persoenlichen Details teilen.',
     },
   },
   {

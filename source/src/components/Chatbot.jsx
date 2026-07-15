@@ -8,6 +8,11 @@ import {
   findHelpBotAnswer,
   getHelpBotQuickPrompts,
 } from '../data/helpBotKnowledge.js';
+import {
+  clearChatbotHistorySessionId,
+  getChatbotHistorySessionId,
+  recordChatbotMessage,
+} from '../lib/chatbotHistoryService.js';
 
 const CHATBOT_SESSION_KEY = 'portfolio-help-bot-session-v12';
 const MIN_TYPING_DELAY_MS = 700;
@@ -218,6 +223,7 @@ export default function Chatbot() {
   const [pendingSpellingConfirmation, setPendingSpellingConfirmation] = useState(null);
   const scrollRef = useRef(null);
   const typingTimer = useRef(null);
+  const historySessionIdRef = useRef(getChatbotHistorySessionId());
   const responseIdRef = useRef(0);
   const skipLanguageResetRef = useRef(false);
   const quickPrompts = useMemo(
@@ -294,6 +300,8 @@ export default function Chatbot() {
     window.clearTimeout(typingTimer.current);
     responseIdRef.current += 1;
     clearStoredSession();
+    clearChatbotHistorySessionId();
+    historySessionIdRef.current = getChatbotHistorySessionId();
     setIsTyping(false);
     setPendingLanguageSwitch('');
     setPendingSpellingConfirmation(null);
@@ -322,6 +330,14 @@ export default function Chatbot() {
         typingTimer.current = window.setTimeout(() => {
           if (responseIdRef.current !== responseId) return;
           setMessages((current) => [...current, message]);
+          recordChatbotMessage({
+            sessionId: historySessionIdRef.current,
+            language,
+            role: 'assistant',
+            text: message.text,
+            match: message.match,
+            source: 'assistant-reply',
+          }).catch(() => null);
           setIsTyping(false);
           if (typeof afterAppend === 'function') afterAppend(message);
         }, remainingDelay);
@@ -338,6 +354,15 @@ export default function Chatbot() {
             suggestions: chatbotCopy.defaultSuggestions,
           },
         ]);
+        recordChatbotMessage({
+          sessionId: historySessionIdRef.current,
+          language,
+          role: 'assistant',
+          text: language === 'de'
+            ? 'Ich konnte diese Antwort gerade nicht laden. Bitte versuchen Sie es noch einmal oder fragen Sie nach Projekten, Skills, Lebenslauf oder Kontakt.'
+            : 'I could not load that answer right now. Please try again, or ask about projects, skills, resume, or contact.',
+          source: 'assistant-error',
+        }).catch(() => null);
         setIsTyping(false);
       });
   };
@@ -347,6 +372,13 @@ export default function Chatbot() {
     if (!trimmed) return;
 
     setMessages((current) => [...current, { from: 'user', text: trimmed }]);
+    recordChatbotMessage({
+      sessionId: historySessionIdRef.current,
+      language,
+      role: 'user',
+      text: trimmed,
+      source: 'visitor-message',
+    }).catch(() => null);
     setInput('');
 
     if (pendingSpellingConfirmation) {
