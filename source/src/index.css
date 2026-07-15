@@ -2368,11 +2368,22 @@ section {
 }
 
 .portfolio-admin-chat-toolbar p,
+.portfolio-admin-chat-summary,
 .portfolio-admin-empty-state {
   max-width: 48rem;
   color: #9fb1c8;
   font-size: 0.85rem;
   line-height: 1.6;
+}
+
+.portfolio-admin-chat-summary {
+  margin-top: 0.9rem;
+  border: 1px solid rgba(52, 211, 153, 0.16);
+  border-radius: 0.95rem;
+  background: rgba(16, 185, 129, 0.08);
+  padding: 0.78rem 0.95rem;
+  color: #86efac;
+  font-weight: 800;
 }
 
 .portfolio-admin-empty-state {
@@ -4296,6 +4307,7 @@ html.theme-light .recommendation-admin-seed {
 html.theme-light .portfolio-admin-chat-session,
 html.theme-light .portfolio-admin-chat-preview,
 html.theme-light .portfolio-admin-chat-message,
+html.theme-light .portfolio-admin-chat-summary,
 html.theme-light .portfolio-admin-empty-state {
   border-color: rgba(28, 125, 255, 0.14);
   background:
@@ -4304,6 +4316,7 @@ html.theme-light .portfolio-admin-empty-state {
 }
 
 html.theme-light .portfolio-admin-chat-toolbar p,
+html.theme-light .portfolio-admin-chat-summary,
 html.theme-light .portfolio-admin-empty-state,
 html.theme-light .portfolio-admin-chat-session-header p,
 html.theme-light .portfolio-admin-chat-page,

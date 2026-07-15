@@ -92,7 +92,7 @@ export async function recordChatbotMessage({
   return null;
 }
 
-export async function fetchChatbotHistory(token, limit = 300) {
+export async function fetchChatbotHistory(token, limit = 1000) {
   const params = new URLSearchParams({
     select: 'id,session_id,role,message,language,intent_id,topic,page_url,user_agent,metadata,created_at',
     order: 'created_at.desc',

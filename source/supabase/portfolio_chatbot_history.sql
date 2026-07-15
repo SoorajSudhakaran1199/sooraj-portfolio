@@ -20,6 +20,10 @@ create index if not exists portfolio_chatbot_history_created_idx
 
 alter table public.portfolio_chatbot_history enable row level security;
 
+grant usage on schema public to anon, authenticated;
+grant insert on public.portfolio_chatbot_history to anon;
+grant select, delete on public.portfolio_chatbot_history to authenticated;
+
 drop policy if exists "Public can insert chatbot history" on public.portfolio_chatbot_history;
 create policy "Public can insert chatbot history"
   on public.portfolio_chatbot_history
@@ -36,11 +40,21 @@ create policy "Admin can read chatbot history"
   on public.portfolio_chatbot_history
   for select
   to authenticated
-  using ((auth.jwt() ->> 'email') = 'soorajsudhakaran1199@gmail.com');
+  using (
+    lower(coalesce(auth.jwt() ->> 'email', '')) in (
+      'soorajsudhakaran1199@gmail.com',
+      'soorajsudhakaran4@gmail.com'
+    )
+  );
 
 drop policy if exists "Admin can delete chatbot history" on public.portfolio_chatbot_history;
 create policy "Admin can delete chatbot history"
   on public.portfolio_chatbot_history
   for delete
   to authenticated
-  using ((auth.jwt() ->> 'email') = 'soorajsudhakaran1199@gmail.com');
+  using (
+    lower(coalesce(auth.jwt() ->> 'email', '')) in (
+      'soorajsudhakaran1199@gmail.com',
+      'soorajsudhakaran4@gmail.com'
+    )
+  );

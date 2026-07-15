@@ -143,6 +143,21 @@ function shortSessionId(value = '') {
   return text.length > 12 ? text.slice(0, 8) : text || 'session';
 }
 
+function chatMessageTime(row = {}) {
+  const clientTime = row.metadata && typeof row.metadata === 'object'
+    ? row.metadata.recordedAtClient
+    : '';
+  const timestamp = Date.parse(clientTime || row.created_at || '');
+  return Number.isNaN(timestamp) ? 0 : timestamp;
+}
+
+function latestSessionIdFromRows(rows = []) {
+  const latest = rows
+    .slice()
+    .sort((first, second) => chatMessageTime(second) - chatMessageTime(first))[0];
+  return latest?.session_id || '';
+}
+
 function PortfolioAdminField({ label, children }) {
   return (
     <label className="portfolio-admin-field">
@@ -249,16 +264,21 @@ export default function PortfolioAdminPanel({ variant = 'nav' }) {
         messages: [],
         startedAt: row.created_at,
         lastAt: row.created_at,
+        startedTime: chatMessageTime(row),
+        lastTime: chatMessageTime(row),
         language: row.language || 'en',
         pageUrl: row.page_url || '',
       };
+      const rowTime = chatMessageTime(row);
 
       existing.messages.push(row);
-      if (Date.parse(row.created_at || '') > Date.parse(existing.lastAt || '')) {
+      if (rowTime >= existing.lastTime) {
         existing.lastAt = row.created_at;
+        existing.lastTime = rowTime;
       }
-      if (Date.parse(row.created_at || '') < Date.parse(existing.startedAt || '')) {
+      if (rowTime <= existing.startedTime) {
         existing.startedAt = row.created_at;
+        existing.startedTime = rowTime;
       }
       if (!existing.pageUrl && row.page_url) existing.pageUrl = row.page_url;
       grouped.set(sessionId, existing);
@@ -269,9 +289,9 @@ export default function PortfolioAdminPanel({ variant = 'nav' }) {
         ...sessionItem,
         messages: sessionItem.messages
           .slice()
-          .sort((first, second) => Date.parse(first.created_at || '') - Date.parse(second.created_at || '')),
+          .sort((first, second) => chatMessageTime(first) - chatMessageTime(second)),
       }))
-      .sort((first, second) => Date.parse(second.lastAt || '') - Date.parse(first.lastAt || ''));
+      .sort((first, second) => second.lastTime - first.lastTime);
   }, [chatHistory]);
 
   const refreshChatHistory = useCallback(async () => {
@@ -282,6 +302,7 @@ export default function PortfolioAdminPanel({ variant = 'nav' }) {
       const rows = await fetchChatbotHistory(session.accessToken);
       setChatHistory(rows);
       setPendingDeleteChatSession('');
+      setExpandedChatSession(latestSessionIdFromRows(rows));
     } catch (historyError) {
       setChatError(historyError?.message || 'Could not load chatbot history.');
     } finally {
@@ -744,16 +765,21 @@ export default function PortfolioAdminPanel({ variant = 'nav' }) {
                       </div>
                       <div className="portfolio-admin-notice">
                         <ShieldCheck size={18} />
-                        <p>Only signed-in admin access can read or delete these records. Visitors should not share passwords, private phone numbers, or sensitive personal data in chat.</p>
+                        <p>Only signed-in admin access can read or delete these records. Visitors should not share passwords, private phone numbers, or sensitive personal data in chat. Signed in as {session?.email || 'admin'}.</p>
                       </div>
+                      {!chatLoading && chatHistory.length > 0 && (
+                        <p className="portfolio-admin-chat-summary">
+                          Showing {chatHistory.length} recorded messages grouped into {chatSessions.length} continuous chat {chatSessions.length === 1 ? 'session' : 'sessions'}.
+                        </p>
+                      )}
                       {chatError && <p className="portfolio-admin-error">{chatError}</p>}
                       {!chatError && chatLoading && <p className="portfolio-admin-success">Loading chatbot history...</p>}
                       {!chatLoading && chatSessions.length === 0 && (
-                        <p className="portfolio-admin-empty-state">No chatbot history records found yet. If this stays empty after testing, run the Supabase SQL migration in <code>source/supabase/portfolio_chatbot_history.sql</code>.</p>
+                        <p className="portfolio-admin-empty-state">No chatbot history records are visible to this admin session yet. If rows exist in Supabase but not here, run the latest <code>source/supabase/portfolio_chatbot_history.sql</code> so the admin read policy and grants are updated.</p>
                       )}
                       <div className="portfolio-admin-chat-list">
                         {chatSessions.map((chatSession) => {
-                          const expanded = expandedChatSession === chatSession.id;
+                          const expanded = expandedChatSession === chatSession.id || chatSessions.length === 1;
                           const lastMessage = chatSession.messages[chatSession.messages.length - 1];
                           return (
                             <article key={chatSession.id} className="portfolio-admin-chat-session">
@@ -761,7 +787,7 @@ export default function PortfolioAdminPanel({ variant = 'nav' }) {
                                 <div>
                                   <h4>Session {shortSessionId(chatSession.id)}</h4>
                                   <p>
-                                    {chatSession.messages.length} messages · {chatSession.language?.toUpperCase() || 'EN'} · Last: {formatAdminDate(chatSession.lastAt)}
+                                    {chatSession.messages.length} messages · {chatSession.language?.toUpperCase() || 'EN'} · Started: {formatAdminDate(chatSession.startedAt)} · Last: {formatAdminDate(chatSession.lastAt)}
                                   </p>
                                 </div>
                                 <div className="portfolio-admin-chat-actions">
