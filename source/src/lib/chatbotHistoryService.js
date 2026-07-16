@@ -30,6 +30,8 @@ async function parseResponse(response) {
   throw new Error(details || `Request failed with status ${response.status}.`);
 }
 
+const isMissingRpcFunction = (error) => /function .* does not exist|could not find the function|schema cache|pgrst202/i.test(String(error?.message || error || ''));
+
 const cleanText = (value = '', limit = 4000) => String(value || '').trim().slice(0, limit);
 
 function createClientId() {
@@ -93,6 +95,18 @@ export async function recordChatbotMessage({
 }
 
 export async function fetchChatbotHistory(token, limit = 1000) {
+  try {
+    const rpcResponse = await fetch(`${SUPABASE_REST_URL}/rpc/get_portfolio_chatbot_history`, {
+      method: 'POST',
+      headers: getHeaders(token),
+      body: JSON.stringify({ max_rows: limit }),
+    });
+    const rpcData = await parseResponse(rpcResponse);
+    return Array.isArray(rpcData) ? rpcData : [];
+  } catch (error) {
+    if (!isMissingRpcFunction(error)) throw error;
+  }
+
   const params = new URLSearchParams({
     select: 'id,session_id,role,message,language,intent_id,topic,page_url,user_agent,metadata,created_at',
     order: 'created_at.desc',
@@ -107,6 +121,17 @@ export async function fetchChatbotHistory(token, limit = 1000) {
 }
 
 export async function deleteChatbotSession(token, sessionId) {
+  try {
+    const rpcResponse = await fetch(`${SUPABASE_REST_URL}/rpc/delete_portfolio_chatbot_session`, {
+      method: 'POST',
+      headers: getHeaders(token),
+      body: JSON.stringify({ target_session_id: sessionId }),
+    });
+    return await parseResponse(rpcResponse);
+  } catch (error) {
+    if (!isMissingRpcFunction(error)) throw error;
+  }
+
   const response = await fetch(`${SUPABASE_REST_URL}/${CHATBOT_HISTORY_TABLE}?session_id=eq.${encodeURIComponent(sessionId)}`, {
     method: 'DELETE',
     headers: getHeaders(token),
