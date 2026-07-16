@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Bot, RotateCcw, Send, X } from 'lucide-react';
+import { Bot, CheckCircle2, Mail, RotateCcw, Send, ShieldCheck, X } from 'lucide-react';
 import { useSitePreferences } from '../context/SitePreferencesContext.jsx';
 import useDialogA11y from '../hooks/useDialogA11y.js';
 import {
@@ -19,6 +19,7 @@ const CHATBOT_SESSION_KEY = 'portfolio-help-bot-session-v12';
 const CHATBOT_LEAD_KEY = 'portfolio-help-bot-lead-v1';
 const LEAD_PROMPT_MESSAGE_THRESHOLD = 5;
 const LEAD_INACTIVITY_MS = 45000;
+const EXIT_PROMPT_COOLDOWN_MS = 90000;
 const MIN_TYPING_DELAY_MS = 700;
 const MAX_TYPING_DELAY_MS = 3200;
 const TYPING_DELAY_BASE_MS = 420;
@@ -42,6 +43,37 @@ const emptyLeadState = () => ({
 });
 
 const activeLeadStatuses = new Set(['asking-name', 'asking-email', 'asking-company', 'asking-role', 'confirming']);
+
+const commonEmailDomainCorrections = {
+  'gamil.com': 'gmail.com',
+  'gmial.com': 'gmail.com',
+  'gmai.com': 'gmail.com',
+  'gmail.co': 'gmail.com',
+  'gmail.con': 'gmail.com',
+  'gnail.com': 'gmail.com',
+  'hotmial.com': 'hotmail.com',
+  'hotmai.com': 'hotmail.com',
+  'outlok.com': 'outlook.com',
+  'outloo.com': 'outlook.com',
+  'yaho.com': 'yahoo.com',
+  'yahoo.con': 'yahoo.com',
+  'icloud.con': 'icloud.com',
+};
+
+const knownEmailDomains = new Set([
+  'gmail.com',
+  'googlemail.com',
+  'outlook.com',
+  'hotmail.com',
+  'live.com',
+  'yahoo.com',
+  'icloud.com',
+  'proton.me',
+  'protonmail.com',
+  'gmx.de',
+  'web.de',
+  't-online.de',
+]);
 
 function createInitialMessages(language) {
   return [buildInitialHelpBotMessage(language)];
@@ -195,6 +227,45 @@ function isValidLeadName(text) {
 
 function isValidLeadEmail(text) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(String(text || '').trim());
+}
+
+function analyzeLeadEmail(text) {
+  const email = String(text || '').trim().toLowerCase();
+  const basicMatch = email.match(/^([^@\s]+)@([^@\s]+)$/);
+  if (!basicMatch) {
+    return {
+      valid: false,
+      message: 'Email must include one @ sign, for example name@gmail.com.',
+    };
+  }
+
+  const [, localPart, domain] = basicMatch;
+  const suggestedDomain = commonEmailDomainCorrections[domain];
+  if (suggestedDomain) {
+    return {
+      valid: false,
+      suggestion: `${localPart}@${suggestedDomain}`,
+      message: `Did you mean ${localPart}@${suggestedDomain}?`,
+    };
+  }
+
+  const domainLabels = domain.split('.');
+  const hasValidDomain = domainLabels.length >= 2
+    && domainLabels.every((label) => /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/.test(label))
+    && /^[a-z]{2,24}$/.test(domainLabels[domainLabels.length - 1]);
+
+  if (!isValidLeadEmail(email) || !hasValidDomain) {
+    return {
+      valid: false,
+      message: 'Email domain does not look valid. Please check the spelling after @.',
+    };
+  }
+
+  return {
+    valid: true,
+    email,
+    knownDomain: knownEmailDomains.has(domain),
+  };
 }
 
 function isValidLeadCompany(text) {
@@ -433,6 +504,16 @@ export default function Chatbot() {
   const chatbotCopy = copy.chatbot;
   const [open, setOpen] = useState(false);
   const panelRef = useDialogA11y(open, () => setOpen(false), { lockScroll: false });
+  const [exitPromptOpen, setExitPromptOpen] = useState(false);
+  const [leadForm, setLeadForm] = useState({
+    name: '',
+    email: '',
+    companyOrUniversity: '',
+    roleOrTitle: '',
+  });
+  const [leadFormError, setLeadFormError] = useState('');
+  const [leadEmailSuggestion, setLeadEmailSuggestion] = useState('');
+  const [leadFormSaving, setLeadFormSaving] = useState(false);
   const [messages, setMessages] = useState(() => loadStoredSession(language) || createInitialMessages(language));
   const [input, setInput] = useState('');
   const [inputFocused, setInputFocused] = useState(false);
@@ -446,6 +527,7 @@ export default function Chatbot() {
   const leadStateRef = useRef(leadState);
   const isTypingRef = useRef(isTyping);
   const promptLeadRef = useRef(null);
+  const lastExitPromptAtRef = useRef(0);
   const responseIdRef = useRef(0);
   const skipLanguageResetRef = useRef(false);
   const quickPrompts = useMemo(
@@ -530,6 +612,22 @@ export default function Chatbot() {
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
 
+    const handleBeforeUnload = (event) => {
+      const hasVisitorMessages = messages.some((message) => message.from === 'user');
+      const currentLead = leadStateRef.current || emptyLeadState();
+      if (!hasVisitorMessages || currentLead.status === 'saved' || currentLead.status === 'skipped') return;
+
+      event.preventDefault();
+      event.returnValue = '';
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [messages]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
     let inactivityTimer;
     const resetInactivityTimer = () => {
       window.clearTimeout(inactivityTimer);
@@ -540,7 +638,7 @@ export default function Chatbot() {
 
     const handleExitIntent = (event) => {
       if (event.clientY <= 8) {
-        promptLeadRef.current?.('exit-intent');
+        promptLeadRef.current?.('exit-intent', { center: true });
       }
     };
 
@@ -570,6 +668,11 @@ export default function Chatbot() {
     const nextLeadState = emptyLeadState();
     leadStateRef.current = nextLeadState;
     setLeadState(nextLeadState);
+    setExitPromptOpen(false);
+    setLeadForm({ name: '', email: '', companyOrUniversity: '', roleOrTitle: '' });
+    setLeadFormError('');
+    setLeadEmailSuggestion('');
+    setLeadFormSaving(false);
     setIsTyping(false);
     setPendingLanguageSwitch('');
     setPendingSpellingConfirmation(null);
@@ -639,6 +742,34 @@ export default function Chatbot() {
     const currentLead = leadStateRef.current || emptyLeadState();
     if (currentLead.status !== 'idle') return false;
     if (isTypingRef.current) return false;
+    if (exitPromptOpen) return false;
+    return true;
+  };
+
+  const showCenteredLeadPrompt = (source = 'exit-intent') => {
+    if (!canPromptForLead()) return false;
+    const now = Date.now();
+    if (now - lastExitPromptAtRef.current < EXIT_PROMPT_COOLDOWN_MS) return false;
+
+    lastExitPromptAtRef.current = now;
+    setLeadForm({
+      name: '',
+      email: '',
+      companyOrUniversity: '',
+      roleOrTitle: '',
+    });
+    setLeadFormError('');
+    setLeadEmailSuggestion('');
+    setOpen(false);
+    setExitPromptOpen(true);
+
+    const nextLeadState = {
+      ...emptyLeadState(),
+      source,
+      askedAt: new Date().toISOString(),
+    };
+    leadStateRef.current = nextLeadState;
+    setLeadState(nextLeadState);
     return true;
   };
 
@@ -659,7 +790,9 @@ export default function Chatbot() {
     return true;
   };
 
-  promptLeadRef.current = promptForLead;
+  promptLeadRef.current = (source = 'chatbot', options = {}) => (
+    options.center ? showCenteredLeadPrompt(source) : promptForLead(source)
+  );
 
   const skipLeadCapture = () => {
     const nextLeadState = {
@@ -697,15 +830,24 @@ export default function Chatbot() {
     }
 
     if (currentLead.status === 'asking-email') {
-      if (!isValidLeadEmail(trimmed)) {
-        queueAssistantMessage(getLeadRetryMessage(language, 'email'));
+      const emailCheck = analyzeLeadEmail(trimmed);
+      if (!emailCheck.valid) {
+        queueAssistantMessage({
+          ...getLeadRetryMessage(language, 'email'),
+          text: emailCheck.suggestion
+            ? emailCheck.message
+            : getLeadRetryMessage(language, 'email').text,
+          suggestions: emailCheck.suggestion
+            ? [emailCheck.suggestion, 'Skip for now']
+            : getLeadRetryMessage(language, 'email').suggestions,
+        });
         return true;
       }
 
       const nextLeadState = {
         ...currentLead,
         status: 'asking-company',
-        email: trimmed.toLowerCase().slice(0, 180),
+        email: emailCheck.email.slice(0, 180),
       };
       leadStateRef.current = nextLeadState;
       setLeadState(nextLeadState);
@@ -926,15 +1068,226 @@ export default function Chatbot() {
     window.setTimeout(() => setInputFocused(false), 120);
   };
 
+  const dismissExitPrompt = () => {
+    const nextLeadState = {
+      ...leadStateRef.current,
+      status: 'skipped',
+    };
+    leadStateRef.current = nextLeadState;
+    setLeadState(nextLeadState);
+    setExitPromptOpen(false);
+    setLeadFormError('');
+    setLeadEmailSuggestion('');
+  };
+
+  const continueExitPromptInChat = () => {
+    const source = leadStateRef.current?.source || 'exit-prompt-chat';
+    const nextLeadState = {
+      ...emptyLeadState(),
+      status: 'asking-name',
+      source,
+      askedAt: leadStateRef.current?.askedAt || new Date().toISOString(),
+    };
+    leadStateRef.current = nextLeadState;
+    setLeadState(nextLeadState);
+    setExitPromptOpen(false);
+    setLeadFormError('');
+    setLeadEmailSuggestion('');
+    setOpen(true);
+    queueAssistantMessage(getLeadIntroMessage(language, source));
+  };
+
+  const updateLeadForm = (field, value) => {
+    setLeadForm((current) => ({
+      ...current,
+      [field]: value,
+    }));
+    setLeadFormError('');
+    if (field === 'email') setLeadEmailSuggestion('');
+  };
+
+  const submitExitLeadForm = async (event) => {
+    event.preventDefault();
+    const name = leadForm.name.trim();
+    const companyOrUniversity = leadForm.companyOrUniversity.trim();
+    const roleOrTitle = leadForm.roleOrTitle.trim();
+    const emailCheck = analyzeLeadEmail(leadForm.email);
+
+    if (!isValidLeadName(name)) {
+      setLeadFormError('Please enter a full name before saving.');
+      return;
+    }
+
+    if (!emailCheck.valid) {
+      setLeadEmailSuggestion(emailCheck.suggestion || '');
+      setLeadFormError(emailCheck.message || 'Please enter a valid email address.');
+      return;
+    }
+
+    if (!isValidLeadCompany(companyOrUniversity)) {
+      setLeadFormError('Please enter a company or university before saving.');
+      return;
+    }
+
+    setLeadFormSaving(true);
+    setLeadFormError('');
+    setLeadEmailSuggestion('');
+
+    try {
+      await saveChatbotLead({
+        sessionId: historySessionIdRef.current,
+        name,
+        email: emailCheck.email,
+        companyOrUniversity,
+        roleOrTitle,
+        source: leadStateRef.current?.source || 'center-exit-prompt',
+      });
+      const savedLeadState = {
+        ...emptyLeadState(),
+        status: 'saved',
+        name,
+        email: emailCheck.email,
+        companyOrUniversity,
+        roleOrTitle,
+        source: leadStateRef.current?.source || 'center-exit-prompt',
+        askedAt: leadStateRef.current?.askedAt || new Date().toISOString(),
+        savedAt: new Date().toISOString(),
+      };
+      leadStateRef.current = savedLeadState;
+      setLeadState(savedLeadState);
+      setExitPromptOpen(false);
+      setOpen(true);
+      queueAssistantMessage(getLeadSavedMessage(language, name));
+    } catch {
+      setLeadFormError('I could not save the contact details right now. Please try again or use the contact section.');
+    } finally {
+      setLeadFormSaving(false);
+    }
+  };
+
   const closeChatbot = () => {
     const hasVisitorMessages = messages.some((message) => message.from === 'user');
-    if (hasVisitorMessages && promptForLead('chat-close')) return;
+    if (hasVisitorMessages && showCenteredLeadPrompt('chat-close')) return;
     setOpen(false);
   };
 
   return (
     <>
       <AnimatePresence>
+        {exitPromptOpen && (
+          <motion.div
+            className="assistant-exit-backdrop"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="assistant-exit-title"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) dismissExitPrompt();
+            }}
+          >
+            <motion.form
+              className="assistant-exit-card"
+              onSubmit={submitExitLeadForm}
+              initial={{ opacity: 0, y: 18, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 12, scale: 0.98 }}
+              transition={{ duration: 0.24, ease: 'easeOut' }}
+            >
+              <div className="assistant-exit-card-header">
+                <span>
+                  <ShieldCheck size={18} />
+                </span>
+                <button type="button" onClick={dismissExitPrompt} aria-label="Close contact prompt">
+                  <X size={18} />
+                </button>
+              </div>
+              <p className="assistant-exit-kicker">Before you leave</p>
+              <h2 id="assistant-exit-title">Thanks for visiting Sooraj’s portfolio.</h2>
+              <p className="assistant-exit-copy">
+                If you would like Sooraj to follow up, share your name, email, and company or university. You can also continue without sharing.
+              </p>
+
+              <div className="assistant-exit-grid">
+                <label>
+                  <span>Name</span>
+                  <input
+                    value={leadForm.name}
+                    onChange={(event) => updateLeadForm('name', event.target.value)}
+                    autoComplete="name"
+                    placeholder="Your name"
+                  />
+                </label>
+                <label>
+                  <span>Email</span>
+                  <input
+                    value={leadForm.email}
+                    onChange={(event) => updateLeadForm('email', event.target.value)}
+                    autoComplete="email"
+                    inputMode="email"
+                    placeholder="name@gmail.com"
+                  />
+                </label>
+                <label>
+                  <span>Company / University</span>
+                  <input
+                    value={leadForm.companyOrUniversity}
+                    onChange={(event) => updateLeadForm('companyOrUniversity', event.target.value)}
+                    autoComplete="organization"
+                    placeholder="Company or university"
+                  />
+                </label>
+                <label>
+                  <span>Role / Title <small>optional</small></span>
+                  <input
+                    value={leadForm.roleOrTitle}
+                    onChange={(event) => updateLeadForm('roleOrTitle', event.target.value)}
+                    autoComplete="organization-title"
+                    placeholder="Recruiter, engineer, student..."
+                  />
+                </label>
+              </div>
+
+              {leadFormError && (
+                <div className="assistant-exit-error">
+                  <Mail size={16} />
+                  <p>{leadFormError}</p>
+                  {leadEmailSuggestion && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateLeadForm('email', leadEmailSuggestion);
+                        setLeadEmailSuggestion('');
+                      }}
+                    >
+                      Use {leadEmailSuggestion}
+                    </button>
+                  )}
+                </div>
+              )}
+
+              <div className="assistant-exit-note">
+                <CheckCircle2 size={16} />
+                <p>Email format and common provider domains are checked before saving. Private company or university domains are checked for valid domain format.</p>
+              </div>
+
+              <div className="assistant-exit-actions">
+                <button type="button" onClick={dismissExitPrompt} className="assistant-exit-secondary">
+                  Continue without sharing
+                </button>
+                <button type="button" onClick={continueExitPromptInChat} className="assistant-exit-secondary">
+                  Ask in chat
+                </button>
+                <button type="submit" className="assistant-exit-primary" disabled={leadFormSaving}>
+                  {leadFormSaving ? 'Saving...' : 'Share details'}
+                  <Send size={16} />
+                </button>
+              </div>
+            </motion.form>
+          </motion.div>
+        )}
+
         {open && (
           <motion.aside
             className={`assistant-panel fixed inset-x-2 bottom-2 z-[60] flex h-[min(760px,calc(100svh-1rem))] w-auto flex-col overflow-hidden rounded-[1.35rem] border border-white/15 bg-ink-950/94 shadow-glow backdrop-blur-2xl sm:inset-x-auto sm:bottom-6 sm:right-6 sm:h-[min(720px,calc(100vh-3rem))] sm:w-[440px] sm:rounded-3xl xl:w-[460px] ${inputFocused ? 'is-keyboard-active' : ''}`}
