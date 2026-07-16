@@ -12,9 +12,13 @@ import {
   clearChatbotHistorySessionId,
   getChatbotHistorySessionId,
   recordChatbotMessage,
+  saveChatbotLead,
 } from '../lib/chatbotHistoryService.js';
 
 const CHATBOT_SESSION_KEY = 'portfolio-help-bot-session-v12';
+const CHATBOT_LEAD_KEY = 'portfolio-help-bot-lead-v1';
+const LEAD_PROMPT_MESSAGE_THRESHOLD = 5;
+const LEAD_INACTIVITY_MS = 45000;
 const MIN_TYPING_DELAY_MS = 700;
 const MAX_TYPING_DELAY_MS = 3200;
 const TYPING_DELAY_BASE_MS = 420;
@@ -25,6 +29,19 @@ const normalizeInput = (value = '') => String(value || '')
   .replace(/[^a-z0-9äöüß\s]+/gi, ' ')
   .replace(/\s+/g, ' ')
   .trim();
+
+const emptyLeadState = () => ({
+  status: 'idle',
+  name: '',
+  email: '',
+  companyOrUniversity: '',
+  roleOrTitle: '',
+  source: '',
+  askedAt: '',
+  savedAt: '',
+});
+
+const activeLeadStatuses = new Set(['asking-name', 'asking-email', 'asking-company', 'asking-role', 'confirming']);
 
 function createInitialMessages(language) {
   return [buildInitialHelpBotMessage(language)];
@@ -68,6 +85,50 @@ function saveStoredSession(language, messages) {
 function clearStoredSession() {
   if (typeof window === 'undefined') return;
   window.localStorage.removeItem(CHATBOT_SESSION_KEY);
+}
+
+function normalizeLeadState(value) {
+  const state = value && typeof value === 'object' ? value : {};
+  const status = ['idle', 'asking-name', 'asking-email', 'asking-company', 'asking-role', 'confirming', 'saved', 'skipped'].includes(state.status)
+    ? state.status
+    : 'idle';
+
+  return {
+    ...emptyLeadState(),
+    status,
+    name: String(state.name || '').trim().slice(0, 120),
+    email: String(state.email || '').trim().slice(0, 180),
+    companyOrUniversity: String(state.companyOrUniversity || '').trim().slice(0, 180),
+    roleOrTitle: String(state.roleOrTitle || '').trim().slice(0, 160),
+    source: String(state.source || '').trim().slice(0, 80),
+    askedAt: String(state.askedAt || '').trim(),
+    savedAt: String(state.savedAt || '').trim(),
+  };
+}
+
+function loadStoredLeadState(sessionId) {
+  if (typeof window === 'undefined') return emptyLeadState();
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(CHATBOT_LEAD_KEY) || 'null');
+    if (!parsed || parsed.sessionId !== sessionId) return emptyLeadState();
+    return normalizeLeadState(parsed.state);
+  } catch {
+    return emptyLeadState();
+  }
+}
+
+function saveStoredLeadState(sessionId, state) {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(CHATBOT_LEAD_KEY, JSON.stringify({
+    sessionId,
+    updatedAt: new Date().toISOString(),
+    state: normalizeLeadState(state),
+  }));
+}
+
+function clearStoredLeadState() {
+  if (typeof window === 'undefined') return;
+  window.localStorage.removeItem(CHATBOT_LEAD_KEY);
 }
 
 function getTypingDelay(message) {
@@ -121,6 +182,163 @@ function isConfirmYes(text) {
 
 function isConfirmNo(text) {
   return /\b(no|nope|cancel|stop|keep|stay|not now|nein|abbrechen)\b/i.test(text);
+}
+
+function isLeadSkip(text) {
+  return /\b(skip|not now|no thanks|no thank you|later|cancel|stop|nein|später|spaeter|abbrechen)\b/i.test(text);
+}
+
+function isValidLeadName(text) {
+  const cleaned = String(text || '').trim();
+  return cleaned.length >= 2 && /[a-zA-ZÄÖÜäöüß]/.test(cleaned);
+}
+
+function isValidLeadEmail(text) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(String(text || '').trim());
+}
+
+function isValidLeadCompany(text) {
+  return String(text || '').trim().length >= 2;
+}
+
+function getLeadIntroMessage(language, source = 'chatbot') {
+  const isExitPrompt = source === 'exit-intent' || source === 'chat-close' || source === 'inactivity';
+  return {
+    from: 'assistant',
+    text: language === 'de'
+      ? isExitPrompt
+        ? 'Danke fuer Ihren Besuch in Soorajs Portfolio. Wenn Sie eine Rueckmeldung von Sooraj wuenschen, nennen Sie bitte zuerst Ihren Namen. Sie koennen jederzeit "skip" schreiben.'
+        : 'Sie haben mehrere Fragen gestellt. Wenn Sooraj bei Bedarf nachfassen soll, nennen Sie bitte zuerst Ihren Namen. Sie koennen jederzeit "skip" schreiben.'
+      : isExitPrompt
+        ? 'Thanks for visiting Sooraj’s portfolio. If you would like Sooraj to follow up, please share your name first. You can type "skip" anytime.'
+        : 'You have explored a few portfolio questions. If you would like Sooraj to follow up, please share your name first. You can type "skip" anytime.',
+    suggestions: language === 'de' ? ['Skip'] : ['Skip for now'],
+    match: {
+      intentId: 'lead-capture-name',
+      topic: 'leadCapture',
+      score: 100,
+    },
+  };
+}
+
+function getLeadAskEmailMessage(language, name) {
+  return {
+    from: 'assistant',
+    text: language === 'de'
+      ? `Danke, ${name}. Bitte teilen Sie Ihre E-Mail-Adresse, damit Sooraj Sie kontaktieren kann.`
+      : `Thanks, ${name}. Please share your email address so Sooraj can contact you.`,
+    suggestions: language === 'de' ? ['Skip'] : ['Skip for now'],
+    match: {
+      intentId: 'lead-capture-email',
+      topic: 'leadCapture',
+      score: 100,
+    },
+  };
+}
+
+function getLeadAskCompanyMessage(language) {
+  return {
+    from: 'assistant',
+    text: language === 'de'
+      ? 'Bitte nennen Sie auch Ihr Unternehmen oder Ihre Universitaet.'
+      : 'Please also share your company or university.',
+    suggestions: language === 'de' ? ['Skip'] : ['Skip for now'],
+    match: {
+      intentId: 'lead-capture-company',
+      topic: 'leadCapture',
+      score: 100,
+    },
+  };
+}
+
+function getLeadAskRoleMessage(language) {
+  return {
+    from: 'assistant',
+    text: language === 'de'
+      ? 'Optional: Welche Rolle oder Position soll ich notieren? Sie koennen "skip" schreiben.'
+      : 'Optional: what role or title should I note? You can type "skip".',
+    suggestions: language === 'de' ? ['Skip'] : ['Skip role/title'],
+    match: {
+      intentId: 'lead-capture-role',
+      topic: 'leadCapture',
+      score: 100,
+    },
+  };
+}
+
+function getLeadConfirmMessage(language, leadState) {
+  const roleLine = leadState.roleOrTitle ? `\nRole/Title: ${leadState.roleOrTitle}` : '';
+  return {
+    from: 'assistant',
+    text: language === 'de'
+      ? `Bitte bestaetigen Sie die Angaben:\nName: ${leadState.name}\nE-Mail: ${leadState.email}\nUnternehmen/Universitaet: ${leadState.companyOrUniversity}${roleLine}\nIst das korrekt?`
+      : `Please confirm these details:\nName: ${leadState.name}\nEmail: ${leadState.email}\nCompany/University: ${leadState.companyOrUniversity}${roleLine}\nIs this correct?`,
+    suggestions: language === 'de' ? ['Ja, korrekt', 'Nein, neu eingeben'] : ['Yes, correct', 'No, edit'],
+    match: {
+      intentId: 'lead-capture-confirm',
+      topic: 'leadCapture',
+      score: 100,
+    },
+  };
+}
+
+function getLeadRetryMessage(language, field) {
+  const textByField = {
+    name: language === 'de'
+      ? 'Der Name wirkt zu kurz. Bitte geben Sie einen vollstaendigen Namen ein oder schreiben Sie "skip".'
+      : 'That name looks too short. Please enter a full name or type "skip".',
+    email: language === 'de'
+      ? 'Diese E-Mail-Adresse wirkt nicht vollstaendig. Bitte pruefen Sie sie einmal oder schreiben Sie "skip".'
+      : 'That email does not look complete. Please check it once or type "skip".',
+    company: language === 'de'
+      ? 'Bitte nennen Sie ein Unternehmen oder eine Universitaet, oder schreiben Sie "skip".'
+      : 'Please enter a company or university, or type "skip".',
+  };
+
+  return {
+    from: 'assistant',
+    text: textByField[field] || textByField.name,
+    suggestions: language === 'de' ? ['Skip'] : ['Skip for now'],
+    match: {
+      intentId: `lead-capture-${field}-retry`,
+      topic: 'leadCapture',
+      score: 100,
+    },
+  };
+}
+
+function getLeadSkippedMessage(language) {
+  return {
+    from: 'assistant',
+    text: language === 'de'
+      ? 'Kein Problem. Ich frage in dieser Sitzung nicht erneut. Sie koennen Sooraj jederzeit ueber die Kontaktsektion erreichen.'
+      : 'No problem. I will not ask again in this session. You can still contact Sooraj anytime from the contact section.',
+    suggestions: language === 'de'
+      ? ['Sooraj kontaktieren', 'Lebenslauf öffnen']
+      : ['Contact Sooraj', 'Open resume'],
+    match: {
+      intentId: 'lead-capture-skipped',
+      topic: 'leadCapture',
+      score: 100,
+    },
+  };
+}
+
+function getLeadSavedMessage(language, name) {
+  return {
+    from: 'assistant',
+    text: language === 'de'
+      ? `Danke, ${name}. Ich habe die Kontaktdaten fuer Soorajs Follow-up gespeichert.`
+      : `Thank you, ${name}. I saved the contact details for Sooraj’s follow-up.`,
+    suggestions: language === 'de'
+      ? ['KEBA-Workflow erklären', 'Projektbelege zeigen']
+      : ['Explain KEBA workflow', 'Show project evidence'],
+    match: {
+      intentId: 'lead-capture-saved',
+      topic: 'leadCapture',
+      score: 100,
+    },
+  };
 }
 
 function getLanguageSwitchConfirmation(targetLanguage, currentLanguage) {
@@ -221,9 +439,13 @@ export default function Chatbot() {
   const [isTyping, setIsTyping] = useState(false);
   const [pendingLanguageSwitch, setPendingLanguageSwitch] = useState('');
   const [pendingSpellingConfirmation, setPendingSpellingConfirmation] = useState(null);
+  const [leadState, setLeadState] = useState(() => loadStoredLeadState(getChatbotHistorySessionId()));
   const scrollRef = useRef(null);
   const typingTimer = useRef(null);
   const historySessionIdRef = useRef(getChatbotHistorySessionId());
+  const leadStateRef = useRef(leadState);
+  const isTypingRef = useRef(isTyping);
+  const promptLeadRef = useRef(null);
   const responseIdRef = useRef(0);
   const skipLanguageResetRef = useRef(false);
   const quickPrompts = useMemo(
@@ -253,6 +475,15 @@ export default function Chatbot() {
   useEffect(() => {
     saveStoredSession(language, messages);
   }, [language, messages]);
+
+  useEffect(() => {
+    leadStateRef.current = leadState;
+    saveStoredLeadState(historySessionIdRef.current, leadState);
+  }, [leadState]);
+
+  useEffect(() => {
+    isTypingRef.current = isTyping;
+  }, [isTyping]);
 
   useEffect(() => {
     if (!open || typeof window === 'undefined') return undefined;
@@ -296,12 +527,49 @@ export default function Chatbot() {
     if (!open) setInputFocused(false);
   }, [open]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    let inactivityTimer;
+    const resetInactivityTimer = () => {
+      window.clearTimeout(inactivityTimer);
+      inactivityTimer = window.setTimeout(() => {
+        promptLeadRef.current?.('inactivity');
+      }, LEAD_INACTIVITY_MS);
+    };
+
+    const handleExitIntent = (event) => {
+      if (event.clientY <= 8) {
+        promptLeadRef.current?.('exit-intent');
+      }
+    };
+
+    const activityEvents = ['pointerdown', 'keydown', 'scroll', 'touchstart'];
+    activityEvents.forEach((eventName) => {
+      window.addEventListener(eventName, resetInactivityTimer, { passive: true });
+    });
+    document.addEventListener('mouseleave', handleExitIntent);
+    resetInactivityTimer();
+
+    return () => {
+      window.clearTimeout(inactivityTimer);
+      activityEvents.forEach((eventName) => {
+        window.removeEventListener(eventName, resetInactivityTimer);
+      });
+      document.removeEventListener('mouseleave', handleExitIntent);
+    };
+  }, []);
+
   const resetChat = () => {
     window.clearTimeout(typingTimer.current);
     responseIdRef.current += 1;
     clearStoredSession();
+    clearStoredLeadState();
     clearChatbotHistorySessionId();
     historySessionIdRef.current = getChatbotHistorySessionId();
+    const nextLeadState = emptyLeadState();
+    leadStateRef.current = nextLeadState;
+    setLeadState(nextLeadState);
     setIsTyping(false);
     setPendingLanguageSwitch('');
     setPendingSpellingConfirmation(null);
@@ -367,9 +635,188 @@ export default function Chatbot() {
       });
   };
 
+  const canPromptForLead = () => {
+    const currentLead = leadStateRef.current || emptyLeadState();
+    if (currentLead.status !== 'idle') return false;
+    if (isTypingRef.current) return false;
+    return true;
+  };
+
+  const promptForLead = (source = 'chatbot') => {
+    if (!canPromptForLead()) return false;
+
+    const nextLeadState = {
+      ...emptyLeadState(),
+      status: 'asking-name',
+      source,
+      askedAt: new Date().toISOString(),
+    };
+
+    leadStateRef.current = nextLeadState;
+    setLeadState(nextLeadState);
+    setOpen(true);
+    queueAssistantMessage(getLeadIntroMessage(language, source));
+    return true;
+  };
+
+  promptLeadRef.current = promptForLead;
+
+  const skipLeadCapture = () => {
+    const nextLeadState = {
+      ...leadStateRef.current,
+      status: 'skipped',
+    };
+    leadStateRef.current = nextLeadState;
+    setLeadState(nextLeadState);
+    queueAssistantMessage(getLeadSkippedMessage(language));
+  };
+
+  const handleLeadCaptureInput = (trimmed) => {
+    const currentLead = leadStateRef.current || emptyLeadState();
+
+    if (isLeadSkip(trimmed) && currentLead.status !== 'asking-role') {
+      skipLeadCapture();
+      return true;
+    }
+
+    if (currentLead.status === 'asking-name') {
+      if (!isValidLeadName(trimmed)) {
+        queueAssistantMessage(getLeadRetryMessage(language, 'name'));
+        return true;
+      }
+
+      const nextLeadState = {
+        ...currentLead,
+        status: 'asking-email',
+        name: trimmed.slice(0, 120),
+      };
+      leadStateRef.current = nextLeadState;
+      setLeadState(nextLeadState);
+      queueAssistantMessage(getLeadAskEmailMessage(language, nextLeadState.name));
+      return true;
+    }
+
+    if (currentLead.status === 'asking-email') {
+      if (!isValidLeadEmail(trimmed)) {
+        queueAssistantMessage(getLeadRetryMessage(language, 'email'));
+        return true;
+      }
+
+      const nextLeadState = {
+        ...currentLead,
+        status: 'asking-company',
+        email: trimmed.toLowerCase().slice(0, 180),
+      };
+      leadStateRef.current = nextLeadState;
+      setLeadState(nextLeadState);
+      queueAssistantMessage(getLeadAskCompanyMessage(language));
+      return true;
+    }
+
+    if (currentLead.status === 'asking-company') {
+      if (!isValidLeadCompany(trimmed)) {
+        queueAssistantMessage(getLeadRetryMessage(language, 'company'));
+        return true;
+      }
+
+      const nextLeadState = {
+        ...currentLead,
+        status: 'asking-role',
+        companyOrUniversity: trimmed.slice(0, 180),
+      };
+      leadStateRef.current = nextLeadState;
+      setLeadState(nextLeadState);
+      queueAssistantMessage(getLeadAskRoleMessage(language));
+      return true;
+    }
+
+    if (currentLead.status === 'asking-role') {
+      const nextLeadState = {
+        ...currentLead,
+        status: 'confirming',
+        roleOrTitle: isLeadSkip(trimmed) ? '' : trimmed.slice(0, 160),
+      };
+      leadStateRef.current = nextLeadState;
+      setLeadState(nextLeadState);
+      queueAssistantMessage(getLeadConfirmMessage(language, nextLeadState));
+      return true;
+    }
+
+    if (currentLead.status === 'confirming') {
+      if (isConfirmYes(trimmed)) {
+        queueAssistantMessage(
+          async () => {
+            try {
+              await saveChatbotLead({
+                sessionId: historySessionIdRef.current,
+                name: currentLead.name,
+                email: currentLead.email,
+                companyOrUniversity: currentLead.companyOrUniversity,
+                roleOrTitle: currentLead.roleOrTitle,
+                source: currentLead.source || 'chatbot-lead-capture',
+              });
+              const savedLeadState = {
+                ...currentLead,
+                status: 'saved',
+                savedAt: new Date().toISOString(),
+              };
+              leadStateRef.current = savedLeadState;
+              setLeadState(savedLeadState);
+              return getLeadSavedMessage(language, currentLead.name);
+            } catch {
+              return {
+                from: 'assistant',
+                text: language === 'de'
+                  ? 'Ich konnte die Kontaktdaten gerade nicht speichern. Bitte nutzen Sie die Kontaktsektion oder versuchen Sie es spaeter erneut.'
+                  : 'I could not save the contact details right now. Please use the contact section or try again later.',
+                suggestions: language === 'de' ? ['Sooraj kontaktieren'] : ['Contact Sooraj'],
+                match: {
+                  intentId: 'lead-capture-save-failed',
+                  topic: 'leadCapture',
+                  score: 100,
+                },
+              };
+            }
+          },
+        );
+        return true;
+      }
+
+      if (isConfirmNo(trimmed)) {
+        const nextLeadState = {
+          ...emptyLeadState(),
+          status: 'asking-name',
+          source: currentLead.source || 'chatbot-lead-capture-edit',
+          askedAt: currentLead.askedAt || new Date().toISOString(),
+        };
+        leadStateRef.current = nextLeadState;
+        setLeadState(nextLeadState);
+        queueAssistantMessage({
+          ...getLeadIntroMessage(language, 'chatbot'),
+          text: language === 'de'
+            ? 'Kein Problem. Bitte geben Sie den Namen erneut ein, oder schreiben Sie "skip".'
+            : 'No problem. Please enter the name again, or type "skip".',
+        });
+        return true;
+      }
+
+      queueAssistantMessage({
+        from: 'assistant',
+        text: language === 'de'
+          ? 'Bitte bestaetigen Sie mit Ja oder Nein.'
+          : 'Please confirm with yes or no.',
+        suggestions: language === 'de' ? ['Ja', 'Nein'] : ['Yes', 'No'],
+      });
+      return true;
+    }
+
+    return false;
+  };
+
   const sendMessage = (text) => {
     const trimmed = text.trim();
     if (!trimmed) return;
+    const userMessageCount = messages.filter((message) => message.from === 'user').length + 1;
 
     setMessages((current) => [...current, { from: 'user', text: trimmed }]);
     recordChatbotMessage({
@@ -380,6 +827,10 @@ export default function Chatbot() {
       source: 'visitor-message',
     }).catch(() => null);
     setInput('');
+
+    if (activeLeadStatuses.has(leadStateRef.current?.status)) {
+      if (handleLeadCaptureInput(trimmed)) return;
+    }
 
     if (pendingSpellingConfirmation) {
       if (isConfirmYes(trimmed)) {
@@ -446,7 +897,14 @@ export default function Chatbot() {
     queueAssistantMessage(
       () => findHelpBotAnswer(trimmed, language)
         .then((answer) => buildAssistantMessage(answer, chatbotCopy.defaultSuggestions)),
-      (message) => setPendingSpellingConfirmation(message.confirmation || null),
+      (message) => {
+        setPendingSpellingConfirmation(message.confirmation || null);
+        if (userMessageCount >= LEAD_PROMPT_MESSAGE_THRESHOLD) {
+          window.setTimeout(() => {
+            promptLeadRef.current?.('continued-chat');
+          }, 420);
+        }
+      },
     );
   };
 
@@ -466,6 +924,12 @@ export default function Chatbot() {
 
   const blurInput = () => {
     window.setTimeout(() => setInputFocused(false), 120);
+  };
+
+  const closeChatbot = () => {
+    const hasVisitorMessages = messages.some((message) => message.from === 'user');
+    if (hasVisitorMessages && promptForLead('chat-close')) return;
+    setOpen(false);
   };
 
   return (
@@ -500,7 +964,7 @@ export default function Chatbot() {
                 <button type="button" className="focus-outline rounded-xl p-2 text-slate-300 hover:bg-white/10 hover:text-white" onClick={resetChat} aria-label={chatbotCopy.reset} title={chatbotCopy.reset}>
                   <RotateCcw size={17} />
                 </button>
-                <button type="button" className="focus-outline rounded-xl p-2 text-slate-300 hover:bg-white/10 hover:text-white" onClick={() => setOpen(false)} aria-label={chatbotCopy.close}>
+                <button type="button" className="focus-outline rounded-xl p-2 text-slate-300 hover:bg-white/10 hover:text-white" onClick={closeChatbot} aria-label={chatbotCopy.close}>
                   <X size={18} />
                 </button>
               </div>

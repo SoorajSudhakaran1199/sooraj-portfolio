@@ -151,6 +151,24 @@ function chatMessageTime(row = {}) {
   return Number.isNaN(timestamp) ? 0 : timestamp;
 }
 
+function normalizeChatLead(value) {
+  if (!value || typeof value !== 'object') return null;
+  const name = String(value.name || '').trim();
+  const email = String(value.email || '').trim();
+  const companyOrUniversity = String(value.company_or_university || value.companyOrUniversity || '').trim();
+  if (!name && !email && !companyOrUniversity) return null;
+
+  return {
+    id: value.id || '',
+    name,
+    email,
+    companyOrUniversity,
+    roleOrTitle: String(value.role_or_title || value.roleOrTitle || '').trim(),
+    note: String(value.note || '').trim(),
+    updatedAt: value.updated_at || value.updatedAt || value.created_at || '',
+  };
+}
+
 function latestSessionIdFromRows(rows = []) {
   const latest = rows
     .slice()
@@ -268,10 +286,13 @@ export default function PortfolioAdminPanel({ variant = 'nav' }) {
         lastTime: chatMessageTime(row),
         language: row.language || 'en',
         pageUrl: row.page_url || '',
+        lead: normalizeChatLead(row.lead),
       };
       const rowTime = chatMessageTime(row);
+      const rowLead = normalizeChatLead(row.lead);
 
       existing.messages.push(row);
+      if (!existing.lead && rowLead) existing.lead = rowLead;
       if (rowTime >= existing.lastTime) {
         existing.lastAt = row.created_at;
         existing.lastTime = rowTime;
@@ -293,6 +314,11 @@ export default function PortfolioAdminPanel({ variant = 'nav' }) {
       }))
       .sort((first, second) => second.lastTime - first.lastTime);
   }, [chatHistory]);
+
+  const collectedLeadCount = useMemo(
+    () => chatSessions.filter((chatSession) => chatSession.lead).length,
+    [chatSessions],
+  );
 
   const refreshChatHistory = useCallback(async () => {
     if (!session?.accessToken) return;
@@ -769,7 +795,7 @@ export default function PortfolioAdminPanel({ variant = 'nav' }) {
                       </div>
                       {!chatLoading && chatHistory.length > 0 && (
                         <p className="portfolio-admin-chat-summary">
-                          Showing {chatHistory.length} recorded messages grouped into {chatSessions.length} continuous chat {chatSessions.length === 1 ? 'session' : 'sessions'}.
+                          Showing {chatHistory.length} recorded messages grouped into {chatSessions.length} continuous chat {chatSessions.length === 1 ? 'session' : 'sessions'}. {collectedLeadCount} {collectedLeadCount === 1 ? 'session has' : 'sessions have'} collected contact details.
                         </p>
                       )}
                       {chatError && <p className="portfolio-admin-error">{chatError}</p>}
@@ -781,13 +807,14 @@ export default function PortfolioAdminPanel({ variant = 'nav' }) {
                         {chatSessions.map((chatSession) => {
                           const expanded = expandedChatSession === chatSession.id || chatSessions.length === 1;
                           const lastMessage = chatSession.messages[chatSession.messages.length - 1];
+                          const lead = chatSession.lead;
                           return (
                             <article key={chatSession.id} className="portfolio-admin-chat-session">
                               <div className="portfolio-admin-chat-session-header">
                                 <div>
-                                  <h4>Session {shortSessionId(chatSession.id)}</h4>
+                                  <h4>{lead?.name ? lead.name : `Session ${shortSessionId(chatSession.id)}`}</h4>
                                   <p>
-                                    {chatSession.messages.length} messages · {chatSession.language?.toUpperCase() || 'EN'} · Started: {formatAdminDate(chatSession.startedAt)} · Last: {formatAdminDate(chatSession.lastAt)}
+                                    {lead?.companyOrUniversity ? `${lead.companyOrUniversity} · ` : ''}{chatSession.messages.length} messages · {chatSession.language?.toUpperCase() || 'EN'} · Started: {formatAdminDate(chatSession.startedAt)} · Last: {formatAdminDate(chatSession.lastAt)}
                                   </p>
                                 </div>
                                 <div className="portfolio-admin-chat-actions">
@@ -803,6 +830,32 @@ export default function PortfolioAdminPanel({ variant = 'nav' }) {
                               {chatSession.pageUrl && (
                                 <p className="portfolio-admin-chat-page">{chatSession.pageUrl}</p>
                               )}
+                              <div className={`portfolio-admin-chat-lead ${lead ? 'has-lead' : 'is-empty'}`}>
+                                {lead ? (
+                                  <>
+                                    <div>
+                                      <span>Visitor</span>
+                                      <strong>{lead.name}</strong>
+                                    </div>
+                                    <div>
+                                      <span>Email</span>
+                                      <a href={`mailto:${lead.email}`}>{lead.email}</a>
+                                    </div>
+                                    <div>
+                                      <span>Company / University</span>
+                                      <strong>{lead.companyOrUniversity}</strong>
+                                    </div>
+                                    {lead.roleOrTitle && (
+                                      <div>
+                                        <span>Role / Title</span>
+                                        <strong>{lead.roleOrTitle}</strong>
+                                      </div>
+                                    )}
+                                  </>
+                                ) : (
+                                  <p>No contact details collected for this session.</p>
+                                )}
+                              </div>
                               {!expanded && lastMessage && (
                                 <p className="portfolio-admin-chat-preview">
                                   <strong>{lastMessage.role === 'user' ? 'Visitor' : 'Assistant'}:</strong> {lastMessage.message}

@@ -2447,6 +2447,61 @@ section {
   color: #cbd5e1;
 }
 
+.portfolio-admin-chat-lead {
+  display: grid;
+  gap: 0.7rem;
+  margin-top: 0.9rem;
+  border: 1px solid rgba(118, 215, 255, 0.2);
+  border-radius: 0.95rem;
+  background:
+    linear-gradient(135deg, rgba(55, 161, 255, 0.12), rgba(16, 185, 129, 0.07)),
+    rgba(255, 255, 255, 0.04);
+  padding: 0.85rem;
+}
+
+.portfolio-admin-chat-lead.has-lead {
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+}
+
+.portfolio-admin-chat-lead.is-empty {
+  border-color: rgba(148, 163, 184, 0.14);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.portfolio-admin-chat-lead div {
+  min-width: 0;
+}
+
+.portfolio-admin-chat-lead span {
+  display: block;
+  margin-bottom: 0.16rem;
+  color: #76d7ff;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.portfolio-admin-chat-lead strong,
+.portfolio-admin-chat-lead a {
+  display: block;
+  color: #e0f2fe;
+  font-size: 0.84rem;
+  font-weight: 850;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.portfolio-admin-chat-lead a:hover {
+  color: #ffffff;
+}
+
+.portfolio-admin-chat-lead p {
+  color: #94a3b8;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
 .portfolio-admin-chat-preview strong {
   color: #76d7ff;
 }
@@ -4307,6 +4362,7 @@ html.theme-light .recommendation-admin-seed {
 html.theme-light .portfolio-admin-chat-session,
 html.theme-light .portfolio-admin-chat-preview,
 html.theme-light .portfolio-admin-chat-message,
+html.theme-light .portfolio-admin-chat-lead,
 html.theme-light .portfolio-admin-chat-summary,
 html.theme-light .portfolio-admin-empty-state {
   border-color: rgba(28, 125, 255, 0.14);
@@ -4321,14 +4377,21 @@ html.theme-light .portfolio-admin-empty-state,
 html.theme-light .portfolio-admin-chat-session-header p,
 html.theme-light .portfolio-admin-chat-page,
 html.theme-light .portfolio-admin-chat-message span,
-html.theme-light .portfolio-admin-chat-message small {
+html.theme-light .portfolio-admin-chat-message small,
+html.theme-light .portfolio-admin-chat-lead p {
   color: #475569;
 }
 
 html.theme-light .portfolio-admin-chat-session-header h4,
 html.theme-light .portfolio-admin-chat-message strong,
-html.theme-light .portfolio-admin-chat-message p {
+html.theme-light .portfolio-admin-chat-message p,
+html.theme-light .portfolio-admin-chat-lead strong,
+html.theme-light .portfolio-admin-chat-lead a {
   color: #0f172a;
+}
+
+html.theme-light .portfolio-admin-chat-lead span {
+  color: #0478b9;
 }
 
 html.theme-light .portfolio-admin-chat-preview {

@@ -94,6 +94,39 @@ export async function recordChatbotMessage({
   return null;
 }
 
+export async function saveChatbotLead({
+  sessionId,
+  name,
+  email,
+  companyOrUniversity,
+  roleOrTitle = '',
+  note = '',
+  source = 'chatbot-lead-capture',
+} = {}) {
+  if (typeof window === 'undefined') return null;
+
+  const response = await fetch(`${SUPABASE_REST_URL}/rpc/submit_portfolio_chatbot_lead`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({
+      lead_session_id: cleanText(sessionId || getChatbotHistorySessionId(), 140),
+      lead_name: cleanText(name, 120),
+      lead_email: cleanText(email, 180).toLowerCase(),
+      lead_company_or_university: cleanText(companyOrUniversity, 180),
+      lead_role_or_title: cleanText(roleOrTitle, 160) || null,
+      lead_note: cleanText(note, 1000) || null,
+      lead_page_url: cleanText(window.location?.href, 700) || null,
+      lead_user_agent: cleanText(window.navigator?.userAgent, 700) || null,
+      lead_metadata: {
+        source,
+        submittedAtClient: new Date().toISOString(),
+      },
+    }),
+  });
+
+  return parseResponse(response);
+}
+
 export async function fetchChatbotHistory(token, limit = 1000) {
   try {
     const rpcResponse = await fetch(`${SUPABASE_REST_URL}/rpc/get_portfolio_chatbot_history`, {
