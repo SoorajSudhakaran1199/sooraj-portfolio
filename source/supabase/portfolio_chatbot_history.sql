@@ -39,6 +39,42 @@ create unique index if not exists portfolio_chatbot_leads_session_uidx
 create index if not exists portfolio_chatbot_leads_created_idx
   on public.portfolio_chatbot_leads (created_at desc);
 
+create or replace function public.is_portfolio_admin()
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  allowed_emails text[] := array[
+    'soorajsudhakaran1199@gmail.com',
+    'soorajsudhakaran4@gmail.com'
+  ];
+  jwt_email text := lower(coalesce(auth.jwt() ->> 'email', ''));
+  user_email text := '';
+begin
+  if jwt_email = any(allowed_emails) then
+    return true;
+  end if;
+
+  if auth.uid() is not null then
+    select lower(users.email)
+      into user_email
+      from auth.users as users
+      where users.id = auth.uid()
+      limit 1;
+
+    if user_email = any(allowed_emails) then
+      return true;
+    end if;
+  end if;
+
+  return false;
+end;
+$$;
+
+grant execute on function public.is_portfolio_admin() to authenticated;
+
 alter table public.portfolio_chatbot_history enable row level security;
 alter table public.portfolio_chatbot_leads enable row level security;
 
@@ -63,48 +99,28 @@ create policy "Admin can read chatbot history"
   on public.portfolio_chatbot_history
   for select
   to authenticated
-  using (
-    lower(coalesce(auth.jwt() ->> 'email', '')) in (
-      'soorajsudhakaran1199@gmail.com',
-      'soorajsudhakaran4@gmail.com'
-    )
-  );
+  using (public.is_portfolio_admin());
 
 drop policy if exists "Admin can delete chatbot history" on public.portfolio_chatbot_history;
 create policy "Admin can delete chatbot history"
   on public.portfolio_chatbot_history
   for delete
   to authenticated
-  using (
-    lower(coalesce(auth.jwt() ->> 'email', '')) in (
-      'soorajsudhakaran1199@gmail.com',
-      'soorajsudhakaran4@gmail.com'
-    )
-  );
+  using (public.is_portfolio_admin());
 
 drop policy if exists "Admin can read chatbot leads" on public.portfolio_chatbot_leads;
 create policy "Admin can read chatbot leads"
   on public.portfolio_chatbot_leads
   for select
   to authenticated
-  using (
-    lower(coalesce(auth.jwt() ->> 'email', '')) in (
-      'soorajsudhakaran1199@gmail.com',
-      'soorajsudhakaran4@gmail.com'
-    )
-  );
+  using (public.is_portfolio_admin());
 
 drop policy if exists "Admin can delete chatbot leads" on public.portfolio_chatbot_leads;
 create policy "Admin can delete chatbot leads"
   on public.portfolio_chatbot_leads
   for delete
   to authenticated
-  using (
-    lower(coalesce(auth.jwt() ->> 'email', '')) in (
-      'soorajsudhakaran1199@gmail.com',
-      'soorajsudhakaran4@gmail.com'
-    )
-  );
+  using (public.is_portfolio_admin());
 
 drop function if exists public.submit_portfolio_chatbot_lead(text, text, text, text, text, text, text, text, jsonb);
 
@@ -209,10 +225,16 @@ returns table (
   lead jsonb,
   created_at timestamptz
 )
-language sql
+language plpgsql
 security definer
 set search_path = public
 as $$
+begin
+  if not public.is_portfolio_admin() then
+    raise exception 'Not authorized to read chatbot history for this admin account.';
+  end if;
+
+  return query
   select
     history.id,
     history.session_id,
@@ -245,12 +267,9 @@ as $$
   from public.portfolio_chatbot_history as history
   left join public.portfolio_chatbot_leads as lead
     on lead.session_id = history.session_id
-  where lower(coalesce(auth.jwt() ->> 'email', '')) in (
-    'soorajsudhakaran1199@gmail.com',
-    'soorajsudhakaran4@gmail.com'
-  )
   order by history.created_at desc
   limit least(greatest(coalesce(max_rows, 1000), 1), 5000);
+end;
 $$;
 
 grant execute on function public.get_portfolio_chatbot_history(integer) to authenticated;
@@ -264,10 +283,7 @@ as $$
 declare
   deleted_count integer;
 begin
-  if lower(coalesce(auth.jwt() ->> 'email', '')) not in (
-    'soorajsudhakaran1199@gmail.com',
-    'soorajsudhakaran4@gmail.com'
-  ) then
+  if not public.is_portfolio_admin() then
     raise exception 'Not authorized to delete chatbot history';
   end if;
 

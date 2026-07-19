@@ -659,6 +659,19 @@ export default function Chatbot() {
   }, []);
 
   const resetChat = () => {
+    const previousHistorySessionId = historySessionIdRef.current;
+    recordChatbotMessage({
+      sessionId: previousHistorySessionId,
+      language,
+      role: 'assistant',
+      text: 'Visitor reset the chatbot conversation.',
+      match: {
+        intentId: 'chat-reset',
+        topic: 'chatLifecycle',
+        score: 100,
+      },
+      source: 'chat-reset',
+    }).catch(() => null);
     window.clearTimeout(typingTimer.current);
     responseIdRef.current += 1;
     clearStoredSession();

@@ -151,6 +151,11 @@ function chatMessageTime(row = {}) {
   return Number.isNaN(timestamp) ? 0 : timestamp;
 }
 
+function chatVisitorId(row = {}) {
+  const metadata = row.metadata && typeof row.metadata === 'object' ? row.metadata : {};
+  return String(metadata.visitorId || metadata.visitor_id || '').trim();
+}
+
 function normalizeChatLead(value) {
   if (!value || typeof value !== 'object') return null;
   const name = String(value.name || '').trim();
@@ -287,12 +292,15 @@ export default function PortfolioAdminPanel({ variant = 'nav' }) {
         language: row.language || 'en',
         pageUrl: row.page_url || '',
         lead: normalizeChatLead(row.lead),
+        visitorId: chatVisitorId(row),
       };
       const rowTime = chatMessageTime(row);
       const rowLead = normalizeChatLead(row.lead);
+      const rowVisitorId = chatVisitorId(row);
 
       existing.messages.push(row);
       if (!existing.lead && rowLead) existing.lead = rowLead;
+      if (!existing.visitorId && rowVisitorId) existing.visitorId = rowVisitorId;
       if (rowTime >= existing.lastTime) {
         existing.lastAt = row.created_at;
         existing.lastTime = rowTime;
@@ -801,7 +809,7 @@ export default function PortfolioAdminPanel({ variant = 'nav' }) {
                       {chatError && <p className="portfolio-admin-error">{chatError}</p>}
                       {!chatError && chatLoading && <p className="portfolio-admin-success">Loading chatbot history...</p>}
                       {!chatLoading && chatSessions.length === 0 && (
-                        <p className="portfolio-admin-empty-state">No chatbot history records are visible to this admin session yet. If rows exist in Supabase but not here, run the latest <code>source/supabase/portfolio_chatbot_history.sql</code> so the admin read policy and grants are updated.</p>
+                        <p className="portfolio-admin-empty-state">No chatbot history records are visible to this admin session yet. If rows exist in Supabase but not here, run the latest <code>source/supabase/portfolio_chatbot_history.sql</code> and sign in with an allowed admin email: <code>soorajsudhakaran1199@gmail.com</code> or <code>soorajsudhakaran4@gmail.com</code>.</p>
                       )}
                       <div className="portfolio-admin-chat-list">
                         {chatSessions.map((chatSession) => {
@@ -814,7 +822,7 @@ export default function PortfolioAdminPanel({ variant = 'nav' }) {
                                 <div>
                                   <h4>{lead?.name ? lead.name : `Session ${shortSessionId(chatSession.id)}`}</h4>
                                   <p>
-                                    {lead?.companyOrUniversity ? `${lead.companyOrUniversity} · ` : ''}{chatSession.messages.length} messages · {chatSession.language?.toUpperCase() || 'EN'} · Started: {formatAdminDate(chatSession.startedAt)} · Last: {formatAdminDate(chatSession.lastAt)}
+                                    {lead?.companyOrUniversity ? `${lead.companyOrUniversity} · ` : ''}{chatSession.visitorId ? `Visitor ${shortSessionId(chatSession.visitorId)} · ` : ''}{chatSession.messages.length} messages · {chatSession.language?.toUpperCase() || 'EN'} · Started: {formatAdminDate(chatSession.startedAt)} · Last: {formatAdminDate(chatSession.lastAt)}
                                   </p>
                                 </div>
                                 <div className="portfolio-admin-chat-actions">

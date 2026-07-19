@@ -1180,8 +1180,8 @@ const casualEntryData = [
     prompts: ['is website secure', 'security of website', 'safe to use', 'is chat safe', 'safe contact'],
     keywords: ['website secure', 'security', 'safe to use', 'chat safe'],
     response: {
-      en: 'The chatbot is designed to avoid confidential answers and stores chat locally in your browser. Still, do not enter secrets or private IDs here.',
-      de: 'Der Chatbot vermeidet vertrauliche Antworten und speichert Chat lokal im Browser. Geben Sie trotzdem keine Secrets oder privaten IDs ein.',
+      en: 'The chatbot is designed to avoid confidential answers. Chat messages may be stored for portfolio review and improvement, and a local browser copy is used for follow-up continuity. Do not enter secrets or private IDs here.',
+      de: 'Der Chatbot vermeidet vertrauliche Antworten. Chatnachrichten koennen fuer Portfolio-Pruefung und Verbesserung gespeichert werden; eine lokale Browserkopie wird fuer Follow-up-Kontinuitaet genutzt. Bitte keine Secrets oder privaten IDs eingeben.',
     },
     suggestions: safetySuggestions,
   },

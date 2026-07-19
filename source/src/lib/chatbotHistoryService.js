@@ -3,6 +3,7 @@ const SUPABASE_REST_URL = `${SUPABASE_URL}/rest/v1`;
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_LC3P3UNYF3lr-5MIP2pA6Q_T6m4Tjn6';
 const CHATBOT_HISTORY_TABLE = 'portfolio_chatbot_history';
 const CHATBOT_HISTORY_SESSION_KEY = 'portfolio-help-bot-history-session-v1';
+const CHATBOT_HISTORY_VISITOR_KEY = 'portfolio-help-bot-visitor-v1';
 
 function getHeaders(token = '') {
   return {
@@ -50,6 +51,15 @@ export function getChatbotHistorySessionId() {
   return next;
 }
 
+export function getChatbotHistoryVisitorId() {
+  if (typeof window === 'undefined') return createClientId();
+  const existing = window.localStorage.getItem(CHATBOT_HISTORY_VISITOR_KEY);
+  if (existing) return existing;
+  const next = createClientId();
+  window.localStorage.setItem(CHATBOT_HISTORY_VISITOR_KEY, next);
+  return next;
+}
+
 export function clearChatbotHistorySessionId() {
   if (typeof window === 'undefined') return;
   window.localStorage.removeItem(CHATBOT_HISTORY_SESSION_KEY);
@@ -77,6 +87,7 @@ export async function recordChatbotMessage({
     user_agent: cleanText(window.navigator?.userAgent, 700) || null,
     metadata: {
       source,
+      visitorId: getChatbotHistoryVisitorId(),
       score: Number.isFinite(match?.score) ? Math.round(match.score) : null,
       recordedAtClient: new Date().toISOString(),
     },
@@ -127,7 +138,7 @@ export async function saveChatbotLead({
   return parseResponse(response);
 }
 
-export async function fetchChatbotHistory(token, limit = 1000) {
+export async function fetchChatbotHistory(token, limit = 5000) {
   try {
     const rpcResponse = await fetch(`${SUPABASE_REST_URL}/rpc/get_portfolio_chatbot_history`, {
       method: 'POST',
